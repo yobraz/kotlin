@@ -18,6 +18,7 @@ sourceSets {
     main {
         java {
             srcDir "${rootDir}/core/builtins/src"
+            exclude 'kotlin/CompileTimeAnnotations.kt'
             srcDir 'runtime'
             srcDir 'src'
         }
