@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.library.KotlinLibrary
 import org.jetbrains.kotlin.load.java.descriptors.JavaCallableMemberDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaClassDescriptor
 import org.jetbrains.kotlin.load.java.lazy.descriptors.LazyJavaPackageFragment
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
 @OptIn(ObsoleteDescriptorBasedAPI::class)
@@ -40,6 +41,8 @@ class JvmIrLinker(
     private val stubGenerator: DeclarationStubGenerator,
     private val manglerDesc: JvmDescriptorMangler
 ) : KotlinIrLinker(currentModule, messageLogger, typeSystem.irBuiltIns, symbolTable, emptyList()) {
+
+    var deserializerForCompileTime: KlibModuleDeserializer? = null
 
     override val fakeOverrideBuilder = FakeOverrideBuilder(this, symbolTable, JvmIrMangler, typeSystem)
 
@@ -56,6 +59,10 @@ class JvmIrLinker(
         }
 
         return MetadataJVMModuleDeserializer(moduleDescriptor, emptyList())
+    }
+
+    fun addDeserializerForCompileTimeDeclarations(moduleDescriptor: ModuleDescriptor, klib: KotlinLibrary) {
+        deserializerForCompileTime = KlibModuleDeserializer(this, moduleDescriptor, klib, stubGenerator).apply { init() }
     }
 
     private inner class JvmModuleDeserializer(moduleDescriptor: ModuleDescriptor, klib: IrLibrary, libraryAbiVersion: KotlinAbiVersion, strategy: DeserializationStrategy) :
@@ -156,6 +163,9 @@ class JvmIrLinker(
                 declareJavaFieldStub(symbol)
             } else {
                 stubGenerator.generateMemberStub(symbol.descriptor)
+                if (symbol.descriptor.annotations.hasAnnotation(FqName("kotlin.CompileTimeCalculation"))) {
+                    deserializerForCompileTime?.declare(symbol)
+                }
             }
         }
 
