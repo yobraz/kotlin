@@ -313,6 +313,14 @@ private fun codegenPhase(generateMultifileFacade: Boolean): NamedCompilerPhase<J
     )
 }
 
+val compileTimeEvaluationPhase = makeIrModulePhase(
+    ::CompileTimeCalculationLowering,
+    name = "CompileTimeEvaluation",
+    //TODO change annotation to modifier
+    description = "Evaluate calls that are marked with @CompileTimeCalculation annotation",
+    prerequisite = setOf(expectDeclarationsRemovingPhase)
+)
+
 private val jvmFilePhases = listOf(
     typeAliasAnnotationMethodsPhase,
     stripTypeAliasDeclarationsPhase,
@@ -430,6 +438,7 @@ private val jvmLoweringPhases = NamedCompilerPhase(
     lower = validateIrBeforeLowering then
             processOptionalAnnotationsPhase then
             expectDeclarationsRemovingPhase then
+            compileTimeEvaluationPhase then
             serializeIrPhase then
             scriptsToClassesPhase then
             fileClassPhase then
