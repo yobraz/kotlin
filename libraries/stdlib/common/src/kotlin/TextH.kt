@@ -5,6 +5,7 @@
 
 package kotlin.text
 
+@CompileTimeCalculation
 expect class Regex {
     constructor(pattern: String)
     constructor(pattern: String, option: RegexOption)
@@ -86,12 +87,16 @@ expect class Regex {
     public fun splitToSequence(input: CharSequence, limit: Int = 0): Sequence<String>
 
     companion object {
+        @CompileTimeCalculation
         fun fromLiteral(literal: String): Regex
+        @CompileTimeCalculation
         fun escape(literal: String): String
+        @CompileTimeCalculation
         fun escapeReplacement(literal: String): String
     }
 }
 
+@CompileTimeCalculation
 expect class MatchGroup {
     val value: String
 }
@@ -244,7 +249,7 @@ public expect fun CharSequence.repeat(n: Int): String
 
 /**
  * Returns a new string with all occurrences of [oldChar] replaced with [newChar].
- * 
+ *
  * @sample samples.text.Strings.replace
  */
 expect fun String.replace(oldChar: Char, newChar: Char, ignoreCase: Boolean = false): String
