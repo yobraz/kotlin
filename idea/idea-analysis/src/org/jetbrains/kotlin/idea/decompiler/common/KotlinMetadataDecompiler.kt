@@ -111,10 +111,22 @@ sealed class FileWithMetadata {
     open class Compatible(
         val proto: ProtoBuf.PackageFragment,
         val version: BinaryVersion,
-        serializerProtocol: SerializerExtensionProtocol
+        packageFqName: (ProtoBuf.PackageFragment, NameResolverImpl) -> FqName
     ) : FileWithMetadata() {
+        constructor(
+            proto: ProtoBuf.PackageFragment,
+            version: BinaryVersion,
+            serializerProtocol: SerializerExtensionProtocol
+        ) : this(
+            proto,
+            version,
+            { proto, nameResolver ->
+                FqName(nameResolver.getPackageFqName(proto.`package`.getExtension(serializerProtocol.packageFqName)))
+            }
+        )
+
         val nameResolver = NameResolverImpl(proto.strings, proto.qualifiedNames)
-        val packageFqName = FqName(nameResolver.getPackageFqName(proto.`package`.getExtension(serializerProtocol.packageFqName)))
+        val packageFqName = packageFqName(proto, nameResolver)
 
         open val classesToDecompile: List<ProtoBuf.Class> =
             proto.class_List.filter { proto ->

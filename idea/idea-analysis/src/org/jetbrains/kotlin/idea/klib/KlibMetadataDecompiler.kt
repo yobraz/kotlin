@@ -11,6 +11,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.compiled.ClassFileDecompilers
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.decompiler.KotlinDecompiledFileViewProvider
+import org.jetbrains.kotlin.idea.decompiler.common.FileWithMetadata
 import org.jetbrains.kotlin.idea.decompiler.common.createIncompatibleAbiVersionDecompiledText
 import org.jetbrains.kotlin.idea.decompiler.textBuilder.DecompiledText
 import org.jetbrains.kotlin.idea.decompiler.textBuilder.buildDecompiledText
@@ -18,11 +19,9 @@ import org.jetbrains.kotlin.idea.decompiler.textBuilder.defaultDecompilerRendere
 import org.jetbrains.kotlin.library.metadata.KlibMetadataProtoBuf
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.deserialization.BinaryVersion
-import org.jetbrains.kotlin.metadata.deserialization.NameResolverImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.serialization.SerializerExtensionProtocol
-import org.jetbrains.kotlin.serialization.deserialization.ClassDeserializer
 import org.jetbrains.kotlin.serialization.deserialization.FlexibleTypeDeserializer
 import org.jetbrains.kotlin.serialization.deserialization.getClassId
 import org.jetbrains.kotlin.utils.addIfNotNull
@@ -93,20 +92,10 @@ abstract class KlibMetadataDecompiler<out V : BinaryVersion>(
     }
 }
 
-sealed class FileWithMetadata {
-    class Incompatible(val version: BinaryVersion) : FileWithMetadata()
-
-    open class Compatible(val proto: ProtoBuf.PackageFragment) : FileWithMetadata() {
-        val nameResolver = NameResolverImpl(proto.strings, proto.qualifiedNames)
-        val packageFqName = FqName(proto.getExtension(KlibMetadataProtoBuf.fqName))
-
-        open val classesToDecompile: List<ProtoBuf.Class> =
-            proto.class_List.filter { proto ->
-                val classId = nameResolver.getClassId(proto.fqName)
-                !classId.isNestedClass && classId !in ClassDeserializer.BLACK_LIST
-            }
-    }
-}
+class KlibMetadataFragmentFile(
+    proto: ProtoBuf.PackageFragment,
+    version: BinaryVersion
+) : FileWithMetadata.Compatible(proto, version, { proto, _ -> FqName(proto.getExtension(KlibMetadataProtoBuf.fqName)) })
 
 //todo: this function is extracted for KotlinNativeMetadataStubBuilder, that's the difference from Big Kotlin.
 fun decompiledText(

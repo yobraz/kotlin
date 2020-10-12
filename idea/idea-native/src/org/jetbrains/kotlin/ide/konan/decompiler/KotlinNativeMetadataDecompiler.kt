@@ -7,12 +7,13 @@ package org.jetbrains.kotlin.ide.konan.decompiler
 
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.backend.common.serialization.metadata.KlibMetadataVersion
-import org.jetbrains.kotlin.idea.klib.FileWithMetadata
+import org.jetbrains.kotlin.idea.decompiler.common.FileWithMetadata
 import org.jetbrains.kotlin.idea.klib.KlibLoadingMetadataCache
 import org.jetbrains.kotlin.idea.klib.KlibLoadingMetadataCache.CachedPackageFragment.Incompatible
 import org.jetbrains.kotlin.idea.klib.KlibLoadingMetadataCache.CachedPackageFragment.Compatible
 import org.jetbrains.kotlin.idea.klib.KlibMetaFileType
 import org.jetbrains.kotlin.idea.klib.KlibMetadataDecompiler
+import org.jetbrains.kotlin.idea.klib.KlibMetadataFragmentFile
 import org.jetbrains.kotlin.library.metadata.KlibMetadataSerializerProtocol
 import org.jetbrains.kotlin.serialization.js.DynamicTypeDeserializer
 
@@ -27,7 +28,7 @@ class KotlinNativeMetadataDecompiler : KlibMetadataDecompiler<KlibMetadataVersio
     override fun doReadFile(file: VirtualFile): FileWithMetadata? {
         return when (val cachedPackageFragment = KlibLoadingMetadataCache.getInstance().getCachedPackageFragment(file)) {
             is Incompatible -> FileWithMetadata.Incompatible(cachedPackageFragment.metadataVersion)
-            is Compatible -> FileWithMetadata.Compatible(cachedPackageFragment.proto)
+            is Compatible -> KlibMetadataFragmentFile(cachedPackageFragment.proto, cachedPackageFragment.metadataVersion)
             null -> null
         }
     }
