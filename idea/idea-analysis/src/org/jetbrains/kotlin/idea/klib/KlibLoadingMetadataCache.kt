@@ -36,20 +36,24 @@ class KlibLoadingMetadataCache {
     // ConcurrentWeakValueHashMap does not allow null values.
     private class CacheValue<T : Any>(val value: T?)
 
-    private val packageFragmentCache = ContainerUtil.createConcurrentWeakValueMap<CacheKey, CacheValue<ProtoBuf.PackageFragment>>()
+    private val packageFragmentCache = ContainerUtil.createConcurrentWeakValueMap<CacheKey, CachedPackageFragment>()
     private val moduleHeaderCache = ContainerUtil.createConcurrentWeakValueMap<CacheKey, CacheValue<KlibMetadataProtoBuf.Header>>()
     private val libraryMetadataVersionCache = ContainerUtil.createConcurrentWeakValueMap<CacheKey, CacheValue<KlibMetadataVersion>>()
 
-    fun getCachedPackageFragment(packageFragmentFile: VirtualFile): ProtoBuf.PackageFragment? {
+    sealed class CachedPackageFragment(val metadataVersion: KlibMetadataVersion) {
+        class Incompatible(metadataVersion: KlibMetadataVersion) : CachedPackageFragment(metadataVersion)
+        class Compatible(metadataVersion: KlibMetadataVersion, val proto: ProtoBuf.PackageFragment) : CachedPackageFragment(metadataVersion)
+    }
+
+    // returns null if there is no such package fragment
+    fun getCachedPackageFragment(packageFragmentFile: VirtualFile): CachedPackageFragment? {
         check(packageFragmentFile.extension == KLIB_METADATA_FILE_EXTENSION) {
             "Not a package metadata file: $packageFragmentFile"
         }
 
-        return packageFragmentCache.computeIfAbsent(
-            CacheKey(packageFragmentFile)
-        ) {
-            CacheValue(computePackageFragment(packageFragmentFile))
-        }.value
+        return packageFragmentCache.computeIfAbsent(CacheKey(packageFragmentFile)) {
+            computePackageFragment(packageFragmentFile)
+        }
     }
 
     fun getCachedModuleHeader(moduleHeaderFile: VirtualFile): KlibMetadataProtoBuf.Header? {
@@ -64,31 +68,34 @@ class KlibLoadingMetadataCache {
         }.value
     }
 
-    private fun isMetadataCompatible(libraryRoot: VirtualFile): Boolean {
-        val manifestFile = libraryRoot.findChild(KLIB_MANIFEST_FILE_NAME) ?: return false
+    private fun getCachedMetadataVersion(libraryRoot: VirtualFile): KlibMetadataVersion? {
+        val manifestFile = libraryRoot.findChild(KLIB_MANIFEST_FILE_NAME) ?: return null
 
-        val metadataVersion = libraryMetadataVersionCache.computeIfAbsent(
+        return libraryMetadataVersionCache.computeIfAbsent(
             CacheKey(manifestFile)
         ) {
             CacheValue(computeLibraryMetadataVersion(manifestFile))
-        }.value ?: return false
-
-        return metadataVersion.isCompatible()
+        }.value
     }
 
-    private fun computePackageFragment(packageFragmentFile: VirtualFile): ProtoBuf.PackageFragment? {
-        if (!isMetadataCompatible(packageFragmentFile.parent.parent.parent))
-            return null
+    private fun computePackageFragment(packageFragmentFile: VirtualFile): CachedPackageFragment? {
+        val metadataVersion = getCachedMetadataVersion(packageFragmentFile.parent.parent.parent) ?: return null
+
+        if (!metadataVersion.isCompatible())
+            return CachedPackageFragment.Incompatible(metadataVersion)
 
         return try {
-            parsePackageFragment(packageFragmentFile.contentsToByteArray(false))
+            CachedPackageFragment.Compatible(
+                metadataVersion,
+                parsePackageFragment(packageFragmentFile.contentsToByteArray(false))
+            )
         } catch (_: IOException) {
             null
         }
     }
 
     private fun computeModuleHeader(moduleHeaderFile: VirtualFile): KlibMetadataProtoBuf.Header? {
-        if (!isMetadataCompatible(moduleHeaderFile.parent.parent))
+        if (getCachedMetadataVersion(moduleHeaderFile.parent.parent)?.isCompatible() != true)
             return null
 
         return try {
@@ -111,8 +118,7 @@ class KlibLoadingMetadataCache {
 
     companion object {
         @JvmStatic
-        fun getInstance(): KlibLoadingMetadataCache =
-            ApplicationManager.getApplication().getService(KlibLoadingMetadataCache::class.java)
+        fun getInstance(): KlibLoadingMetadataCache = ApplicationManager.getApplication().getService(KlibLoadingMetadataCache::class.java)
     }
 
 }

@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.idea.decompiler.builtIns.BuiltInDefinitionFile
 import org.jetbrains.kotlin.idea.decompiler.builtIns.KotlinBuiltInFileType
 import org.jetbrains.kotlin.idea.decompiler.js.KotlinJavaScriptMetaFileType
 import org.jetbrains.kotlin.idea.klib.KlibLoadingMetadataCache
+import org.jetbrains.kotlin.idea.klib.KlibLoadingMetadataCache.CachedPackageFragment.Compatible
 import org.jetbrains.kotlin.idea.klib.KlibMetaFileType
 import org.jetbrains.kotlin.library.metadata.KlibMetadataProtoBuf
 import org.jetbrains.kotlin.metadata.js.JsProtoBuf
@@ -146,8 +147,7 @@ object KlibMetaFileIndex : KotlinFileIndexBase<KlibMetaFileIndex>(KlibMetaFileIn
 
     override fun getIndexer() = INDEXER
 
-    override fun getInputFilter() = FileBasedIndex.InputFilter { it.fileType === KlibMetaFileType
-    }
+    override fun getInputFilter() = FileBasedIndex.InputFilter { it.fileType === KlibMetaFileType }
 
     override fun getVersion() = VERSION
 
@@ -156,14 +156,10 @@ object KlibMetaFileIndex : KotlinFileIndexBase<KlibMetaFileIndex>(KlibMetaFileIn
 
     private const val VERSION = 4
 
-    /*todo: check version?!*/
     private val INDEXER = indexer { fileContent ->
-        val fragment = KlibLoadingMetadataCache
-            .getInstance().getCachedPackageFragment(fileContent.file)
-        if (fragment != null)
-            FqName(fragment.getExtension(KlibMetadataProtoBuf.fqName))
-        else
-            null
+        val cachedPackageFragment = KlibLoadingMetadataCache.getInstance().getCachedPackageFragment(fileContent.file)
+        val proto = (cachedPackageFragment as? Compatible)?.proto ?: return@indexer null
+        FqName(proto.getExtension(KlibMetadataProtoBuf.fqName))
     }
 }
 

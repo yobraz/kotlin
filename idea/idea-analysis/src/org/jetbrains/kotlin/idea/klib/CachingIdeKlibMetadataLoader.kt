@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.idea.klib
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.PathUtil
+import org.jetbrains.kotlin.idea.klib.KlibLoadingMetadataCache.CachedPackageFragment.Compatible
 import org.jetbrains.kotlin.konan.file.File as KFile
 import org.jetbrains.kotlin.library.KotlinLibrary
 import org.jetbrains.kotlin.library.impl.KotlinLibraryImpl
@@ -23,7 +24,8 @@ object CachingIdeKlibMetadataLoader : PackageAccessHandler {
 
     override fun loadPackageFragment(library: KotlinLibrary, packageFqName: String, partName: String): ProtoBuf.PackageFragment {
         val virtualFile = getVirtualFile(library, library.packageFragmentFile(packageFqName, partName))
-        return virtualFile?.let { cache.getCachedPackageFragment(virtualFile) } ?: ProtoBuf.PackageFragment.getDefaultInstance()
+        return virtualFile?.let { (cache.getCachedPackageFragment(virtualFile) as? Compatible)?.proto }
+            ?: ProtoBuf.PackageFragment.getDefaultInstance()
     }
 
     private fun getVirtualFile(library: KotlinLibrary, file: KFile): VirtualFile? =
