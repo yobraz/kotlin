@@ -106,7 +106,7 @@ fun decompiledText(
 ): DecompiledText {
     val packageFqName = file.packageFqName
     val resolver = KlibMetadataDeserializerForDecompiler(
-        packageFqName, file.proto, file.nameResolver,
+        packageFqName, file.proto, file.nameResolver, file.version,
         serializerProtocol, flexibleTypeDeserializer
     )
     val declarations = arrayListOf<DeclarationDescriptor>()

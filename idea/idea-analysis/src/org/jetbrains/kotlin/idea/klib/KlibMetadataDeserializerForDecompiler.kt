@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.idea.decompiler.textBuilder.ResolveEverythingToKotli
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.library.metadata.KlibMetadataClassDataFinder
 import org.jetbrains.kotlin.metadata.ProtoBuf
+import org.jetbrains.kotlin.metadata.deserialization.BinaryVersion
 import org.jetbrains.kotlin.metadata.deserialization.NameResolver
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.sam.SamConversionResolverImpl
@@ -28,6 +29,7 @@ class KlibMetadataDeserializerForDecompiler(
     packageFqName: FqName,
     private val proto: ProtoBuf.PackageFragment,
     private val nameResolver: NameResolver,
+    private val metadataVersion: BinaryVersion,
     serializerProtocol: SerializerExtensionProtocol,
     flexibleTypeDeserializer: FlexibleTypeDeserializer
 ) : DeserializerForDecompilerBase(packageFqName) {
@@ -40,7 +42,7 @@ class KlibMetadataDeserializerForDecompiler(
 
         deserializationComponents = DeserializationComponents(
             storageManager, moduleDescriptor, DeserializationConfiguration.Default,
-            KlibMetadataClassDataFinder(proto, nameResolver),
+            KlibMetadataClassDataFinder(proto, metadataVersion, nameResolver),
             AnnotationAndConstantLoaderImpl(moduleDescriptor, notFoundClasses, serializerProtocol), packageFragmentProvider,
             ResolveEverythingToKotlinAnyLocalClassifierResolver(builtIns), LoggingErrorReporter(LOG),
             LookupTracker.DO_NOTHING, flexibleTypeDeserializer, emptyList(), notFoundClasses, ContractDeserializer.DEFAULT,
@@ -58,7 +60,7 @@ class KlibMetadataDeserializerForDecompiler(
             createDummyPackageFragment(facadeFqName),
             proto.`package`,
             nameResolver,
-            KlibMetadataVersion.INSTANCE,
+            metadataVersion,
             containerSource = null,
             components = deserializationComponents
         ) { emptyList() }

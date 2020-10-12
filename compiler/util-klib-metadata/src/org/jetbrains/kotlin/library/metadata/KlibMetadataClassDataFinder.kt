@@ -5,9 +5,9 @@
 
 package org.jetbrains.kotlin.library.metadata
 
-import org.jetbrains.kotlin.backend.common.serialization.metadata.KlibMetadataVersion
 import org.jetbrains.kotlin.descriptors.SourceElement
-import org.jetbrains.kotlin.metadata.ProtoBuf.PackageFragment
+import org.jetbrains.kotlin.metadata.ProtoBuf
+import org.jetbrains.kotlin.metadata.deserialization.BinaryVersion
 import org.jetbrains.kotlin.metadata.deserialization.NameResolver
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.serialization.deserialization.ClassData
@@ -15,21 +15,17 @@ import org.jetbrains.kotlin.serialization.deserialization.ClassDataFinder
 import org.jetbrains.kotlin.serialization.deserialization.getClassId
 
 class KlibMetadataClassDataFinder(
-    private val fragment: PackageFragment,
-    private val nameResolver: NameResolver
+    proto: ProtoBuf.PackageFragment,
+    private val metadataVersion: BinaryVersion,
+    private val nameResolver: NameResolver,
+    private val classSource: (ClassId) -> SourceElement = { SourceElement.NO_SOURCE }
 ) : ClassDataFinder {
-    val nameList = fragment.getExtension(KlibMetadataProtoBuf.className).orEmpty()
+    private val classIdToProto: Map<ClassId, ProtoBuf.Class> = proto.getExtension(KlibMetadataProtoBuf.className)
+        ?.associate { index -> nameResolver.getClassId(index) to proto.getClass_(index) }
+        .orEmpty()
 
     override fun findClassData(classId: ClassId): ClassData? {
-
-        val index = nameList.indexOfFirst { nameResolver.getClassId(it) == classId }
-        if (index == -1) {
-            return null
-        }
-
-        val foundClass = fragment.getClass_(index) ?: error("Could not find data for serialized class $classId")
-
-        /* TODO: binary version supposed to be read from protobuf. */
-        return ClassData(nameResolver, foundClass, KlibMetadataVersion.INSTANCE, SourceElement.NO_SOURCE)
+        val classProto = classIdToProto[classId] ?: return null
+        return ClassData(nameResolver, classProto, metadataVersion, classSource(classId))
     }
 }
