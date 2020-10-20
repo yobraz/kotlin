@@ -81,6 +81,7 @@ fun makeIncrementally(
             modulesApiHistory = EmptyModulesApiHistory,
             kotlinSourceFilesExtensions = kotlinExtensions
         )
+        //TODO set properly
         compiler.compile(sourceFiles, args, messageCollector, providedChangedFiles = null)
     }
 }
@@ -125,7 +126,6 @@ class IncrementalJvmCompilerRunner(
     override fun isICEnabled(): Boolean =
         IncrementalCompilation.isEnabledForJvm()
 
-    //TODO
     override fun createCacheManager(args: K2JVMCompilerArguments, projectDir: File?): IncrementalJvmCachesManager =
         IncrementalJvmCachesManager(cacheDirectory, projectDir, File(args.destination), reporter)
 
@@ -163,20 +163,39 @@ class IncrementalJvmCompilerRunner(
         caches: IncrementalJvmCachesManager,
         changedFiles: ChangedFiles.Known,
         args: K2JVMCompilerArguments,
-        messageCollector: MessageCollector
+        messageCollector: MessageCollector,
+        classpathJarSnapshots: Map<String, JarSnapshot>
     ): CompilationMode {
         return try {
-            calculateSourcesToCompileImpl(caches, changedFiles, args)
+            calculateSourcesToCompileImpl(caches, changedFiles, args, classpathJarSnapshots)
         } finally {
             psiFileProvider.messageCollector.flush(messageCollector)
             psiFileProvider.messageCollector.clear()
         }
     }
 
+    //TODO can't use the same way as for build-history files because jar-snapshot for all dependencies should be stored into last-build
+    // and not only changed one
+    // (but possibly we dont need to read it all and may be it is possible to update only those who was changed)
+    override fun setupJarDependencies(args: K2JVMCompilerArguments, withSnapshot: Boolean, reporter: BuildReporter): Map<String, JarSnapshot> {
+        //fill jarSnapshots
+        if (!withSnapshot) return emptyMap()
+        val jarSnapshots = HashMap<String, JarSnapshot>()
+        args.classpathAsList
+            .filter { it.extension.equals("jar", ignoreCase = true) }
+            .forEach {
+                modulesApiHistory.jarSnapshot(it)?.let { file ->
+                    JarSnapshotImpl.read(file, reporter)?.also { jarSnapshot -> jarSnapshots[it.absolutePath] = jarSnapshot }
+                }
+            }
+        return jarSnapshots
+    }
+
     private fun calculateSourcesToCompileImpl(
         caches: IncrementalJvmCachesManager,
         changedFiles: ChangedFiles.Known,
-        args: K2JVMCompilerArguments
+        args: K2JVMCompilerArguments,
+        jarSnapshots: Map<String, JarSnapshot> = HashMap()
     ): CompilationMode {
         val dirtyFiles = DirtyFilesContainer(caches, reporter, kotlinSourceFilesExtensions)
         initDirtyFiles(dirtyFiles, changedFiles)
@@ -185,8 +204,11 @@ class IncrementalJvmCompilerRunner(
         reporter.reportVerbose { "Last Kotlin Build info -- $lastBuildInfo" }
 
         val classpathChanges = reporter.measure(BuildTime.IC_ANALYZE_CHANGES_IN_DEPENDENCIES) {
-            getClasspathChanges(args.classpathAsList, changedFiles, lastBuildInfo, modulesApiHistory, reporter)
+            val scopes = caches.lookupCache.lookupMap.keys.map { if (it.scope.isBlank()) it.name else it.scope }.distinct()
+            getClasspathChanges(args.classpathAsList, changedFiles, lastBuildInfo, modulesApiHistory, reporter,
+                                jarSnapshots, withSnapshot, caches.platformCache, scopes)
         }
+
 
         @Suppress("UNUSED_VARIABLE") // for sealed when
         val unused = when (classpathChanges) {

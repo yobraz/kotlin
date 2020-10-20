@@ -128,12 +128,14 @@ object JavaClassProtoMapValueExternalizer : DataExternalizer<SerializedJavaClass
         output.writeBytesWithSize(value.qualifiedNameTable.toByteArray())
     }
 
-    private fun DataOutput.writeBytesWithSize(bytes: ByteArray) {
+    //TODO move to util class
+    fun DataOutput.writeBytesWithSize(bytes: ByteArray) {
         writeInt(bytes.size)
         write(bytes)
     }
 
-    private fun DataInput.readBytesWithSize(): ByteArray {
+    //TODO move to util class
+    fun DataInput.readBytesWithSize(): ByteArray {
         val bytesLength = readInt()
         return ByteArray(bytesLength).also {
             readFully(it, 0, bytesLength)

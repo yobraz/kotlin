@@ -333,6 +333,13 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
     @get:Internal
     internal val compilerRunner by lazy { compilerRunner() }
 
+    @get:OutputDirectory
+    val kotlinBuildCacheDir: File by project.provider {
+        //TODO replace to default kotlin compile dir after test
+//        project.buildDir.resolve("kotlin/compileKotlin2")
+        taskBuildDirectory
+    }
+
     internal open fun compilerRunner(): GradleCompilerRunner = GradleCompilerRunner(GradleCompileTaskProvider(this))
 
     @TaskAction
