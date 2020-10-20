@@ -8,10 +8,9 @@ package org.jetbrains.kotlin.gradle.tasks
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.provider.Property
-import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
-import org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinCompilationData
 import org.jetbrains.kotlin.gradle.utils.getValue
+import org.jetbrains.kotlin.incremental.IncrementalCompilerRunner
 import java.io.File
 
 internal open class KotlinCompileTaskData(
@@ -28,9 +27,17 @@ internal open class KotlinCompileTaskData(
         File(File(compilation.project.buildDir, KOTLIN_BUILD_DIR_NAME), taskName)
     }
 
-    //TODO
     val buildHistoryFile: File by project.provider {
         File(taskBuildDirectory, "build-history.bin")
+    }
+
+    val abiSnapshotFile: File by project.provider {
+        File(taskBuildDirectory, IncrementalCompilerRunner.ABI_SNAPSHOT_FILE_NAME)
+    }
+
+    val abiSnapshotRelativePath: String by project.provider {
+        //TODO update to support any jar changes
+        "$taskName/${IncrementalCompilerRunner.ABI_SNAPSHOT_FILE_NAME}"
     }
 
     var javaOutputDir: File? = null
