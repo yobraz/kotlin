@@ -22,9 +22,12 @@ dependencies {
     testImplementation(project(":kotlin-sam-with-receiver"))
     testImplementation(project(":kotlin-test:kotlin-test-jvm"))
     testImplementation(project(":native:kotlin-native-utils"))
+    //test jarSnapshot requres proto data read
+    testCompile(project(":kotlin-build-common"))
 
     testImplementation(projectRuntimeJar(":kotlin-compiler-embeddable"))
     testImplementation(intellijCoreDep()) { includeJars("jdom") }
+    testCompile(intellijCoreDep()) { includeJars("intellij-core") }
     // testCompileOnly dependency on non-shaded artifacts is needed for IDE support
     // testRuntimeOnly on shaded artifact is needed for running tests with shaded compiler
     testCompileOnly(project(path = ":kotlin-gradle-plugin-test-utils-embeddable", configuration = "compile"))

@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.ownModuleName
 import org.jetbrains.kotlin.gradle.plugin.statistics.KotlinBuildStatsService
 import org.jetbrains.kotlin.gradle.tasks.GradleCompileTaskProvider
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompileTaskData
-import org.jetbrains.kotlin.gradle.tasks.locateTask
 import org.jetbrains.kotlin.gradle.utils.archivePathCompatible
 import org.jetbrains.kotlin.gradle.utils.newTmpFile
 import org.jetbrains.kotlin.gradle.utils.relativeOrCanonical
@@ -206,6 +205,7 @@ internal open class GradleCompilerRunner(protected val taskProvider: GradleCompi
             val nameToModules = HashMap<String, HashSet<IncrementalModuleEntry>>()
             val jarToClassListFile = HashMap<File, File>()
             val jarToModule = HashMap<File, IncrementalModuleEntry>()
+            val jarToJarSnapshot = HashMap<File, File>()
 
             for (project in gradle.rootProject.allprojects) {
 
@@ -221,7 +221,8 @@ internal open class GradleCompilerRunner(protected val taskProvider: GradleCompi
                         project.path,
                         compilation.ownModuleName,
                         project.buildDir,
-                        taskData.buildHistoryFile
+                        taskData.buildHistoryFile,
+                        taskData.jarSnapshotFile
                     )
                     dirToModule[taskData.destinationDir.get()] = module
 
@@ -249,6 +250,8 @@ internal open class GradleCompilerRunner(protected val taskProvider: GradleCompi
                             if (target is KotlinWithJavaTarget<*>) {
                                 val jar = project.tasks.getByName(target.artifactsTaskName) as Jar
                                 jarToClassListFile[jar.archivePathCompatible.canonicalFile] = target.defaultArtifactClassesListFile.get()
+                                //configure jarSnapshot mapping for jars
+                                jarToJarSnapshot[jar.archivePathCompatible.canonicalFile] = target.buildDir.get().file(taskData.jarSnapshotRelativePath).asFile
                             }
                         }
                     }
@@ -261,7 +264,8 @@ internal open class GradleCompilerRunner(protected val taskProvider: GradleCompi
                 dirToModule = dirToModule,
                 nameToModules = nameToModules,
                 jarToClassListFile = jarToClassListFile,
-                jarToModule = jarToModule
+                jarToModule = jarToModule,
+                jarToJarSnapshot = jarToJarSnapshot
             ).also {
                 cachedGradle = WeakReference(gradle)
                 cachedModulesInfo = it

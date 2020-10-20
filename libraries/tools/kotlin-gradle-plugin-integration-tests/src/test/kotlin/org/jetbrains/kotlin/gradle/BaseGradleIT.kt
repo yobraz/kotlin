@@ -249,17 +249,20 @@ abstract class BaseGradleIT {
         val projectName: String,
         val gradleVersionRequirement: GradleVersionRequired = defaultGradleVersion,
         directoryPrefix: String? = null,
-        val minLogLevel: LogLevel = LogLevel.DEBUG
+        val minLogLevel: LogLevel = LogLevel.DEBUG,
+        workingDirRelativePath: String? = null
     ) {
         internal val testCase = this@BaseGradleIT
 
         val resourceDirName = if (directoryPrefix != null) "$directoryPrefix/$projectName" else projectName
         open val resourcesRoot = File(resourcesRootFile, "testProject/$resourceDirName")
-        val projectDir = File(workingDir.canonicalFile, projectName)
+        val projectWorkingDir = workingDirRelativePath?.let{ it -> workingDir.resolve(it) } ?: workingDir
+        val projectDir = File(projectWorkingDir.canonicalFile, projectName)
 
         open fun setupWorkingDir() {
+            projectWorkingDir.mkdirs()
             if (!projectDir.isDirectory || projectDir.listFiles().isEmpty())
-                copyRecursively(this.resourcesRoot, workingDir)
+                copyRecursively(this.resourcesRoot, projectWorkingDir)
         }
 
         fun relativize(files: Iterable<File>): List<String> =
@@ -330,7 +333,7 @@ abstract class BaseGradleIT {
     fun Project.build(
         vararg params: String,
         options: BuildOptions = defaultBuildOptions(),
-        projectDir: File = File(workingDir, projectName),
+        projectDir: File = File(projectWorkingDir, projectName),
         check: CompiledProject.() -> Unit
     ) {
         val wrapperVersion = chooseWrapperVersionOrFinishTest()

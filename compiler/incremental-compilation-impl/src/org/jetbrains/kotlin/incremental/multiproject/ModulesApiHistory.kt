@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.incremental.multiproject
 
+import org.jetbrains.kotlin.incremental.IncrementalModuleEntry
 import org.jetbrains.kotlin.incremental.IncrementalModuleInfo
 import org.jetbrains.kotlin.incremental.util.Either
 import java.io.File
@@ -14,11 +15,17 @@ import java.util.zip.ZipFile
 
 interface ModulesApiHistory {
     fun historyFilesForChangedFiles(changedFiles: Set<File>): Either<Set<File>>
+    fun jarSnapshot(jar: File): File?
 }
 
 object EmptyModulesApiHistory : ModulesApiHistory {
     override fun historyFilesForChangedFiles(changedFiles: Set<File>): Either<Set<File>> =
         Either.Error("Multi-module IC is not configured")
+
+    override fun jarSnapshot(jar: File): File? {
+        //Unsupported
+        return null
+    }
 }
 
 abstract class ModulesApiHistoryBase(protected val modulesInfo: IncrementalModuleInfo) : ModulesApiHistory {
@@ -130,6 +137,13 @@ class ModulesApiHistoryJvm(modulesInfo: IncrementalModuleInfo) : ModulesApiHisto
 
         return Either.Success(result)
     }
+
+    override fun jarSnapshot(jar: File): File? {
+        //TODO update here to support any jar changes
+        val jarSnapshot = modulesInfo.jarToModule[jar]?.jarSnapshot
+        //TODO relative way to get current jarSnapshot (for non project jar)
+        return jarSnapshot ?: modulesInfo.jarToJarSnapshot[jar]
+    }
 }
 
 class ModulesApiHistoryJs(modulesInfo: IncrementalModuleInfo) : ModulesApiHistoryBase(modulesInfo) {
@@ -140,6 +154,10 @@ class ModulesApiHistoryJs(modulesInfo: IncrementalModuleInfo) : ModulesApiHistor
             moduleEntry != null -> Either.Success(setOf(moduleEntry.buildHistoryFile))
             else -> Either.Error("No module is found for jar $jar")
         }
+    }
+
+    override fun jarSnapshot(jar: File): File? {
+        return modulesInfo.jarToModule[jar]?.jarSnapshot
     }
 }
 
@@ -158,7 +176,17 @@ class ModulesApiHistoryAndroid(modulesInfo: IncrementalModuleInfo) : ModulesApiH
         if (!isInProjectBuildDir(jar)) return Either.Error("Non-project jar is modified $jar")
 
         val jarPath = Paths.get(jar.absolutePath)
-        return getHistoryForModuleNames(jarPath, getPossibleModuleNamesFromJar(jarPath))
+        return getHistoryForModuleNames(jarPath, getPossibleModuleNamesFromJar(jarPath), IncrementalModuleEntry::buildHistoryFile)
+    }
+
+    override fun jarSnapshot(jar: File): File? {
+        val jarPath = Paths.get(jar.absolutePath)
+        //TODO support fail behaviour
+        val result = getHistoryForModuleNames(jarPath, getPossibleModuleNamesFromJar(jarPath), IncrementalModuleEntry::jarSnapshot)
+        return when (result) {
+            is Either.Success -> result.value.firstOrNull()
+            else -> null
+        }
     }
 
     override fun getBuildHistoryForDir(file: File): Either<Set<File>> {
@@ -175,7 +203,7 @@ class ModulesApiHistoryAndroid(modulesInfo: IncrementalModuleInfo) : ModulesApiH
             }
         }
 
-        return getHistoryForModuleNames(file.toPath(), moduleNames)
+        return getHistoryForModuleNames(file.toPath(), moduleNames, IncrementalModuleEntry::buildHistoryFile)
     }
 
     private fun getPossibleModuleNamesFromJar(path: Path): Collection<String> {
@@ -205,13 +233,13 @@ class ModulesApiHistoryAndroid(modulesInfo: IncrementalModuleInfo) : ModulesApiH
         return path.listFiles().filter { it.name.endsWith(".kotlin_module", ignoreCase = true) }.map { it.nameWithoutExtension }
     }
 
-    private fun getHistoryForModuleNames(path: Path, moduleNames: Iterable<String>): Either<Set<File>> {
+    private fun getHistoryForModuleNames(path: Path, moduleNames: Iterable<String>, fileLocation: (IncrementalModuleEntry) -> File): Either<Set<File>> {
         val possibleModules =
             moduleNames.flatMapTo(HashSet()) { modulesInfo.nameToModules[it] ?: emptySet() }
         val modules = possibleModules.filter { Paths.get(it.buildDir.absolutePath).isParentOf(path) }
         if (modules.isEmpty()) return Either.Error("Unknown module for $path (candidates: ${possibleModules.joinToString()})")
 
-        val result = modules.mapTo(HashSet()) { it.buildHistoryFile }
+        val result = modules.mapTo(HashSet()) { fileLocation(it) }
         return Either.Success(result)
     }
 }
