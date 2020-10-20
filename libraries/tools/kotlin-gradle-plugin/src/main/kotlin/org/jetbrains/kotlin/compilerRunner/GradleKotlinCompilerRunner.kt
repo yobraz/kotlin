@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.gradle.dsl.multiplatformExtensionOrNull
 import org.jetbrains.kotlin.gradle.logging.kotlinDebug
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskLoggers
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinWithJavaTarget
 import org.jetbrains.kotlin.gradle.plugin.statistics.KotlinBuildStatsService
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.GradleCompileTaskProvider
@@ -211,6 +212,7 @@ internal open class GradleCompilerRunner(
             val nameToModules = HashMap<String, HashSet<IncrementalModuleEntry>>()
             val jarToClassListFile = HashMap<File, File>()
             val jarToModule = HashMap<File, IncrementalModuleEntry>()
+            val jarToAbiSnapshot = HashMap<File, File>()
 
             val multiplatformProjectTasks = mutableMapOf<Project, MutableSet<String>>()
 
@@ -228,7 +230,8 @@ internal open class GradleCompilerRunner(
                         project.path,
                         task.moduleName.get(),
                         project.buildDir,
-                        task.buildHistoryFile.get().asFile
+                        task.buildHistoryFile.get().asFile,
+                        task.abiSnapshotFile.get().asFile
                     )
                     dirToModule[task.destinationDir] = module
                     task.javaOutputDir.orNull?.asFile?.let { dirToModule[it] = module }
@@ -239,6 +242,15 @@ internal open class GradleCompilerRunner(
                             jarToModule[it] = module
                         }
                     }
+//                    for (target in task.targets) {
+//                        if (target is KotlinWithJavaTarget<*>) {
+//                            val jar = project.tasks.getByName(target.artifactsTaskName) as Jar
+//                            jarToClassListFile[jar.archivePathCompatible.canonicalFile] = target.defaultArtifactClassesListFile.get()
+//                            //configure abiSnapshot mapping for jars
+//                            jarToAbiSnapshot[jar.archivePathCompatible.canonicalFile] =
+//                                target.buildDir.get().file(task.abiSnapshotRelativePath).asFile
+//                        }
+//                    }
                 } else if (task is InspectClassesForMultiModuleIC) {
                     jarToClassListFile[File(task.archivePath.get())] = task.classesListFile
                 }
@@ -259,10 +271,19 @@ internal open class GradleCompilerRunner(
                             project.path,
                             kotlinTask.moduleName.get(),
                             project.buildDir,
-                            kotlinTask.buildHistoryFile.get().asFile
+                            kotlinTask.buildHistoryFile.get().asFile,
+                            kotlinTask.abiSnapshotFile.get().asFile
                         )
                         val jarTask = project.tasks.findByName(target.artifactsTaskName) as? AbstractArchiveTask ?: continue
                         jarToModule[jarTask.archivePathCompatible.canonicalFile] = module
+                        if (target is KotlinWithJavaTarget<*>) {
+                            val jar = project.tasks.getByName(target.artifactsTaskName) as Jar
+                            jarToClassListFile[jar.archivePathCompatible.canonicalFile] = target.defaultArtifactClassesListFile.get()
+                            //configure abiSnapshot mapping for jars
+                            jarToAbiSnapshot[jar.archivePathCompatible.canonicalFile] =
+                                target.buildDir.get().file(kotlinTask.abiSnapshotRelativePath).get().asFile
+                        }
+
                     }
                 }
             }
@@ -273,7 +294,8 @@ internal open class GradleCompilerRunner(
                 dirToModule = dirToModule,
                 nameToModules = nameToModules,
                 jarToClassListFile = jarToClassListFile,
-                jarToModule = jarToModule
+                jarToModule = jarToModule,
+                jarToAbiSnapshot = jarToAbiSnapshot
             ).also {
                 cachedGradle = WeakReference(gradle)
                 cachedModulesInfo = it
