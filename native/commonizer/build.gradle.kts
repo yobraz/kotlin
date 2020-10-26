@@ -48,6 +48,11 @@ val runCommonizer by tasks.registering(JavaExec::class) {
     main = "org.jetbrains.kotlin.descriptors.commonizer.cli.CommonizerCLI"
 }
 
+val tempCompareKlibs by tasks.registering(JavaExec::class) {
+    classpath(configurations.compileOnly, sourceSets.main.get().runtimeClasspath)
+    main = "org.jetbrains.kotlin.descriptors.commonizer.metadata.utils.TempCompareKlibsKt"
+}
+
 sourceSets {
     "main" { projectDefault() }
     "test" { projectDefault() }
