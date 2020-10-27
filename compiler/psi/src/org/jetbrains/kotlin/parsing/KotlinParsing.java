@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.parsing;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.WhitespacesBinders;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.psi.impl.java.stubs.SourceStubPsiFactory;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.Contract;
@@ -26,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.lexer.KtKeywordToken;
 import org.jetbrains.kotlin.lexer.KtTokens;
+
+import java.sql.SQLOutput;
 
 import static org.jetbrains.kotlin.KtNodeTypes.*;
 import static org.jetbrains.kotlin.lexer.KtTokens.*;
@@ -2438,6 +2441,35 @@ public class KotlinParsing extends AbstractKotlinParsing {
 
         closeDeclarationWithCommentBinders(parameter, VALUE_PARAMETER, false);
         return true;
+    }
+
+    public void parseCatchParameter() {
+        PsiBuilder.Marker parameter = mark();
+        myBuilder.disableNewlines();
+        parseModifierList(DEFAULT, NO_MODIFIER_BEFORE_FOR_VALUE_PARAMETER);
+
+        if (at(VAR_KEYWORD) || at(VAL_KEYWORD)) {
+            advance(); // VAR_KEYWORD | VAL_KEYWORD
+        }
+
+        expect(IDENTIFIER, "Parameter name expected", PARAMETER_NAME_RECOVERY_SET);
+
+        if (at(COLON)) {
+            advance(); // COLON
+
+            parseTypeRef();
+
+            while (at(COMMA) && lookahead(1) == IDENTIFIER /*?*/) {
+                advance(); // COMMA
+                parseTypeRef();
+            }
+        }
+        else {
+            errorWithRecovery("Parameters must have type annotation", PARAMETER_NAME_RECOVERY_SET);
+        }
+
+        myBuilder.restoreNewlinesState();
+        closeDeclarationWithCommentBinders(parameter, VALUE_PARAMETER, false);
     }
 
     /*
