@@ -21,9 +21,11 @@ import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
 import org.jetbrains.kotlin.fir.symbols.impl.*
+import org.jetbrains.kotlin.fir.typeContext
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.fir.types.impl.ConeTypeParameterTypeImpl
+import org.jetbrains.kotlin.fir.types.impl.FirCatchType
 import org.jetbrains.kotlin.fir.types.impl.FirImplicitBuiltinTypeRef
 import org.jetbrains.kotlin.name.ClassId
 
@@ -175,6 +177,10 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
         areBareTypesAllowed: Boolean
     ): ConeKotlinType {
         return when (typeRef) {
+            is FirCatchType -> ConeTypeIntersector.intersectTypes(
+                session.typeContext,
+                typeRef.types.map { resolveType(it, scope, areBareTypesAllowed) }
+            )
             is FirResolvedTypeRef -> typeRef.type
             is FirUserTypeRef -> {
                 val (symbol, substitutor) = resolveToSymbol(typeRef, scope)

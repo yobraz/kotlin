@@ -46,6 +46,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.*
 import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
+import org.jetbrains.kotlin.fir.types.impl.FirCatchType
 import org.jetbrains.kotlin.fir.types.impl.FirQualifierPartImpl
 import org.jetbrains.kotlin.fir.types.impl.FirTypeArgumentListImpl
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
@@ -1819,10 +1820,10 @@ class DeclarationsConverter(
     /**
      * @see org.jetbrains.kotlin.parsing.KotlinParsing.parseValueParameterList
      */
-    fun convertValueParameters(valueParameters: LighterASTNode): List<ValueParameter> {
+    fun convertValueParameters(valueParameters: LighterASTNode, isCatchParameters: Boolean = false): List<ValueParameter> {
         return valueParameters.forEachChildrenReturnList { node, container ->
             when (node.tokenType) {
-                VALUE_PARAMETER -> container += convertValueParameter(node)
+                VALUE_PARAMETER -> container += convertValueParameter(node, isCatchParameters)
             }
         }
     }
@@ -1830,7 +1831,7 @@ class DeclarationsConverter(
     /**
      * @see org.jetbrains.kotlin.parsing.KotlinParsing.parseValueParameter
      */
-    fun convertValueParameter(valueParameter: LighterASTNode): ValueParameter {
+    fun convertValueParameter(valueParameter: LighterASTNode, isCatchParameter: Boolean = false): ValueParameter {
         var modifiers = Modifier()
         var isVal = false
         var isVar = false
@@ -1838,16 +1839,23 @@ class DeclarationsConverter(
         var firType: FirTypeRef? = null
         var firExpression: FirExpression? = null
         var destructuringDeclaration: DestructuringDeclaration? = null
+        val typesForCatchType = mutableListOf<FirTypeRef>()
         valueParameter.forEachChildren {
             when (it.tokenType) {
                 MODIFIER_LIST -> modifiers = convertModifierList(it)
                 VAL_KEYWORD -> isVal = true
                 VAR_KEYWORD -> isVar = true
                 IDENTIFIER -> identifier = it.asText
-                TYPE_REFERENCE -> firType = convertType(it)
+                TYPE_REFERENCE ->
+                    if (isCatchParameter)
+                        typesForCatchType.add(convertType(it))
+                    else
+                        firType = convertType(it)
                 DESTRUCTURING_DECLARATION -> destructuringDeclaration = convertDestructingDeclaration(it)
                 else -> if (it.isExpression()) firExpression = expressionConverter.getAsFirExpression(it, "Should have default value")
             }
+            if (isCatchParameter)
+                firType = FirCatchType(typesForCatchType, valueParameter.toFirSourceElement())
         }
 
         val name = identifier.nameAsSafeName()

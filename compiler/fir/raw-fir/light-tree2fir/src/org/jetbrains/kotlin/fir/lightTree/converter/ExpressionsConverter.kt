@@ -1057,7 +1057,7 @@ class ExpressionsConverter(
         var blockNode: LighterASTNode? = null
         catchClause.forEachChildren {
             when (it.tokenType) {
-                VALUE_PARAMETER_LIST -> valueParameter = declarationsConverter.convertValueParameters(it).firstOrNull() ?: return null
+                VALUE_PARAMETER_LIST -> valueParameter = declarationsConverter.convertValueParameters(it, true).firstOrNull() ?: return null
                 BLOCK -> blockNode = it
             }
         }
