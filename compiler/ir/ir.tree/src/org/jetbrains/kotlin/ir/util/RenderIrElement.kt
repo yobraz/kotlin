@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeAliasSymbol
 import org.jetbrains.kotlin.ir.symbols.IrVariableSymbol
 import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.types.impl.IrCatchType
 import org.jetbrains.kotlin.ir.types.impl.ReturnTypeIsNotInitializedException
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
@@ -107,8 +108,11 @@ class RenderIrElementVisitor(private val normalizeNames: Boolean = false) : IrEl
     private fun IrType.render(): String =
         "${renderTypeAnnotations(annotations)}${renderTypeInner()}"
 
-    private fun IrType.renderTypeInner() =
+    private fun IrType.renderTypeInner(): String =
         when (this) {
+
+            is IrCatchType -> this.types.joinToString(separator = ", ") { it.renderTypeInner() }
+
             is IrDynamicType -> "dynamic"
 
             is IrErrorType -> "IrErrorType($originalKotlinType)"

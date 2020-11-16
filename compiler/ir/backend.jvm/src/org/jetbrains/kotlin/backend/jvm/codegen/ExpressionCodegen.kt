@@ -51,6 +51,7 @@ import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
 import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.types.impl.IrCatchType
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.name.FqName
@@ -1141,9 +1142,40 @@ class ExpressionCodegen(
 
         val catches = aTry.catches
         for (clause in catches) {
+
+            fun lca(a: IrType, b: IrType): IrType {
+                val visited = mutableListOf<IrType>()
+                var refA = a
+                var refB = b
+                var f = true
+                while (true) {
+                    if (refA == refB) return refA
+                    if (visited.contains(refB)) return refB
+                    if (visited.contains(refA)) return refA
+                    if (refA.superTypes().firstOrNull() == null &&
+                        refB.superTypes().firstOrNull() == null)
+                        throw RuntimeException()
+                    if (f) {
+                        if (refA.superTypes().firstOrNull() != null) {
+                            visited.add(refA)
+                            refA = refA.superTypes().first()
+                        }
+                    } else {
+                        if (refB.superTypes().firstOrNull() != null) {
+                            visited.add(refB)
+                            refB = refB.superTypes().first()
+                        }
+                    }
+                    f = !f
+                }
+            }
+
             val clauseStart = markNewLabel()
             val parameter = clause.catchParameter
-            val descriptorType = parameter.asmType
+            val descriptorType = if (parameter.type is IrCatchType)
+                (parameter.type as IrCatchType).types.reduce(::lca).asmType
+            else
+                parameter.asmType
             val index = frameMap.enter(clause.catchParameter, descriptorType)
             clause.markLineNumber(true)
             mv.store(index, descriptorType)
@@ -1168,8 +1200,12 @@ class ExpressionCodegen(
             } else if (clause != catches.last()) {
                 mv.goTo(tryCatchBlockEnd)
             }
-
-            genTryCatchCover(clauseStart, tryBlockStart, tryBlockEnd, tryBlockGaps, descriptorType.internalName)
+            if (parameter.type is IrCatchType)
+                (parameter.type as IrCatchType).types.forEach {
+                    genTryCatchCover(clauseStart, tryBlockStart, tryBlockEnd, tryBlockGaps, it.asmType.internalName)
+                }
+            else
+                genTryCatchCover(clauseStart, tryBlockStart, tryBlockEnd, tryBlockGaps, descriptorType.internalName)
         }
 
         if (tryInfo is TryWithFinallyInfo) {

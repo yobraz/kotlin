@@ -52,6 +52,28 @@ object IrStarProjectionImpl : IrStarProjection {
     override fun hashCode(): Int = System.identityHashCode(this)
 }
 
+class IrCatchType(val types: Set<IrType>, override val annotations: List<IrConstructorCall>) : IrType {
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as IrCatchType
+
+        if (types != other.types) return false
+        if (annotations != other.annotations) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = types.hashCode()
+        result = 31 * result + annotations.hashCode()
+        return result
+    }
+
+}
+
 /**
  * An instance which should be used when creating an IR element whose type cannot be determined at the moment of creation.
  *

@@ -12,7 +12,8 @@ import kotlin.collections.LinkedHashSet
 object ConeTypeIntersector {
     fun intersectTypes(
         context: ConeInferenceContext,
-        types: List<ConeKotlinType>
+        types: List<ConeKotlinType>,
+        isCatchTypes: Boolean = false
     ): ConeKotlinType {
         when (types.size) {
             0 -> error("Expected some types")
@@ -42,12 +43,13 @@ object ConeTypeIntersector {
             } else it
         }
 
-        return intersectTypesWithoutIntersectionType(context, inputTypesWithCorrectNullability)
+        return intersectTypesWithoutIntersectionType(context, inputTypesWithCorrectNullability, isCatchTypes)
     }
 
     private fun intersectTypesWithoutIntersectionType(
         context: ConeTypeContext,
-        inputTypes: Set<ConeKotlinType>
+        inputTypes: Set<ConeKotlinType>,
+        isCatchTypes: Boolean
     ): ConeKotlinType {
         if (inputTypes.size == 1) return inputTypes.single().type
 
@@ -94,7 +96,7 @@ object ConeTypeIntersector {
 
         if (filteredSuperAndEqualTypes.size < 2) return filteredSuperAndEqualTypes.single()
 
-        return ConeIntersectionType(filteredSuperAndEqualTypes)
+        return ConeIntersectionType(filteredSuperAndEqualTypes, isCatchTypes)
     }
 
     private fun filterTypes(

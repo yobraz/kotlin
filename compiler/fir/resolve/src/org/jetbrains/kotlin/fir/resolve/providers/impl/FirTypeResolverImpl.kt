@@ -179,7 +179,8 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
         return when (typeRef) {
             is FirCatchType -> ConeTypeIntersector.intersectTypes(
                 session.typeContext,
-                typeRef.types.map { resolveType(it, scope, areBareTypesAllowed) }
+                typeRef.types.map { resolveType(it, scope, areBareTypesAllowed) },
+                true
             )
             is FirResolvedTypeRef -> typeRef.type
             is FirUserTypeRef -> {
