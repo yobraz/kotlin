@@ -35,11 +35,8 @@ class FirAnalyzerFacade(
     val originalFiles: Collection<File> = emptyList(), // may be empty if light tree mode disabled
     val useLightTree: Boolean = false
 ) {
-    private var firFiles: List<FirFile>? = null
-    private var _scopeSession: ScopeSession? = null
-    val scopeSession: ScopeSession
-        get() = _scopeSession!!
-
+    var firFiles: List<FirFile>? = null
+    var scopeSession: ScopeSession? = null
     private var collectedDiagnostics: Map<FirFile, List<FirDiagnostic<*>>>? = null
 
     private fun buildRawFir() {
