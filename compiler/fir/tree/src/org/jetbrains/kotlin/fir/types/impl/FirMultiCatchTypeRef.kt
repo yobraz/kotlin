@@ -11,12 +11,12 @@ import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
-class FirCatchType(
+class FirMultiCatchTypeRef(
     val types: MutableList<FirTypeRef>,
     override val source: FirSourceElement?,
     override val annotations: List<FirAnnotationCall> = mutableListOf(),
 ) : FirTypeRef() {
-    override fun <D> transformAnnotations(transformer: FirTransformer<D>, data: D): FirCatchType {
+    override fun <D> transformAnnotations(transformer: FirTransformer<D>, data: D): FirMultiCatchTypeRef {
         types.forEach { it.transformAnnotations(transformer, data) }
         return this
     }
@@ -25,7 +25,7 @@ class FirCatchType(
         types.forEach { it.acceptChildren(visitor, data) }
     }
 
-    override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirCatchType {
+    override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirMultiCatchTypeRef {
         types.forEach { it.transformChildren(transformer, data) }
         return this
     }
