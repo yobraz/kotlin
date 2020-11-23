@@ -949,11 +949,6 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
 
     override fun visitTypeRef(typeRef: FirTypeRef) {
         typeRef.annotations.renderAnnotations()
-        if (typeRef is FirMultiCatchTypeRef) {
-            typeRef.types.forEach {
-                it.accept(this)
-            }
-        }
         visitElement(typeRef)
     }
 
@@ -1038,6 +1033,17 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
 
     override fun visitStarProjection(starProjection: FirStarProjection) {
         print("*")
+    }
+
+    override fun visitMultiCatchTypeRef(multiCatchTypeRef: FirMultiCatchTypeRef) {
+        val types = multiCatchTypeRef.types
+        val lastIndex = types.lastIndex
+        types.forEachIndexed { i, type ->
+            type.accept(this)
+            if (i != lastIndex) {
+                print(", ")
+            }
+        }
     }
 
     private fun AbstractFirBasedSymbol<*>.render(): String {

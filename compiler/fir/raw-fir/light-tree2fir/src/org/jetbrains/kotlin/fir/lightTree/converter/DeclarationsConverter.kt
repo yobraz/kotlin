@@ -46,7 +46,6 @@ import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.*
 import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
-import org.jetbrains.kotlin.fir.types.impl.FirMultiCatchTypeRef
 import org.jetbrains.kotlin.fir.types.impl.FirQualifierPartImpl
 import org.jetbrains.kotlin.fir.types.impl.FirTypeArgumentListImpl
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
@@ -1854,8 +1853,16 @@ class DeclarationsConverter(
                 DESTRUCTURING_DECLARATION -> destructuringDeclaration = convertDestructingDeclaration(it)
                 else -> if (it.isExpression()) firExpression = expressionConverter.getAsFirExpression(it, "Should have default value")
             }
-            if (isCatchParameter)
-                firType = FirMultiCatchTypeRef(typesForCatchType, valueParameter.toFirSourceElement())
+        }
+        if (isCatchParameter) {
+            firType =
+                if (typesForCatchType.size > 1)
+                    buildMultiCatchTypeRef {
+                        source = valueParameter.toFirSourceElement()
+                        types.addAll(typesForCatchType)
+                    }
+                else
+                    typesForCatchType.first()
         }
 
         val name = identifier.nameAsSafeName()
