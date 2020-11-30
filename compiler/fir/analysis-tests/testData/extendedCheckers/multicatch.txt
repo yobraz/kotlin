@@ -1,0 +1,20 @@
+FILE: multicatch.kt
+    public final fun foo(): R|kotlin/Unit| {
+        try {
+        }
+        catch (e: R|kotlin/Int|, R|kotlin/Double|) {
+        }
+
+        try {
+        }
+        catch (e: R|kotlin/Exception|, R|kotlin/NullPointerException|) {
+        }
+        finally {
+        }
+
+        try {
+        }
+        catch (e: R|kotlin/Throwable|, R|kotlin/Exception|, R|kotlin/Error|) {
+        }
+
+    }

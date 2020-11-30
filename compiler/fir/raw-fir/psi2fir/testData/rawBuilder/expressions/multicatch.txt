@@ -1,0 +1,47 @@
+FILE: multicatch.kt
+    public? final? fun test1(): R|kotlin/Unit| {
+        try {
+            println#()
+        }
+        catch (e: IllegalArgumentException, NullPointerException) {
+            println#()
+        }
+
+    }
+    public? final? fun test2(): R|kotlin/Unit| {
+        try {
+            println#()
+        }
+        catch (e: IllegalArgumentException, NullPointerException) {
+            println#()
+        }
+        finally {
+        }
+
+    }
+    public? final? fun test3(): R|kotlin/Unit| {
+        try {
+            println#()
+        }
+        catch (e: IllegalArgumentException, NullPointerException, IllegalStateException) {
+            println#()
+        }
+
+    }
+    public? final? fun test4(): R|kotlin/Unit| {
+        try {
+            println#()
+            try {
+                throw IllegalAccessError#()
+            }
+            catch (f: IllegalStateException, IOException) {
+            }
+            finally {
+            }
+
+        }
+        catch (e: IllegalArgumentException, NullPointerException) {
+            println#()
+        }
+
+    }

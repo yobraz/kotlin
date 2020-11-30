@@ -1,0 +1,328 @@
+KtFile: MultiCatch.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    IMPORT_DIRECTIVE
+      PsiElement(import)('import')
+      PsiWhiteSpace(' ')
+      DOT_QUALIFIED_EXPRESSION
+        DOT_QUALIFIED_EXPRESSION
+          REFERENCE_EXPRESSION
+            PsiElement(IDENTIFIER)('java')
+          PsiElement(DOT)('.')
+          REFERENCE_EXPRESSION
+            PsiElement(IDENTIFIER)('util')
+        PsiElement(DOT)('.')
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('IOException')
+  PsiWhiteSpace('\n\n')
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('test1')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiWhiteSpace('\n    ')
+      TRY
+        PsiElement(try)('try')
+        PsiWhiteSpace(' ')
+        BLOCK
+          PsiElement(LBRACE)('{')
+          PsiWhiteSpace('\n        ')
+          CALL_EXPRESSION
+            REFERENCE_EXPRESSION
+              PsiElement(IDENTIFIER)('println')
+            VALUE_ARGUMENT_LIST
+              PsiElement(LPAR)('(')
+              PsiElement(RPAR)(')')
+          PsiWhiteSpace('\n    ')
+          PsiElement(RBRACE)('}')
+        PsiWhiteSpace(' ')
+        CATCH
+          PsiElement(catch)('catch')
+          PsiWhiteSpace(' ')
+          VALUE_PARAMETER_LIST
+            PsiElement(LPAR)('(')
+            VALUE_PARAMETER
+              PsiElement(IDENTIFIER)('e')
+              PsiElement(COLON)(':')
+              PsiWhiteSpace(' ')
+              TYPE_REFERENCE
+                USER_TYPE
+                  REFERENCE_EXPRESSION
+                    PsiElement(IDENTIFIER)('IllegalArgumentException')
+              PsiElement(COMMA)(',')
+              PsiWhiteSpace(' ')
+              TYPE_REFERENCE
+                USER_TYPE
+                  REFERENCE_EXPRESSION
+                    PsiElement(IDENTIFIER)('NullPointerException')
+            PsiElement(RPAR)(')')
+          PsiWhiteSpace(' ')
+          BLOCK
+            PsiElement(LBRACE)('{')
+            PsiWhiteSpace('\n        ')
+            CALL_EXPRESSION
+              REFERENCE_EXPRESSION
+                PsiElement(IDENTIFIER)('println')
+              VALUE_ARGUMENT_LIST
+                PsiElement(LPAR)('(')
+                PsiElement(RPAR)(')')
+            PsiWhiteSpace('\n    ')
+            PsiElement(RBRACE)('}')
+      PsiWhiteSpace('\n')
+      PsiElement(RBRACE)('}')
+  PsiWhiteSpace('\n\n')
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('test2')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiWhiteSpace('\n    ')
+      TRY
+        PsiElement(try)('try')
+        PsiWhiteSpace(' ')
+        BLOCK
+          PsiElement(LBRACE)('{')
+          PsiWhiteSpace('\n        ')
+          CALL_EXPRESSION
+            REFERENCE_EXPRESSION
+              PsiElement(IDENTIFIER)('println')
+            VALUE_ARGUMENT_LIST
+              PsiElement(LPAR)('(')
+              PsiElement(RPAR)(')')
+          PsiWhiteSpace('\n    ')
+          PsiElement(RBRACE)('}')
+        PsiWhiteSpace(' ')
+        CATCH
+          PsiElement(catch)('catch')
+          PsiWhiteSpace(' ')
+          VALUE_PARAMETER_LIST
+            PsiElement(LPAR)('(')
+            VALUE_PARAMETER
+              PsiElement(IDENTIFIER)('e')
+              PsiElement(COLON)(':')
+              PsiWhiteSpace(' ')
+              TYPE_REFERENCE
+                USER_TYPE
+                  REFERENCE_EXPRESSION
+                    PsiElement(IDENTIFIER)('IllegalArgumentException')
+              PsiElement(COMMA)(',')
+              PsiWhiteSpace(' ')
+              TYPE_REFERENCE
+                USER_TYPE
+                  REFERENCE_EXPRESSION
+                    PsiElement(IDENTIFIER)('NullPointerException')
+            PsiElement(RPAR)(')')
+          PsiWhiteSpace(' ')
+          BLOCK
+            PsiElement(LBRACE)('{')
+            PsiWhiteSpace('\n        ')
+            CALL_EXPRESSION
+              REFERENCE_EXPRESSION
+                PsiElement(IDENTIFIER)('println')
+              VALUE_ARGUMENT_LIST
+                PsiElement(LPAR)('(')
+                PsiElement(RPAR)(')')
+            PsiWhiteSpace('\n    ')
+            PsiElement(RBRACE)('}')
+        PsiWhiteSpace(' ')
+        FINALLY
+          PsiElement(finally)('finally')
+          PsiWhiteSpace(' ')
+          BLOCK
+            PsiElement(LBRACE)('{')
+            PsiWhiteSpace('\n\n    ')
+            PsiElement(RBRACE)('}')
+      PsiWhiteSpace('\n')
+      PsiElement(RBRACE)('}')
+  PsiWhiteSpace('\n\n')
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('test3')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiWhiteSpace('\n    ')
+      TRY
+        PsiElement(try)('try')
+        PsiWhiteSpace(' ')
+        BLOCK
+          PsiElement(LBRACE)('{')
+          PsiWhiteSpace('\n        ')
+          CALL_EXPRESSION
+            REFERENCE_EXPRESSION
+              PsiElement(IDENTIFIER)('println')
+            VALUE_ARGUMENT_LIST
+              PsiElement(LPAR)('(')
+              PsiElement(RPAR)(')')
+          PsiWhiteSpace('\n    ')
+          PsiElement(RBRACE)('}')
+        PsiWhiteSpace(' ')
+        CATCH
+          PsiElement(catch)('catch')
+          PsiWhiteSpace(' ')
+          VALUE_PARAMETER_LIST
+            PsiElement(LPAR)('(')
+            VALUE_PARAMETER
+              PsiElement(IDENTIFIER)('e')
+              PsiElement(COLON)(':')
+              PsiWhiteSpace(' ')
+              TYPE_REFERENCE
+                USER_TYPE
+                  REFERENCE_EXPRESSION
+                    PsiElement(IDENTIFIER)('IllegalArgumentException')
+              PsiElement(COMMA)(',')
+              PsiWhiteSpace(' ')
+              TYPE_REFERENCE
+                USER_TYPE
+                  REFERENCE_EXPRESSION
+                    PsiElement(IDENTIFIER)('NullPointerException')
+              PsiElement(COMMA)(',')
+              PsiWhiteSpace(' ')
+              TYPE_REFERENCE
+                USER_TYPE
+                  REFERENCE_EXPRESSION
+                    PsiElement(IDENTIFIER)('IllegalStateException')
+            PsiElement(COMMA)(',')
+            PsiElement(RPAR)(')')
+          PsiWhiteSpace(' ')
+          BLOCK
+            PsiElement(LBRACE)('{')
+            PsiWhiteSpace('\n        ')
+            CALL_EXPRESSION
+              REFERENCE_EXPRESSION
+                PsiElement(IDENTIFIER)('println')
+              VALUE_ARGUMENT_LIST
+                PsiElement(LPAR)('(')
+                PsiElement(RPAR)(')')
+            PsiWhiteSpace('\n    ')
+            PsiElement(RBRACE)('}')
+      PsiWhiteSpace('\n')
+      PsiElement(RBRACE)('}')
+  PsiWhiteSpace('\n\n')
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('test4')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiWhiteSpace('\n    ')
+      TRY
+        PsiElement(try)('try')
+        PsiWhiteSpace(' ')
+        BLOCK
+          PsiElement(LBRACE)('{')
+          PsiWhiteSpace('\n        ')
+          CALL_EXPRESSION
+            REFERENCE_EXPRESSION
+              PsiElement(IDENTIFIER)('println')
+            VALUE_ARGUMENT_LIST
+              PsiElement(LPAR)('(')
+              PsiElement(RPAR)(')')
+          PsiWhiteSpace('\n        ')
+          TRY
+            PsiElement(try)('try')
+            PsiWhiteSpace(' ')
+            BLOCK
+              PsiElement(LBRACE)('{')
+              PsiWhiteSpace('\n            ')
+              THROW
+                PsiElement(throw)('throw')
+                PsiWhiteSpace(' ')
+                CALL_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    PsiElement(IDENTIFIER)('IllegalAccessError')
+                  VALUE_ARGUMENT_LIST
+                    PsiElement(LPAR)('(')
+                    PsiElement(RPAR)(')')
+              PsiWhiteSpace('\n        ')
+              PsiElement(RBRACE)('}')
+            PsiWhiteSpace(' ')
+            CATCH
+              PsiElement(catch)('catch')
+              PsiWhiteSpace(' ')
+              VALUE_PARAMETER_LIST
+                PsiElement(LPAR)('(')
+                VALUE_PARAMETER
+                  PsiElement(IDENTIFIER)('f')
+                  PsiElement(COLON)(':')
+                  PsiWhiteSpace(' ')
+                  TYPE_REFERENCE
+                    USER_TYPE
+                      REFERENCE_EXPRESSION
+                        PsiElement(IDENTIFIER)('IllegalStateException')
+                  PsiElement(COMMA)(',')
+                  PsiWhiteSpace(' ')
+                  TYPE_REFERENCE
+                    USER_TYPE
+                      REFERENCE_EXPRESSION
+                        PsiElement(IDENTIFIER)('IOException')
+                PsiElement(RPAR)(')')
+              PsiWhiteSpace(' ')
+              BLOCK
+                PsiElement(LBRACE)('{')
+                PsiWhiteSpace('\n\n        ')
+                PsiElement(RBRACE)('}')
+            PsiWhiteSpace(' ')
+            FINALLY
+              PsiElement(finally)('finally')
+              PsiWhiteSpace(' ')
+              BLOCK
+                PsiElement(LBRACE)('{')
+                PsiWhiteSpace('\n\n        ')
+                PsiElement(RBRACE)('}')
+          PsiWhiteSpace('\n    ')
+          PsiElement(RBRACE)('}')
+        PsiWhiteSpace(' ')
+        CATCH
+          PsiElement(catch)('catch')
+          PsiWhiteSpace(' ')
+          VALUE_PARAMETER_LIST
+            PsiElement(LPAR)('(')
+            VALUE_PARAMETER
+              PsiElement(IDENTIFIER)('e')
+              PsiElement(COLON)(':')
+              PsiWhiteSpace(' ')
+              TYPE_REFERENCE
+                USER_TYPE
+                  REFERENCE_EXPRESSION
+                    PsiElement(IDENTIFIER)('IllegalArgumentException')
+              PsiElement(COMMA)(',')
+              PsiWhiteSpace(' ')
+              TYPE_REFERENCE
+                USER_TYPE
+                  REFERENCE_EXPRESSION
+                    PsiElement(IDENTIFIER)('NullPointerException')
+            PsiElement(RPAR)(')')
+          PsiWhiteSpace(' ')
+          BLOCK
+            PsiElement(LBRACE)('{')
+            PsiWhiteSpace('\n        ')
+            CALL_EXPRESSION
+              REFERENCE_EXPRESSION
+                PsiElement(IDENTIFIER)('println')
+              VALUE_ARGUMENT_LIST
+                PsiElement(LPAR)('(')
+                PsiElement(RPAR)(')')
+            PsiWhiteSpace('\n    ')
+            PsiElement(RBRACE)('}')
+      PsiWhiteSpace('\n')
+      PsiElement(RBRACE)('}')

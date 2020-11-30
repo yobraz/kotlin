@@ -1,0 +1,5 @@
+FILE: multicatch.kt
+    public? final? fun test1(): R|kotlin/Unit| { LAZY_BLOCK }
+    public? final? fun test2(): R|kotlin/Unit| { LAZY_BLOCK }
+    public? final? fun test3(): R|kotlin/Unit| { LAZY_BLOCK }
+    public? final? fun test4(): R|kotlin/Unit| { LAZY_BLOCK }
