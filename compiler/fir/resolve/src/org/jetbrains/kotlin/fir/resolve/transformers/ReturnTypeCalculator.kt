@@ -10,8 +10,10 @@ import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
 import org.jetbrains.kotlin.fir.diagnostics.ConeSimpleDiagnostic
 import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.scopes.FakeOverrideTypeCalculator
-import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
+import org.jetbrains.kotlin.fir.typeContext
+import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildErrorTypeRef
+import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
 
 interface ReturnTypeCalculator {
     fun tryCalculateReturnType(declaration: FirTypedDeclaration): FirResolvedTypeRef
@@ -20,6 +22,15 @@ interface ReturnTypeCalculator {
 class ReturnTypeCalculatorForFullBodyResolve : ReturnTypeCalculator {
     override fun tryCalculateReturnType(declaration: FirTypedDeclaration): FirResolvedTypeRef {
         val returnTypeRef = declaration.returnTypeRef
+        if (returnTypeRef is FirMultiCatchTypeRef) return buildResolvedTypeRef {
+            source = returnTypeRef.source
+            annotations.addAll(returnTypeRef.annotations)
+            type = ConeTypeIntersector.intersectTypes(
+                declaration.session.typeContext,
+                returnTypeRef.types.map { it.coneType },
+                true
+            )
+        }
         if (returnTypeRef is FirResolvedTypeRef) return returnTypeRef
         if (declaration.origin.fromSupertypes) {
             return FakeOverrideTypeCalculator.Forced.computeReturnType(declaration)

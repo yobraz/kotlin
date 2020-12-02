@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.types.impl.IrCatchType
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.types.impl.IrStarProjectionImpl
 import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
@@ -62,8 +63,9 @@ import org.jetbrains.kotlin.resolve.jvm.annotations.JVM_DEFAULT_NO_COMPATIBILITY
  * recursive erasure could loop. For example, a type parameter
  * `T : Comparable<T>` is replaced by `Comparable<*>`.
  */
-fun IrType.eraseTypeParameters() = when (this) {
+fun IrType.eraseTypeParameters(): IrType = when (this) {
     is IrErrorType -> this
+    is IrCatchType -> this.commonSuperType.eraseTypeParameters()
     is IrSimpleType ->
         when (val owner = classifier.owner) {
             is IrClass -> IrSimpleTypeImpl(

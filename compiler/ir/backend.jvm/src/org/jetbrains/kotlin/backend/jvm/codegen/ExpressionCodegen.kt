@@ -1144,40 +1144,10 @@ class ExpressionCodegen(
 
         val catches = aTry.catches
         for (clause in catches) {
-
-            fun lca(a: IrType, b: IrType): IrType {
-                val visited = mutableListOf<IrType>()
-                var refA = a
-                var refB = b
-                var f = true
-                while (true) {
-                    if (refA == refB) return refA
-                    if (visited.contains(refB)) return refB
-                    if (visited.contains(refA)) return refA
-                    if (refA.superTypes().firstOrNull() == null &&
-                        refB.superTypes().firstOrNull() == null)
-                        throw RuntimeException()
-                    if (f) {
-                        if (refA.superTypes().firstOrNull() != null) {
-                            visited.add(refA)
-                            refA = refA.superTypes().first()
-                        }
-                    } else {
-                        if (refB.superTypes().firstOrNull() != null) {
-                            visited.add(refB)
-                            refB = refB.superTypes().first()
-                        }
-                    }
-                    f = !f
-                }
-            }
-
             val clauseStart = markNewLabel()
             val parameter = clause.catchParameter
             val descriptorType = if (parameter.type is IrCatchType)
-//                (IrTypeCheckerContext(context.irBuiltIns).commonSuperType((parameter.type as IrCatchType).types
-//                                                                              .toList()) as IrType).asmType
-                (parameter.type as IrCatchType).types.reduce(::lca).asmType
+                (parameter.type as IrCatchType).commonSuperType.asmType
             else
                 parameter.asmType
             val index = frameMap.enter(clause.catchParameter, descriptorType)
