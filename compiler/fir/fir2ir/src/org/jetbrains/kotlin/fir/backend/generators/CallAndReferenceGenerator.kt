@@ -52,7 +52,7 @@ class CallAndReferenceGenerator(
     private val adapterGenerator = AdapterGenerator(components, conversionScope)
     private val samResolver = FirSamResolverImpl(session, scopeSession)
 
-    private fun FirTypeRef.toIrType(): IrType = with(typeConverter) { toIrType() }
+    private fun FirTypeRef.toIrType(isCatchTypeCall: Boolean = false): IrType = with(typeConverter) { toIrType(isCatchTypeCall = isCatchTypeCall) }
 
     private fun ConeKotlinType.toIrType(conversionTypeContext: ConversionTypeContext = ConversionTypeContext.DEFAULT): IrType =
         with(typeConverter) { toIrType(conversionTypeContext) }
@@ -220,7 +220,7 @@ class CallAndReferenceGenerator(
         variableAsFunctionMode: Boolean = false
     ): IrExpression {
         try {
-            val type = typeRef.toIrType()
+            val type = typeRef.toIrType(typeRef is FirMultiCatchTypeRef)
             val samConstructorCall = qualifiedAccess.tryConvertToSamConstructorCall(type)
             if (samConstructorCall != null) return samConstructorCall
 
