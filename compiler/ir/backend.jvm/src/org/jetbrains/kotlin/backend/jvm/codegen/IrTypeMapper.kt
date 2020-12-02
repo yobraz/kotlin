@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrScriptSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.types.impl.IrCatchType
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.load.kotlin.TypeMappingMode
 import org.jetbrains.kotlin.name.SpecialNames
@@ -117,7 +118,7 @@ class IrTypeMapper(private val context: JvmBackendContext) : KotlinTypeMapperBas
         if (irClass != null && irClass.isInline) {
             return mapTypeAsDeclaration(irType)
         }
-        val type = AbstractTypeMapper.mapType(this, irType)
+        val type = AbstractTypeMapper.mapType(this, if (irType is IrCatchType) irType.commonSuperType else irType)
         return AsmUtil.boxPrimitiveType(type) ?: type
     }
 
