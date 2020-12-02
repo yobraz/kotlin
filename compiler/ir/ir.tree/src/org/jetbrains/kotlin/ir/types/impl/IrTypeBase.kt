@@ -11,10 +11,12 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.model.CaptureStatus
 import org.jetbrains.kotlin.types.model.CapturedTypeConstructorMarker
 import org.jetbrains.kotlin.types.model.CapturedTypeMarker
+import org.jetbrains.kotlin.types.model.SimpleTypeMarker
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 abstract class IrTypeBase(val kotlinType: KotlinType?) : IrType, IrTypeProjection {
@@ -52,38 +54,11 @@ object IrStarProjectionImpl : IrStarProjection {
     override fun hashCode(): Int = System.identityHashCode(this)
 }
 
-class IrCatchType(val types: Set<IrType>, override val annotations: List<IrConstructorCall>) : IrType {
-
-    val commonSuperType: IrType = types.reduce(::lca)
-
-    private fun IrType.superTypes() = classifierOrNull?.superTypes() ?: emptyList()
-
-    private fun lca(a: IrType, b: IrType): IrType {
-        val visited = mutableListOf<IrType>()
-        var refA = a
-        var refB = b
-        var f = true
-        while (true) {
-            if (refA == refB) return refA
-            if (visited.contains(refB)) return refB
-            if (visited.contains(refA)) return refA
-            if (refA.superTypes().firstOrNull() == null &&
-                refB.superTypes().firstOrNull() == null)
-                throw RuntimeException()
-            if (f) {
-                if (refA.superTypes().firstOrNull() != null) {
-                    visited.add(refA)
-                    refA = refA.superTypes().first()
-                }
-            } else {
-                if (refB.superTypes().firstOrNull() != null) {
-                    visited.add(refB)
-                    refB = refB.superTypes().first()
-                }
-            }
-            f = !f
-        }
-    }
+class IrCatchType(
+    val types: Set<IrType>,
+    override val annotations: List<IrConstructorCall>,
+    val commonSuperType: IrSimpleType = types.reduce(::lca) as IrSimpleType
+) : IrSimpleType by commonSuperType {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -102,7 +77,6 @@ class IrCatchType(val types: Set<IrType>, override val annotations: List<IrConst
         result = 31 * result + annotations.hashCode()
         return result
     }
-
 }
 
 /**

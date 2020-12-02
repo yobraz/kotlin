@@ -70,17 +70,10 @@ class Fir2IrTypeConverter(
     fun FirTypeRef.toIrType(typeContext: ConversionTypeContext = ConversionTypeContext.DEFAULT): IrType {
         capturedTypeCache.clear()
         return when (this) {
-            is FirMultiCatchTypeRef -> {
-                val irCatchType = IrCatchType(
-                    types.map { it.toIrType(typeContext) }.toSet(),
-                    with(annotationGenerator) { annotations.toIrAnnotations() }
-                )
-                return if (isCatchTypeCall) {
-                    irCatchType.commonSuperType
-                } else {
-                    irCatchType
-                }
-            }
+            is FirMultiCatchTypeRef -> IrCatchType(
+                types.map { it.toIrType(typeContext) }.toSet(),
+                with(annotationGenerator) { annotations.toIrAnnotations() }
+            )
             !is FirResolvedTypeRef -> createErrorType()
             !is FirImplicitBuiltinTypeRef -> type.toIrType(typeContext, annotations)
             is FirImplicitNothingTypeRef -> irBuiltIns.nothingType

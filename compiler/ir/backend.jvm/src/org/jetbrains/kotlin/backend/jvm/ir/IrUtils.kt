@@ -63,9 +63,8 @@ import org.jetbrains.kotlin.resolve.jvm.annotations.JVM_DEFAULT_NO_COMPATIBILITY
  * recursive erasure could loop. For example, a type parameter
  * `T : Comparable<T>` is replaced by `Comparable<*>`.
  */
-fun IrType.eraseTypeParameters(): IrType = when (this) {
+fun IrType.eraseTypeParameters() = when (this) {
     is IrErrorType -> this
-    is IrCatchType -> this.commonSuperType.eraseTypeParameters()
     is IrSimpleType ->
         when (val owner = classifier.owner) {
             is IrClass -> IrSimpleTypeImpl(

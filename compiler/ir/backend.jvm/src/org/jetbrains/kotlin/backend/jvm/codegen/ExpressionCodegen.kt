@@ -1280,7 +1280,7 @@ class ExpressionCodegen(
         val exception = expression.value.accept(this, data)
         // Avoid unecessary CHECKCASTs to java/lang/Throwable. If the exception is not of type Object
         // then it must be some subtype of throwable and we don't need to coerce it.
-        if (exception.type == OBJECT_TYPE)
+        if (exception.type == OBJECT_TYPE || exception.irType is IrCatchType)
             exception.materializeAt(context.irBuiltIns.throwableType)
         else
             exception.materialize()

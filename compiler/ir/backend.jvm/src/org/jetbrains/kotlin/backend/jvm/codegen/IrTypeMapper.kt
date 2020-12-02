@@ -118,7 +118,7 @@ class IrTypeMapper(private val context: JvmBackendContext) : KotlinTypeMapperBas
         if (irClass != null && irClass.isInline) {
             return mapTypeAsDeclaration(irType)
         }
-        val type = AbstractTypeMapper.mapType(this, if (irType is IrCatchType) irType.commonSuperType else irType)
+        val type = AbstractTypeMapper.mapType(this, irType)
         return AsmUtil.boxPrimitiveType(type) ?: type
     }
 

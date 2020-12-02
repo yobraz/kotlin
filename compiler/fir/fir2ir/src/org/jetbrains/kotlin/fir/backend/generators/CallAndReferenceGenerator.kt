@@ -220,7 +220,10 @@ class CallAndReferenceGenerator(
         variableAsFunctionMode: Boolean = false
     ): IrExpression {
         try {
-            val type = typeRef.toIrType(typeRef is FirMultiCatchTypeRef)
+            val isCatchTypeCall = typeRef is FirResolvedTypeRef &&
+                    typeRef.type is ConeIntersectionType &&
+                    (typeRef.type as ConeIntersectionType).isCatchType
+            val type = typeRef.toIrType(isCatchTypeCall)
             val samConstructorCall = qualifiedAccess.tryConvertToSamConstructorCall(type)
             if (samConstructorCall != null) return samConstructorCall
 

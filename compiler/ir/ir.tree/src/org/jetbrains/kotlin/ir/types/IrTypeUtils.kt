@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.ir.symbols.FqNameEqualityChecker
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
+import org.jetbrains.kotlin.ir.types.impl.IrCatchType
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.types.AbstractTypeCheckerContext
@@ -76,3 +77,33 @@ fun IrType.toArrayOrPrimitiveArrayType(irBuiltIns: IrBuiltIns): IrType =
     } else {
         irBuiltIns.arrayClass.typeWith(this)
     }
+
+internal fun IrType.superTypes() = classifierOrNull?.superTypes() ?: emptyList()
+
+internal fun lca(a: IrType, b: IrType): IrType {
+    val visited = mutableListOf<IrType>()
+    var refA = a
+    var refB = b
+    var f = true
+    while (true) {
+        if (refA == refB) return refA
+        if (visited.contains(refB)) return refB
+        if (visited.contains(refA)) return refA
+        if (refA.superTypes().firstOrNull() == null &&
+            refB.superTypes().firstOrNull() == null
+        )
+            throw RuntimeException()
+        if (f) {
+            if (refA.superTypes().firstOrNull() != null) {
+                visited.add(refA)
+                refA = refA.superTypes().first()
+            }
+        } else {
+            if (refB.superTypes().firstOrNull() != null) {
+                visited.add(refB)
+                refB = refB.superTypes().first()
+            }
+        }
+        f = !f
+    }
+}
