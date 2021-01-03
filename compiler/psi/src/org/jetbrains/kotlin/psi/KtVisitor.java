@@ -170,6 +170,10 @@ public class KtVisitor<R, D> extends PsiElementVisitor {
         return visitKtElement(typeReference, data);
     }
 
+    public R visitUnionType(@NotNull KtUnionType unionType, D data) {
+        return visitKtElement(unionType, data);
+    }
+
     public R visitValueArgumentList(@NotNull KtValueArgumentList list, D data) {
         return visitKtElement(list, data);
     }

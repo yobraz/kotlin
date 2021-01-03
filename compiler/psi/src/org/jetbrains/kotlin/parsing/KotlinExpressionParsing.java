@@ -1550,7 +1550,7 @@ public class KotlinExpressionParsing extends AbstractKotlinParsing {
                 PsiBuilder.Marker parameters = mark();
                 expect(LPAR, "Expecting '('", recoverySet);
                 if (!atSet(recoverySet)) {
-                    myKotlinParsing.parseCatchParameter();
+                    myKotlinParsing.parseValueParameter(/*typeRequired = */ true);
                     if (at(COMMA)) {
                         advance(); // trailing comma
                     }

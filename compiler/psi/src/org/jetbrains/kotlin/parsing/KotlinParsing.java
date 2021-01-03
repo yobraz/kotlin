@@ -19,7 +19,6 @@ package org.jetbrains.kotlin.parsing;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.WhitespacesBinders;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.psi.impl.java.stubs.SourceStubPsiFactory;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.Contract;
@@ -27,8 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.lexer.KtKeywordToken;
 import org.jetbrains.kotlin.lexer.KtTokens;
-
-import java.sql.SQLOutput;
 
 import static org.jetbrains.kotlin.KtNodeTypes.*;
 import static org.jetbrains.kotlin.lexer.KtTokens.*;
@@ -2060,7 +2057,12 @@ public class KotlinParsing extends AbstractKotlinParsing {
 
     void parseTypeRef(TokenSet extraRecoverySet) {
         PsiBuilder.Marker typeRefMarker = parseTypeRefContents(extraRecoverySet);
-        typeRefMarker.done(TYPE_REFERENCE);
+        if (at(OR)) {
+            typeRefMarker.rollbackTo();
+            parseUnionType();
+        } else {
+            typeRefMarker.done(TYPE_REFERENCE);
+        }
     }
 
     // The extraRecoverySet is needed for the foo(bar<x, 1, y>(z)) case, to tell whether we should stop
@@ -2229,6 +2231,24 @@ public class KotlinParsing extends AbstractKotlinParsing {
             advance(); // !!
             definitelyNotNull.done(DEFINITELY_NOT_NULL_TYPE);
         }
+    }
+
+    private void parseUnionType() {
+        PsiBuilder.Marker outerTypeRef = mark();
+        PsiBuilder.Marker unionType = mark();
+        PsiBuilder.Marker typeRef = parseTypeRefContents(TokenSet.EMPTY);
+        typeRef.done(TYPE_REFERENCE);
+        while (true) {
+            if (at(OR)) {
+                advance();
+                PsiBuilder.Marker anotherTypeRef = parseTypeRefContents(TokenSet.EMPTY);
+                anotherTypeRef.done(TYPE_REFERENCE);
+            } else {
+                break;
+            }
+        }
+        unionType.done(UNION_TYPE);
+        outerTypeRef.done(TYPE_REFERENCE);
     }
 
     private boolean atParenthesizedMutableForPlatformTypes(int offset) {
@@ -2441,35 +2461,6 @@ public class KotlinParsing extends AbstractKotlinParsing {
 
         closeDeclarationWithCommentBinders(parameter, VALUE_PARAMETER, false);
         return true;
-    }
-
-    public void parseCatchParameter() {
-        PsiBuilder.Marker parameter = mark();
-        myBuilder.disableNewlines();
-        parseModifierList(DEFAULT, NO_MODIFIER_BEFORE_FOR_VALUE_PARAMETER);
-
-        if (at(VAR_KEYWORD) || at(VAL_KEYWORD)) {
-            advance(); // VAR_KEYWORD | VAL_KEYWORD
-        }
-
-        expect(IDENTIFIER, "Parameter name expected", PARAMETER_NAME_RECOVERY_SET);
-
-        if (at(COLON)) {
-            advance(); // COLON
-
-            parseTypeRef();
-
-            while (at(COMMA) && lookahead(1) == IDENTIFIER /*?*/) {
-                advance(); // COMMA
-                parseTypeRef();
-            }
-        }
-        else {
-            errorWithRecovery("Parameters must have type annotation", PARAMETER_NAME_RECOVERY_SET);
-        }
-
-        myBuilder.restoreNewlinesState();
-        closeDeclarationWithCommentBinders(parameter, VALUE_PARAMETER, false);
     }
 
     /*
