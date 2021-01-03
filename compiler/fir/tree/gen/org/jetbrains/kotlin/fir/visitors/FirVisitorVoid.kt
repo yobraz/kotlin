@@ -126,7 +126,7 @@ import org.jetbrains.kotlin.fir.types.FirDynamicTypeRef
 import org.jetbrains.kotlin.fir.types.FirFunctionTypeRef
 import org.jetbrains.kotlin.fir.types.FirImplicitTypeRef
 import org.jetbrains.kotlin.fir.types.FirComposedSuperTypeRef
-import org.jetbrains.kotlin.fir.types.FirMultiCatchTypeRef
+import org.jetbrains.kotlin.fir.types.FirUnionTypeRef
 import org.jetbrains.kotlin.fir.contracts.FirEffectDeclaration
 import org.jetbrains.kotlin.fir.contracts.FirContractDescription
 import org.jetbrains.kotlin.fir.contracts.FirLegacyRawContractDescription
@@ -621,8 +621,8 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
         visitElement(composedSuperTypeRef)
     }
 
-    open fun visitMultiCatchTypeRef(multiCatchTypeRef: FirMultiCatchTypeRef) {
-        visitElement(multiCatchTypeRef)
+    open fun visitUnionTypeRef(unionTypeRef: FirUnionTypeRef) {
+        visitElement(unionTypeRef)
     }
 
     open fun visitEffectDeclaration(effectDeclaration: FirEffectDeclaration) {
@@ -1129,8 +1129,8 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
         visitComposedSuperTypeRef(composedSuperTypeRef)
     }
 
-    final override fun visitMultiCatchTypeRef(multiCatchTypeRef: FirMultiCatchTypeRef, data: Nothing?) {
-        visitMultiCatchTypeRef(multiCatchTypeRef)
+    final override fun visitUnionTypeRef(unionTypeRef: FirUnionTypeRef, data: Nothing?) {
+        visitUnionTypeRef(unionTypeRef)
     }
 
     final override fun visitEffectDeclaration(effectDeclaration: FirEffectDeclaration, data: Nothing?) {

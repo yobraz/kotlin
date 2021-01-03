@@ -1035,13 +1035,13 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
         print("*")
     }
 
-    override fun visitMultiCatchTypeRef(multiCatchTypeRef: FirMultiCatchTypeRef) {
-        val types = multiCatchTypeRef.types
+    override fun visitUnionTypeRef(unionTypeRef: FirUnionTypeRef) {
+        val types = unionTypeRef.types
         val lastIndex = types.lastIndex
         types.forEachIndexed { i, type ->
             type.accept(this)
             if (i != lastIndex) {
-                print(", ")
+                print(" | ")
             }
         }
     }

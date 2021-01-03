@@ -14,12 +14,14 @@ import org.jetbrains.kotlin.fir.visitors.*
  * DO NOT MODIFY IT MANUALLY
  */
 
-abstract class FirMultiCatchTypeRef : FirTypeRef() {
+abstract class FirUnionTypeRef : FirResolvedTypeRef() {
     abstract override val source: FirSourceElement?
     abstract override val annotations: List<FirAnnotationCall>
+    abstract override val type: ConeKotlinType
+    abstract override val delegatedTypeRef: FirTypeRef?
     abstract val types: List<FirTypeRef>
 
-    override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitMultiCatchTypeRef(this, data)
+    override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitUnionTypeRef(this, data)
 
-    abstract override fun <D> transformAnnotations(transformer: FirTransformer<D>, data: D): FirMultiCatchTypeRef
+    abstract override fun <D> transformAnnotations(transformer: FirTransformer<D>, data: D): FirUnionTypeRef
 }

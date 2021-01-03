@@ -242,7 +242,7 @@ object BuilderConfigurator : AbstractBuilderConfigurator<FirTreeBuilder>(FirTree
             withCopy()
         }
 
-        builder(multiCatchTypeRef) {
+        builder(unionTypeRef) {
             withCopy()
         }
 

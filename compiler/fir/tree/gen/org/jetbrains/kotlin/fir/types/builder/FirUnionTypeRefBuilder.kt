@@ -10,9 +10,10 @@ import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.builder.FirAnnotationContainerBuilder
 import org.jetbrains.kotlin.fir.builder.FirBuilderDsl
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
-import org.jetbrains.kotlin.fir.types.FirMultiCatchTypeRef
+import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
-import org.jetbrains.kotlin.fir.types.impl.FirMultiCatchTypeRefImpl
+import org.jetbrains.kotlin.fir.types.FirUnionTypeRef
+import org.jetbrains.kotlin.fir.types.impl.FirUnionTypeRefImpl
 import org.jetbrains.kotlin.fir.visitors.*
 
 /*
@@ -21,15 +22,19 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 @FirBuilderDsl
-class FirMultiCatchTypeRefBuilder : FirAnnotationContainerBuilder {
+class FirUnionTypeRefBuilder : FirAnnotationContainerBuilder {
     override var source: FirSourceElement? = null
     override val annotations: MutableList<FirAnnotationCall> = mutableListOf()
+    lateinit var type: ConeKotlinType
+    var delegatedTypeRef: FirTypeRef? = null
     val types: MutableList<FirTypeRef> = mutableListOf()
 
-    override fun build(): FirMultiCatchTypeRef {
-        return FirMultiCatchTypeRefImpl(
+    override fun build(): FirUnionTypeRef {
+        return FirUnionTypeRefImpl(
             source,
             annotations,
+            type,
+            delegatedTypeRef,
             types,
         )
     }
@@ -37,21 +42,23 @@ class FirMultiCatchTypeRefBuilder : FirAnnotationContainerBuilder {
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun buildMultiCatchTypeRef(init: FirMultiCatchTypeRefBuilder.() -> Unit = {}): FirMultiCatchTypeRef {
+inline fun buildUnionTypeRef(init: FirUnionTypeRefBuilder.() -> Unit): FirUnionTypeRef {
     contract {
         callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
     }
-    return FirMultiCatchTypeRefBuilder().apply(init).build()
+    return FirUnionTypeRefBuilder().apply(init).build()
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun buildMultiCatchTypeRefCopy(original: FirMultiCatchTypeRef, init: FirMultiCatchTypeRefBuilder.() -> Unit = {}): FirMultiCatchTypeRef {
+inline fun buildUnionTypeRefCopy(original: FirUnionTypeRef, init: FirUnionTypeRefBuilder.() -> Unit): FirUnionTypeRef {
     contract {
         callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
     }
-    val copyBuilder = FirMultiCatchTypeRefBuilder()
+    val copyBuilder = FirUnionTypeRefBuilder()
     copyBuilder.source = original.source
     copyBuilder.annotations.addAll(original.annotations)
+    copyBuilder.type = original.type
+    copyBuilder.delegatedTypeRef = original.delegatedTypeRef
     copyBuilder.types.addAll(original.types)
     return copyBuilder.apply(init).build()
 }
