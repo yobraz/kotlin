@@ -138,6 +138,7 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, Ty
             is ConeCapturedType -> constructor
             is ConeTypeVariableType -> lookupTag
             is ConeIntersectionType -> this
+            is ConeUnionType -> this
             is ConeStubType -> variable.typeConstructor
             is ConeDefinitelyNotNullType -> original.typeConstructor()
             is ConeIntegerLiteralType -> this
@@ -248,6 +249,7 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, Ty
             }
             is ConeCapturedTypeConstructor -> supertypes!!
             is ConeIntersectionType -> intersectedTypes
+            is ConeUnionType -> innerTypes
             is ConeIntegerLiteralType -> supertypes
             else -> unknownConstructorError()
         }

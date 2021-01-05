@@ -176,10 +176,8 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
         areBareTypesAllowed: Boolean
     ): ConeKotlinType {
         return when (typeRef) {
-            is FirMultiCatchTypeRef -> ConeTypeIntersector.intersectTypes(
-                session.typeContext,
+            is FirUnionTypeRef -> ConeUnionType(
                 typeRef.types.map { resolveType(it, scope, areBareTypesAllowed) },
-                true
             )
             is FirResolvedTypeRef -> typeRef.type
             is FirUserTypeRef -> {

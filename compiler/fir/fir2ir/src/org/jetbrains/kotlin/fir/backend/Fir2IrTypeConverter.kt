@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeArgument
-import org.jetbrains.kotlin.ir.types.impl.IrCatchType
+import org.jetbrains.kotlin.ir.types.impl.IrUnionType
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.types.impl.IrStarProjectionImpl
 import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
@@ -62,6 +62,7 @@ class Fir2IrTypeConverter(
         StandardClassIds.Char to irBuiltIns.charType
     )
 
+    fun FirTypeRef.toIrType(typeContext: ConversionTypeContext = ConversionTypeContext.DEFAULT): IrType {
     private val capturedTypeCache = mutableMapOf<ConeCapturedType, IrType>()
     private val errorTypeForCapturedTypeStub by lazy { createErrorType() }
 
@@ -70,7 +71,7 @@ class Fir2IrTypeConverter(
     fun FirTypeRef.toIrType(typeContext: ConversionTypeContext = ConversionTypeContext.DEFAULT): IrType {
         capturedTypeCache.clear()
         return when (this) {
-            is FirMultiCatchTypeRef -> IrCatchType(
+            is FirUnionTypeRef -> IrUnionType(
                 types.map { it.toIrType(typeContext) }.toSet(),
                 with(annotationGenerator) { annotations.toIrAnnotations() }
             )
@@ -153,15 +154,12 @@ class Fir2IrTypeConverter(
             }
             is ConeIntersectionType -> {
                 // TODO: add intersectionTypeApproximation
-                if (this.isCatchType) {
-                    IrCatchType(
-                        intersectedTypes.map { it.toIrType(typeContext) }.toSet(),
-                        with(annotationGenerator) { annotations.toIrAnnotations() }
-                    )
-                } else {
-                    intersectedTypes.first().toIrType(typeContext)
-                }
+                intersectedTypes.first().toIrType(typeContext)
             }
+            is ConeUnionType -> IrUnionType(
+                innerTypes.map { it.toIrType(typeContext) }.toSet(),
+                with(annotationGenerator) { annotations.toIrAnnotations() }
+            )
             is ConeStubType -> createErrorType()
             is ConeIntegerLiteralType -> createErrorType()
         }
