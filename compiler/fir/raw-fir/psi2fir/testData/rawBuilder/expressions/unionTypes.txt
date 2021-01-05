@@ -1,0 +1,13 @@
+FILE: unionTypes.kt
+    public? final? fun first(z: Float | Nothing): Double | Int {
+        lval x: Int | String = IntegerLiteral(5)
+        logExceptions#<IllegalStateException | IllegalArgumentException>(<L> = logExceptions@fun <implicit>.<anonymous>(): <implicit> {
+            ^@logExceptions Unit
+        }
+        )
+        try {
+        }
+        catch (e: java.lang.IllegalAccessError | NullPointerException) {
+        }
+
+    }
