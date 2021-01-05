@@ -1646,6 +1646,7 @@ class DeclarationsConverter(
                 LPAR -> afterLPar = true
                 TYPE_REFERENCE -> firType = convertType(it)
                 MODIFIER_LIST -> if (!afterLPar || typeModifiers.hasNoAnnotations()) typeModifiers = convertTypeModifierList(it)
+                UNION_TYPE -> firType = convertUnionType(it)
                 USER_TYPE -> firType = convertUserType(it)
                 DEFINITELY_NOT_NULL_TYPE -> firType = unwrapDefinitelyNotNullableType(it)
                 NULLABLE_TYPE -> firType = convertNullableType(it)
@@ -1716,6 +1717,26 @@ class DeclarationsConverter(
         }
 
         return firType
+    }
+
+    private fun convertUnionType(unionType: LighterASTNode): FirTypeRef {
+        val types = mutableListOf<FirTypeRef>()
+        unionType.forEachChildren {
+            when (it.tokenType) {
+                TYPE_REFERENCE -> types.add(convertType(it))
+            }
+        }
+        return buildUnionTypeRef {
+            source = unionType.toFirSourceElement()
+            type = ConeClassLikeTypeImpl(
+                ConeClassLikeLookupTagImpl(
+                    ClassId.fromString("kotlin/Any")
+                ),
+                emptyArray(),
+                false
+            )
+            this.types.addAll(types)
+        }
     }
 
     /**
@@ -1819,10 +1840,10 @@ class DeclarationsConverter(
     /**
      * @see org.jetbrains.kotlin.parsing.KotlinParsing.parseValueParameterList
      */
-    fun convertValueParameters(valueParameters: LighterASTNode, isCatchParameters: Boolean = false): List<ValueParameter> {
+    fun convertValueParameters(valueParameters: LighterASTNode): List<ValueParameter> {
         return valueParameters.forEachChildrenReturnList { node, container ->
             when (node.tokenType) {
-                VALUE_PARAMETER -> container += convertValueParameter(node, isCatchParameters)
+                VALUE_PARAMETER -> container += convertValueParameter(node)
             }
         }
     }
@@ -1830,7 +1851,7 @@ class DeclarationsConverter(
     /**
      * @see org.jetbrains.kotlin.parsing.KotlinParsing.parseValueParameter
      */
-    fun convertValueParameter(valueParameter: LighterASTNode, isCatchParameter: Boolean = false): ValueParameter {
+    fun convertValueParameter(valueParameter: LighterASTNode): ValueParameter {
         var modifiers = Modifier()
         var isVal = false
         var isVar = false
@@ -1838,31 +1859,16 @@ class DeclarationsConverter(
         var firType: FirTypeRef? = null
         var firExpression: FirExpression? = null
         var destructuringDeclaration: DestructuringDeclaration? = null
-        val typesForCatchType = mutableListOf<FirTypeRef>()
         valueParameter.forEachChildren {
             when (it.tokenType) {
                 MODIFIER_LIST -> modifiers = convertModifierList(it)
                 VAL_KEYWORD -> isVal = true
                 VAR_KEYWORD -> isVar = true
                 IDENTIFIER -> identifier = it.asText
-                TYPE_REFERENCE ->
-                    if (isCatchParameter)
-                        typesForCatchType.add(convertType(it))
-                    else
-                        firType = convertType(it)
+                TYPE_REFERENCE -> firType = convertType(it)
                 DESTRUCTURING_DECLARATION -> destructuringDeclaration = convertDestructingDeclaration(it)
                 else -> if (it.isExpression()) firExpression = expressionConverter.getAsFirExpression(it, "Should have default value")
             }
-        }
-        if (isCatchParameter) {
-            firType =
-                if (typesForCatchType.size > 1)
-                    buildMultiCatchTypeRef {
-                        source = valueParameter.toFirSourceElement()
-                        types.addAll(typesForCatchType)
-                    }
-                else
-                    typesForCatchType.first()
         }
 
         val name = identifier.nameAsSafeName()

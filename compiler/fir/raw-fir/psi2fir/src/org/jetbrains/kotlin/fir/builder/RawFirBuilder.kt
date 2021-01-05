@@ -7,6 +7,8 @@ package org.jetbrains.kotlin.fir.builder
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
+import com.intellij.psi.tree.TokenSet
+import com.intellij.util.ArrayFactory
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
@@ -39,6 +41,7 @@ import org.jetbrains.kotlin.name.LocalCallableIdConstructor
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.*
+import org.jetbrains.kotlin.psi.stubs.KotlinPlaceHolderStub
 import org.jetbrains.kotlin.psi.stubs.elements.KtStubElementTypes
 import org.jetbrains.kotlin.types.ConstantValueKind
 import org.jetbrains.kotlin.types.Variance
@@ -1362,6 +1365,21 @@ open class RawFirBuilder(
                 }
 
             val firTypeBuilder = when (val unwrappedElement = typeElement.unwrapNullable()) {
+                is KtUnionType -> FirUnionTypeRefBuilder().apply {
+                    this.source = source
+                    val innerTypes = (typeElement!! as KtElementImplStub<*>).getStubOrPsiChildren(
+                        KtStubElementTypes.TYPE_REFERENCE,
+                        KtStubElementTypes.TYPE_REFERENCE.arrayFactory
+                    ).mapNotNull { visitTypeReference(it!!, data) as FirTypeRef }
+                    type = ConeClassLikeTypeImpl(
+                        ConeClassLikeLookupTagImpl(
+                            ClassId.fromString("kotlin/Any")
+                        ),
+                        emptyArray(),
+                        false
+                    )
+                    types.addAll(innerTypes)
+                }
                 is KtDynamicType -> FirDynamicTypeRefBuilder().apply {
                     this.source = source
                     isMarkedNullable = isNullable
