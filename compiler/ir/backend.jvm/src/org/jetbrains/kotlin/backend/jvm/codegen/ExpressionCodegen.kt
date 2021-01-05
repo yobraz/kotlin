@@ -51,18 +51,16 @@ import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
 import org.jetbrains.kotlin.ir.types.*
-import org.jetbrains.kotlin.ir.types.impl.IrCatchType
+import org.jetbrains.kotlin.ir.types.impl.IrUnionType
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.resolve.calls.NewCommonSuperTypeCalculator.commonSuperType
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes.JAVA_STRING_TYPE
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes.OBJECT_TYPE
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterKind
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature
 import org.jetbrains.kotlin.types.TypeSystemCommonBackendContext
-import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.TypeParameterMarker
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -1146,8 +1144,8 @@ class ExpressionCodegen(
         for (clause in catches) {
             val clauseStart = markNewLabel()
             val parameter = clause.catchParameter
-            val descriptorType = if (parameter.type is IrCatchType)
-                (parameter.type as IrCatchType).commonSuperType.asmType
+            val descriptorType = if (parameter.type is IrUnionType)
+                (parameter.type as IrUnionType).commonSuperType.asmType
             else
                 parameter.asmType
             val index = frameMap.enter(clause.catchParameter, descriptorType)
@@ -1174,8 +1172,8 @@ class ExpressionCodegen(
             } else if (clause != catches.last()) {
                 mv.goTo(tryCatchBlockEnd)
             }
-            if (parameter.type is IrCatchType)
-                (parameter.type as IrCatchType).types.forEach {
+            if (parameter.type is IrUnionType)
+                (parameter.type as IrUnionType).types.forEach {
                     genTryCatchCover(clauseStart, tryBlockStart, tryBlockEnd, tryBlockGaps, it.asmType.internalName)
                 }
             else
@@ -1280,7 +1278,7 @@ class ExpressionCodegen(
         val exception = expression.value.accept(this, data)
         // Avoid unecessary CHECKCASTs to java/lang/Throwable. If the exception is not of type Object
         // then it must be some subtype of throwable and we don't need to coerce it.
-        if (exception.type == OBJECT_TYPE || exception.irType is IrCatchType)
+        if (exception.type == OBJECT_TYPE || exception.irType is IrUnionType)
             exception.materializeAt(context.irBuiltIns.throwableType)
         else
             exception.materialize()

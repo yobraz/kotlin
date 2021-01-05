@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.model.CaptureStatus
 import org.jetbrains.kotlin.types.model.CapturedTypeConstructorMarker
@@ -54,7 +53,7 @@ object IrStarProjectionImpl : IrStarProjection {
     override fun hashCode(): Int = System.identityHashCode(this)
 }
 
-class IrCatchType(
+class IrUnionType(
     val types: Set<IrType>,
     override val annotations: List<IrConstructorCall>,
     val commonSuperType: IrSimpleType = types.reduce(::lca) as IrSimpleType
@@ -64,7 +63,7 @@ class IrCatchType(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as IrCatchType
+        other as IrUnionType
 
         if (types != other.types) return false
         if (annotations != other.annotations) return false
