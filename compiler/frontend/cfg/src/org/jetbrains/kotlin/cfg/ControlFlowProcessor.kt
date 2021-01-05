@@ -367,7 +367,7 @@ class ControlFlowProcessor(
             }
             generateInstructions(right)
             builder.bindLabel(resultLabel)
-            val operation = if (operationType === ANDAND) AND else OR
+            val operation = if (operationType === ANDAND) AND else ControlFlowBuilder.PredefinedOperation.OR
             builder.predefinedOperation(expression, operation, elementsToValues(listOf(left, right).filterNotNull()))
         }
 

@@ -36,7 +36,7 @@ object FirCatchTypesAreThrowableChecker : FirTryExpressionChecker() {
 
     private fun checkCatch(catch: FirCatch) {
         val catchType = catch.parameter.returnTypeRef
-        if (catchType is FirMultiCatchTypeRef) {
+        if (catchType is FirUnionTypeRef) {
             catchType.types.forEach(::reportIfNotThrowable)
         } else {
             reportIfNotThrowable(catchType)

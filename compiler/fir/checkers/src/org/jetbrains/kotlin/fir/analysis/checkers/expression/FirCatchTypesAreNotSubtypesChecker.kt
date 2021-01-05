@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.fir.expressions.FirCatch
 import org.jetbrains.kotlin.fir.expressions.FirTryExpression
 import org.jetbrains.kotlin.fir.resolve.fullyExpandedType
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
-import org.jetbrains.kotlin.fir.types.FirMultiCatchTypeRef
+import org.jetbrains.kotlin.fir.types.FirUnionTypeRef
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.coneType
 
@@ -32,7 +32,7 @@ object FirCatchTypesAreNotSubtypesChecker : FirTryExpressionChecker() {
 
     private fun checkCatch(catch: FirCatch) {
         val catchType = catch.parameter.returnTypeRef
-        if (catchType is FirMultiCatchTypeRef) {
+        if (catchType is FirUnionTypeRef) {
             checkTypes(catchType.types.toSet())
         }
     }
