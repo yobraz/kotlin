@@ -1,3 +1,4 @@
+// IGNORE_BACKEND: WASM
 
 val a = "INT " + 0x8fffffffU
 val b = "BYTE " + 0x8ffU
