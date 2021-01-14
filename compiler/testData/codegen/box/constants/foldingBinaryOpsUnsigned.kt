@@ -1,4 +1,5 @@
 // WITH_RUNTIME
+// IGNORE_BACKEND: JVM
 // IGNORE_BACKEND: WASM
 
 val a = "INT " + 0x8fffffffU
