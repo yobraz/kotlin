@@ -1,7 +1,6 @@
 // WITH_RUNTIME
 // IGNORE_BACKEND: JVM
 // IGNORE_BACKEND: WASM
-// IGNORE_LIGHT_ANALYSIS
 
 val a = "INT " + 0x8fffffffU
 val b = "BYTE " + 0x8ffU
