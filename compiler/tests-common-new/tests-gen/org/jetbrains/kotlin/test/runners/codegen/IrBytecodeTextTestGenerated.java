@@ -4939,6 +4939,12 @@ public class IrBytecodeTextTestGenerated extends AbstractIrBytecodeTextTest {
         }
 
         @Test
+        @TestMetadata("samWrapperInInlineLambda2.kt")
+        public void testSamWrapperInInlineLambda2() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/sam/samWrapperInInlineLambda2.kt");
+        }
+
+        @Test
         @TestMetadata("samWrapperOfLambda.kt")
         public void testSamWrapperOfLambda() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/sam/samWrapperOfLambda.kt");
