@@ -55,6 +55,10 @@ var Project.javaHome: String?
     }
 
 fun Project.generator(fqName: String, sourceSet: SourceSet? = null, configure: JavaExec.() -> Unit = {}) = smartJavaExec {
+    doFirst {
+        systemProperty("idea.home.path", intellijRootDir().canonicalPath)
+    }
+
     classpath = (sourceSet ?: testSourceSet).runtimeClasspath
     mainClass.set(fqName)
     workingDir = rootDir

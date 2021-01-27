@@ -352,7 +352,7 @@ open class IrDeclarationDeserializer(
                         else -> computeMissingInlineClassRepresentationForCompatibility(this)
                     }
 
-                    fakeOverrideBuilder.enqueueClass(this, signature, compatibilityMode)
+                    //fakeOverrideBuilder.enqueueClass(this, signature, compatibilityMode)
                 }
             }
         }
@@ -798,8 +798,8 @@ open class IrDeclarationDeserializer(
         if (!symbol.signature.isPubliclyVisible) return false
 
         return when (proto.declaratorCase!!) {
-            IR_FUNCTION -> FunctionFlags.decode(proto.irFunction.base.base.flags).isFakeOverride
-            IR_PROPERTY -> PropertyFlags.decode(proto.irProperty.base.flags).isFakeOverride
+//            IR_FUNCTION -> FunctionFlags.decode(proto.irFunction.base.base.flags).isFakeOverride
+//            IR_PROPERTY -> PropertyFlags.decode(proto.irProperty.base.flags).isFakeOverride
             // Don't consider IR_FIELDS here.
             else -> false
         }
