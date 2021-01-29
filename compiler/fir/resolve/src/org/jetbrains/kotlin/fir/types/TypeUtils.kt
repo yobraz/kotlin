@@ -124,6 +124,13 @@ fun <T : ConeKotlinType> T.withNullability(
             ConeNullability.UNKNOWN -> this // TODO: is that correct?
             ConeNullability.NOT_NULL -> this
         }
+        is ConeUnionType -> when (nullability) {
+            ConeNullability.NULLABLE -> this.mapTypes {
+                it.withNullability(nullability)
+            }
+            ConeNullability.UNKNOWN -> this // TODO: is that correct?
+            ConeNullability.NOT_NULL -> this
+        }
         is ConeStubType -> ConeStubType(variable, nullability)
         is ConeDefinitelyNotNullType -> when (nullability) {
             ConeNullability.NOT_NULL -> this

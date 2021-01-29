@@ -257,6 +257,16 @@ open class FirJvmMangleComputer(
             is ConeCapturedType -> {
                 mangleType(tBuilder, type.lowerType ?: type.constructor.supertypes!!.first())
             }
+            is ConeUnionType -> {
+//                if (type.commonSuperType is ConeIntersectionType)
+//                    mangleType(tBuilder, (type.commonSuperType as ConeIntersectionType).intersectedTypes.last())
+//                else
+                    mangleType(tBuilder, type.commonSuperType)
+            }
+            is ConeIntersectionType -> {
+                type.intersectedTypes.forEach { mangleType(tBuilder, it) }
+                //mangleType(tBuilder, type.intersectedTypes.first())
+            }
             else -> error("Unexpected type $type")
         }
     }

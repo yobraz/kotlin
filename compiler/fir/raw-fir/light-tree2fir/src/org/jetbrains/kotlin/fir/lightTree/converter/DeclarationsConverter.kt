@@ -1728,13 +1728,6 @@ class DeclarationsConverter(
         }
         return buildUnionTypeRef {
             source = unionType.toFirSourceElement()
-            type = ConeClassLikeTypeImpl(
-                ConeClassLikeLookupTagImpl(
-                    ClassId.fromString("kotlin/Any")
-                ),
-                emptyArray(),
-                false
-            )
             this.types.addAll(types)
         }
     }

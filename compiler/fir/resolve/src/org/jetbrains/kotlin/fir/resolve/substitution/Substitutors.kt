@@ -91,7 +91,7 @@ abstract class AbstractConeSubstitutor : ConeSubstitutor() {
             substitutedTypes += substitutedType
         }
         if (!somethingIsSubstituted) return null
-        return ConeUnionType(substitutedTypes)
+        return ConeUnionType(substitutedTypes, commonSuperType)
     }
 
     private fun ConeDefinitelyNotNullType.substituteOriginal(): ConeKotlinType? {

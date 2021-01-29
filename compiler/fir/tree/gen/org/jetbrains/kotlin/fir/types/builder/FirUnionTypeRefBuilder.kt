@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.builder.FirAnnotationContainerBuilder
 import org.jetbrains.kotlin.fir.builder.FirBuilderDsl
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
-import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.FirUnionTypeRef
 import org.jetbrains.kotlin.fir.types.impl.FirUnionTypeRefImpl
@@ -25,16 +24,12 @@ import org.jetbrains.kotlin.fir.visitors.*
 class FirUnionTypeRefBuilder : FirAnnotationContainerBuilder {
     override var source: FirSourceElement? = null
     override val annotations: MutableList<FirAnnotationCall> = mutableListOf()
-    lateinit var type: ConeKotlinType
-    var delegatedTypeRef: FirTypeRef? = null
     val types: MutableList<FirTypeRef> = mutableListOf()
 
     override fun build(): FirUnionTypeRef {
         return FirUnionTypeRefImpl(
             source,
             annotations,
-            type,
-            delegatedTypeRef,
             types,
         )
     }
@@ -42,7 +37,7 @@ class FirUnionTypeRefBuilder : FirAnnotationContainerBuilder {
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun buildUnionTypeRef(init: FirUnionTypeRefBuilder.() -> Unit): FirUnionTypeRef {
+inline fun buildUnionTypeRef(init: FirUnionTypeRefBuilder.() -> Unit = {}): FirUnionTypeRef {
     contract {
         callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
     }
@@ -50,15 +45,13 @@ inline fun buildUnionTypeRef(init: FirUnionTypeRefBuilder.() -> Unit): FirUnionT
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun buildUnionTypeRefCopy(original: FirUnionTypeRef, init: FirUnionTypeRefBuilder.() -> Unit): FirUnionTypeRef {
+inline fun buildUnionTypeRefCopy(original: FirUnionTypeRef, init: FirUnionTypeRefBuilder.() -> Unit = {}): FirUnionTypeRef {
     contract {
         callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
     }
     val copyBuilder = FirUnionTypeRefBuilder()
     copyBuilder.source = original.source
     copyBuilder.annotations.addAll(original.annotations)
-    copyBuilder.type = original.type
-    copyBuilder.delegatedTypeRef = original.delegatedTypeRef
     copyBuilder.types.addAll(original.types)
     return copyBuilder.apply(init).build()
 }

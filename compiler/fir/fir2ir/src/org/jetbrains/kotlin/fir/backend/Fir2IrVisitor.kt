@@ -962,7 +962,6 @@ class Fir2IrVisitor(
             } else {
                 // TODO: The element type should be the least upper bound of all arguments' types, e.g., ["4", 2u, 0.42f] => Array<Any>
                 //   Currently, the type of elements in array literals still has integer literal type, which shouldn't be at this stage.
-                //   elementType = arrayOfCall.arguments.map { it.typeRef.toIrType() }.commonSupertype(irBuiltIns)
                 elementType = arrayOfCall.arguments.firstOrNull()?.typeRef?.toIrType() ?: createErrorType()
                 arrayType = elementType.toArrayOrPrimitiveArrayType(irBuiltIns)
             }

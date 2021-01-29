@@ -16158,6 +16158,29 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
         }
     }
 
+    @TestMetadata("compiler/testData/codegen/box/multicatch")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Multicatch extends AbstractJsCodegenBoxTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest0(this::doTest, TargetBackend.JS, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInMulticatch() throws Exception {
+            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/multicatch"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JS, true);
+        }
+
+        @TestMetadata("multicatchWithFinally.kt")
+        public void testMulticatchWithFinally() throws Exception {
+            runTest("compiler/testData/codegen/box/multicatch/multicatchWithFinally.kt");
+        }
+
+        @TestMetadata("simpleMulticatch.kt")
+        public void testSimpleMulticatch() throws Exception {
+            runTest("compiler/testData/codegen/box/multicatch/simpleMulticatch.kt");
+        }
+    }
+
     @TestMetadata("compiler/testData/codegen/box/multifileClasses")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)

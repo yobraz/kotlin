@@ -6,27 +6,28 @@
 package org.jetbrains.kotlin.fir.resolve.providers.impl
 
 import org.jetbrains.kotlin.builtins.StandardNames
-import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.ThreadSafeMutableState
+import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.diagnostics.ConeIntermediateDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.ConeSimpleDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.ConeUnexpectedTypeArgumentsError
 import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
-import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.diagnostics.ConeUnresolvedQualifierError
 import org.jetbrains.kotlin.fir.resolve.diagnostics.ConeWrongNumberOfTypeArgumentsError
 import org.jetbrains.kotlin.fir.resolve.getSymbolByLookupTag
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.scopes.FirScope
+import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
 import org.jetbrains.kotlin.fir.symbols.impl.*
-import org.jetbrains.kotlin.fir.typeContext
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.fir.types.impl.ConeTypeParameterTypeImpl
 import org.jetbrains.kotlin.fir.types.impl.FirImplicitBuiltinTypeRef
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.resolve.calls.NewCommonSuperTypeCalculator
+import org.jetbrains.kotlin.types.AbstractTypeApproximator
+import org.jetbrains.kotlin.types.TypeApproximatorConfiguration
 
 @ThreadSafeMutableState
 class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
@@ -176,9 +177,25 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
         areBareTypesAllowed: Boolean
     ): ConeKotlinType {
         return when (typeRef) {
-            is FirUnionTypeRef -> ConeUnionType(
-                typeRef.types.map { resolveType(it, scope, areBareTypesAllowed) },
-            )
+            is FirUnionTypeRef -> {
+                val resolvedTypes = typeRef.types.map {
+                    resolveType(
+                        it,
+                        scope,
+                        areBareTypesAllowed
+                    )
+                }
+                var superType = session.typeContext.commonSuperTypeOrNull(resolvedTypes)!!.also { println(it) }
+                if (superType is ConeIntersectionType)
+                    superType = superType.intersectedTypes.first()
+
+                ConeUnionType(
+                    resolvedTypes,
+                    superType
+                    //session.typeContext.commonSuperTypeOrNull(resolvedTypes)!!.also { println(it) }
+                    //ConeClassLikeTypeImpl(ConeClassLikeLookupTagImpl(ClassId.fromString("kotlin/Any")), emptyArray(), false)
+                )
+            }
             is FirResolvedTypeRef -> typeRef.type
             is FirUserTypeRef -> {
                 val (symbol, substitutor) = resolveToSymbol(typeRef, scope)

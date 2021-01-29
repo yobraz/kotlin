@@ -1371,13 +1371,6 @@ open class RawFirBuilder(
                         KtStubElementTypes.TYPE_REFERENCE,
                         KtStubElementTypes.TYPE_REFERENCE.arrayFactory
                     ).mapNotNull { visitTypeReference(it!!, data) as FirTypeRef }
-                    type = ConeClassLikeTypeImpl(
-                        ConeClassLikeLookupTagImpl(
-                            ClassId.fromString("kotlin/Any")
-                        ),
-                        emptyArray(),
-                        false
-                    )
                     types.addAll(innerTypes)
                 }
                 is KtDynamicType -> FirDynamicTypeRefBuilder().apply {

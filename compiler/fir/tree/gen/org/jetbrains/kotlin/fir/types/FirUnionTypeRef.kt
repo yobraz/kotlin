@@ -14,11 +14,9 @@ import org.jetbrains.kotlin.fir.visitors.*
  * DO NOT MODIFY IT MANUALLY
  */
 
-abstract class FirUnionTypeRef : FirResolvedTypeRef() {
+abstract class FirUnionTypeRef : FirTypeRef() {
     abstract override val source: FirSourceElement?
     abstract override val annotations: List<FirAnnotationCall>
-    abstract override val type: ConeKotlinType
-    abstract override val delegatedTypeRef: FirTypeRef?
     abstract val types: List<FirTypeRef>
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitUnionTypeRef(this, data)

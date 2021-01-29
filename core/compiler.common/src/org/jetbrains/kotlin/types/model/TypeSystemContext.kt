@@ -304,6 +304,8 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun TypeConstructorMarker.getParameter(index: Int): TypeParameterMarker
     fun TypeConstructorMarker.supertypes(): Collection<KotlinTypeMarker>
     fun TypeConstructorMarker.isIntersection(): Boolean
+    fun TypeConstructorMarker.isUnion(): Boolean = false
+    fun TypeConstructorMarker.getInnerTypes(): Collection<KotlinTypeMarker> = throw RuntimeException()
     fun TypeConstructorMarker.isClassTypeConstructor(): Boolean
     fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(): Boolean
     fun TypeConstructorMarker.isLocalType(): Boolean

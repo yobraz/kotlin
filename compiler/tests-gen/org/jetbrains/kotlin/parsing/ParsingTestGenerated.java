@@ -496,6 +496,11 @@ public class ParsingTestGenerated extends AbstractParsingTest {
             runTest("compiler/testData/psi/ModifierAsSelector.kt");
         }
 
+        @TestMetadata("MultiCatch.kt")
+        public void testMultiCatch() throws Exception {
+            runTest("compiler/testData/psi/MultiCatch.kt");
+        }
+
         @TestMetadata("MultiVariableDeclarations.kt")
         public void testMultiVariableDeclarations() throws Exception {
             runTest("compiler/testData/psi/MultiVariableDeclarations.kt");
@@ -719,6 +724,11 @@ public class ParsingTestGenerated extends AbstractParsingTest {
         @TestMetadata("TypealiasIsKeyword.kt")
         public void testTypealiasIsKeyword() throws Exception {
             runTest("compiler/testData/psi/TypealiasIsKeyword.kt");
+        }
+
+        @TestMetadata("UnionTypes.kt")
+        public void testUnionTypes() throws Exception {
+            runTest("compiler/testData/psi/UnionTypes.kt");
         }
 
         @TestMetadata("UnsignedLiteral.kt")

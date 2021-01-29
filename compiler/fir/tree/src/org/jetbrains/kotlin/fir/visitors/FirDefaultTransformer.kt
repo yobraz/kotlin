@@ -40,6 +40,10 @@ abstract class FirDefaultTransformer<D> : FirTransformer<D>() {
         return transformTypeRefWithNullability(userTypeRef, data)
     }
 
+    override fun transformUnionTypeRef(unionTypeRef: FirUnionTypeRef, data: D): CompositeTransformResult<FirTypeRef> {
+        return transformTypeRef(unionTypeRef, data)
+    }
+
     override fun transformCallableReferenceAccess(
         callableReferenceAccess: FirCallableReferenceAccess,
         data: D

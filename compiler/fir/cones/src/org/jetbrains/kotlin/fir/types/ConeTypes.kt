@@ -287,7 +287,12 @@ fun ConeIntersectionType.mapTypes(func: (ConeKotlinType) -> ConeKotlinType): Con
     return ConeIntersectionType(intersectedTypes.map(func))
 }
 
-class ConeUnionType(val innerTypes: Collection<ConeKotlinType>) : ConeSimpleKotlinType(), UnionTypeConstructorMarker {
+fun ConeUnionType.mapTypes(func: (ConeKotlinType) -> ConeKotlinType): ConeUnionType {
+    return ConeUnionType(innerTypes.map(func), commonSuperType)
+}
+
+class ConeUnionType(val innerTypes: Collection<ConeKotlinType>, val commonSuperType: ConeKotlinType)
+    : ConeSimpleKotlinType(), UnionTypeConstructorMarker {
     override val typeArguments: Array<out ConeTypeProjection>
         get() = emptyArray()
 
