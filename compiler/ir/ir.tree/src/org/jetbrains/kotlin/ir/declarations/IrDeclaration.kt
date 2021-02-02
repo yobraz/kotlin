@@ -35,13 +35,15 @@ interface IrMetadataSourceOwner : IrElement {
     var metadata: MetadataSource?
 }
 
-interface IrDeclaration : IrStatement, IrSymbolOwner, IrMutableAnnotationContainer {
+interface IrParentOwner {
+    var parent: IrDeclarationParent
+}
+
+interface IrDeclaration : IrStatement, IrSymbolOwner, IrParentOwner, IrMutableAnnotationContainer {
     @ObsoleteDescriptorBasedAPI
     val descriptor: DeclarationDescriptor
 
     var origin: IrDeclarationOrigin
-
-    var parent: IrDeclarationParent
 
     val factory: IrFactory
 }
@@ -54,7 +56,7 @@ interface IrOverridableDeclaration<S : IrSymbol> : IrOverridableMember {
     var overriddenSymbols: List<S>
 }
 
-interface IrDeclarationWithVisibility : IrDeclaration {
+interface IrDeclarationWithVisibility : IrParentOwner {
     var visibility: DescriptorVisibility
 }
 

@@ -165,7 +165,7 @@ fun IrDeclarationWithVisibility.getVisibilityAccessFlag(kind: OwnerKind? = null)
         DescriptorVisibilities.INTERNAL -> Opcodes.ACC_PUBLIC
         DescriptorVisibilities.LOCAL -> NO_FLAG_LOCAL
         JavaDescriptorVisibilities.PACKAGE_VISIBILITY -> AsmUtil.NO_FLAG_PACKAGE_PRIVATE
-        else -> throw IllegalStateException("$visibility is not a valid visibility in backend for ${ir2string(this)}")
+        else -> throw IllegalStateException("$visibility is not a valid visibility in backend for ${ir2string(this as IrDeclaration)}")
     }
 }
 
