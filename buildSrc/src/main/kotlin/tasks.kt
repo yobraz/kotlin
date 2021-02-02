@@ -41,6 +41,7 @@ val kotlinGradlePluginAndItsRequired = arrayOf(
     ":kotlin-gradle-plugin-api",
     ":kotlin-gradle-plugin",
     ":kotlin-gradle-plugin-model",
+    ":kotlin-tooling-metadata",
     ":kotlin-reflect",
     ":kotlin-annotation-processing-gradle",
     ":kotlin-test",
@@ -58,7 +59,8 @@ val kotlinGradlePluginAndItsRequired = arrayOf(
     ":kotlin-scripting-compiler-impl-embeddable",
     ":kotlin-test-js-runner",
     ":native:kotlin-klib-commonizer-embeddable",
-    ":native:kotlin-klib-commonizer-api"
+    ":native:kotlin-klib-commonizer-api",
+    ":native:kotlin-native-utils"
 )
 
 fun Task.dependsOnKotlinGradlePluginInstall() {
