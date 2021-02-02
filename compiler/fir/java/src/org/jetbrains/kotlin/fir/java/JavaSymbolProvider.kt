@@ -76,7 +76,6 @@ class JavaSymbolProvider(
     private val scopeProvider = JavaScopeProvider(this)
 
     private val facade: KotlinJavaPsiFacade get() = KotlinJavaPsiFacade.getInstance(project)
-    private val parentClassTypeParameterStackCache = mutableMapOf<FirRegularClassSymbol, JavaTypeParameterStack>()
     private val parentClassEffectiveVisibilityCache = mutableMapOf<FirRegularClassSymbol, EffectiveVisibility>()
 
     private fun findClass(
@@ -200,15 +199,12 @@ class JavaSymbolProvider(
 
 
         if (parentClassSymbol != null) {
-            val parentStack = parentClassTypeParameterStackCache[parentClassSymbol]
-                ?: (parentClassSymbol.fir as? FirJavaClass)?.javaTypeParameterStack
+            val parentStack = (parentClassSymbol.fir as? FirJavaClass)?.javaTypeParameterStack
             if (parentStack != null) {
                 javaTypeParameterStack.addStack(parentStack)
             }
         }
-        parentClassTypeParameterStackCache[classSymbol] = javaTypeParameterStack
         val firJavaClass = createFirJavaClass(javaClass, classSymbol, outerClassId, parentClassSymbol, classId, javaTypeParameterStack)
-        parentClassTypeParameterStackCache.remove(classSymbol)
         parentClassEffectiveVisibilityCache.remove(classSymbol)
         firJavaClass.convertSuperTypes(javaClass, javaTypeParameterStack)
         firJavaClass.addAnnotationsFrom(this@JavaSymbolProvider.session, javaClass, javaTypeParameterStack)
