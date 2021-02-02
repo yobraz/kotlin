@@ -393,8 +393,6 @@ private fun JavaClassifierType.toConeKotlinTypeForFlexibleBound(
                 )
             }
 
-            val classSymbol = session.symbolProvider.getClassLikeSymbolByFqName(classId) as? FirRegularClassSymbol
-
             val mappedTypeArguments = if (isRaw) {
                 val defaultArgs = (1..classifier.typeParameters.size).map { ConeStarProjection }
 
@@ -405,10 +403,14 @@ private fun JavaClassifierType.toConeKotlinTypeForFlexibleBound(
                 } else {
                     val position = if (isLowerBound) TypeComponentPosition.FLEXIBLE_LOWER else TypeComponentPosition.FLEXIBLE_UPPER
 
+                    val classSymbol = session.symbolProvider.getClassLikeSymbolByFqName(classId) as? FirRegularClassSymbol
                     classSymbol?.fir?.createRawArguments(defaultArgs, position) ?: defaultArgs
                 }
             } else {
-                val typeParameters = runIf(!forTypeParameterBounds && !isForSupertypes) { classSymbol?.fir?.typeParameters } ?: emptyList()
+                val typeParameters = runIf(!forTypeParameterBounds && !isForSupertypes) {
+                    val classSymbol = session.symbolProvider.getClassLikeSymbolByFqName(classId) as? FirRegularClassSymbol
+                    classSymbol?.fir?.typeParameters
+                } ?: emptyList()
 
                 typeArguments.indices.map { index ->
                     val argument = typeArguments[index]
