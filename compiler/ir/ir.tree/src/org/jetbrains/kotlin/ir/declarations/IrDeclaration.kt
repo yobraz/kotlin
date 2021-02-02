@@ -72,6 +72,6 @@ interface IrOverridableMember : IrDeclarationWithVisibility, IrDeclarationWithNa
     val modality: Modality
 }
 
-interface IrMemberWithContainerSource : IrDeclarationWithName {
+interface IrMemberWithContainerSource : IrParentOwner {
     val containerSource: DeserializedContainerSource?
 }
