@@ -28,6 +28,8 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.resolve.calls.NewCommonSuperTypeCalculator
 import org.jetbrains.kotlin.types.AbstractTypeApproximator
 import org.jetbrains.kotlin.types.TypeApproximatorConfiguration
+import org.jetbrains.kotlin.types.model.TypeSystemContext
+import org.jetbrains.kotlin.types.model.typeConstructor
 
 @ThreadSafeMutableState
 class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
@@ -185,14 +187,19 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
                         areBareTypesAllowed
                     )
                 }
-                var superType = session.typeContext.commonSuperTypeOrNull(resolvedTypes)!!.also { println(it) }
-                if (superType is ConeIntersectionType)
-                    superType = superType.intersectedTypes.first()
+
+                val superType = resolvedTypes.reduce { acc, coneKotlinType ->
+                    commonSuperType(
+                        acc as ConeClassLikeType,
+                        coneKotlinType as ConeClassLikeType,
+                        session
+                    )
+                }.also { println("reduced"); println(it) }
 
                 ConeUnionType(
                     resolvedTypes,
                     superType
-                    //session.typeContext.commonSuperTypeOrNull(resolvedTypes)!!.also { println(it) }
+//                    session.typeContext.commonSuperTypeOrNull(resolvedTypes)!!.also { println(it) }
                     //ConeClassLikeTypeImpl(ConeClassLikeLookupTagImpl(ClassId.fromString("kotlin/Any")), emptyArray(), false)
                 )
             }
@@ -205,5 +212,40 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
             is FirDynamicTypeRef -> ConeKotlinErrorType(ConeIntermediateDiagnostic("Not supported: ${typeRef::class.simpleName}"))
             else -> error(typeRef.render())
         }
+    }
+}
+
+fun commonSuperType(type1: ConeClassLikeType, type2: ConeClassLikeType, session: FirSession): ConeClassLikeType {
+    val visited = mutableListOf<ConeClassLikeType>()
+    var refA = type1
+    var refB = type2
+    var f = true
+    while (true) {
+        if (refA == refB) return refA
+        if (visited.contains(refB)) return refB
+        if (visited.contains(refA)) return refA
+        if (getParentClass(refA, session) == null &&
+            getParentClass(refB, session) == null
+        )
+            return ConeClassLikeTypeImpl(ConeClassLikeLookupTagImpl(ClassId.fromString("kotlin/Any")), emptyArray(), false)
+        if (f) {
+            if (getParentClass(refA, session) != null) {
+                visited.add(refA)
+                refA = getParentClass(refA, session)!!
+            }
+        } else {
+            if (getParentClass(refB, session) != null) {
+                visited.add(refB)
+                refB = getParentClass(refB, session)!!
+            }
+        }
+        f = !f
+    }
+}
+
+fun getParentClass(type: ConeClassLikeType, session: FirSession): ConeClassLikeType? {
+    with(session.typeContext) {
+        return (type.typeConstructor().supertypes()
+            .firstOrNull { !it.isInterfaceOrAnnotationClass() } as? ConeClassLikeType)
     }
 }

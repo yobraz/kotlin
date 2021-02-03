@@ -17,14 +17,15 @@ fun getRandomObject(): Int | String | Boolean {
 }
 
 fun first() {
-    getSize(getRandomObject())
+    val obj = getRandomObject()
+    getSize(obj)
 //    val x: Int | String = 5
 //
-//    try {
-//
-//    } catch (e: java.lang.IllegalStateException | java.lang.NullPointerException) {
-//
-//    }
+    try {
+
+    } catch (e: java.lang.IllegalStateException | java.lang.NullPointerException) {
+
+    }
 //    return x
 //
 //

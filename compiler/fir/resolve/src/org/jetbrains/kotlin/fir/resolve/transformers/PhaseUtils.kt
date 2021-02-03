@@ -12,10 +12,7 @@ import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.resolve.fullyExpandedType
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
-import org.jetbrains.kotlin.fir.types.ConeClassLikeType
-import org.jetbrains.kotlin.fir.types.ConeKotlinType
-import org.jetbrains.kotlin.fir.types.FirTypeRef
-import org.jetbrains.kotlin.fir.types.coneTypeSafe
+import org.jetbrains.kotlin.fir.types.*
 
 fun AbstractFirBasedSymbol<*>.ensureResolved(
     requiredPhase: FirResolvePhase,
@@ -66,10 +63,14 @@ fun ConeKotlinType.ensureResolvedTypeDeclaration(
     useSiteSession: FirSession,
     requiredPhase: FirResolvePhase = FirResolvePhase.DECLARATIONS,
 ) {
-    if (this !is ConeClassLikeType) return
+    if (this is ConeUnionType) {
+        (commonSuperType as ConeClassLikeType).lookupTag.toSymbol(useSiteSession)?.ensureResolved(FirResolvePhase.DECLARATIONS, useSiteSession)
+        (commonSuperType as ConeClassLikeType).fullyExpandedType(useSiteSession).lookupTag.toSymbol(useSiteSession)?.ensureResolved(FirResolvePhase.DECLARATIONS, useSiteSession)
 
-    lookupTag.toSymbol(useSiteSession)?.ensureResolved(requiredPhase, useSiteSession)
-    fullyExpandedType(useSiteSession).lookupTag.toSymbol(useSiteSession)?.ensureResolved(requiredPhase, useSiteSession)
+    } else if (this is ConeClassLikeType) {
+        lookupTag.toSymbol(useSiteSession)?.ensureResolved(requiredPhase, useSiteSession)
+        fullyExpandedType(useSiteSession).lookupTag.toSymbol(useSiteSession)?.ensureResolved(requiredPhase, useSiteSession)
+    }
 }
 
 fun FirTypeRef.ensureResolvedTypeDeclaration(
