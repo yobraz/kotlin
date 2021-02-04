@@ -339,7 +339,7 @@ abstract class AnnotationCodegen(
                                         visible
                                     )
                                 }
-                            }.generateTypeAnnotations(typeParameterContainer, superType)
+                            }.generateTypeAnnotations(typeParameterContainer as IrAnnotationContainer, superType)
                         }
                     }
                 }

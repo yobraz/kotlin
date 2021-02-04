@@ -180,7 +180,7 @@ val IrClass.typeConstructorParameters: Sequence<IrTypeParameter>
                         // Ideally this should be fixed in FE.
                         null
                     }
-                    current.isAnonymousObject -> {
+                    current is IrClass && current.isAnonymousObject -> {
                         // Anonymous classes don't capture type parameters.
                         null
                     }

@@ -16,6 +16,6 @@
 
 package org.jetbrains.kotlin.ir.declarations
 
-interface IrTypeParametersContainer : IrDeclaration, IrDeclarationParent {
+interface IrTypeParametersContainer : IrDeclarationParent, IrParentOwner {
     var typeParameters: List<IrTypeParameter>
 }

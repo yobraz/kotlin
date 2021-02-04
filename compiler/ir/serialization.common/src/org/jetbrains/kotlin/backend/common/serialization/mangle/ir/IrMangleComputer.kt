@@ -135,7 +135,7 @@ abstract class IrMangleComputer(protected val builder: StringBuilder, private va
 
     private fun IrTypeParameter.effectiveParent(): IrDeclaration = when (val irParent = parent) {
         is IrSimpleFunction -> irParent.correspondingPropertySymbol?.owner ?: irParent
-        is IrTypeParametersContainer -> irParent
+        is IrTypeParametersContainer -> irParent as IrDeclaration
         else -> error("Unexpected type parameter container ${irParent.render()} for TP ${render()}")
     }
 

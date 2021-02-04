@@ -318,7 +318,7 @@ internal fun IrFactory.buildTypeParameter(builder: IrTypeParameterBuilder, paren
 inline fun buildTypeParameter(parent: IrTypeParametersContainer, builder: IrTypeParameterBuilder.() -> Unit): IrTypeParameter =
     IrTypeParameterBuilder().run {
         builder()
-        parent.factory.buildTypeParameter(this, parent)
+        (parent as IrDeclaration).factory.buildTypeParameter(this, parent)
     }
 
 inline fun IrTypeParametersContainer.addTypeParameter(builder: IrTypeParameterBuilder.() -> Unit): IrTypeParameter =
@@ -327,7 +327,8 @@ inline fun IrTypeParametersContainer.addTypeParameter(builder: IrTypeParameterBu
         if (index == UNDEFINED_PARAMETER_INDEX) {
             index = typeParameters.size
         }
-        factory.buildTypeParameter(this, this@addTypeParameter).also { typeParameter ->
+        val container = this@addTypeParameter
+        (container as IrDeclaration).factory.buildTypeParameter(this, container).also { typeParameter ->
             typeParameters = typeParameters + typeParameter
         }
     }

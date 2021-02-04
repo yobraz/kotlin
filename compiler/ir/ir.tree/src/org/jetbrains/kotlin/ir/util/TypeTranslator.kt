@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
+import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
 import org.jetbrains.kotlin.ir.descriptors.IrBasedTypeParameterDescriptor
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
@@ -49,14 +50,14 @@ abstract class TypeTranslator(
     fun enterScope(irElement: IrTypeParametersContainer) {
         typeParametersResolver.enterTypeParameterScope(irElement)
         if (enterTableScope) {
-            symbolTable.enterScope(irElement)
+            symbolTable.enterScope(irElement as IrDeclaration)
         }
     }
 
     fun leaveScope(irElement: IrTypeParametersContainer) {
         typeParametersResolver.leaveTypeParameterScope()
         if (enterTableScope) {
-            symbolTable.leaveScope(irElement)
+            symbolTable.leaveScope(irElement as IrDeclaration)
         }
     }
 
