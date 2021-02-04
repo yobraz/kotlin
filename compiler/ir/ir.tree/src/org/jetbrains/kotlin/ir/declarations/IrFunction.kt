@@ -29,9 +29,8 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 abstract class IrFunction :
     IrDeclarationBase(),
-    IrPossiblyExternalDeclaration, IrDeclarationWithVisibility, IrTypeParametersContainer, IrSymbolOwner, IrDeclarationParent, IrReturnTarget,
-    IrMemberWithContainerSource,
-    IrMetadataSourceOwner {
+    IrDeclarationWithName, IrPossiblyExternalDeclaration, IrDeclarationWithVisibility, IrTypeParametersContainer, IrSymbolOwner,
+    IrDeclarationParent, IrReturnTarget, IrMemberWithContainerSource, IrMetadataSourceOwner {
 
     @ObsoleteDescriptorBasedAPI
     abstract override val descriptor: FunctionDescriptor

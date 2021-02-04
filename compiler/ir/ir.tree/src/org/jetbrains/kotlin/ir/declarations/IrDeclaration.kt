@@ -64,7 +64,7 @@ interface IrDeclarationWithName : IrDeclaration {
     val name: Name
 }
 
-interface IrPossiblyExternalDeclaration : IrDeclarationWithName {
+interface IrPossiblyExternalDeclaration {
     val isExternal: Boolean
 }
 

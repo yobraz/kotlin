@@ -313,6 +313,8 @@ fun IrDeclaration.hasInterfaceParent() =
 fun IrPossiblyExternalDeclaration.isEffectivelyExternal(): Boolean =
     this.isExternal
 
+@Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+@kotlin.internal.LowPriorityInOverloadResolution
 fun IrDeclaration.isEffectivelyExternal(): Boolean =
     this is IrPossiblyExternalDeclaration && this.isExternal
 
