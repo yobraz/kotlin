@@ -19,7 +19,6 @@ import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.lazy.IrLazyFunctionBase
 import org.jetbrains.kotlin.ir.declarations.lazy.lazyVar
 import org.jetbrains.kotlin.ir.expressions.IrBody
-import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.DeclarationStubGenerator
@@ -27,7 +26,6 @@ import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.isObject
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.resolve.annotations.JVM_STATIC_ANNOTATION_FQ_NAME
-import kotlin.properties.ReadWriteProperty
 
 abstract class AbstractFir2IrLazyFunction<F : FirCallableDeclaration>(
     components: Fir2IrComponents,
@@ -106,11 +104,7 @@ abstract class AbstractFir2IrLazyFunction<F : FirCallableDeclaration>(
         get() = error("Should not be called")
 
     override val factory: IrFactory
-        get() = super<AbstractFir2IrLazyDeclaration>.factory
-
-    override fun createLazyAnnotations(): ReadWriteProperty<Any?, List<IrConstructorCall>> {
-        return super<AbstractFir2IrLazyDeclaration>.createLazyAnnotations()
-    }
+        get() = irFactory
 
     companion object {
         private val JVM_STATIC_CLASS_ID = ClassId.topLevel(JVM_STATIC_ANNOTATION_FQ_NAME)

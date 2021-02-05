@@ -46,6 +46,9 @@ class Fir2IrLazyClass(
     override lateinit var typeParameters: List<IrTypeParameter>
     override lateinit var parent: IrDeclarationParent
 
+    override val factory: IrFactory
+        get() = irFactory
+
     override val source: SourceElement
         get() = fir.sourceElement ?: SourceElement.NO_SOURCE
 

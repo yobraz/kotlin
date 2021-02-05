@@ -6,10 +6,15 @@
 package org.jetbrains.kotlin.fir.lazy
 
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
+import org.jetbrains.kotlin.descriptors.DescriptorVisibility
 import org.jetbrains.kotlin.fir.backend.Fir2IrComponents
 import org.jetbrains.kotlin.fir.backend.declareThisReceiverParameter
 import org.jetbrains.kotlin.fir.backend.toIrType
-import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.declarations.FirConstructor
+import org.jetbrains.kotlin.fir.declarations.utils.isExpect
+import org.jetbrains.kotlin.fir.declarations.utils.isExternal
+import org.jetbrains.kotlin.fir.declarations.utils.isInline
+import org.jetbrains.kotlin.fir.declarations.utils.visibility
 import org.jetbrains.kotlin.fir.symbols.Fir2IrConstructorSymbol
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.*
@@ -20,13 +25,8 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.parentClassOrNull
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
-import org.jetbrains.kotlin.descriptors.DescriptorVisibility
-import org.jetbrains.kotlin.fir.declarations.utils.isExpect
-import org.jetbrains.kotlin.fir.declarations.utils.isExternal
-import org.jetbrains.kotlin.fir.declarations.utils.isInline
-import org.jetbrains.kotlin.fir.declarations.utils.visibility
 import org.jetbrains.kotlin.name.SpecialNames
+import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
 class Fir2IrLazyConstructor(
     components: Fir2IrComponents,
@@ -44,6 +44,9 @@ class Fir2IrLazyConstructor(
     override var annotations: List<IrConstructorCall> by createLazyAnnotations()
     override lateinit var typeParameters: List<IrTypeParameter>
     override lateinit var parent: IrDeclarationParent
+
+    override val factory: IrFactory
+        get() = irFactory
 
     override val isPrimary: Boolean
         get() = fir.isPrimary
