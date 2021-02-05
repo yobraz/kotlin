@@ -63,6 +63,24 @@ internal class PersistentIrClass(
     override fun hashCode(): Int = hashCodeValue
     override fun equals(other: Any?): Boolean = (this === other)
 
+    override var origin: IrDeclarationOrigin
+        get() = super.origin
+        set(value) {
+            super.origin = value
+        }
+
+    override var parent: IrDeclarationParent
+        get() = super.parent
+        set(value) {
+            super.parent = value
+        }
+
+    override var annotations: List<IrConstructorCall>
+        get() = super.annotations
+        set(value) {
+            super.annotations = value
+        }
+
     @ObsoleteDescriptorBasedAPI
     override val descriptor: ClassDescriptor
         get() = symbol.descriptor

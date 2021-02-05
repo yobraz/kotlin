@@ -65,7 +65,7 @@ open class MutableController(val context: JsIrBackendContext, val lowerings: Lis
     // Launches a lowering and applies it's results
     private fun DeclarationLowering.doApplyLoweringTo(declaration: PersistentIrDeclarationBase<*>) {
         val parentBefore = declaration.parent
-        val result = restrictTo(declaration) { this.declarationTransformer(context).transformFlat(declaration) }
+        val result = restrictTo(declaration as IrDeclaration) { this.declarationTransformer(context).transformFlat(declaration) }
         if (result != null) {
             result.forEach {
                 // Some of our lowerings rely on transformDeclarationsFlat
