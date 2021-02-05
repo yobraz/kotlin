@@ -39,16 +39,16 @@ interface IrParentOwner {
     var parent: IrDeclarationParent
 }
 
-interface IrDeclaration : IrStatement, IrSymbolOwner, IrParentOwner, IrMutableAnnotationContainer {
+abstract class IrDeclaration : IrElementBase(), IrStatement, IrSymbolOwner, IrParentOwner, IrMutableAnnotationContainer {
     @ObsoleteDescriptorBasedAPI
-    val descriptor: DeclarationDescriptor
+    abstract val descriptor: DeclarationDescriptor
 
-    var origin: IrDeclarationOrigin
+    abstract var origin: IrDeclarationOrigin
 
-    val factory: IrFactory
+    abstract val factory: IrFactory
 }
 
-abstract class IrDeclarationBase : IrElementBase(), IrDeclaration
+abstract class IrDeclarationBase : IrDeclaration()
 
 interface IrOverridableDeclaration<S : IrSymbol> : IrOverridableMember {
     override val symbol: S

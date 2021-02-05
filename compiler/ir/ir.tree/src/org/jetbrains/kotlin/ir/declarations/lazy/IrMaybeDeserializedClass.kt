@@ -5,8 +5,6 @@
 
 package org.jetbrains.kotlin.ir.declarations.lazy
 
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
-
-interface IrMaybeDeserializedClass : IrDeclaration {
+interface IrMaybeDeserializedClass {
     val moduleName: String?
 }
