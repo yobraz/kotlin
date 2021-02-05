@@ -372,7 +372,7 @@ object SetDeclarationsParentVisitor : IrElementVisitor<Unit, IrDeclarationParent
         }
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase, data: IrDeclarationParent) {
+    override fun visitDeclaration(declaration: IrDeclaration, data: IrDeclarationParent) {
         declaration.parent = data
         super.visitDeclaration(declaration, data)
     }

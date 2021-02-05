@@ -49,7 +49,7 @@ class IrConstTransformer(private val interpreter: IrInterpreter, private val irF
         return declaration
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
+    override fun visitDeclaration(declaration: IrDeclaration): IrStatement {
         transformAnnotations(declaration)
         return super.visitDeclaration(declaration)
     }

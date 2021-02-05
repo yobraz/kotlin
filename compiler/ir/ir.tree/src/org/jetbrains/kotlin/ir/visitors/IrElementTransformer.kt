@@ -42,7 +42,7 @@ interface IrElementTransformer<in D> : IrElementVisitor<IrElement, D> {
         return declaration
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase, data: D): IrStatement {
+    override fun visitDeclaration(declaration: IrDeclaration, data: D): IrStatement {
         declaration.transformChildren(this, data)
         return declaration
     }

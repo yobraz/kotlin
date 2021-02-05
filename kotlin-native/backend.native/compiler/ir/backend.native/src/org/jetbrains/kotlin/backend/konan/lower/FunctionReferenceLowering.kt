@@ -66,7 +66,7 @@ internal class FunctionReferenceLowering(val context: Context): FileLoweringPass
                 return result
             }
 
-            override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
+            override fun visitDeclaration(declaration: IrDeclaration): IrStatement {
                 lateinit var tempGeneratedClasses: MutableList<IrClass>
                 if (declaration is IrClass) {
                     tempGeneratedClasses = generatedClasses

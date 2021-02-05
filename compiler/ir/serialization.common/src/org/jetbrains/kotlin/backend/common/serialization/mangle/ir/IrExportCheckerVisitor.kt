@@ -44,7 +44,7 @@ abstract class IrExportCheckerVisitor(private val compatibleMode: Boolean) : Kot
             error("Should bot reach here ${element.render()}")
         }
 
-        override fun visitDeclaration(declaration: IrDeclarationBase, data: Nothing?): Boolean {
+        override fun visitDeclaration(declaration: IrDeclaration, data: Nothing?): Boolean {
             val visibility = (declaration as? IrDeclarationWithVisibility)?.visibility
 
             if (visibility == DescriptorVisibilities.LOCAL)
@@ -97,7 +97,7 @@ abstract class IrExportCheckerVisitor(private val compatibleMode: Boolean) : Kot
 
         override fun visitElement(element: IrElement, data: Nothing?): Boolean = error("Should bot reach here ${element.render()}")
 
-        override fun visitDeclaration(declaration: IrDeclarationBase, data: Nothing?) = declaration.run { isExported(annotations, null) }
+        override fun visitDeclaration(declaration: IrDeclaration, data: Nothing?) = declaration.run { isExported(annotations, null) }
 
         override fun visitAnonymousInitializer(declaration: IrAnonymousInitializer, data: Nothing?) = false
         override fun visitValueParameter(declaration: IrValueParameter, data: Nothing?) = false

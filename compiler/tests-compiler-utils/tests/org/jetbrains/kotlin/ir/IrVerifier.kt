@@ -63,7 +63,7 @@ class IrVerifier(private val assertions: Assertions) : IrElementVisitorVoid {
     }
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
-    override fun visitDeclaration(declaration: IrDeclarationBase) {
+    override fun visitDeclaration(declaration: IrDeclaration) {
         declaration.symbol.checkBinding("decl", declaration)
 
         require(declaration.symbol.owner == declaration) {

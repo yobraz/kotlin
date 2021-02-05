@@ -27,7 +27,7 @@ class StableNamesCollector : IrElementVisitorVoid {
         element.acceptChildrenVoid(this)
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase) {
+    override fun visitDeclaration(declaration: IrDeclaration) {
         super.visitDeclaration(declaration)
 
         if (declaration !is IrDeclarationWithName)

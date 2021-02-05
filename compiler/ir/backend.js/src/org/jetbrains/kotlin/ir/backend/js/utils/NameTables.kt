@@ -178,7 +178,7 @@ class NameTables(
                         element.acceptChildrenVoid(this)
                     }
 
-                    override fun visitDeclaration(declaration: IrDeclarationBase) {
+                    override fun visitDeclaration(declaration: IrDeclaration) {
                         processNonTopLevelLocalDecl(declaration)
                         super.visitDeclaration(declaration)
                     }
@@ -310,7 +310,7 @@ class LocalNameGenerator(parentScope: NameScope) : IrElementVisitorVoid {
         element.acceptChildrenVoid(this)
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase) {
+    override fun visitDeclaration(declaration: IrDeclaration) {
         super.visitDeclaration(declaration)
         if (declaration is IrDeclarationWithName) {
             variableNames.declareFreshName(declaration, declaration.name.asString())

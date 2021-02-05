@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.types.Variance
 
-abstract class IrTypeParameter : IrDeclarationBase(), IrDeclarationWithName {
+abstract class IrTypeParameter : IrDeclaration(), IrDeclarationWithName {
     @ObsoleteDescriptorBasedAPI
     abstract override val descriptor: TypeParameterDescriptor
     abstract override val symbol: IrTypeParameterSymbol

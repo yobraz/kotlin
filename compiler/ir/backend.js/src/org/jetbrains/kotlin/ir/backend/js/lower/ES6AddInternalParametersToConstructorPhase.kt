@@ -88,7 +88,7 @@ class ES6AddInternalParametersToConstructorPhase(val context: JsIrBackendContext
         context.mapping.constructorToInitFunction[constructor] = initFunction
 
         initFunction.transformChildren(object : IrElementTransformerVoid() {
-            override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
+            override fun visitDeclaration(declaration: IrDeclaration): IrStatement {
                 declaration.parent = initFunction
                 return declaration
             }

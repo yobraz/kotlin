@@ -116,7 +116,7 @@ class MoveBodilessDeclarationsToSeparatePlaceLowering(private val context: JsIrB
                 element.acceptChildrenVoid(this)
             }
 
-            override fun visitDeclaration(declaration: IrDeclarationBase) {
+            override fun visitDeclaration(declaration: IrDeclaration) {
                 context.externalDeclarations.add(declaration)
                 super.visitDeclaration(declaration)
             }

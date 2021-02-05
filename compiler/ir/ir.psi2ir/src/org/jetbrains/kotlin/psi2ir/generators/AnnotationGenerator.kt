@@ -23,7 +23,7 @@ class AnnotationGenerator(context: GeneratorContext) : IrElementVisitorVoid {
         expression.acceptChildrenVoid(this)
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase) {
+    override fun visitDeclaration(declaration: IrDeclaration) {
         if (declaration is IrTypeParametersContainer) {
             typeTranslator.enterScope(declaration)
         }

@@ -74,7 +74,7 @@ abstract class InventNamesForLocalClasses(private val allowTopLevelCallables: Bo
             declaration.acceptChildren(this, data.makeLocal())
         }
 
-        override fun visitDeclaration(declaration: IrDeclarationBase, data: Data) {
+        override fun visitDeclaration(declaration: IrDeclaration, data: Data) {
             if (declaration !is IrDeclarationWithName ||
                 // Skip temporary variables because they are not present in source code, and their names are not particularly
                 // meaningful (e.g. `tmp$1`) in any case.

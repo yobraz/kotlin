@@ -89,7 +89,7 @@ private fun IrBody.move(
         return super.visitBlock(expression)
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
+    override fun visitDeclaration(declaration: IrDeclaration): IrStatement {
         if (declaration.parent == source)
             declaration.parent = target
         return super.visitDeclaration(declaration)

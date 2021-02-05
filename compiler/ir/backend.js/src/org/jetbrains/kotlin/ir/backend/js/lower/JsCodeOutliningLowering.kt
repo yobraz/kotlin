@@ -113,7 +113,7 @@ private class JsCodeOutlineTransformer(
         return withLocalScope { super.visitContainerExpression(expression) }
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
+    override fun visitDeclaration(declaration: IrDeclaration): IrStatement {
         return withLocalScope { super.visitDeclaration(declaration) }
     }
 

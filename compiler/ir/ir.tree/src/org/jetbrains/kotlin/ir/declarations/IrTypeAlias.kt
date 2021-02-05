@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 abstract class IrTypeAlias :
-    IrDeclarationBase(),
+    IrDeclaration(),
     IrDeclarationWithName,
     IrDeclarationWithVisibility,
     IrTypeParametersContainer {

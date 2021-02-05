@@ -306,7 +306,7 @@ internal object FileInitializersOptimization {
 
                 override fun visitElement(element: IrElement, data: BitSet): BitSet = TODO(element.render())
                 override fun visitExpression(expression: IrExpression, data: BitSet): BitSet = TODO(expression.render())
-                override fun visitDeclaration(declaration: IrDeclarationBase, data: BitSet): BitSet = TODO(declaration.render())
+                override fun visitDeclaration(declaration: IrDeclaration, data: BitSet): BitSet = TODO(declaration.render())
 
                 override fun visitTypeOperator(expression: IrTypeOperatorCall, data: BitSet) = expression.argument.accept(this, data)
                 override fun <T> visitConst(expression: IrConst<T>, data: BitSet) = data
@@ -541,7 +541,7 @@ internal object FileInitializersOptimization {
         var numberOfCallSitesWithExtractedThreadLocalInitializerCall = 0
 
         context.irModule!!.transformChildren(object : IrElementTransformer<IrBuilderWithScope?> {
-            override fun visitDeclaration(declaration: IrDeclarationBase, data: IrBuilderWithScope?): IrStatement {
+            override fun visitDeclaration(declaration: IrDeclaration, data: IrBuilderWithScope?): IrStatement {
                 return super.visitDeclaration(declaration, context.createIrBuilder(declaration.symbol, SYNTHETIC_OFFSET, SYNTHETIC_OFFSET))
             }
 

@@ -342,7 +342,7 @@ private class ScriptToClassTransformer(
     override fun visitFile(declaration: IrFile): IrFile = unexpectedElement(declaration)
     override fun visitScript(declaration: IrScript): IrStatement = unexpectedElement(declaration)
 
-    override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement = declaration.apply {
+    override fun visitDeclaration(declaration: IrDeclaration): IrStatement = declaration.apply {
         transformParent()
         transformAnnotations()
         transformChildren(this@ScriptToClassTransformer, null)

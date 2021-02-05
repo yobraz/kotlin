@@ -120,7 +120,7 @@ private class StringConcatenationTransformer(val lower: StringConcatenationLower
         }
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
+    override fun visitDeclaration(declaration: IrDeclaration): IrStatement {
         with(declaration) {
             buildersStack.add(
                 context.createIrBuilder(declaration.symbol, startOffset, endOffset)

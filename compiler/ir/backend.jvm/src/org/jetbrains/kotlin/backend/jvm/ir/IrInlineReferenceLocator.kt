@@ -21,7 +21,7 @@ internal open class IrInlineReferenceLocator(private val context: JvmBackendCont
         element.acceptChildren(this, data)
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase, data: IrDeclaration?) {
+    override fun visitDeclaration(declaration: IrDeclaration, data: IrDeclaration?) {
         val scope = if (declaration is IrVariable) data else declaration
         declaration.acceptChildren(this, scope)
     }

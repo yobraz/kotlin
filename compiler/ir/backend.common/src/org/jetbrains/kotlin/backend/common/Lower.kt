@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.backend.common
 
 import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrBody
@@ -138,7 +137,7 @@ private class BodyLoweringVisitor(
         element.acceptChildren(this, data)
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase, data: IrDeclaration?) {
+    override fun visitDeclaration(declaration: IrDeclaration, data: IrDeclaration?) {
         declaration.acceptChildren(this, declaration)
     }
 

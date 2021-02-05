@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 abstract class IrFunction :
-    IrDeclarationBase(),
+    IrDeclaration(),
     IrDeclarationWithName, IrPossiblyExternalDeclaration, IrDeclarationWithVisibility, IrTypeParametersContainer, IrSymbolOwner,
     IrDeclarationParent, IrReturnTarget, IrMemberWithContainerSource, IrMetadataSourceOwner {
 

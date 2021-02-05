@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
-abstract class IrErrorDeclaration : IrDeclarationBase() {
+abstract class IrErrorDeclaration : IrDeclaration() {
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R =
         visitor.visitErrorDeclaration(this, data)
 

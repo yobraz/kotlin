@@ -71,7 +71,7 @@ internal class EnumUsageLowering(val context: Context)
         visitFile(irFile, data = null)
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase, data: IrBuilderWithScope?): IrStatement {
+    override fun visitDeclaration(declaration: IrDeclaration, data: IrBuilderWithScope?): IrStatement {
         return super.visitDeclaration(declaration, context.createIrBuilder(declaration.symbol))
     }
 

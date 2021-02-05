@@ -28,7 +28,7 @@ class ManglerChecker(vararg _manglers: KotlinMangler<IrDeclaration>) : IrElement
             error("unexpected element: ${element.render()}")
         }
 
-        override fun visitDeclaration(declaration: IrDeclarationBase, data: Nothing?): Boolean {
+        override fun visitDeclaration(declaration: IrDeclaration, data: Nothing?): Boolean {
             if (!declaration.symbol.hasDescriptor) return true
 
             if (declaration.parent is IrPackageFragment) {
@@ -82,7 +82,7 @@ class ManglerChecker(vararg _manglers: KotlinMangler<IrDeclaration>) : IrElement
         return r
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase) {
+    override fun visitDeclaration(declaration: IrDeclaration) {
 
         if (declaration is IrErrorDeclaration) return
 

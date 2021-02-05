@@ -68,7 +68,7 @@ class DelegateToSyntheticPrimaryConstructor(context: JsCommonBackendContext) : B
         if (container is IrConstructor && !container.isPrimary) {
             container.parentAsClass.syntheticPrimaryConstructor?.let { primary ->
                 val initializeTransformer = object : IrElementTransformerVoid() {
-                    override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement = declaration // optimize visiting
+                    override fun visitDeclaration(declaration: IrDeclaration): IrStatement = declaration // optimize visiting
 
                     override fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall) = expression.run {
                         IrDelegatingConstructorCallImpl(

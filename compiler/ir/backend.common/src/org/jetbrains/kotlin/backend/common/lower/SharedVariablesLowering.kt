@@ -88,7 +88,7 @@ class SharedVariablesLowering(val context: BackendContext) : BodyLoweringPass {
                     }
                 }
 
-                override fun visitDeclaration(declaration: IrDeclarationBase, data: IrDeclarationParent?) {
+                override fun visitDeclaration(declaration: IrDeclaration, data: IrDeclarationParent?) {
                     super.visitDeclaration(declaration, declaration as? IrDeclarationParent ?: data)
                 }
 

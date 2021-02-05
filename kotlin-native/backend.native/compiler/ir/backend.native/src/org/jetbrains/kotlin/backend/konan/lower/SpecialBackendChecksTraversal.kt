@@ -73,7 +73,7 @@ private class BackendChecker(val context: Context, val irFile: IrFile) : IrEleme
         element.acceptChildrenVoid(this)
     }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase) {
+    override fun visitDeclaration(declaration: IrDeclaration) {
         outerDeclarations.push(declaration)
         try {
             super.visitDeclaration(declaration)

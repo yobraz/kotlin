@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.backend.konan.Context
 import org.jetbrains.kotlin.backend.konan.KonanConfigKeys
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
 import org.jetbrains.kotlin.ir.declarations.IrSymbolOwner
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -37,7 +36,7 @@ internal class PreInlineLowering(val context: Context) : BodyLoweringPass {
 
     override fun lower(irBody: IrBody, container: IrDeclaration) {
         irBody.transformChildren(object : IrElementTransformer<IrBuilderWithScope> {
-            override fun visitDeclaration(declaration: IrDeclarationBase, data: IrBuilderWithScope) =
+            override fun visitDeclaration(declaration: IrDeclaration, data: IrBuilderWithScope) =
                     super.visitDeclaration(declaration,
                             data = (declaration as? IrSymbolOwner)?.let { context.createIrBuilder(it.symbol, it.startOffset, it.endOffset) }
                                     ?: data

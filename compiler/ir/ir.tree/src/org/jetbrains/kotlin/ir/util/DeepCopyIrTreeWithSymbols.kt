@@ -115,7 +115,7 @@ open class DeepCopyIrTreeWithSymbols(
             declaration.transformDeclarationsTo(this)
         }
 
-    override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement =
+    override fun visitDeclaration(declaration: IrDeclaration): IrStatement =
         throw IllegalArgumentException("Unsupported declaration type: $declaration")
 
     override fun visitScript(declaration: IrScript): IrStatement {

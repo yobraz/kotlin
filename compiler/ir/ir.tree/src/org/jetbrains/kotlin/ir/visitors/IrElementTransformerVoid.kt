@@ -53,12 +53,12 @@ abstract class IrElementTransformerVoid : IrElementTransformer<Nothing?> {
     final override fun visitExternalPackageFragment(declaration: IrExternalPackageFragment, data: Nothing?): IrExternalPackageFragment =
         visitExternalPackageFragment(declaration)
 
-    open fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
+    open fun visitDeclaration(declaration: IrDeclaration): IrStatement {
         declaration.transformChildren(this, null)
         return declaration
     }
 
-    final override fun visitDeclaration(declaration: IrDeclarationBase, data: Nothing?): IrStatement = visitDeclaration(declaration)
+    final override fun visitDeclaration(declaration: IrDeclaration, data: Nothing?): IrStatement = visitDeclaration(declaration)
 
     open fun visitScript(declaration: IrScript) = visitDeclaration(declaration)
     final override fun visitScript(declaration: IrScript, data: Nothing?) = visitScript(declaration)

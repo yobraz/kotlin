@@ -74,7 +74,7 @@ fun dumpIrElement(actionState: ActionState, data: IrElement, @Suppress("UNUSED_P
                 element.acceptChildrenVoid(this)
             }
 
-            override fun visitDeclaration(declaration: IrDeclarationBase) {
+            override fun visitDeclaration(declaration: IrDeclaration) {
                 if (declaration is IrDeclarationWithName && FqName(dumpOnlyFqName) == declaration.fqNameWhenAvailable) {
                     dumpText += declaration.dump()
                 } else {
