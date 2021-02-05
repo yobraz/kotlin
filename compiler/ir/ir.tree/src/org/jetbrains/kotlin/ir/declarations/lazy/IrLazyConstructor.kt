@@ -40,6 +40,9 @@ class IrLazyConstructor(
 
     override var annotations: List<IrConstructorCall> by createLazyAnnotations()
 
+    override val factory: IrFactory
+        get() = stubGenerator.symbolTable.irFactory
+
     override var body: IrBody? = null
 
     override var returnType: IrType by lazyVar(stubGenerator.lock) { createReturnType() }

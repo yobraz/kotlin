@@ -49,6 +49,9 @@ class IrLazyFunction(
 
     override var annotations: List<IrConstructorCall> by createLazyAnnotations()
 
+    override val factory: IrFactory
+        get() = stubGenerator.symbolTable.irFactory
+
     override var body: IrBody? by lazyVar(stubGenerator.lock) {
         if (tryLoadIr()) body else null
     }

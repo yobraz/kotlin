@@ -46,6 +46,9 @@ class IrLazyProperty(
 
     override var annotations: List<IrConstructorCall> by createLazyAnnotations()
 
+    override val factory: IrFactory
+        get() = stubGenerator.symbolTable.irFactory
+
     private val hasBackingField: Boolean =
         descriptor.compileTimeInitializer != null || descriptor.getter == null ||
                 stubGenerator.extensions.isPropertyWithPlatformField(descriptor)

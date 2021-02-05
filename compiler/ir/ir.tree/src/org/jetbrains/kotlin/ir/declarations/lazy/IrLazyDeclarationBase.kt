@@ -6,57 +6,63 @@
 package org.jetbrains.kotlin.ir.declarations.lazy
 
 import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
-import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.DeclarationStubGenerator
 import org.jetbrains.kotlin.ir.util.TypeTranslator
-import org.jetbrains.kotlin.types.KotlinType
 import kotlin.properties.ReadWriteProperty
 
-@OptIn(ObsoleteDescriptorBasedAPI::class)
-interface IrLazyDeclarationBase : IrDeclaration {
+interface IrLazyDeclarationBase {
+    val descriptor: DeclarationDescriptor
+
     val stubGenerator: DeclarationStubGenerator
+
     val typeTranslator: TypeTranslator
 
-    override val factory: IrFactory
-        get() = stubGenerator.symbolTable.irFactory
+    val factory: IrFactory
 
-    fun KotlinType.toIrType(): IrType =
-        typeTranslator.translateType(this)
+    val origin: IrDeclarationOrigin
+}
 
-    fun ReceiverParameterDescriptor.generateReceiverParameterStub(): IrValueParameter =
-        factory.createValueParameter(
-            UNDEFINED_OFFSET, UNDEFINED_OFFSET, origin, IrValueParameterSymbolImpl(this),
-            name, -1, type.toIrType(), null, isCrossinline = false, isNoinline = false,
-            isHidden = false, isAssignable = false
-        )
+internal fun IrLazyDeclarationBase.generateReceiverParameterStub(receiver: ReceiverParameterDescriptor): IrValueParameter =
+    factory.createValueParameter(
+        UNDEFINED_OFFSET,
+        UNDEFINED_OFFSET,
+        origin,
+        IrValueParameterSymbolImpl(receiver),
+        receiver.name,
+        -1,
+        typeTranslator.translateType(receiver.type),
+        null,
+        isCrossinline = false,
+        isNoinline = false,
+        isHidden = false,
+        isAssignable = false
+    )
 
-    fun createLazyAnnotations(): ReadWriteProperty<Any?, List<IrConstructorCall>> = lazyVar(stubGenerator.lock) {
-        descriptor.annotations.mapNotNull(typeTranslator.constantValueGenerator::generateAnnotationConstructorCall).toMutableList()
-    }
+internal fun IrLazyDeclarationBase.createLazyAnnotations(): ReadWriteProperty<Any?, List<IrConstructorCall>> = lazyVar(stubGenerator.lock) {
+    descriptor.annotations.mapNotNull(typeTranslator.constantValueGenerator::generateAnnotationConstructorCall).toMutableList()
+}
 
-    fun createLazyParent(): ReadWriteProperty<Any?, IrDeclarationParent> = lazyVar(stubGenerator.lock) {
-        val currentDescriptor = descriptor
+internal fun IrLazyDeclarationBase.createLazyParent(): ReadWriteProperty<Any?, IrDeclarationParent> = lazyVar(stubGenerator.lock) {
+    val currentDescriptor = descriptor
 
-        val containingDeclaration =
-            ((currentDescriptor as? PropertyAccessorDescriptor)?.correspondingProperty ?: currentDescriptor).containingDeclaration
+    val containingDeclaration =
+        ((currentDescriptor as? PropertyAccessorDescriptor)?.correspondingProperty ?: currentDescriptor).containingDeclaration
 
-        when (containingDeclaration) {
-            is PackageFragmentDescriptor -> run {
-                val parent = this.takeUnless { it is IrClass }?.let {
-                    stubGenerator.generateOrGetFacadeClass(descriptor)
-                } ?: stubGenerator.generateOrGetEmptyExternalPackageFragmentStub(containingDeclaration)
-                parent.declarations.add(this)
-                parent
-            }
-            is ClassDescriptor -> stubGenerator.generateClassStub(containingDeclaration)
-            is FunctionDescriptor -> stubGenerator.generateFunctionStub(containingDeclaration)
-            is PropertyDescriptor -> stubGenerator.generateFunctionStub(containingDeclaration.run { getter ?: setter!! })
-            else -> throw AssertionError("Package or class expected: $containingDeclaration; for $currentDescriptor")
+    when (containingDeclaration) {
+        is PackageFragmentDescriptor -> run {
+            val parent = this.takeUnless { it is IrClass }?.let {
+                stubGenerator.generateOrGetFacadeClass(descriptor)
+            } ?: stubGenerator.generateOrGetEmptyExternalPackageFragmentStub(containingDeclaration)
+            parent.declarations.add(this as IrDeclaration)
+            parent
         }
+        is ClassDescriptor -> stubGenerator.generateClassStub(containingDeclaration)
+        is FunctionDescriptor -> stubGenerator.generateFunctionStub(containingDeclaration)
+        is PropertyDescriptor -> stubGenerator.generateFunctionStub(containingDeclaration.run { getter ?: setter!! })
+        else -> throw AssertionError("Package or class expected: $containingDeclaration; for $currentDescriptor")
     }
 }

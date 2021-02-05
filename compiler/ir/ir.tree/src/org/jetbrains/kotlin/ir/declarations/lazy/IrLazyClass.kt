@@ -50,12 +50,14 @@ class IrLazyClass(
 
     override var annotations: List<IrConstructorCall> by createLazyAnnotations()
 
+    override val factory: IrFactory
+        get() = stubGenerator.symbolTable.irFactory
+
     override var thisReceiver: IrValueParameter? by lazyVar(stubGenerator.lock) {
         typeTranslator.buildWithScope(this) {
-            descriptor.thisAsReceiverParameter.generateReceiverParameterStub().apply { parent = this@IrLazyClass }
+            generateReceiverParameterStub(descriptor.thisAsReceiverParameter).apply { parent = this@IrLazyClass }
         }
     }
-
 
     override val declarations: MutableList<IrDeclaration> by lazyVar(stubGenerator.lock) {
         ArrayList<IrDeclaration>().also {
@@ -64,10 +66,8 @@ class IrLazyClass(
                 generateChildStubs(descriptor.defaultType.memberScope.getContributedDescriptors(), it)
                 generateChildStubs(descriptor.staticScope.getContributedDescriptors(), it)
             }
-        }.also {
-            it.forEach {
-                it.parent = this //initialize parent for non lazy cases
-            }
+        }.onEach {
+            it.parent = this //initialize parent for non lazy cases
         }
     }
 
@@ -90,15 +90,13 @@ class IrLazyClass(
     override var superTypes: List<IrType> by lazyVar(stubGenerator.lock) {
         typeTranslator.buildWithScope(this) {
             // TODO get rid of code duplication, see ClassGenerator#generateClass
-            descriptor.typeConstructor.supertypes.mapNotNullTo(arrayListOf()) {
-                it.toIrType()
-            }
+            descriptor.typeConstructor.supertypes.mapNotNullTo(arrayListOf(), typeTranslator::translateType)
         }
     }
 
     override var inlineClassRepresentation: InlineClassRepresentation<IrSimpleType>? by lazyVar(stubGenerator.lock) {
         descriptor.inlineClassRepresentation?.mapUnderlyingType {
-            it.toIrType() as? IrSimpleType ?: error("Inline class underlying type is not a simple type: ${render()}")
+            typeTranslator.translateType(it) as? IrSimpleType ?: error("Inline class underlying type is not a simple type: ${render()}")
         }
     }
 
