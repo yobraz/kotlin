@@ -844,10 +844,10 @@ internal class FunctionReferenceLowering(private val context: JvmBackendContext)
                 context.ir.symbols.intrinsicsKotlinClass.defaultType
             }
 
-        internal fun getCallableReferenceTopLevelFlag(declaration: IrDeclaration): Int =
+        internal fun getCallableReferenceTopLevelFlag(declaration: IrParentOwner): Int =
             if (isCallableReferenceTopLevel(declaration)) 1 else 0
 
-        internal fun isCallableReferenceTopLevel(declaration: IrDeclaration): Boolean =
+        private fun isCallableReferenceTopLevel(declaration: IrParentOwner): Boolean =
             declaration.parent.let { it is IrClass && it.isFileClass }
     }
 }

@@ -10,8 +10,6 @@ import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val IrDeclaration.isReal: Boolean get() = !isFakeOverride
-
 val IrDeclaration.isFakeOverride: Boolean
     get() = when (this) {
         is IrSimpleFunction -> isFakeOverride
@@ -35,7 +33,7 @@ fun <S : IrSymbol, T : IrOverridableDeclaration<S>> T.collectRealOverrides(
     toSkip: (T) -> Boolean = { false },
     filter: (T) -> Boolean = { false }
 ): Set<T> {
-    if (isReal && !toSkip(this)) return setOf(this)
+    if (!isFakeOverride && !toSkip(this)) return setOf(this)
 
     @Suppress("UNCHECKED_CAST")
     return this.overriddenSymbols
@@ -59,7 +57,7 @@ fun <S : IrSymbol, T : IrOverridableDeclaration<S>> Collection<T>.collectAndFilt
     fun collectRealOverrides(member: T) {
         if (!visited.add(member) || filter(member)) return
 
-        if (member.isReal && !toSkip(member)) {
+        if (!member.isFakeOverride && !toSkip(member)) {
             realOverrides[member.toKey()] = member
         } else {
             @Suppress("UNCHECKED_CAST")

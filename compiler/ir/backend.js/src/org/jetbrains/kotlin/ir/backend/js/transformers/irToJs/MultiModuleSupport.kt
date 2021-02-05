@@ -91,7 +91,7 @@ private class CrossModuleReferenceInfoImpl(val topLevelDeclarationToModule: Map<
             }
 
             override fun getNameForStaticDeclaration(declaration: IrDeclarationWithName): JsName {
-                return namer.getNameForStaticDeclaration(declaration).track(declaration)
+                return namer.getNameForStaticDeclaration(declaration).track(declaration as IrDeclaration)
             }
 
             override fun getNameForProperty(property: IrProperty): JsName {

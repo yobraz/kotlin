@@ -116,7 +116,7 @@ class PublicIdSignatureComputer(val mangler: KotlinMangler.IrMangler) : IdSignat
             setExpected(declaration.isExpect)
         }
 
-        private fun IrDeclarationWithName.hashId(): Long = mangler.run { signatureMangle() }
+        private fun IrDeclaration.hashId(): Long = mangler.run { signatureMangle() }
 
         override fun visitSimpleFunction(declaration: IrSimpleFunction) {
             val property = declaration.correspondingPropertySymbol

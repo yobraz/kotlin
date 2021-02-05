@@ -511,7 +511,7 @@ fun usefulDeclarations(
 
                 if (declaration is IrOverridableDeclaration<*>) {
                     declaration.findOverriddenContagiousDeclaration()?.let {
-                        declaration.enqueue(it, "overrides useful declaration")
+                        declaration.enqueue(it as IrDeclaration, "overrides useful declaration")
                     }
                 }
 
@@ -531,7 +531,7 @@ fun usefulDeclarations(
                 // Until a getter is accessed it doesn't get moved to the declaration list.
                 if (declaration is IrProperty) {
                     fun IrSimpleFunction.enqueue(description: String) {
-                        findOverriddenContagiousDeclaration()?.let { enqueue(it, description) }
+                        findOverriddenContagiousDeclaration()?.let { enqueue(it as IrDeclaration, description) }
                     }
 
                     declaration.getter?.enqueue("(getter) overrides useful declaration")

@@ -398,7 +398,7 @@ private fun shouldDeclarationBeExported(declaration: IrDeclarationWithName, cont
     if (context?.additionalExportedDeclarationNames?.contains(declaration.fqNameWhenAvailable) == true)
         return true
 
-    if (context?.additionalExportedDeclarations?.contains(declaration) == true)
+    if (context?.additionalExportedDeclarations?.contains(declaration as IrDeclaration) == true)
         return true
 
     if (declaration is IrSimpleFunction) {

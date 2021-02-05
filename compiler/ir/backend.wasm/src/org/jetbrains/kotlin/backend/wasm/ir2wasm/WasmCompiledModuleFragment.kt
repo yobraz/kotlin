@@ -79,8 +79,8 @@ class WasmCompiledModuleFragment {
     open class ReferencableElements<Ir, Wasm : Any> {
         val unbound = mutableMapOf<Ir, WasmSymbol<Wasm>>()
         fun reference(ir: Ir): WasmSymbol<Wasm> {
-            val declaration = (ir as? IrSymbol)?.owner as? IrDeclarationWithName
-            if (declaration != null) {
+            val declaration = (ir as? IrSymbol)?.owner
+            if (declaration is IrDeclarationWithName) {
                 val packageFragment = declaration.getPackageFragment()
                     ?: error("Referencing declaration without package fragment ${declaration.fqNameWhenAvailable}")
                 if (packageFragment is IrExternalPackageFragment) {

@@ -34,7 +34,8 @@ fun excludeDeclarationsFromCodegen(context: WasmBackendContext, module: IrModule
     for (file in module.files) {
         val it = file.declarations.iterator()
         while (it.hasNext()) {
-            val d = it.next() as? IrDeclarationWithName ?: continue
+            val d = it.next()
+            if (d !is IrDeclarationWithName) continue
             if (isExcluded(d)) {
                 it.remove()
                 // Move to "excluded" package fragment preserving fq-name

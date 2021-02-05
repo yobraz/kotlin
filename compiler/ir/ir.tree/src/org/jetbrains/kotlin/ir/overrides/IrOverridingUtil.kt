@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.collectAndFilterRealOverrides
 import org.jetbrains.kotlin.ir.util.fileOrNull
-import org.jetbrains.kotlin.ir.util.isReal
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.resolve.OverridingUtil.OverrideCompatibilityInfo
 import org.jetbrains.kotlin.resolve.OverridingUtil.OverrideCompatibilityInfo.incompatible
@@ -219,7 +218,9 @@ class IrOverridingUtil(
 
         val addedFakeOverrides = mutableListOf<IrOverridableMember>()
         createAndBindFakeOverrides(current, notOverridden, addedFakeOverrides, compatibilityMode)
-        current.declarations.addAll(addedFakeOverrides)
+
+        @Suppress("UNCHECKED_CAST")
+        current.declarations.addAll(addedFakeOverrides as List<IrDeclaration>)
     }
 
     private fun extractAndBindOverridesForMember(
@@ -337,7 +338,7 @@ class IrOverridingUtil(
         member: IrOverridableMember,
         result: MutableSet<IrOverridableMember>
     ) {
-        if (member.isReal) {
+        if (!(member as IrOverridableDeclaration<*>).isFakeOverride) {
             result.add(member)
         } else {
             check(member.overriddenSymbols.isNotEmpty()) { "No overridden descriptors found for (fake override) $member" }

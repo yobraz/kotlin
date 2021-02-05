@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.ir.interpreter.*
 import org.jetbrains.kotlin.ir.interpreter.stack.Field
 import org.jetbrains.kotlin.ir.interpreter.stack.Fields
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
-import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
@@ -21,8 +20,6 @@ import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.LinkedHashMap
 
 internal class Wrapper(val value: Any, override val irClass: IrClass, environment: IrInterpreterEnvironment) : Complex {
     override val fields: Fields = mutableMapOf()
@@ -120,7 +117,7 @@ internal class Wrapper(val value: Any, override val irClass: IrClass, environmen
             return intrinsicFunctionToHandler[this.getSignature()]
         }
 
-        fun mustBeHandledWithWrapper(declaration: IrDeclarationWithName): Boolean {
+        fun mustBeHandledWithWrapper(declaration: IrDeclaration): Boolean {
             return when (declaration) {
                 is IrFunction -> declaration.getSignature() in intrinsicFunctionToHandler
                 else -> declaration.fqName.let { it in intrinsicClasses || it.startsWith("java") }

@@ -87,21 +87,21 @@ class MoveBodilessDeclarationsToSeparatePlaceLowering(private val context: JsIrB
 
             return emptyList()
         } else {
-            val d = declaration as? IrDeclarationWithName ?: return null
+            if (declaration !is IrDeclarationWithName) return null
 
-            if (isBuiltInClass(d) || isIntrinsic(d)) {
-                context.bodilessBuiltInsPackageFragment.addChild(d)
-                d.collectAllExternalDeclarations()
+            if (isBuiltInClass(declaration) || isIntrinsic(declaration)) {
+                context.bodilessBuiltInsPackageFragment.addChild(declaration)
+                declaration.collectAllExternalDeclarations()
 
                 return emptyList()
-            } else if (d.isEffectivelyExternal()) {
-                if (d.getJsModule() != null)
-                    context.declarationLevelJsModules.add(d)
+            } else if (declaration.isEffectivelyExternal()) {
+                if (declaration.getJsModule() != null)
+                    context.declarationLevelJsModules.add(declaration)
 
-                externalPackageFragment.declarations += d
-                d.parent = externalPackageFragment
+                externalPackageFragment.declarations += declaration
+                declaration.parent = externalPackageFragment
 
-                d.collectAllExternalDeclarations()
+                declaration.collectAllExternalDeclarations()
 
                 return emptyList()
             }

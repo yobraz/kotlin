@@ -257,14 +257,14 @@ class NameTables(
     }
 
     fun getNameForStaticDeclaration(declaration: IrDeclarationWithName): String {
-        val global: String? = globalNames.names[declaration]
+        val global: String? = globalNames.names[declaration as IrDeclaration]
         if (global != null) return global
 
         mappedNames?.get(mapToKey(declaration))?.let {
             return it
         }
 
-        error("Can't find name for declaration ${declaration.render()}")
+        error("Can't find name for declaration ${(declaration as IrDeclaration).render()}")
     }
 
     fun getNameForMemberField(field: IrField): String {

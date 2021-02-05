@@ -6,10 +6,7 @@
 package org.jetbrains.kotlin.ir.backend.js.utils
 
 import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.declarations.IrConstructor
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.util.isEffectivelyExternal
 import org.jetbrains.kotlin.ir.util.isPropertyAccessor
 import org.jetbrains.kotlin.ir.util.isPropertyField
@@ -66,7 +63,7 @@ class StableNamesCollector : IrElementVisitorVoid {
         }
 
     private fun stableNameForExternalDeclaration(declaration: IrDeclarationWithName): String? {
-        if (declaration.isPropertyAccessor ||
+        if ((declaration as IrDeclaration).isPropertyAccessor ||
             declaration.isPropertyField ||
             declaration is IrConstructor
         ) {
