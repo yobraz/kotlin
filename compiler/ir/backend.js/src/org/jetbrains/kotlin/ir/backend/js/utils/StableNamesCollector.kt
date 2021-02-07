@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.ir.backend.js.utils
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.util.isEffectivelyExternal
 import org.jetbrains.kotlin.ir.util.isPropertyAccessor
@@ -23,7 +24,7 @@ class StableNamesCollector : IrElementVisitorVoid {
         staticNames.add(Namer.IMPLICIT_RECEIVER_NAME)
     }
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         element.acceptChildrenVoid(this)
     }
 

@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.ir.isElseBranch
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.JsCommonBackendContext
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
@@ -139,7 +140,7 @@ class BlockDecomposerTransformer(
         return declaration.transformStatement(statementTransformer)
     }
 
-    override fun visitElement(element: IrElement) = element.transform(statementTransformer, null)
+    override fun visitElement(element: IrElementBase) = element.transform(statementTransformer, null)
 
     private fun processStatements(statements: MutableList<IrStatement>) {
         statements.transformFlat {

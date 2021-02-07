@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.backend.konan.Context
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.irCall
@@ -436,7 +437,7 @@ internal class NativeSuspendFunctionsLowering(ctx: Context): AbstractSuspendFunc
     private fun IrElement.hasSuspendCalls(): Boolean {
         var hasSuspendCalls = false
         acceptVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 

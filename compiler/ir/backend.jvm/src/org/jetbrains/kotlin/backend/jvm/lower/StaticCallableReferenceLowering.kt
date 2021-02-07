@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.declarations.buildField
 import org.jetbrains.kotlin.ir.builders.irCall
@@ -97,7 +98,7 @@ class StaticCallableReferenceLowering(val backendContext: JvmBackendContext) : F
         get() = containsReifiedTypeParametersCache.getOrPut(this) {
             var containsReified = false
             acceptChildrenVoid(object : IrElementVisitorVoid {
-                override fun visitElement(element: IrElement) {
+                override fun visitElement(element: IrElementBase) {
                     if (!containsReified)
                         element.acceptChildrenVoid(this)
                 }

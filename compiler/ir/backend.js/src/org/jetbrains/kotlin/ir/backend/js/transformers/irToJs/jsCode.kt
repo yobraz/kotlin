@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.ir.backend.js.transformers.irToJs
 
 import com.google.gwt.dev.js.ThrowExceptionOnErrorReporter
 import com.google.gwt.dev.js.rhino.CodePosition
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrStringConcatenation
@@ -28,7 +28,7 @@ fun translateJsCodeIntoStatementList(code: IrExpression): List<JsStatement>? {
         val builder = StringBuilder()
         var foldingFailed = false
         expression.acceptVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 foldingFailed = true
             }
 

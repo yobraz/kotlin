@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.backend.konan.descriptors.isExpectMember
 import org.jetbrains.kotlin.backend.konan.descriptors.propertyIfAccessor
 import org.jetbrains.kotlin.backend.konan.ir.ModuleIndex
 import org.jetbrains.kotlin.descriptors.MemberDescriptor
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrExpressionBodyImpl
@@ -58,7 +58,7 @@ internal class ExpectToActualDefaultValueCopier(private val irModule: IrModuleFr
 
     private fun copyDefaultArgumentsFromExpectToActual(declaration: IrDeclaration) {
         declaration.acceptVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 

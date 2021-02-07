@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.ir.util
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.*
@@ -82,7 +83,7 @@ open class DeepCopyIrTreeWithSymbols(
 
     protected fun IrType.remapType() = typeRemapper.remapType(this)
 
-    override fun visitElement(element: IrElement): IrElement =
+    override fun visitElement(element: IrElementBase): IrElement =
         throw IllegalArgumentException("Unsupported element type: $element")
 
     override fun visitModuleFragment(declaration: IrModuleFragment): IrModuleFragment {

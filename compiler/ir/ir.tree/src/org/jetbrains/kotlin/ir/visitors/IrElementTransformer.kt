@@ -17,12 +17,13 @@
 package org.jetbrains.kotlin.ir.visitors
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 
 interface IrElementTransformer<in D> : IrElementVisitor<IrElement, D> {
-    override fun visitElement(element: IrElement, data: D): IrElement {
+    override fun visitElement(element: IrElementBase, data: D): IrElement {
         element.transformChildren(this, data)
         return element
     }

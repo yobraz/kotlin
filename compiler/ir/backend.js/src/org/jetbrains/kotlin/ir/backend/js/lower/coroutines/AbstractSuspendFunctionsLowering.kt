@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.backend.js.lower.CallableReferenceLowering
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.buildClass
@@ -81,7 +82,7 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
 
         var numberOfSuspendCalls = 0
         body.acceptVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 
@@ -496,7 +497,7 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
 
         protected val scopeStack = mutableListOf<MutableSet<IrVariable>>(mutableSetOf())
 
-        override fun visitElement(element: IrElement) {
+        override fun visitElement(element: IrElementBase) {
             element.acceptChildrenVoid(this)
         }
 

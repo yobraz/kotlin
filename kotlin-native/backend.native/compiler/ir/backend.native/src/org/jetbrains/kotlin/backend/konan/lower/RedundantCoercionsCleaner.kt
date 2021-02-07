@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.backend.konan.DECLARATION_ORIGIN_INLINE_CLASS_SPECIA
 import org.jetbrains.kotlin.backend.konan.getInlinedClassNative
 import org.jetbrains.kotlin.backend.konan.ir.isBoxOrUnboxCall
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
@@ -52,7 +53,7 @@ internal class RedundantCoercionsCleaner(val context: Context) : FileLoweringPas
 
     private fun computeReturnableBlockValues(irFile: IrFile) {
         irFile.acceptChildrenVoid(object: IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 

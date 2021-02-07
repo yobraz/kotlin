@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.declarations.*
@@ -187,7 +188,7 @@ internal class TestProcessor (val context: Context) {
         private fun MutableMap<IrClass, TestClass>.getTestClass(key: IrClass) =
                 getOrPut(key) { TestClass(key) }
 
-        override fun visitElement(element: IrElement) {
+        override fun visitElement(element: IrElementBase) {
             element.acceptChildrenVoid(this)
         }
 

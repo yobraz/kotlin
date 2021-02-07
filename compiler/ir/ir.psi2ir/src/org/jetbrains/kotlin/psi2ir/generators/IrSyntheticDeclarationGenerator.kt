@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.backend.common.BackendException
 import org.jetbrains.kotlin.backend.common.CodegenUtil
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.PsiIrFileEntry
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
@@ -34,7 +34,7 @@ class IrSyntheticDeclarationGenerator(context: GeneratorContext) : IrElementVisi
     private val descriptorGenerator = SyntheticDeclarationsGenerator(context)
     private val symbolTable = context.symbolTable
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         element.acceptChildrenVoid(this)
     }
 

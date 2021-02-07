@@ -47,7 +47,7 @@ abstract class AbstractIrSourceRangesTestCase : AbstractIrGeneratorTestCase() {
         val printer = Printer(out, "  ")
         val elementRenderer = RenderIrElementVisitor()
 
-        override fun visitElement(element: IrElement) {
+        override fun visitElement(element: IrElementBase) {
             val sourceRangeInfo = fileEntry.getSourceRangeInfo(element.startOffset, element.endOffset)
             printer.println("@${sourceRangeInfo.render()} ${element.accept(elementRenderer, null)}")
             printer.pushIndent()

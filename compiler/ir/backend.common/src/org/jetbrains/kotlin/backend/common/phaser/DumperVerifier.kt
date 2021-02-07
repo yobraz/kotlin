@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.IrValidator
 import org.jetbrains.kotlin.backend.common.IrValidatorConfig
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
@@ -70,7 +71,7 @@ fun dumpIrElement(actionState: ActionState, data: IrElement, @Suppress("UNUSED_P
     if (dumpOnlyFqName != null) {
         elementName = dumpOnlyFqName
         data.acceptVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 

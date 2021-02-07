@@ -2,6 +2,7 @@ package org.jetbrains.kotlin.backend.common.serialization
 
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.classOrNull
@@ -38,7 +39,7 @@ class ExpectActualTable(val expectDescriptorToSymbol: MutableMap<DeclarationDesc
                 }
             }
 
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 
@@ -65,7 +66,7 @@ class ExpectActualTable(val expectDescriptorToSymbol: MutableMap<DeclarationDesc
         val rightHandSide = mutableMapOf<DeclarationDescriptor, IrSymbol>()
 
         this.acceptVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
             override fun visitFunction(declaration: IrFunction) {

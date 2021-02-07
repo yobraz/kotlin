@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.backend.common.lower.inline
 
-
 import org.jetbrains.kotlin.backend.common.BodyLoweringPass
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
@@ -19,6 +18,7 @@ import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.irReturn
@@ -371,7 +371,7 @@ class FunctionInlining(
                 return this@FunctionInlining.visitExpression(super.visitExpression(immediateCall))
             }
 
-            override fun visitElement(element: IrElement) = element.accept(this, null)
+            override fun visitElement(element: IrElementBase) = element.accept(this, null)
         }
 
         private fun IrExpression.implicitCastIfNeededTo(type: IrType) =

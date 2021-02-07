@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.backend.js.utils.realOverrideTarget
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
@@ -29,7 +30,7 @@ class DeclarationGenerator(val context: WasmModuleCodegenContext) : IrElementVis
     private val backendContext: WasmBackendContext = context.backendContext
     private val irBuiltIns: IrBuiltIns = backendContext.irBuiltIns
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         error("Unexpected element of type ${element::class}")
     }
 

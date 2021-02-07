@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.backend.jvm.lower.*
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.DescriptorVisibility
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
 import org.jetbrains.kotlin.ir.util.PatchDeclarationParentsVisitor
@@ -237,7 +238,7 @@ private val initializersCleanupPhase = makeIrFilePhase(
     description = "Remove non-static anonymous initializers and non-constant non-static field init expressions",
     stickyPostconditions = setOf(fun(irFile: IrFile) {
         irFile.acceptVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 

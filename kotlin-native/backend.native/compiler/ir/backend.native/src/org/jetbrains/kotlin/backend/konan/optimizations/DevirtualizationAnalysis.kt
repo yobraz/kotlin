@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.backend.konan.util.IntArrayList
 import org.jetbrains.kotlin.backend.konan.util.LongArrayList
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
@@ -95,7 +96,7 @@ internal object DevirtualizationAnalysis {
         // to instantiating classes since all objects are final types.
         val associatedObjects = mutableListOf<DataFlowIR.FunctionSymbol>()
         context.irModule!!.acceptChildrenVoid(object: IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 

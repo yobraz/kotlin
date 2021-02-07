@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.backend.wasm.WasmSymbols
 import org.jetbrains.kotlin.backend.wasm.utils.*
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.utils.realOverrideTarget
 import org.jetbrains.kotlin.ir.declarations.*
@@ -36,7 +37,7 @@ class BodyGenerator(val context: WasmFunctionCodegenContext) : IrElementVisitorV
     private val wasmSymbols: WasmSymbols = backendContext.wasmSymbols
     private val irBuiltIns: IrBuiltIns = backendContext.irBuiltIns
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         error("Unexpected element of type ${element::class}")
     }
 

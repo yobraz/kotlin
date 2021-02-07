@@ -38,7 +38,7 @@ class IrVerifier(private val assertions: Assertions) : IrElementVisitorVoid {
     private val elementsAreUniqueChecker = object : IrElementVisitorVoid {
         private val elements = HashSet<IrElement>()
 
-        override fun visitElement(element: IrElement) {
+        override fun visitElement(element: IrElementBase) {
             require(elements.add(element)) { "Non-unique element: ${element.render()}" }
             element.acceptChildrenVoid(this)
         }
@@ -54,7 +54,7 @@ class IrVerifier(private val assertions: Assertions) : IrElementVisitorVoid {
         assertions.assertFalse(hasErrors) { errorsAsMessage + "\n\n\n" + irFile.dump() }
     }
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         element.acceptChildrenVoid(this)
     }
 

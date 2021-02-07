@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.backend.common.BodyLoweringPass
 import org.jetbrains.kotlin.backend.common.lower.inline.isInlineParameter
 import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
@@ -59,7 +60,7 @@ class SharedVariablesLowering(val context: BackendContext) : BodyLoweringPass {
                 val relevantVars = HashSet<IrVariable>()
                 val relevantVals = HashSet<IrVariable>()
 
-                override fun visitElement(element: IrElement, data: IrDeclarationParent?) {
+                override fun visitElement(element: IrElementBase, data: IrDeclarationParent?) {
                     element.acceptChildren(this, data)
                 }
 

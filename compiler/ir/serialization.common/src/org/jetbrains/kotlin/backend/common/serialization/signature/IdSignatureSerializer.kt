@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleConstant
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.overrides.isOverridableFunction
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
@@ -91,7 +91,7 @@ class PublicIdSignatureComputer(val mangler: KotlinMangler.IrMangler) : IdSignat
             }
         }
 
-        override fun visitElement(element: IrElement) =
+        override fun visitElement(element: IrElementBase) =
             error("Unexpected element ${element.render()}")
 
         override fun visitErrorDeclaration(declaration: IrErrorDeclaration) {

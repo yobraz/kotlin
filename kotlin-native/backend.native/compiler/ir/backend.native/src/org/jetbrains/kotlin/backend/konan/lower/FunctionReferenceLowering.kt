@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
@@ -52,7 +53,7 @@ internal class FunctionReferenceLowering(val context: Context): FileLoweringPass
 
             private val stack = mutableListOf<IrElement>()
 
-            override fun visitElement(element: IrElement): IrElement {
+            override fun visitElement(element: IrElementBase): IrElement {
                 stack.push(element)
                 val result = super.visitElement(element)
                 stack.pop()

@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.extensions.AnnotationBasedExtension
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.builders.declarations.buildConstructor
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
@@ -43,7 +43,7 @@ private class NoArgIrTransformer(
 ) : AnnotationBasedExtension, IrElementVisitorVoid {
     override fun getAnnotationFqNames(modifierListOwner: KtModifierListOwner?): List<String> = annotations
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         element.acceptChildren(this, null)
     }
 

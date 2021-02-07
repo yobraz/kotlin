@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.backend.common.ir.setDeclarationsParent
 import org.jetbrains.kotlin.backend.common.lower.LocalClassPopupLowering
 import org.jetbrains.kotlin.backend.common.lower.LocalDeclarationsLowering
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBody
@@ -45,7 +46,7 @@ class LocalClassesInInlineLambdasLowering(val context: CommonBackendContext) : B
 
                 val localClasses = mutableSetOf<IrClass>()
                 expression.acceptChildrenVoid(object : IrElementVisitorVoid {
-                    override fun visitElement(element: IrElement) {
+                    override fun visitElement(element: IrElementBase) {
                         element.acceptChildrenVoid(this)
                     }
 
@@ -96,7 +97,7 @@ class LocalClassesInInlineFunctionsLowering(val context: CommonBackendContext) :
         val crossinlineParameters = function.valueParameters.filter { it.isCrossinline }.toSet()
         val classesToExtract = mutableSetOf<IrClass>()
         function.acceptChildrenVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 
@@ -104,7 +105,7 @@ class LocalClassesInInlineFunctionsLowering(val context: CommonBackendContext) :
                 var canExtract = true
                 if (crossinlineParameters.isNotEmpty()) {
                     declaration.acceptVoid(object : IrElementVisitorVoid {
-                        override fun visitElement(element: IrElement) {
+                        override fun visitElement(element: IrElementBase) {
                             element.acceptChildrenVoid(this)
                         }
 
@@ -140,7 +141,7 @@ class LocalClassesExtractionFromInlineFunctionsLowering(
         val crossinlineParameters = function.valueParameters.filter { it.isCrossinline }.toSet()
 
         function.acceptChildrenVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 
@@ -148,7 +149,7 @@ class LocalClassesExtractionFromInlineFunctionsLowering(
                 var canExtract = true
                 if (crossinlineParameters.isNotEmpty()) {
                     declaration.acceptVoid(object : IrElementVisitorVoid {
-                        override fun visitElement(element: IrElement) {
+                        override fun visitElement(element: IrElementBase) {
                             element.acceptChildrenVoid(this)
                         }
 

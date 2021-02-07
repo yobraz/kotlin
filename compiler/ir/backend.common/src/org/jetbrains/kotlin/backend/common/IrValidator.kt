@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.backend.common
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
@@ -86,7 +87,7 @@ class IrValidator(val context: CommonBackendContext, val config: IrValidatorConf
 
     private val elementChecker = CheckIrElementVisitor(irBuiltIns, this::error, config)
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         element.acceptVoid(elementChecker)
         element.acceptChildrenVoid(this)
     }
@@ -98,7 +99,7 @@ fun IrModuleFragment.checkDeclarationParents() {
 
 object CheckDeclarationParentsVisitor : IrElementVisitor<Unit, IrDeclarationParent?> {
 
-    override fun visitElement(element: IrElement, data: IrDeclarationParent?) {
+    override fun visitElement(element: IrElementBase, data: IrDeclarationParent?) {
         element.acceptChildren(this, element as? IrDeclarationParent ?: data)
     }
 

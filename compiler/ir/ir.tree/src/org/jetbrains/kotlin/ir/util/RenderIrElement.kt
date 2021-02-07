@@ -9,6 +9,7 @@ import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
@@ -182,7 +183,7 @@ class RenderIrElementVisitor(private val normalizeNames: Boolean = false, privat
     private inner class BoundSymbolReferenceRenderer :
         IrElementVisitor<String, Nothing?> {
 
-        override fun visitElement(element: IrElement, data: Nothing?) =
+        override fun visitElement(element: IrElementBase, data: Nothing?) =
             element.accept(this@RenderIrElementVisitor, null)
 
         override fun visitVariable(declaration: IrVariable, data: Nothing?) =
@@ -338,7 +339,7 @@ class RenderIrElementVisitor(private val normalizeNames: Boolean = false, privat
         }
     }
 
-    override fun visitElement(element: IrElement, data: Nothing?): String =
+    override fun visitElement(element: IrElementBase, data: Nothing?): String =
         "?ELEMENT? ${element::class.java.simpleName} $element"
 
     override fun visitDeclaration(declaration: IrDeclaration, data: Nothing?): String =

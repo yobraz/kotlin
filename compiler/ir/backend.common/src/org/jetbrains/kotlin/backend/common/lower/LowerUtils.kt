@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.*
@@ -172,7 +173,7 @@ fun IrConstructor.callsSuper(irBuiltIns: IrBuiltIns): Boolean {
     var callsSuper = false
     var numberOfCalls = 0
     acceptChildrenVoid(object : IrElementVisitorVoid {
-        override fun visitElement(element: IrElement) {
+        override fun visitElement(element: IrElementBase) {
             element.acceptChildrenVoid(this)
         }
 

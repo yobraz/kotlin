@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.backend.common.ir.Symbols
 import org.jetbrains.kotlin.backend.common.lower.loops.handlers.*
 import org.jetbrains.kotlin.backend.common.lower.matchers.IrCallMatcher
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -294,7 +295,7 @@ internal abstract class HeaderInfoBuilder(
     protected abstract val callHandlers: List<HeaderInfoFromCallHandler<Nothing?>>
     protected abstract val expressionHandlers: List<ExpressionHandler>
 
-    override fun visitElement(element: IrElement, data: IrCall?): HeaderInfo? = null
+    override fun visitElement(element: IrElementBase, data: IrCall?): HeaderInfo? = null
 
     /** Builds a [HeaderInfo] for iterable expressions that are calls (e.g., `.reversed()`, `.indices`. */
     override fun visitCall(expression: IrCall, data: IrCall?): HeaderInfo? {

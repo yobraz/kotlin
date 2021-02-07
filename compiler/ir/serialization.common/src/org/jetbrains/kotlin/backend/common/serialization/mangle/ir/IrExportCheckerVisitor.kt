@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.backend.common.serialization.mangle.SpecialDeclarati
 import org.jetbrains.kotlin.backend.common.serialization.mangle.publishedApiAnnotation
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.DescriptorVisibility
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.util.constructedClass
@@ -40,7 +40,7 @@ abstract class IrExportCheckerVisitor(private val compatibleMode: Boolean) : Kot
      * In that case any non-local declaration (including type parameter and field) is exportable and could be navigated between modules
      */
     private class Checker : IrElementVisitor<Boolean, Nothing?> {
-        override fun visitElement(element: IrElement, data: Nothing?): Boolean {
+        override fun visitElement(element: IrElementBase, data: Nothing?): Boolean {
             error("Should bot reach here ${element.render()}")
         }
 
@@ -95,7 +95,7 @@ abstract class IrExportCheckerVisitor(private val compatibleMode: Boolean) : Kot
 
         private fun DescriptorVisibility.isPubliclyVisible(): Boolean = isPublicAPI || this === DescriptorVisibilities.INTERNAL
 
-        override fun visitElement(element: IrElement, data: Nothing?): Boolean = error("Should bot reach here ${element.render()}")
+        override fun visitElement(element: IrElementBase, data: Nothing?): Boolean = error("Should bot reach here ${element.render()}")
 
         override fun visitDeclaration(declaration: IrDeclaration, data: Nothing?) = declaration.run { isExported(annotations, null) }
 

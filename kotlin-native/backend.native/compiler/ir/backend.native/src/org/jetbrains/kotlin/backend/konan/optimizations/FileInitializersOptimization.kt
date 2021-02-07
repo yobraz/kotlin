@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.backend.konan.lower.*
 import org.jetbrains.kotlin.backend.konan.lower.DECLARATION_ORIGIN_FILE_GLOBAL_INITIALIZER
 import org.jetbrains.kotlin.backend.konan.lower.DECLARATION_ORIGIN_FILE_STANDALONE_THREAD_LOCAL_INITIALIZER
 import org.jetbrains.kotlin.backend.konan.lower.DECLARATION_ORIGIN_FILE_THREAD_LOCAL_INITIALIZER
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irBlock
@@ -304,7 +304,7 @@ internal object FileInitializersOptimization {
                         previous.and(set)
                 }
 
-                override fun visitElement(element: IrElement, data: BitSet): BitSet = TODO(element.render())
+                override fun visitElement(element: IrElementBase, data: BitSet): BitSet = TODO(element.render())
                 override fun visitExpression(expression: IrExpression, data: BitSet): BitSet = TODO(expression.render())
                 override fun visitDeclaration(declaration: IrDeclaration, data: BitSet): BitSet = TODO(declaration.render())
 

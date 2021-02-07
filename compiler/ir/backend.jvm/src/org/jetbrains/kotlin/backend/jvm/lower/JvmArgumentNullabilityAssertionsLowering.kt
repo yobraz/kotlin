@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.ir.hasPlatformDependent
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFile
@@ -42,7 +43,7 @@ private class JvmArgumentNullabilityAssertionsLowering(context: JvmBackendContex
 
     override fun lower(irFile: IrFile) = irFile.transformChildren(this, AssertionScope.Enabled)
 
-    override fun visitElement(element: IrElement, data: AssertionScope): IrElement =
+    override fun visitElement(element: IrElementBase, data: AssertionScope): IrElement =
         super.visitElement(element, AssertionScope.Enabled)
 
     override fun visitDeclaration(declaration: IrDeclaration, data: AssertionScope): IrStatement =

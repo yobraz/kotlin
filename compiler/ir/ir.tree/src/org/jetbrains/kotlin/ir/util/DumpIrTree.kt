@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.ir.util
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrFileEntry
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
@@ -80,7 +81,7 @@ class DumpIrTreeVisitor(
         }
     }
 
-    override fun visitElement(element: IrElement, data: String) {
+    override fun visitElement(element: IrElementBase, data: String) {
         element.dumpLabeledElementWith(data) {
             if (element is IrAnnotationContainer) {
                 dumpAnnotations(element)
@@ -396,7 +397,7 @@ class DumpTreeFromSourceLineVisitor(
 ) : IrElementVisitorVoid {
     private val dumper = DumpIrTreeVisitor(out, normalizeNames)
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         if (fileEntry.getLineNumber(element.startOffset) == lineNumber) {
             element.accept(dumper, "")
             return

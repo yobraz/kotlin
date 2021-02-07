@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.backend.common
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
@@ -55,7 +56,7 @@ class ScopeValidator(
     }
 
     inner class Checker : IrElementVisitor<Unit, Visibles> {
-        override fun visitElement(element: IrElement, data: Visibles) {
+        override fun visitElement(element: IrElementBase, data: Visibles) {
             element.acceptChildren(this, data)
         }
 

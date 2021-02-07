@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.backend
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
@@ -15,7 +16,7 @@ import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 
 // TODO: could be a lowering
 internal class ExternalPackageParentPatcher(private val stubGenerator: DeclarationStubGenerator) : IrElementVisitorVoid {
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         element.acceptChildrenVoid(this)
     }
 

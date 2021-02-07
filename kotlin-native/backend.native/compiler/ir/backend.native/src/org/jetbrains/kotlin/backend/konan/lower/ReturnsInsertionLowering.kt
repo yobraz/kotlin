@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.backend.konan.lower
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.backend.konan.Context
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.ir.visitors.acceptVoid
 internal class ExpressionBodyTransformer(val context: Context) : FileLoweringPass {
     override fun lower(irFile: IrFile) {
         irFile.acceptVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 
@@ -49,7 +49,7 @@ internal class ReturnsInsertionLowering(val context: Context) : FileLoweringPass
 
     override fun lower(irFile: IrFile) {
         irFile.acceptVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 

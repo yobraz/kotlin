@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.ir2cfg.generators
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrVariable
@@ -194,7 +195,7 @@ class FunctionGenerator(val function: IrFunction) {
             return expression
         }
 
-        override fun visitElement(element: IrElement, data: Boolean): IrStatement? {
+        override fun visitElement(element: IrElementBase, data: Boolean): IrStatement? {
             TODO("not implemented")
         }
     }

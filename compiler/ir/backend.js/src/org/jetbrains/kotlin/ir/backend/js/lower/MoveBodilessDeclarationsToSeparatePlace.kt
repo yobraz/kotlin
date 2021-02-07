@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.ir.backend.js.lower
 import org.jetbrains.kotlin.backend.common.DeclarationTransformer
 import org.jetbrains.kotlin.backend.common.ir.addChild
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.backend.js.utils.getJsModule
 import org.jetbrains.kotlin.ir.backend.js.utils.getJsQualifier
@@ -112,7 +113,7 @@ class MoveBodilessDeclarationsToSeparatePlaceLowering(private val context: JsIrB
 
     private fun IrDeclaration.collectAllExternalDeclarations() {
         this.accept(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 

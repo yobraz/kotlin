@@ -17,17 +17,18 @@
 package org.jetbrains.kotlin.ir.visitors
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 
 abstract class IrElementTransformerVoid : IrElementTransformer<Nothing?> {
-    open fun visitElement(element: IrElement): IrElement {
+    open fun visitElement(element: IrElementBase): IrElement {
         element.transformChildren(this, null)
         return element
     }
 
-    final override fun visitElement(element: IrElement, data: Nothing?): IrElement = visitElement(element)
+    final override fun visitElement(element: IrElementBase, data: Nothing?): IrElement = visitElement(element)
 
     open fun visitModuleFragment(declaration: IrModuleFragment): IrModuleFragment {
         declaration.transformChildren(this, null)

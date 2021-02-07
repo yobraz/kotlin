@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.ir.backend.js.utils
 
 import org.jetbrains.kotlin.backend.common.ir.isTopLevel
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerIr
 import org.jetbrains.kotlin.ir.declarations.*
@@ -174,7 +175,7 @@ class NameTables(
                 processTopLevelLocalDecl(declaration)
                 processNonTopLevelLocalDecl(declaration)
                 declaration.acceptChildrenVoid(object : IrElementVisitorVoid {
-                    override fun visitElement(element: IrElement) {
+                    override fun visitElement(element: IrElementBase) {
                         element.acceptChildrenVoid(this)
                     }
 
@@ -306,7 +307,7 @@ class LocalNameGenerator(parentScope: NameScope) : IrElementVisitorVoid {
 
     private val breakableDeque: Deque<IrExpression> = LinkedList()
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         element.acceptChildrenVoid(this)
     }
 

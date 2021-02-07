@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.backend.common
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
@@ -43,7 +44,7 @@ fun collectTailRecursionCalls(irFunction: IrFunction): Set<IrCall> {
 
     val visitor = object : IrElementVisitor<Unit, ElementKind> {
 
-        override fun visitElement(element: IrElement, data: ElementKind) {
+        override fun visitElement(element: IrElementBase, data: ElementKind) {
             val childKind = ElementKind.NOT_SURE // Not sure by default.
             element.acceptChildren(this, childKind)
         }

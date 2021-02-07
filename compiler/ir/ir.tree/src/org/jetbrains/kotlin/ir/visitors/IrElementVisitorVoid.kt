@@ -17,12 +17,13 @@
 package org.jetbrains.kotlin.ir.visitors
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 
 interface IrElementVisitorVoid : IrElementVisitor<Unit, Nothing?> {
-    fun visitElement(element: IrElement)
-    override fun visitElement(element: IrElement, data: Nothing?) = visitElement(element)
+    fun visitElement(element: IrElementBase)
+    override fun visitElement(element: IrElementBase, data: Nothing?) = visitElement(element)
 
     fun visitModuleFragment(declaration: IrModuleFragment) = visitElement(declaration)
     override fun visitModuleFragment(declaration: IrModuleFragment, data: Nothing?) = visitModuleFragment(declaration)

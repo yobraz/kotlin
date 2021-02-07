@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.backend.konan.lower.RedundantCoercionsCleaner
 import org.jetbrains.kotlin.backend.konan.lower.ReturnsInsertionLowering
 import org.jetbrains.kotlin.backend.konan.optimizations.*
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -175,7 +176,7 @@ internal val dcePhase = makeKonanModuleOpPhase(
             }
 
             context.irModule!!.acceptChildrenVoid(object: IrElementVisitorVoid {
-                override fun visitElement(element: IrElement) {
+                override fun visitElement(element: IrElementBase) {
                     element.acceptChildrenVoid(this)
                 }
 

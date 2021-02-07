@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.psi2ir.intermediate
 
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltInsOverDescriptors
 import org.jetbrains.kotlin.ir.expressions.*
@@ -166,7 +167,7 @@ class ArrayAccessAssignmentReceiver(
     ) : IrElementVisitorVoid {
         val samConversionsPerVariable = HashMap<IrVariable, MutableList<IrTypeOperatorCall>>()
 
-        override fun visitElement(element: IrElement) {
+        override fun visitElement(element: IrElementBase) {
             element.acceptChildrenVoid(this)
         }
 
@@ -185,7 +186,7 @@ class ArrayAccessAssignmentReceiver(
     private class SamConversionsRewriter(
         private val replacementVars: Map<IrVariable, IrVariable>
     ) : IrElementTransformerVoid() {
-        override fun visitElement(element: IrElement): IrElement {
+        override fun visitElement(element: IrElementBase): IrElement {
             return element.apply { transformChildrenVoid() }
         }
 

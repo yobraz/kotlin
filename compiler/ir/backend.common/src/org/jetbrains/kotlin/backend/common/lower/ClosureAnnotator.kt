@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.backend.common.lower
 import org.jetbrains.kotlin.backend.common.ir.ir2string
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
@@ -244,7 +245,7 @@ class ClosureAnnotator(irElement: IrElement, declaration: IrDeclaration) {
 
     private inner class ClosureCollectorVisitor : IrElementVisitor<Unit, ClosureBuilder?> {
 
-        override fun visitElement(element: IrElement, data: ClosureBuilder?) {
+        override fun visitElement(element: IrElementBase, data: ClosureBuilder?) {
             element.acceptChildren(this, data)
         }
 

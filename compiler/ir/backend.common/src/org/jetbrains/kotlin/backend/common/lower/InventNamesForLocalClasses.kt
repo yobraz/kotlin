@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.backend.common.lower
 
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.expressions.IrPropertyReference
@@ -171,7 +172,7 @@ abstract class InventNamesForLocalClasses(private val allowTopLevelCallables: Bo
             declaration.acceptChildren(this, data.makeLocal())
         }
 
-        override fun visitElement(element: IrElement, data: Data) {
+        override fun visitElement(element: IrElementBase, data: Data) {
             element.acceptChildren(this, data)
         }
 

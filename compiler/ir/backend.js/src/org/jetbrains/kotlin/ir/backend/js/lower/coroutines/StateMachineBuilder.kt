@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.backend.common.peek
 import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.backend.common.push
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.backend.js.JsCommonBackendContext
@@ -211,7 +212,7 @@ class StateMachineBuilder(
     private fun buildDispatchBlock(target: SuspendState) = JsIrBuilder.buildComposite(unit)
         .also { doDispatchImpl(target, it, true) }
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         if (element in suspendableNodes) {
             element.acceptChildrenVoid(this)
         } else {

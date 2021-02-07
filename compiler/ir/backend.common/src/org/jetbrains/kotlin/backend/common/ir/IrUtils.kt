@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.descriptors.DescriptorVisibility
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.buildReceiverParameter
 import org.jetbrains.kotlin.ir.builders.declarations.buildTypeParameter
@@ -366,7 +367,7 @@ fun <T : IrElement> T.setDeclarationsParent(parent: IrDeclarationParent): T {
 }
 
 object SetDeclarationsParentVisitor : IrElementVisitor<Unit, IrDeclarationParent> {
-    override fun visitElement(element: IrElement, data: IrDeclarationParent) {
+    override fun visitElement(element: IrElementBase, data: IrDeclarationParent) {
         if (element !is IrDeclarationParent) {
             element.acceptChildren(this, data)
         }

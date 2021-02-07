@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.codegen.isInlineFunctionCall
 import org.jetbrains.kotlin.backend.jvm.codegen.isInlineIrExpression
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBlock
 import org.jetbrains.kotlin.ir.expressions.IrCallableReference
@@ -17,7 +18,7 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 internal open class IrInlineReferenceLocator(private val context: JvmBackendContext) : IrElementVisitor<Unit, IrDeclaration?> {
-    override fun visitElement(element: IrElement, data: IrDeclaration?) {
+    override fun visitElement(element: IrElementBase, data: IrDeclaration?) {
         element.acceptChildren(this, data)
     }
 

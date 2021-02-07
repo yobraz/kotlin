@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.InlineClassRepresentation
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrFileEntry
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
@@ -1443,7 +1444,7 @@ open class IrFileSerializer(
         } else {
             file.acceptVoid(
                 object : IrElementVisitorVoid {
-                    override fun visitElement(element: IrElement) {
+                    override fun visitElement(element: IrElementBase) {
                         element.acceptChildrenVoid(this)
                     }
 

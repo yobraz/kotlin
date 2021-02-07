@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.backend.common.ir.copyTo
 import org.jetbrains.kotlin.backend.common.ir.isOverridableOrOverrides
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irImplicitCast
 import org.jetbrains.kotlin.ir.declarations.IrFile
@@ -50,7 +51,7 @@ import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 class EraseVirtualDispatchReceiverParametersTypes(val context: CommonBackendContext) : FileLoweringPass {
     override fun lower(irFile: IrFile) {
         irFile.acceptChildrenVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 

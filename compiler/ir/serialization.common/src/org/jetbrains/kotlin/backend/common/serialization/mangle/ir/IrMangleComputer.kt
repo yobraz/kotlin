@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.backend.common.serialization.mangle.KotlinMangleComp
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleConstant
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleMode
 import org.jetbrains.kotlin.backend.common.serialization.mangle.collectForMangler
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
@@ -198,7 +198,7 @@ abstract class IrMangleComputer(protected val builder: StringBuilder, private va
 
     protected open fun mangleTypePlatformSpecific(type: IrType, tBuilder: StringBuilder) {}
 
-    override fun visitElement(element: IrElement) =
+    override fun visitElement(element: IrElementBase) =
         error("unexpected element ${element.render()}")
 
     override fun visitScript(declaration: IrScript) {

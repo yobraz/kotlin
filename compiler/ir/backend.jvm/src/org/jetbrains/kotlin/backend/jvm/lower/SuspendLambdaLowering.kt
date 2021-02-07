@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.codegen.coroutines.normalize
 import org.jetbrains.kotlin.codegen.inline.coroutines.FOR_INLINE_SUFFIX
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.*
@@ -155,7 +155,7 @@ private class SuspendLambdaLowering(context: JvmBackendContext) : SuspendLowerin
             // marking the parameters referenced in the function
             function.acceptChildrenVoid(
                 object : IrElementVisitorVoid {
-                    override fun visitElement(element: IrElement) = element.acceptChildrenVoid(this)
+                    override fun visitElement(element: IrElementBase) = element.acceptChildrenVoid(this)
 
                     override fun visitGetValue(expression: IrGetValue) {
                         if (expression.symbol is IrValueParameterSymbol && expression.symbol.owner in function.explicitParameters) {

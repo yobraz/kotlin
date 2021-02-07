@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.backend.common.BodyLoweringPass
 import org.jetbrains.kotlin.backend.common.collectTailRecursionCalls
 import org.jetbrains.kotlin.backend.common.deepCopyWithVariables
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
@@ -46,7 +47,7 @@ open class TailrecLowering(val context: BackendContext) : BodyLoweringPass {
             // TODO Shouldn't this be done after local declarations lowering?
             // Lower local declarations
             irBody.acceptChildrenVoid(object : IrElementVisitorVoid {
-                override fun visitElement(element: IrElement) {
+                override fun visitElement(element: IrElementBase) {
                     element.acceptChildrenVoid(this)
                 }
 

@@ -14,10 +14,7 @@ import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
 import org.jetbrains.kotlin.descriptors.impl.PackageFragmentDescriptorImpl
-import org.jetbrains.kotlin.ir.IrBuiltIns
-import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.IrFileEntry
-import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.*
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFieldImpl
@@ -122,7 +119,7 @@ fun <T: IrElement> T.setDeclarationsParent(parent: IrDeclarationParent): T {
 }
 
 object SetDeclarationsParentVisitor : IrElementVisitor<Unit, IrDeclarationParent> {
-    override fun visitElement(element: IrElement, data: IrDeclarationParent) {
+    override fun visitElement(element: IrElementBase, data: IrDeclarationParent) {
         if (element !is IrDeclarationParent) {
             element.acceptChildren(this, data)
         }

@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.ir.backend.js.lower
 
 import org.jetbrains.kotlin.backend.common.BodyLoweringPass
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
@@ -530,7 +531,7 @@ private class LowerCtorHelper(
 private fun getSuperCall(constructor: IrConstructor): IrDelegatingConstructorCall? {
     var result: IrDelegatingConstructorCall? = null
     (constructor.body as IrBlockBody).acceptChildren(object : IrElementVisitor<Unit, Any?> {
-        override fun visitElement(element: IrElement, data: Any?) { }
+        override fun visitElement(element: IrElementBase, data: Any?) { }
 
         override fun visitBlock(expression: IrBlock, data: Any?) {
             expression.statements.forEach { it.accept(this, data) }

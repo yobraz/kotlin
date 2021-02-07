@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
 import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -136,7 +137,7 @@ class FlattenStringConcatenationLowering(val context: CommonBackendContext) : Fi
             val arguments = mutableListOf<IrExpression>()
             expression.acceptChildrenVoid(object : IrElementVisitorVoid {
 
-                override fun visitElement(element: IrElement) {
+                override fun visitElement(element: IrElementBase) {
                     // Theoretically this is unreachable code since all descendants of IrExpressions are IrExpressions.
                     element.acceptChildrenVoid(this)
                 }

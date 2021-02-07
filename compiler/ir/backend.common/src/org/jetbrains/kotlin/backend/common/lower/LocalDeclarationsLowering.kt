@@ -894,7 +894,7 @@ class LocalDeclarationsLowering(
             }
 
             irElement.accept(object : IrElementVisitor<Unit, Data> {
-                override fun visitElement(element: IrElement, data: Data) {
+                override fun visitElement(element: IrElementBase, data: Data) {
                     element.acceptChildren(this, data)
                 }
 

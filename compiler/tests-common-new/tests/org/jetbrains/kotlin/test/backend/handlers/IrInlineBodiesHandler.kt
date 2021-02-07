@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.test.backend.handlers
 
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.util.IdSignature
@@ -32,7 +32,7 @@ class IrInlineBodiesHandler(testServices: TestServices) : AbstractIrHandler(test
     }
 
     inner class InlineFunctionsCollector : IrElementVisitorVoid {
-        override fun visitElement(element: IrElement) {
+        override fun visitElement(element: IrElementBase) {
             element.acceptChildrenVoid(this)
         }
 
@@ -43,7 +43,7 @@ class IrInlineBodiesHandler(testServices: TestServices) : AbstractIrHandler(test
     }
 
     inner class InlineCallBodiesCheck : IrElementVisitorVoid {
-        override fun visitElement(element: IrElement) {
+        override fun visitElement(element: IrElementBase) {
             element.acceptChildrenVoid(this)
         }
 

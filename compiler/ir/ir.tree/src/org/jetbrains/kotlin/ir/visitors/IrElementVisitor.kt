@@ -16,12 +16,12 @@
 
 package org.jetbrains.kotlin.ir.visitors
 
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 
 interface IrElementVisitor<out R, in D> {
-    fun visitElement(element: IrElement, data: D): R
+    fun visitElement(element: IrElementBase, data: D): R
     fun visitModuleFragment(declaration: IrModuleFragment, data: D) = visitElement(declaration, data)
     fun visitPackageFragment(declaration: IrPackageFragment, data: D) = visitElement(declaration, data)
     fun visitFile(declaration: IrFile, data: D) = visitPackageFragment(declaration, data)

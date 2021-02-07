@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.backend.common.push
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
@@ -55,7 +56,7 @@ class JsCodeOutliningLowering(val backendContext: JsIrBackendContext) : BodyLowe
 private fun IrElement.containsCallsTo(symbol: IrFunctionSymbol): Boolean {
     var result = false
     acceptChildrenVoid(object : IrElementVisitorVoid {
-        override fun visitElement(element: IrElement) {
+        override fun visitElement(element: IrElementBase) {
             element.acceptChildrenVoid(this)
         }
 

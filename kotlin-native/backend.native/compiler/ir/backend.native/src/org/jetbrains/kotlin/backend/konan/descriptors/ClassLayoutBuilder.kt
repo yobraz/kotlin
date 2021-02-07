@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.backend.konan.lower.InnerClassLowering
 import org.jetbrains.kotlin.backend.konan.lower.bridgeTarget
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
 import org.jetbrains.kotlin.ir.util.*
@@ -146,7 +147,7 @@ internal class GlobalHierarchyAnalysis(val context: Context, val irModule: IrMod
         val immediateInheritors = mutableMapOf<IrClass, MutableList<IrClass>>()
         val allClasses = mutableListOf<IrClass>()
         irModule.acceptVoid(object: IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 
@@ -218,7 +219,7 @@ internal class GlobalHierarchyAnalysis(val context: Context, val irModule: IrMod
                 val interfaces = mutableListOf<IrClass>()
                 val forbidden = mutableListOf<MutableList<Int>>()
                 irModuleFragment.acceptVoid(object : IrElementVisitorVoid {
-                    override fun visitElement(element: IrElement) {
+                    override fun visitElement(element: IrElementBase) {
                         element.acceptChildrenVoid(this)
                     }
 

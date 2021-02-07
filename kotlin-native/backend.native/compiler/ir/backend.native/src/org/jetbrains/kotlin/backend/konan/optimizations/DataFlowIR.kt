@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.backend.konan.lower.DECLARATION_ORIGIN_MODULE_THREAD
 import org.jetbrains.kotlin.backend.konan.lower.bridgeTarget
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.types.IrType
@@ -463,7 +463,7 @@ internal object DataFlowIR {
 
         init {
             irModule.accept(object : IrElementVisitorVoid {
-                override fun visitElement(element: IrElement) {
+                override fun visitElement(element: IrElementBase) {
                     element.acceptChildrenVoid(this)
                 }
 

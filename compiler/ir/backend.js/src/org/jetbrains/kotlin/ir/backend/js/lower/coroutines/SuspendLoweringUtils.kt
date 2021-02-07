@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.ir.backend.js.lower.coroutines
 
 import org.jetbrains.kotlin.backend.common.ir.isSuspend
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.ir.JsIrBuilder
 import org.jetbrains.kotlin.ir.declarations.IrVariable
@@ -31,7 +32,7 @@ open class SuspendableNodesCollector(private val suspendableNodes: MutableSet<Ir
 
     private fun isSuspendableNode(node: IrElement) = node in suspendableNodes
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         val current = hasSuspendableChildren
         hasSuspendableChildren = false
         element.acceptChildrenVoid(this)

@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.isFinalClass
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
@@ -69,7 +70,7 @@ private class BackendChecker(val context: Context, val irFile: IrFile) : IrEleme
         return closure.capturedValues.map { it.owner }
     }
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         element.acceptChildrenVoid(this)
     }
 
@@ -519,7 +520,7 @@ private class BackendChecker(val context: Context, val irFile: IrFile) : IrEleme
 
         val result = mutableListOf<IrExpression>()
         function.acceptChildrenVoid(object: IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 

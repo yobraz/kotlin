@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.backend.konan.ir.*
 import org.jetbrains.kotlin.backend.konan.llvm.computeFunctionName
 import org.jetbrains.kotlin.backend.konan.llvm.localHash
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.lazy.IrLazyClass
@@ -195,7 +196,7 @@ internal class ModuleDFGBuilder(val context: Context, val irModule: IrModuleFrag
         val functions = mutableMapOf<DataFlowIR.FunctionSymbol, DataFlowIR.Function>()
         irModule.accept(object : IrElementVisitorVoid {
 
-            override fun visitElement(element: IrElement) {
+            override fun visitElement(element: IrElementBase) {
                 element.acceptChildrenVoid(this)
             }
 
@@ -308,7 +309,7 @@ internal class ModuleDFGBuilder(val context: Context, val irModule: IrModuleFrag
         private val loopStack = mutableListOf<IrLoop>()
         private val currentLoop get() = loopStack.peek()
 
-        override fun visitElement(element: IrElement) {
+        override fun visitElement(element: IrElementBase) {
             element.acceptChildrenVoid(this)
         }
 

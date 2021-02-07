@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.backend.konan.lower.DECLARATION_ORIGIN_MODULE_THREAD
 import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
@@ -87,7 +88,7 @@ internal class RTTIGeneratorVisitor(context: Context) : IrElementVisitorVoid {
 
     val kotlinObjCClassInfoGenerator = KotlinObjCClassInfoGenerator(context)
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         element.acceptChildrenVoid(this)
     }
 
@@ -419,7 +420,7 @@ internal class CodeGeneratorVisitor(val context: Context, val lifetimes: Map<IrE
 
     //-------------------------------------------------------------------------//
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         TODO(ir2string(element))
     }
 

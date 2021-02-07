@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.ir.util
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
@@ -28,7 +29,7 @@ class PatchDeclarationParentsVisitor() : IrElementVisitorVoid {
 
     private val declarationParentsStack = ArrayDeque<IrDeclarationParent>()
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         element.acceptChildrenVoid(this)
     }
 

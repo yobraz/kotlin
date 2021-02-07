@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.DeclarationTransformer
 import org.jetbrains.kotlin.backend.common.runOnFilePostfix
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
@@ -39,7 +40,7 @@ class InitializersLowering(context: CommonBackendContext) : InitializersLowering
         val block = IrBlockImpl(irClass.startOffset, irClass.endOffset, context.irBuiltIns.unitType, null, instanceInitializerStatements)
         // Check that the initializers contain no local classes. Deep-copying them is a disaster for code size, and liable to break randomly.
         block.accept(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) =
+            override fun visitElement(element: IrElementBase) =
                 element.acceptChildren(this, null)
 
             override fun visitClass(declaration: IrClass) =

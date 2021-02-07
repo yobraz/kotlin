@@ -17,10 +17,7 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.deserialization.PLATFORM_DEPENDENT_ANNOTATION_FQ_NAME
-import org.jetbrains.kotlin.ir.IrBuiltIns
-import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.PsiIrFileEntry
-import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.*
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.IrGeneratorContextBase
 import org.jetbrains.kotlin.ir.builders.Scope
@@ -404,7 +401,7 @@ fun IrType.isInlineClassType(): Boolean =
 inline fun IrElement.hasChild(crossinline block: (IrElement) -> Boolean): Boolean {
     var result = false
     acceptChildren(object : IrElementVisitorVoid {
-        override fun visitElement(element: IrElement) = when {
+        override fun visitElement(element: IrElementBase) = when {
             result -> Unit
             block(element) -> result = true
             else -> element.acceptChildren(this, null)

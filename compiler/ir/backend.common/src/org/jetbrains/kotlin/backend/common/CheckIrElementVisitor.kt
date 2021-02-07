@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
@@ -28,7 +29,7 @@ class CheckIrElementVisitor(
 ) : IrElementVisitorVoid {
     private val visitedElements = hashSetOf<IrElement>()
 
-    override fun visitElement(element: IrElement) {
+    override fun visitElement(element: IrElementBase) {
         if (config.ensureAllNodesAreDifferent && !visitedElements.add(element)) {
             val renderString = if (element is IrTypeParameter) element.render() + " of " + element.parent.render() else element.render()
             reportError(element, "Duplicate IR node: $renderString")

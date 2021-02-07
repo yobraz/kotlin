@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.ir.interpreter.checker
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
@@ -28,7 +29,7 @@ class IrCompileTimeChecker(
         return result
     }
 
-    override fun visitElement(element: IrElement, data: Nothing?) = false
+    override fun visitElement(element: IrElementBase, data: Nothing?) = false
 
     private fun visitStatements(statements: List<IrStatement>, data: Nothing?): Boolean {
         if (mode == EvaluationMode.ONLY_BUILTINS) {
