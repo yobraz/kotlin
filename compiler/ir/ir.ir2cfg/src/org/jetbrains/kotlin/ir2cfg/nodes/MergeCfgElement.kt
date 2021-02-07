@@ -17,11 +17,13 @@
 package org.jetbrains.kotlin.ir2cfg.nodes
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrElementBase
+import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
-class MergeCfgElement(val from: IrElement, val name: String) : CfgIrElement {
+class MergeCfgElement(val from: IrElement, val name: String) : IrElementBase(), IrStatement {
     override val startOffset = from.startOffset
     override val endOffset = from.endOffset
 
