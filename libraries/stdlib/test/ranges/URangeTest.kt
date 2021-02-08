@@ -22,9 +22,16 @@ public class URangeTest {
         )
     }
 
-//    @Test fun uLongProgressionCollection() {
-//        progressionCollection(0UL, 10UL, { start, end -> start..end }, { start, finish -> max((finish - start).toInt() + 1, 0) })
-//    }
+    @Test
+    fun uLongProgressionCollection() {
+        progressionCollection(
+            0UL..10UL, -10L..10L,
+            { start, finish, step -> start..finish step step },
+            { start, finish, step -> start downTo finish step -step },
+            { cur: ULong, step -> (cur.toLong() + step).toULong() },
+            { it.sign }
+        )
+    }
 
     @Test
     fun uintRange() {
