@@ -13,7 +13,6 @@ public class URangeTest {
 
     @Test
     fun uIntProgressionCollection() {
-        assertTrue(0U in 1U downTo 0U step 1)
         progressionCollection(
             0U..10U, -10..10,
             { start, finish, step -> start..finish step step },
