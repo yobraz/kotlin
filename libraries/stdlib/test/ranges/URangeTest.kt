@@ -17,7 +17,13 @@ public class URangeTest {
             0U..10U, -10..10,
             { start, finish, step -> start..finish step step },
             { start, finish, step -> start downTo finish step -step },
-            { cur: UInt, step -> (cur.toInt() + step).toUInt() },
+            { cur: UInt, step ->
+                when {
+                    step > 0 -> (cur + step.toUInt()).takeIf { cur <= UInt.MAX_VALUE - step.toUInt() }
+                    step < 0 -> (cur - (-step).toUInt()).takeIf { cur >= UInt.MIN_VALUE + (-step).toUInt() }
+                    else -> cur
+                }
+            },
             { it.sign }
         )
     }
@@ -28,7 +34,13 @@ public class URangeTest {
             0UL..10UL, -10L..10L,
             { start, finish, step -> start..finish step step },
             { start, finish, step -> start downTo finish step -step },
-            { cur: ULong, step -> (cur.toLong() + step).toULong() },
+            { cur: ULong, step ->
+                when {
+                    step > 0L -> (cur + step.toULong()).takeIf { cur <= ULong.MAX_VALUE - step.toULong() }
+                    step < 0L -> (cur - (-step).toULong()).takeIf { cur >= ULong.MIN_VALUE + (-step).toULong() }
+                    else -> cur
+                }
+            },
             { it.sign }
         )
     }

@@ -13,7 +13,7 @@ fun <T : Comparable<T>, S> progressionCollection(
     stepRange: Iterable<S>,
     makePositiveRange: (T, T, S) -> Collection<T>,
     makeNegativeRange: (T, T, S) -> Collection<T>,
-    nextItem: (T, S) -> T,
+    nextItem: (T, S) -> T?,
     sign: (S) -> Int
 ) {
     for (start in limitRange)
@@ -25,7 +25,6 @@ fun <T : Comparable<T>, S> progressionCollection(
                     s < 0 -> makeNegativeRange(start, finish, step)
                     else -> continue
                 }
-                // Be careful: `listRange` (naive ranges) generation works incorrectly with overflow
                 val listRange = generateSequence(start) { nextItem(it, step) }
                     .takeWhile { if (s > 0) start <= it && it <= finish else start >= it && it >= finish }.toList()
                 collectionWithIterating(listRange, range, limitRange)
@@ -88,7 +87,13 @@ public class RangeTest {
             -10..10, -10..10,
             { start, finish, step -> start..finish step step },
             { start, finish, step -> start downTo finish step -step },
-            { cur: Int, step -> cur + step },
+            { cur: Int, step ->
+                when {
+                    step > 0 -> (cur + step).takeIf { cur <= Int.MAX_VALUE - step }
+                    step < 0 -> (cur + step).takeIf { cur >= Int.MIN_VALUE - step }
+                    else -> cur
+                }
+            },
             { it.sign }
         )
     }
@@ -99,18 +104,30 @@ public class RangeTest {
             'a'..'z', -10..10,
             { start, finish, step -> start..finish step step },
             { start, finish, step -> start downTo finish step -step },
-            { cur: Char, step -> cur + step },
+            { cur: Char, step ->
+                when {
+                    step > 0 -> (cur + step).takeIf { cur <= Char.MAX_VALUE - step }
+                    step < 0 -> (cur + step).takeIf { cur >= Char.MIN_VALUE - step }
+                    else -> cur
+                }
+            },
             { it.sign }
         )
     }
 
     @Test
-    fun longRangeCollection() {
+    fun longProgressionCollection() {
         progressionCollection(
             -10L..10L, -10L..10L,
             { start, finish, step -> start..finish step step },
             { start, finish, step -> start downTo finish step -step },
-            { cur: Long, step -> cur + step },
+            { cur: Long, step ->
+                when {
+                    step > 0L -> (cur + step).takeIf { cur <= Long.MAX_VALUE - step }
+                    step < 0L -> (cur + step).takeIf { cur >= Long.MIN_VALUE - step }
+                    else -> cur
+                }
+            },
             { it.sign }
         )
     }
