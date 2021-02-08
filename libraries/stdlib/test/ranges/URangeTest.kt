@@ -5,9 +5,28 @@
 
 package ranges
 
+import test.ranges.progressionCollection
+import kotlin.math.sign
 import kotlin.test.*
 
 public class URangeTest {
+
+    @Test
+    fun uIntProgressionCollection() {
+        assertTrue(0U in 1U downTo 0U step 1)
+        progressionCollection(
+            0U..10U, -10..10,
+            { start, finish, step -> start..finish step step },
+            { start, finish, step -> start downTo finish step -step },
+            { cur: UInt, step -> (cur.toInt() + step).toUInt() },
+            { it.sign }
+        )
+    }
+
+//    @Test fun uLongProgressionCollection() {
+//        progressionCollection(0UL, 10UL, { start, end -> start..end }, { start, finish -> max((finish - start).toInt() + 1, 0) })
+//    }
+
     @Test
     fun uintRange() {
         val range = 9u..(-5).toUInt()
