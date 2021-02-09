@@ -54,7 +54,7 @@ abstract class KotlinIrLinker(
 
     private lateinit var linkerExtensions: Collection<IrDeserializer.IrLinkerExtension>
 
-    protected open fun handleNoModuleDeserializerFound(idSignature: IdSignature, currentModule: ModuleDescriptor, dependencies: Collection<IrModuleDeserializer>): IrModuleDeserializer {
+    public open fun handleNoModuleDeserializerFound(idSignature: IdSignature, currentModule: ModuleDescriptor, dependencies: Collection<IrModuleDeserializer>): IrModuleDeserializer {
         val message = buildString {
             append("Module $currentModule has reference $idSignature, unfortunately neither itself nor its dependencies ")
             dependencies.joinTo(this, "\n\t", "[\n\t", "\n]")
@@ -67,7 +67,7 @@ abstract class KotlinIrLinker(
         throw KotlinIrLinkerInternalException
     }
 
-    protected open fun resolveModuleDeserializer(module: ModuleDescriptor, signature: IdSignature?): IrModuleDeserializer {
+    public open fun resolveModuleDeserializer(module: ModuleDescriptor, signature: IdSignature?): IrModuleDeserializer {
         return deserializersForModules[module] ?: run {
             val message = buildString {
                 append("Could not load module ")

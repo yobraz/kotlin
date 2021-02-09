@@ -24,8 +24,6 @@ abstract class BasicIrModuleDeserializer(
     moduleDescriptor: ModuleDescriptor,
     override val klib: IrLibrary,
     override val strategy: DeserializationStrategy,
-    val handleNoModuleDeserializerFound: (IdSignature, ModuleDescriptor, Collection<IrModuleDeserializer>) -> IrModuleDeserializer,
-    val resolveModuleDeserializer: (ModuleDescriptor, IdSignature?) -> IrModuleDeserializer,
     private val containsErrorCode: Boolean = false
 ) :
     IrModuleDeserializer(moduleDescriptor) {
@@ -37,7 +35,7 @@ abstract class BasicIrModuleDeserializer(
     internal val moduleReversedFileIndex = mutableMapOf<IdSignature, FileDeserializationState>()
 
     override val moduleDependencies by lazy {
-        moduleDescriptor.allDependencyModules.filter { it != moduleDescriptor }.map { resolveModuleDeserializer(it, null) }
+        moduleDescriptor.allDependencyModules.filter { it != moduleDescriptor }.map { linker.resolveModuleDeserializer(it, null) }
     }
 
     override fun fileDeserializers(): Collection<IrFileDeserializer> {
@@ -119,7 +117,7 @@ abstract class BasicIrModuleDeserializer(
             allowErrorNodes,
             strategy.inlineBodies,
             moduleDeserializer,
-            handleNoModuleDeserializerFound,
+            linker::handleNoModuleDeserializerFound,
         )
 
         fileToDeserializerMap[file] = fileDeserializationState.fileDeserializer

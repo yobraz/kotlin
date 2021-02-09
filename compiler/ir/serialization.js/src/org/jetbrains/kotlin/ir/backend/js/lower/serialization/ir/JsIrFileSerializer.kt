@@ -15,12 +15,14 @@ import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.name.FqName
 
 class JsIrFileSerializer(
+    messageLogger: IrMessageLogger,
     declarationTable: DeclarationTable,
     expectDescriptorToSymbol: MutableMap<DeclarationDescriptor, IrSymbol>,
     skipExpects: Boolean,
     bodiesOnlyForInlines: Boolean = false,
     icMode: Boolean = false,
 ) : IrFileSerializer(
+    messageLogger,
     declarationTable,
     expectDescriptorToSymbol,
     bodiesOnlyForInlines = bodiesOnlyForInlines,

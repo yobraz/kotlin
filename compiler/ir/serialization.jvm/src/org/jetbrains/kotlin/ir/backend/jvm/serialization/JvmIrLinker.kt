@@ -61,7 +61,7 @@ class JvmIrLinker(
     }
 
     private inner class JvmModuleDeserializer(moduleDescriptor: ModuleDescriptor, klib: IrLibrary, strategy: DeserializationStrategy) :
-        BasicIrModuleDeserializer(this, moduleDescriptor, klib, strategy, ::handleNoModuleDeserializerFound, ::resolveModuleDeserializer)
+        BasicIrModuleDeserializer(this, moduleDescriptor, klib, strategy)
 
     private fun DeclarationDescriptor.isJavaDescriptor(): Boolean {
         if (this is PackageFragmentDescriptor) {

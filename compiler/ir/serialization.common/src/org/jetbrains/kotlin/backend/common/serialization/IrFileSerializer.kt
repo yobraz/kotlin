@@ -104,6 +104,7 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.AccessorIdSignatu
 import org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature as ProtoIcDeclarationSignature
 
 open class IrFileSerializer(
+    val messageLogger: IrMessageLogger,
     private val declarationTable: DeclarationTable,
     private val expectDescriptorToSymbol: MutableMap<DeclarationDescriptor, IrSymbol>,
     private val bodiesOnlyForInlines: Boolean = false,
