@@ -101,7 +101,7 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.MemberAccessCommo
 import org.jetbrains.kotlin.backend.common.serialization.proto.NullableIrExpression as ProtoNullableIrExpression
 import org.jetbrains.kotlin.backend.common.serialization.proto.PublicIdSignature as ProtoPublicIdSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.AccessorIdSignature as ProtoAccessorIdSignature
-import org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature as ProtoIcDeclarationSignature
+import org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature as ProtoLoweredIdSignature
 
 open class IrFileSerializer(
     val messageLogger: IrMessageLogger,
@@ -225,8 +225,8 @@ open class IrFileSerializer(
 
     private fun serializeScopeLocalSignature(signature: IdSignature.ScopeLocalDeclaration): Int = signature.id
 
-    private fun serializeLoweredDeclarationSignature(signature: IdSignature.LoweredDeclarationSignature): ProtoIcDeclarationSignature {
-        val proto = ProtoIcDeclarationSignature.newBuilder()
+    private fun serializeLoweredDeclarationSignature(signature: IdSignature.LoweredDeclarationSignature): ProtoLoweredIdSignature {
+        val proto = ProtoLoweredIdSignature.newBuilder()
 
         proto.parentSignature = protoIdSignature(signature.original)
         proto.stage = signature.stage

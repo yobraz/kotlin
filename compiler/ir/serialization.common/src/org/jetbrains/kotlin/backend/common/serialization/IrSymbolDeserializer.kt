@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.AccessorIdSignatu
 import org.jetbrains.kotlin.backend.common.serialization.proto.FileLocalIdSignature as ProtoFileLocalIdSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.IdSignature as ProtoIdSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.PublicIdSignature as ProtoPublicIdSignature
-import org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature as ProtoIcDeclarationSignature
+import org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature as ProtoLoweredIdSignature
 
 class IrSymbolDeserializer(
     val symbolTable: ReferenceSymbolTable,
@@ -146,7 +146,7 @@ class IrSymbolDeserializer(
         return IdSignature.ScopeLocalDeclaration(proto)
     }
 
-    private fun deserializeLoweredDeclarationSignature(proto: ProtoIcDeclarationSignature): IdSignature.LoweredDeclarationSignature {
+    private fun deserializeLoweredDeclarationSignature(proto: ProtoLoweredIdSignature): IdSignature.LoweredDeclarationSignature {
         return IdSignature.LoweredDeclarationSignature(deserializeIdSignature(proto.parentSignature), proto.stage, proto.index)
     }
 
