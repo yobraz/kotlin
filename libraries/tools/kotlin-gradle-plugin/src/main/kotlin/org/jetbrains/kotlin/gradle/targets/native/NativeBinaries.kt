@@ -259,6 +259,18 @@ class Framework(
      */
     fun embedBitcode(mode: String) = embedBitcode(BitcodeEmbeddingMode.valueOf(mode.toUpperCase()))
 
+    fun buildForXCode(action: Action<in BuildFrameworkForXCode>): TaskProvider<BuildFrameworkForXCode> {
+        return registerBuildFrameworkForXCodeTask().also { it.configure(action) }
+    }
+
+    fun buildForXCode(): TaskProvider<BuildFrameworkForXCode> {
+        return registerBuildFrameworkForXCodeTask()
+    }
+
+    fun buildForXCode(action: BuildFrameworkForXCode.() -> Unit): TaskProvider<BuildFrameworkForXCode> {
+        return registerBuildFrameworkForXCodeTask().also { it.configure(action) }
+    }
+
     /**
      * Specifies if the framework is linked as a static library (false by default).
      */
