@@ -4,30 +4,30 @@
 package org.jetbrains.kotlin.backend.common.serialization.proto;
 
 /**
- * Protobuf type {@code org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature}
+ * Protobuf type {@code org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature}
  */
-public final class IcDeclarationSignature extends
+public final class LoweredIdSignature extends
     org.jetbrains.kotlin.protobuf.GeneratedMessageLite implements
-    // @@protoc_insertion_point(message_implements:org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature)
-    IcDeclarationSignatureOrBuilder {
-  // Use IcDeclarationSignature.newBuilder() to construct.
-  private IcDeclarationSignature(org.jetbrains.kotlin.protobuf.GeneratedMessageLite.Builder builder) {
+    // @@protoc_insertion_point(message_implements:org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature)
+    LoweredIdSignatureOrBuilder {
+  // Use LoweredIdSignature.newBuilder() to construct.
+  private LoweredIdSignature(org.jetbrains.kotlin.protobuf.GeneratedMessageLite.Builder builder) {
     super(builder);
     this.unknownFields = builder.getUnknownFields();
   }
-  private IcDeclarationSignature(boolean noInit) { this.unknownFields = org.jetbrains.kotlin.protobuf.ByteString.EMPTY;}
+  private LoweredIdSignature(boolean noInit) { this.unknownFields = org.jetbrains.kotlin.protobuf.ByteString.EMPTY;}
 
-  private static final IcDeclarationSignature defaultInstance;
-  public static IcDeclarationSignature getDefaultInstance() {
+  private static final LoweredIdSignature defaultInstance;
+  public static LoweredIdSignature getDefaultInstance() {
     return defaultInstance;
   }
 
-  public IcDeclarationSignature getDefaultInstanceForType() {
+  public LoweredIdSignature getDefaultInstanceForType() {
     return defaultInstance;
   }
 
   private final org.jetbrains.kotlin.protobuf.ByteString unknownFields;
-  private IcDeclarationSignature(
+  private LoweredIdSignature(
       org.jetbrains.kotlin.protobuf.CodedInputStream input,
       org.jetbrains.kotlin.protobuf.ExtensionRegistryLite extensionRegistry)
       throws org.jetbrains.kotlin.protobuf.InvalidProtocolBufferException {
@@ -86,18 +86,18 @@ public final class IcDeclarationSignature extends
       makeExtensionsImmutable();
     }
   }
-  public static org.jetbrains.kotlin.protobuf.Parser<IcDeclarationSignature> PARSER =
-      new org.jetbrains.kotlin.protobuf.AbstractParser<IcDeclarationSignature>() {
-    public IcDeclarationSignature parsePartialFrom(
+  public static org.jetbrains.kotlin.protobuf.Parser<LoweredIdSignature> PARSER =
+      new org.jetbrains.kotlin.protobuf.AbstractParser<LoweredIdSignature>() {
+    public LoweredIdSignature parsePartialFrom(
         org.jetbrains.kotlin.protobuf.CodedInputStream input,
         org.jetbrains.kotlin.protobuf.ExtensionRegistryLite extensionRegistry)
         throws org.jetbrains.kotlin.protobuf.InvalidProtocolBufferException {
-      return new IcDeclarationSignature(input, extensionRegistry);
+      return new LoweredIdSignature(input, extensionRegistry);
     }
   };
 
   @java.lang.Override
-  public org.jetbrains.kotlin.protobuf.Parser<IcDeclarationSignature> getParserForType() {
+  public org.jetbrains.kotlin.protobuf.Parser<LoweredIdSignature> getParserForType() {
     return PARSER;
   }
 
@@ -219,53 +219,53 @@ public final class IcDeclarationSignature extends
     return super.writeReplace();
   }
 
-  public static org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature parseFrom(
+  public static org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature parseFrom(
       org.jetbrains.kotlin.protobuf.ByteString data)
       throws org.jetbrains.kotlin.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature parseFrom(
+  public static org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature parseFrom(
       org.jetbrains.kotlin.protobuf.ByteString data,
       org.jetbrains.kotlin.protobuf.ExtensionRegistryLite extensionRegistry)
       throws org.jetbrains.kotlin.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature parseFrom(byte[] data)
+  public static org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature parseFrom(byte[] data)
       throws org.jetbrains.kotlin.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature parseFrom(
+  public static org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature parseFrom(
       byte[] data,
       org.jetbrains.kotlin.protobuf.ExtensionRegistryLite extensionRegistry)
       throws org.jetbrains.kotlin.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature parseFrom(java.io.InputStream input)
+  public static org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return PARSER.parseFrom(input);
   }
-  public static org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature parseFrom(
+  public static org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature parseFrom(
       java.io.InputStream input,
       org.jetbrains.kotlin.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return PARSER.parseFrom(input, extensionRegistry);
   }
-  public static org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature parseDelimitedFrom(java.io.InputStream input)
+  public static org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return PARSER.parseDelimitedFrom(input);
   }
-  public static org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature parseDelimitedFrom(
+  public static org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature parseDelimitedFrom(
       java.io.InputStream input,
       org.jetbrains.kotlin.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return PARSER.parseDelimitedFrom(input, extensionRegistry);
   }
-  public static org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature parseFrom(
+  public static org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature parseFrom(
       org.jetbrains.kotlin.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return PARSER.parseFrom(input);
   }
-  public static org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature parseFrom(
+  public static org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature parseFrom(
       org.jetbrains.kotlin.protobuf.CodedInputStream input,
       org.jetbrains.kotlin.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -274,21 +274,21 @@ public final class IcDeclarationSignature extends
 
   public static Builder newBuilder() { return Builder.create(); }
   public Builder newBuilderForType() { return newBuilder(); }
-  public static Builder newBuilder(org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature prototype) {
+  public static Builder newBuilder(org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature prototype) {
     return newBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() { return newBuilder(this); }
 
   /**
-   * Protobuf type {@code org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature}
+   * Protobuf type {@code org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature}
    */
   public static final class Builder extends
       org.jetbrains.kotlin.protobuf.GeneratedMessageLite.Builder<
-        org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature, Builder>
+        org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature, Builder>
       implements
-      // @@protoc_insertion_point(builder_implements:org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature)
-      org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignatureOrBuilder {
-    // Construct using org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature.newBuilder()
+      // @@protoc_insertion_point(builder_implements:org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature)
+      org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignatureOrBuilder {
+    // Construct using org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -314,20 +314,20 @@ public final class IcDeclarationSignature extends
       return create().mergeFrom(buildPartial());
     }
 
-    public org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature getDefaultInstanceForType() {
-      return org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature.getDefaultInstance();
+    public org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature getDefaultInstanceForType() {
+      return org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature.getDefaultInstance();
     }
 
-    public org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature build() {
-      org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature result = buildPartial();
+    public org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature build() {
+      org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature buildPartial() {
-      org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature result = new org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature(this);
+    public org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature buildPartial() {
+      org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature result = new org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
@@ -346,8 +346,8 @@ public final class IcDeclarationSignature extends
       return result;
     }
 
-    public Builder mergeFrom(org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature other) {
-      if (other == org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature.getDefaultInstance()) return this;
+    public Builder mergeFrom(org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature other) {
+      if (other == org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature.getDefaultInstance()) return this;
       if (other.hasParentSignature()) {
         setParentSignature(other.getParentSignature());
       }
@@ -382,11 +382,11 @@ public final class IcDeclarationSignature extends
         org.jetbrains.kotlin.protobuf.CodedInputStream input,
         org.jetbrains.kotlin.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature parsedMessage = null;
+      org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (org.jetbrains.kotlin.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature) e.getUnfinishedMessage();
+        parsedMessage = (org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature) e.getUnfinishedMessage();
         throw e;
       } finally {
         if (parsedMessage != null) {
@@ -493,13 +493,13 @@ public final class IcDeclarationSignature extends
       return this;
     }
 
-    // @@protoc_insertion_point(builder_scope:org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature)
+    // @@protoc_insertion_point(builder_scope:org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature)
   }
 
   static {
-    defaultInstance = new IcDeclarationSignature(true);
+    defaultInstance = new LoweredIdSignature(true);
     defaultInstance.initFields();
   }
 
-  // @@protoc_insertion_point(class_scope:org.jetbrains.kotlin.backend.common.serialization.proto.IcDeclarationSignature)
+  // @@protoc_insertion_point(class_scope:org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature)
 }

@@ -228,7 +228,7 @@ open class IrFileSerializer(
     private fun serializeLoweredDeclarationSignature(signature: IdSignature.LoweredDeclarationSignature): ProtoIcDeclarationSignature {
         val proto = ProtoIcDeclarationSignature.newBuilder()
 
-        proto.parentSignature = protoIdSignature(signature.parent)
+        proto.parentSignature = protoIdSignature(signature.original)
         proto.stage = signature.stage
         proto.index = signature.index
 
