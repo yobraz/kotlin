@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.gradle.plugin.mpp
 
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
@@ -15,8 +16,9 @@ import org.jetbrains.kotlin.gradle.tasks.locateOrRegisterTask
 import org.jetbrains.kotlin.gradle.tasks.registerTask
 import org.jetbrains.kotlin.gradle.utils.lowerCamelCaseName
 import java.io.File
+import javax.inject.Inject
 
-private val Project.parentBuildFrameworkForXCodeTask: TaskProvider<BuildFrameworkForXCodeTask>
+private val Project.parentBuildFrameworkForXCodeTask: TaskProvider<Task>
     get() = locateOrRegisterTask("buildFrameworkForXCode") {
         it.group = "build"
         it.description = "Build all frameworks as requested by XCode's environment variables"
@@ -42,7 +44,7 @@ fun Framework.buildForXCode(configure: BuildFrameworkForXCodeTask.() -> Unit = {
 }
 
 @Suppress("LeakingThis")
-open class BuildFrameworkForXCodeTask(
+open class BuildFrameworkForXCodeTask @Inject constructor(
     @get:Internal val framework: Framework
 ) : Sync() {
 
@@ -53,7 +55,7 @@ open class BuildFrameworkForXCodeTask(
     init {
         group = "build"
         into(outputDirectory)
-        from(project.provider { outputDirectory })
+        from(project.provider { framework.outputDirectory })
         dependsOn(framework.linkTaskProvider)
     }
 }
