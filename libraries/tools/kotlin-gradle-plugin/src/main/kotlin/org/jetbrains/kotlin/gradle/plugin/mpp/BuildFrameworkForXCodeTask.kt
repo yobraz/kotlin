@@ -1,0 +1,54 @@
+/*
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
+ */
+
+package org.jetbrains.kotlin.gradle.plugin.mpp
+
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.TaskProvider
+import org.jetbrains.kotlin.gradle.tasks.locateOrRegisterTask
+import org.jetbrains.kotlin.gradle.tasks.registerTask
+import org.jetbrains.kotlin.gradle.utils.lowerCamelCaseName
+import java.io.File
+
+private val Framework.parentBuildFrameworkForXCodeTask: TaskProvider<BuildFrameworkForXCodeTask>
+    get() = project.locateOrRegisterTask("buildFrameworkForXCode") {
+        it.group = "build"
+        it.description = "Build all frameworks as requested by XCode's environment variables"
+    }
+
+
+fun Framework.registerBuildFrameworkForXCodeTask(): TaskProvider<BuildFrameworkForXCodeTask> {
+    val buildFrameworkForXCodeTaskName = lowerCamelCaseName("build", target.name, name, "forXCode")
+    val buildFrameworkForXCodeTask = project.registerTask<BuildFrameworkForXCodeTask>(buildFrameworkForXCodeTaskName) {
+        it.dependsOn(linkTaskProvider)
+        it.from(project.provider { outputDirectory })
+    }
+
+    if (
+        konanTarget.architecture == XCodeEnvironment.requestedArchitecture &&
+        buildType == XCodeEnvironment.requestedBuildType
+    ) {
+        parentBuildFrameworkForXCodeTask.configure { parentTask ->
+            parentTask.dependsOn(buildFrameworkForXCodeTask)
+        }
+    }
+
+    return buildFrameworkForXCodeTask
+}
+
+@Suppress("LeakingThis")
+open class BuildFrameworkForXCodeTask : Sync() {
+
+    @get:OutputDirectory
+    val outputDirectory: Property<File> = project.objects.property(File::class.java)
+        .convention(project.buildDir.resolve("xcode-frameworks"))
+
+    init {
+        group = "build"
+        into(outputDirectory)
+    }
+}

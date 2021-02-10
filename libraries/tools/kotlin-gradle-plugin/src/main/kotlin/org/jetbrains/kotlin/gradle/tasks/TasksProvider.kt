@@ -76,7 +76,7 @@ internal inline fun <reified T : Task> Project.locateTask(name: String): TaskPro
  * Locates a task by [name] and [type], without triggering its creation or configuration or registers new task
  * with [name], type [T] and initialization script [body]
  */
-internal inline fun <reified T : Task> Project.locateOrRegisterTask(name: String, noinline body: (T) -> (Unit)): TaskProvider<T> {
+internal inline fun <reified T : Task> Project.locateOrRegisterTask(name: String, noinline body: (T) -> (Unit) = {}): TaskProvider<T> {
     return project.locateTask(name) ?: project.registerTask(name, T::class.java, body = body)
 }
 
