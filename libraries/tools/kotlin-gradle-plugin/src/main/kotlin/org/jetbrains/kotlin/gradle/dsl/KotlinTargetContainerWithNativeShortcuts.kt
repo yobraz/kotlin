@@ -63,9 +63,7 @@ interface KotlinTargetContainerWithNativeShortcuts : KotlinTargetContainerWithPr
             iosX64("${namePrefix}X64")
         )
         createIntermediateSourceSets(namePrefix, targets.defaultSourceSets(), mostCommonSourceSets())
-        targets.forEach { target ->
-            target.configure()
-        }
+        targets.forEach { it.configure() }
     }
 
     fun ios() = ios("ios") { }

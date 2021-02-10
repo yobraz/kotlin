@@ -21,7 +21,7 @@ private val Framework.parentBuildFrameworkForXCodeTask: TaskProvider<BuildFramew
     }
 
 
-fun Framework.registerBuildFrameworkForXCodeTask(): TaskProvider<BuildFrameworkForXCodeTask> {
+fun Framework.buildForXCode(): TaskProvider<BuildFrameworkForXCodeTask> {
     val buildFrameworkForXCodeTaskName = lowerCamelCaseName("build", target.name, name, "forXCode")
     val buildFrameworkForXCodeTask = project.registerTask<BuildFrameworkForXCodeTask>(buildFrameworkForXCodeTaskName) {
         it.dependsOn(linkTaskProvider)
