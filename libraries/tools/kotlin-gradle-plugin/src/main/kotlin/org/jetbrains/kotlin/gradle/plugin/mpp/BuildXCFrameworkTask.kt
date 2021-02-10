@@ -22,9 +22,12 @@ private val Project.buildXCFrameworkTask: TaskProvider<Task>
         it.group = "build"
     }
 
-fun Framework.includeInXCFramework(xcFrameworkClassifier: String): TaskProvider<BuildXCFrameworkTask> {
+fun Framework.includeIntoXCFramework(
+    xcFrameworkClassifier: String, configure: BuildXCFrameworkTask.() -> Unit = {}
+): TaskProvider<BuildXCFrameworkTask> {
     val buildXCFrameworkTask = project.locateOrRegisterBuildXCFrameworkTask(xcFrameworkClassifier, buildType)
     buildXCFrameworkTask.configure { task -> task.from(this) }
+    buildXCFrameworkTask.configure(configure)
     return buildXCFrameworkTask
 }
 
