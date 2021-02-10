@@ -1,50 +1,13 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
 package ranges
 
-import test.ranges.progressionCollection
-import kotlin.math.sign
 import kotlin.test.*
 
 public class URangeTest {
-
-    @Test
-    fun uIntProgressionCollection() {
-        progressionCollection(
-            0U..10U, -10..10,
-            { start, finish, step -> start..finish step step },
-            { start, finish, step -> start downTo finish step -step },
-            { cur: UInt, step ->
-                when {
-                    step > 0 -> (cur + step.toUInt()).takeIf { cur <= UInt.MAX_VALUE - step.toUInt() }
-                    step < 0 -> (cur - (-step).toUInt()).takeIf { cur >= UInt.MIN_VALUE + (-step).toUInt() }
-                    else -> cur
-                }
-            },
-            { it.sign }
-        )
-    }
-
-    @Test
-    fun uLongProgressionCollection() {
-        progressionCollection(
-            0UL..10UL, -10L..10L,
-            { start, finish, step -> start..finish step step },
-            { start, finish, step -> start downTo finish step -step },
-            { cur: ULong, step ->
-                when {
-                    step > 0L -> (cur + step.toULong()).takeIf { cur <= ULong.MAX_VALUE - step.toULong() }
-                    step < 0L -> (cur - (-step).toULong()).takeIf { cur >= ULong.MIN_VALUE + (-step).toULong() }
-                    else -> cur
-                }
-            },
-            { it.sign }
-        )
-    }
-
     @Test
     fun uintRange() {
         val range = 9u..(-5).toUInt()
