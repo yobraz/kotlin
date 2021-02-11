@@ -32,8 +32,8 @@ fun Framework.buildForXCode(configure: BuildFrameworkForXCodeTask.() -> Unit = {
 
     project.parentBuildFrameworkForXCodeTask.configure { parentTask ->
         if (
-            konanTarget.architecture == XCodeEnvironment.requestedArchitecture &&
-            buildType == XCodeEnvironment.requestedBuildType
+            konanTarget.architecture == XCodeEnvironment.activeArchitecture &&
+            buildType == XCodeEnvironment.activeBuildType
         ) {
             parentTask.dependsOn(buildFrameworkForXCodeTask)
         }

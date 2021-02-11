@@ -38,7 +38,7 @@ private fun Project.locateOrRegisterBuildXCFrameworkTask(
     val buildXCFrameworkTask = locateTask<BuildXCFrameworkTask>(name) ?: registerTask(name, listOf(xcFrameworkClassifier, buildType))
 
     project.buildXCFrameworkTask.configure { parentTask ->
-        if (buildType == XCodeEnvironment.requestedBuildType) {
+        if (buildType == XCodeEnvironment.activeBuildType) {
             parentTask.dependsOn(buildXCFrameworkTask)
         }
     }
@@ -60,7 +60,7 @@ open class BuildXCFrameworkTask @Inject constructor(
     fun from(frameworks: List<Framework>) {
         frameworks.forEach { framework ->
             require(framework.buildType == buildType) {
-                "Cannot put ${framework.buildType} framework ${framework.name} in $buildType .xcframework"
+                "Cannot include ${framework.buildType} framework ${framework.name} in $buildType .xcframework ($xcFrameworkClassifier)"
             }
         }
         frameworks.forEach { framework -> dependsOn(framework.linkTaskProvider) }

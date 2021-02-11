@@ -7,8 +7,8 @@ package org.jetbrains.kotlin.gradle.plugin.mpp
 
 import org.jetbrains.kotlin.konan.target.Architecture
 
-internal object XCodeEnvironment {
-    val requestedBuildType: NativeBuildType
+object XCodeEnvironment {
+    val activeBuildType: NativeBuildType
         get() = when (val configuration = System.getenv("CONFIGURATION")?.toLowerCase()) {
             null -> NativeBuildType.DEBUG
             "debug" -> NativeBuildType.DEBUG
@@ -19,7 +19,7 @@ internal object XCodeEnvironment {
             )
         }
 
-    val requestedArchitecture: Architecture
+    val activeArchitecture: Architecture
         get() {
             val sdkName = System.getenv("SDK_NAME") ?: return Architecture.X64
             return if (sdkName.startsWith("iphoneos")) Architecture.ARM64 else Architecture.X64
