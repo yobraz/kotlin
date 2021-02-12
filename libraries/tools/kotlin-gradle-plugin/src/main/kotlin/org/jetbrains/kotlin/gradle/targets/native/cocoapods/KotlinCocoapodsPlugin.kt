@@ -236,43 +236,27 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
             kotlinExtension.supportedTargets().all { target ->
                 target.compilations.getByName(KotlinCompilation.MAIN_COMPILATION_NAME).cinterops.create(pod.moduleName) { interop ->
 
-                    val interopTask = project.tasks.getByPath(interop.interopProcessingTaskName)
-
-                    interopTask.dependsOn(defTask)
-
                     with(interop) {
                         defFileProperty.set(defTask.map { it.outputFile })
                         _packageNameProp.set(project.provider { pod.packageName })
                         _extraOptsProp.addAll(project.provider { pod.extraOpts })
+                        project.findProperty(CFLAGS_PROPERTY)?.toString()?.let { args ->
+                            // Xcode quotes around paths with spaces.
+                            // Here and below we need to split such paths taking this into account.
+                            compilerOpts.addAll(args.splitQuotedArgs())
+                        }
+                        project.findProperty(HEADER_PATHS_PROPERTY)?.toString()?.let { args ->
+                            compilerOpts.addAll(args.splitQuotedArgs().map { "-I$it" })
+                        }
+                        project.findProperty(FRAMEWORK_PATHS_PROPERTY)?.toString()?.let { args ->
+                            compilerOpts.addAll(args.splitQuotedArgs().map { "-F$it" })
+                        }
                     }
 
-                    if (
-                        isAvailableToProduceSynthetic
-                        && project.findProperty(TARGET_PROPERTY) == null
-                        && project.findProperty(CONFIGURATION_PROPERTY) == null
-                    ) {
-                        val podBuildTaskProvider =
-                            project.tasks.named(target.toValidSDK.toBuildDependenciesTaskName(pod), PodBuildTask::class.java)
-                        interopTask.inputs.file(podBuildTaskProvider.get().buildSettingsFile)
-                        interopTask.dependsOn(podBuildTaskProvider)
-                    }
-
-                    project.findProperty(CFLAGS_PROPERTY)?.toString()?.let { args ->
-                        // Xcode quotes around paths with spaces.
-                        // Here and below we need to split such paths taking this into account.
-                        interop.compilerOpts.addAll(args.splitQuotedArgs())
-                    }
-                    project.findProperty(HEADER_PATHS_PROPERTY)?.toString()?.let { args ->
-                        interop.compilerOpts.addAll(args.splitQuotedArgs().map { "-I$it" })
-                    }
-                    project.findProperty(FRAMEWORK_PATHS_PROPERTY)?.toString()?.let { args ->
-                        interop.compilerOpts.addAll(args.splitQuotedArgs().map { "-F$it" })
-                    }
-
-                    interopTask.doFirst { _ ->
-                        // Since we cannot expand the configuration phase of interop tasks
-                        // receiving the required environment variables happens on execution phase.
-                        // TODO This needs to be fixed to improve UP-TO-DATE checks.
+                    val interopTaskProvider = project.tasks.named(interop.interopProcessingTaskName, CInteropProcess::class.java)
+                    interopTaskProvider.configure { interopTask ->
+                        interopTask.dependsOn(defTask)
+                        interopTask.targetName = target.konanTarget.name
                         if (
                             isAvailableToProduceSynthetic
                             && project.findProperty(TARGET_PROPERTY) == null
@@ -280,29 +264,45 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                         ) {
                             val podBuildTaskProvider =
                                 project.tasks.named(target.toValidSDK.toBuildDependenciesTaskName(pod), PodBuildTask::class.java)
-                            val buildSettings =
-                                podBuildTaskProvider.get().buildSettingsFile.get()
-                                    .reader()
-                                    .use {
-                                        PodBuildSettingsProperties.readSettingsFromReader(it)
-                                    }
+                            interopTask.inputs.file(podBuildTaskProvider.get().buildSettingsFile)
+                            interopTask.dependsOn(podBuildTaskProvider)
+                        }
 
-                            buildSettings.cflags?.let { args ->
-                                // Xcode quotes around paths with spaces.
-                                // Here and below we need to split such paths taking this into account.
-                                interop.compilerOpts.addAll(args.splitQuotedArgs())
+                        interopTask.doFirst { _ ->
+                            // Since we cannot expand the configuration phase of interop tasks
+                            // receiving the required environment variables happens on execution phase.
+                            // TODO This needs to be fixed to improve UP-TO-DATE checks.
+                            if (
+                                isAvailableToProduceSynthetic
+                                && project.findProperty(TARGET_PROPERTY) == null
+                                && project.findProperty(CONFIGURATION_PROPERTY) == null
+                            ) {
+                                val podBuildTaskProvider =
+                                    project.tasks.named(target.toValidSDK.toBuildDependenciesTaskName(pod), PodBuildTask::class.java)
+                                val buildSettings =
+                                    podBuildTaskProvider.get().buildSettingsFile.get()
+                                        .reader()
+                                        .use {
+                                            PodBuildSettingsProperties.readSettingsFromReader(it)
+                                        }
+
+                                buildSettings.cflags?.let { args ->
+                                    // Xcode quotes around paths with spaces.
+                                    // Here and below we need to split such paths taking this into account.
+                                    interop.compilerOpts.addAll(args.splitQuotedArgs())
+                                }
+                                buildSettings.headerPaths?.let { args ->
+                                    interop.compilerOpts.addAll(args.splitQuotedArgs().map { "-I$it" })
+                                }
+
+                                val frameworkPaths = buildSettings.frameworkPaths
+                                val configurationBuildDir = buildSettings.configurationBuildDir
+                                val frameworkPathsSelfIncluding = mutableListOf<String>()
+                                frameworkPathsSelfIncluding += configurationBuildDir.trimQuotes()
+                                frameworkPaths?.let { frameworkPathsSelfIncluding.addAll(it.splitQuotedArgs()) }
+
+                                interop.compilerOpts.addAll(frameworkPathsSelfIncluding.map { "-F$it" })
                             }
-                            buildSettings.headerPaths?.let { args ->
-                                interop.compilerOpts.addAll(args.splitQuotedArgs().map { "-I$it" })
-                            }
-
-                            val frameworkPaths = buildSettings.frameworkPaths
-                            val configurationBuildDir = buildSettings.configurationBuildDir
-                            val frameworkPathsSelfIncluding = mutableListOf<String>()
-                            frameworkPathsSelfIncluding += configurationBuildDir.trimQuotes()
-                            frameworkPaths?.let { frameworkPathsSelfIncluding.addAll(it.splitQuotedArgs()) }
-
-                            interop.compilerOpts.addAll(frameworkPathsSelfIncluding.map { "-F$it" })
                         }
                     }
                 }

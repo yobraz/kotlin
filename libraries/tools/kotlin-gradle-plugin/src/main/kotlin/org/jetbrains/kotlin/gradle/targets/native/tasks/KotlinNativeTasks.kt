@@ -30,9 +30,10 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.*
 import org.jetbrains.kotlin.gradle.plugin.sources.DefaultLanguageSettingsBuilder
 import org.jetbrains.kotlin.gradle.targets.native.internal.isAllowCommonizer
 import org.jetbrains.kotlin.gradle.utils.getValue
+import org.jetbrains.kotlin.gradle.utils.dashSeparatedName
 import org.jetbrains.kotlin.gradle.utils.klibModuleName
-import org.jetbrains.kotlin.gradle.utils.newProperty
 import org.jetbrains.kotlin.gradle.utils.listFilesOrEmpty
+import org.jetbrains.kotlin.gradle.utils.newProperty
 import org.jetbrains.kotlin.konan.library.KLIB_INTEROP_IR_PROVIDER_IDENTIFIER
 import org.jetbrains.kotlin.konan.properties.resolvablePropertyList
 import org.jetbrains.kotlin.konan.properties.saveToFile
@@ -935,12 +936,18 @@ open class CInteropProcess : DefaultTask() {
     val interopName: String
         @Internal get() = settings.name
 
+    @Internal
+    var targetName: String? = null
+
+    private val klibName: String
+        get() = targetName?.let { dashSeparatedName(interopName, it)} ?: interopName
+
     val baseKlibName: String
         @Internal get() {
             val compilationPrefix = settings.compilation.let {
                 if (it.isMain()) project.name else it.name
             }
-            return "$compilationPrefix-cinterop-$interopName"
+            return "$compilationPrefix-cinterop-$klibName"
         }
 
     val outputFileName: String
