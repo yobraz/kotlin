@@ -154,7 +154,7 @@ private class BodyLoweringVisitor(
             loweringPass.lower(body, data!!)
         } else {
             data!!.factory.stageController.bodyLowering {
-                loweringPass.lower(body, data!!)
+                loweringPass.lower(body, data)
             }
         }
     }
