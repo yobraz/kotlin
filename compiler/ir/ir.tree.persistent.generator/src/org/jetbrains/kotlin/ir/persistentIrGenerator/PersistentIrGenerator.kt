@@ -315,7 +315,7 @@ internal object PersistentIrGenerator {
         return result
     }
 
-    private val prefix = "compiler/ir/ir.tree.persistent/src/org/jetbrains/kotlin/ir/declarations/persistent/"
+    private val prefix = "compiler/ir/ir.tree.persistent/gen/org/jetbrains/kotlin/ir/declarations/persistent/"
 
     fun writeFile(path: String, content: String) {
         File(prefix + path).writeText(content)
