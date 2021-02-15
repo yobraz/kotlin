@@ -153,13 +153,9 @@ private class BodyLoweringVisitor(
         if (allowDeclarationModification) {
             loweringPass.lower(body, data!!)
         } else {
-            // TODO streamline
-            val factory = (body as? IrBlockBody)?.factory ?: (body as? IrExpressionBody)?.factory
-            if (factory != null) {
-                factory.stageController.bodyLowering {
-                    loweringPass.lower(body, data!!)
-                }
-            } else loweringPass.lower(body, data!!)
+            data!!.factory.stageController.bodyLowering {
+                loweringPass.lower(body, data!!)
+            }
         }
     }
 
