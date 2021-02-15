@@ -8,9 +8,11 @@ package org.jetbrains.kotlin.ir.backend.js.transformers.irToJs
 import com.google.gwt.dev.js.ThrowExceptionOnErrorReporter
 import com.google.gwt.dev.js.rhino.CodePosition
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrStringConcatenation
+import org.jetbrains.kotlin.ir.interpreter.IrInterpreter
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
@@ -21,15 +23,25 @@ import org.jetbrains.kotlin.js.backend.ast.JsRootScope
 import org.jetbrains.kotlin.js.backend.ast.JsStatement
 import org.jetbrains.kotlin.js.parser.parseExpressionOrStatement
 
-fun translateJsCodeIntoStatementList(code: IrExpression): List<JsStatement> {
-    // TODO: check non simple compile time constants (expressions)
+fun translateJsCodeIntoStatementList(code: IrExpression, irBuiltIns: IrBuiltIns): List<JsStatement> {
     // TODO: support proper symbol linkage and label clash resolution
+
+    val interpreter by lazy { IrInterpreter(irBuiltIns) }
 
     fun foldString(expression: IrExpression): String {
         val builder = StringBuilder()
         expression.acceptVoid(object : IrElementVisitorVoid {
             override fun visitElement(element: IrElement) =
                 error("Parameter of js function must be compile time String constant, not ${element.render()}")
+
+            override fun visitExpression(expression: IrExpression) {
+                val result = interpreter.interpret(expression)
+                if (result is IrConst<*>) {
+                    result.acceptVoid(this)
+                } else {
+                    error("Couldn't evaluate constant string expression ${expression.render()}")
+                }
+            }
 
             override fun <T> visitConst(expression: IrConst<T>) {
                 builder.append(expression.kind.valueOf(expression))

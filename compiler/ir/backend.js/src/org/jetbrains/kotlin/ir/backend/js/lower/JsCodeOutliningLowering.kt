@@ -132,7 +132,7 @@ private class JsCodeOutlineTransformer(
             return null
 
         val jsCodeArg = expression.getValueArgument(0) ?: error("Expected js code string")
-        val jsStatements = translateJsCodeIntoStatementList(jsCodeArg)
+        val jsStatements = translateJsCodeIntoStatementList(jsCodeArg, backendContext.irBuiltIns)
 
         // Collect used Kotlin local variables and parameters.
         val kotlinLocalsUsedInJs = mutableListOf<IrValueDeclaration>()
