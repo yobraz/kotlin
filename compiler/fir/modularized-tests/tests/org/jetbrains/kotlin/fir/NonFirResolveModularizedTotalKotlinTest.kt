@@ -188,7 +188,7 @@ class NonFirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
 
         initPerfStat()
 
-        isolate(perfHelper)
+        isolate()
         if (UTILS_PERF_STAT) perfHelper = null
 
         writeMessageToLog("use_ni: $USE_NI")

@@ -9,6 +9,8 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
+import com.sun.jna.Library
+import com.sun.jna.Native
 import com.sun.management.HotSpotDiagnosticMXBean
 import org.jetbrains.kotlin.asJava.finder.JavaElementFinder
 import org.jetbrains.kotlin.cli.common.profiling.AsyncProfilerHelper
@@ -123,7 +125,16 @@ class PerfBenchListener(private val helper: PerfStat) : BenchListener() {
     }
 }
 
-fun isolate(stat: PerfStat?) {
+private interface CLibrary : Library {
+    fun getpid(): Int
+    fun gettid(): Int
+
+    companion object {
+        val INSTANCE = Native.load("c", CLibrary::class.java) as CLibrary
+    }
+}
+
+fun isolate() {
     val isolatedList = System.getenv("DOCKER_ISOLATED_CPUSET")
     val othersList = System.getenv("DOCKER_CPUSET")
     println("Trying to isolate, SYS: '$othersList', ISO: '$isolatedList'")
@@ -131,9 +142,9 @@ fun isolate(stat: PerfStat?) {
         println("Will move others affinity to '$othersList'")
         ProcessBuilder().command("bash", "-c", "ps -ae -o pid= | xargs -n 1 taskset -cap $othersList ").inheritIO().start().waitFor()
     }
-    if (isolatedList != null && stat != null) {
-        val selfPid = stat.getpid()
-        val selfTid = stat.gettid()
+    if (isolatedList != null) {
+        val selfPid = CLibrary.INSTANCE.getpid()
+        val selfTid = CLibrary.INSTANCE.gettid()
         println("Will pin self affinity, my pid: $selfPid, my tid: $selfTid")
         ProcessBuilder().command("taskset", "-cp", isolatedList, "$selfTid").inheritIO().start().waitFor()
     }
@@ -402,7 +413,7 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
     private fun beforeAllPasses() {
         initPerfStat()
 
-        isolate(perfHelper)
+        isolate()
 
         if (REPORT_PASS_EVENTS) {
             passEventReporter =
