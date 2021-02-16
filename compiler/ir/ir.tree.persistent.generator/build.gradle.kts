@@ -4,10 +4,12 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":compiler:ir.tree"))
+    implementation(kotlinStdlib())
 }
 
 sourceSets {
     "main" { projectDefault() }
     "test" {}
 }
+
+val generatePir by generator("org.jetbrains.kotlin.ir.persistentIrGenerator.MainKt", mainSourceSet)
