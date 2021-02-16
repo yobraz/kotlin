@@ -52,12 +52,12 @@ class JarSnapshotDiffService() {
                         }
                         for (member in diff.changedMembersNames) {
                             //TODO mark dirty symbols for subclasses
-                            val fqNames = withSubtypes(fqName, listOf(caches))
-                            dirtyFqNames.addAll(fqNames)
+                            val subtypeFqNames = withSubtypes(fqName, listOf(caches))
+                            dirtyFqNames.addAll(subtypeFqNames)
 
-                            for (fqName in fqNames) {
-                                dirtyLookupSymbols.add(LookupSymbol(member, fqName.asString()))
-                                dirtyLookupSymbols.add(LookupSymbol(SAM_LOOKUP_NAME.asString(), fqName.asString()))
+                            for (subtypeFqName in subtypeFqNames) {
+                                dirtyLookupSymbols.add(LookupSymbol(member, subtypeFqName.asString()))
+                                dirtyLookupSymbols.add(LookupSymbol(SAM_LOOKUP_NAME.asString(), subtypeFqName.asString()))
                             }
                         }
 

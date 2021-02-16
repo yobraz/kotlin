@@ -62,7 +62,9 @@ abstract class IncrementalCompilerRunner<
 
     //TODO temporal measure to ensure quick disable, should be deleted after successful release
     protected val compileWithSnapshotProperty = "kotlin.compile.incremental.snapshot"
-    protected val withSnapshot: Boolean = (System.getProperty(compileWithSnapshotProperty) ?: true) as Boolean
+    //TODO read property properly
+//    protected val withSnapshot: Boolean = (System.getProperty(compileWithSnapshotProperty) ?: true) as Boolean
+    protected val withSnapshot: Boolean = true
 
     protected abstract fun isICEnabled(): Boolean
     protected abstract fun createCacheManager(args: Args, projectDir: File?): CacheManager

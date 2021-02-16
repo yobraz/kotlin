@@ -164,10 +164,10 @@ class IncrementalJvmCompilerRunner(
         changedFiles: ChangedFiles.Known,
         args: K2JVMCompilerArguments,
         messageCollector: MessageCollector,
-        classpathJarSnapshot: Map<String, JarSnapshot>
+        classpathJarSnapshots: Map<String, JarSnapshot>
     ): CompilationMode {
         return try {
-            calculateSourcesToCompileImpl(caches, changedFiles, args, classpathJarSnapshot)
+            calculateSourcesToCompileImpl(caches, changedFiles, args, classpathJarSnapshots)
         } finally {
             psiFileProvider.messageCollector.flush(messageCollector)
             psiFileProvider.messageCollector.clear()
