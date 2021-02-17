@@ -33,7 +33,7 @@ dependencies {
     }
 
     testCompileOnly(intellijDep()) {
-        includeJars("extensions", "idea_rt", "util", "asm-all", "platform-util-ex", rootProject = rootProject)
+        includeJars("extensions", "idea_rt", "util", "asm-all", "platform-util-ex", "jna", rootProject = rootProject)
     }
 
     testCompileOnly(intellijPluginDep("java")) { includeJars("java-api") }
@@ -57,12 +57,6 @@ dependencies {
     if (asyncProfilerClasspath != null) {
         testRuntimeOnly(files(*asyncProfilerClasspath.split(File.pathSeparatorChar).toTypedArray()))
     }
-
-    testCompile("org.jetbrains.kotlin.perfstatjvm:perfstatjvm:1.0-SNAPSHOT")
-
-    if (usePerfStat) {
-        runtimePerfLib("org.jetbrains.kotlin.perfstatjvm:perf-event-lib:1.0-SNAPSHOT")
-    }
 }
 
 sourceSets {
@@ -78,10 +72,6 @@ projectTest {
     maxHeapSize = "8g"
     dependsOn(":dist")
 
-    if (usePerfStat) {
-        systemProperty("fir.bench.perf.lib", runtimePerfLib.singleFile.absolutePath)
-        println("-Dfir.bench.perf.lib=${runtimePerfLib.singleFile.absolutePath}")
-    }
     run {
         val argsExt = project.findProperty("fir.modularized.jvm.args") as? String
         if (argsExt != null) {

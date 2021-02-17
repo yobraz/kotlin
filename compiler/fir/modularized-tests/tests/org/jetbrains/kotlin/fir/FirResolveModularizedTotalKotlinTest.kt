@@ -28,18 +28,12 @@ import org.jetbrains.kotlin.fir.resolve.firProvider
 import org.jetbrains.kotlin.fir.resolve.providers.impl.FirProviderImpl
 import org.jetbrains.kotlin.fir.resolve.transformers.createAllCompilerResolveProcessors
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
-import org.jetbrains.kotlin.perfstat.PerfStat
-import org.jetbrains.kotlin.perfstat.PerfStatUtils
-import org.jetbrains.kotlin.perfstat.StatResult
 import sun.management.ManagementFactoryHelper
 import java.io.File
 import java.io.FileOutputStream
 import java.io.PrintStream
 import java.lang.management.ManagementFactory
 import java.text.DecimalFormat
-import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.full.memberProperties
 
 
 private const val FAIL_FAST = true
@@ -62,68 +56,7 @@ private val ASYNC_PROFILER_START_CMD = System.getProperty("fir.bench.use.async.p
 private val ASYNC_PROFILER_STOP_CMD = System.getProperty("fir.bench.use.async.profiler.cmd.stop")
 private val PROFILER_SNAPSHOT_DIR = System.getProperty("fir.bench.snapshot.dir") ?: "tmp/snapshots"
 
-val USE_PERF_STAT = System.getProperty("fir.bench.use.perf.stat", "false")
-val MEASURE_PERF_STAT = USE_PERF_STAT.toBooleanLenient() ?: false
-val UTILS_PERF_STAT = USE_PERF_STAT == "utils"
-
-val USE_PERF_STAT_CONFIG = System.getProperty("fir.bench.use.perf.stat.flags")
-val PERF_LIB_PATH = System.getProperty("fir.bench.perf.lib")
-
 private val REPORT_PASS_EVENTS = System.getProperty("fir.bench.report.pass.events", "false").toBooleanLenient()!!
-
-class PerfBenchListener(private val helper: PerfStat) : BenchListener() {
-
-    val statByStage = mutableMapOf<String, StatResult>()
-    val total get() = statByStage.values.reduce { acc, statResult -> acc.plus(statResult) }
-
-    override fun before() {
-        helper.resume()
-    }
-
-    override fun after(stageClass: KClass<*>) {
-        helper.pause()
-        record(stageClass.simpleName!!)
-    }
-
-    fun after(stage: String) {
-        helper.pause()
-        record(stage)
-    }
-
-    private fun record(stage: String) {
-        statByStage.merge(stage, helper.retrieve()) { a, b -> a.plus(b) }
-        helper.reset()
-    }
-
-    fun buildReport(out: Appendable) {
-
-        fun RTableContext.buildRow(stageName: String, metrics: List<StatResult.Metric>) {
-            row {
-                cell(stageName, align = LEFT)
-                for (metric in metrics) {
-                    when (metric) {
-                        is StatResult.Metric.LongMetric -> cell(metric.value.toString())
-                        is StatResult.Metric.CpuIdMetric -> cell(metric.value.toString())
-                    }
-                }
-            }
-        }
-        printTable(out) {
-            row {
-                cell("Stage", align = LEFT)
-                for (metric in total.metrics) {
-                    cell(metric.name)
-                }
-            }
-            separator()
-            for ((stage, result) in statByStage) {
-                buildRow(stage, result.metrics)
-            }
-            separator()
-            buildRow("Total", total.metrics)
-        }
-    }
-}
 
 private interface CLibrary : Library {
     fun getpid(): Int
@@ -134,10 +67,10 @@ private interface CLibrary : Library {
     }
 }
 
-fun isolate() {
+internal fun isolate() {
     val isolatedList = System.getenv("DOCKER_ISOLATED_CPUSET")
     val othersList = System.getenv("DOCKER_CPUSET")
-    println("Trying to isolate, SYS: '$othersList', ISO: '$isolatedList'")
+    println("Trying to set affinity, other: '$othersList', isolated: '$isolatedList'")
     if (othersList != null) {
         println("Will move others affinity to '$othersList'")
         ProcessBuilder().command("bash", "-c", "ps -ae -o pid= | xargs -n 1 taskset -cap $othersList ").inheritIO().start().waitFor()
@@ -147,6 +80,9 @@ fun isolate() {
         val selfTid = CLibrary.INSTANCE.gettid()
         println("Will pin self affinity, my pid: $selfPid, my tid: $selfTid")
         ProcessBuilder().command("taskset", "-cp", isolatedList, "$selfTid").inheritIO().start().waitFor()
+    }
+    if (othersList == null && isolatedList == null) {
+        println("No affinity specified")
     }
 }
 
@@ -183,10 +119,6 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
     private var bestPass: Int = 0
 
     private var passEventReporter: PassEventReporter? = null
-
-    private var perfHelper: PerfStat? = null
-
-    private var perfBenchListener: PerfBenchListener? = null
 
     private val asyncProfiler = if (ASYNC_PROFILER_LIB != null) {
         try {
@@ -264,25 +196,6 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         dumpFirHtml(disambiguatedName, firFiles)
     }
 
-    private fun reportPerfStat(perfBenchListener: PerfBenchListener, statistics: FirResolveBench.TotalStatistics, pass: Int) {
-
-        perfBenchListener.buildReport(System.out)
-        PrintStream(
-            FileOutputStream(
-                reportDir().resolve("perf-$reportDateStr.log"),
-                true
-            )
-        ).use { stream ->
-            stream.println("====== Pass $pass ======")
-            statistics.reportTimings(stream)
-            perfBenchListener.buildReport(stream)
-
-            stream.println()
-            stream.println()
-        }
-
-    }
-
     private fun dumpFir(disambiguatedName: String, firFiles: List<FirFile>) {
         if (!DUMP_FIR) return
         val dumpRoot = File(FIR_DUMP_PATH).resolve(disambiguatedName)
@@ -337,9 +250,6 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
     override fun afterPass(pass: Int) {
         val statistics = bench.getTotalStatistics()
         statistics.report(System.out, "Pass $pass")
-        perfBenchListener?.let { reportPerfStat(it, statistics, pass) }
-
-        if (MEASURE_PERF_STAT) perfHelper?.reset()
 
         saveReport(pass, statistics)
         if (statistics.totalTime < (bestStatistics?.totalTime ?: Long.MAX_VALUE)) {
@@ -362,8 +272,6 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         val bestStatistics = bestStatistics ?: return
         printStatistics(bestStatistics, "Best pass: $bestPass")
         printErrors(bestStatistics)
-
-        perfHelper?.close()
     }
 
     private fun saveReport(pass: Int, statistics: FirResolveBench.TotalStatistics) {
@@ -393,26 +301,7 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         }
     }
 
-    private fun initPerfStat() {
-
-        if (MEASURE_PERF_STAT || UTILS_PERF_STAT) {
-
-            val flags = USE_PERF_STAT_CONFIG?.let { cfg ->
-                cfg.split(',').associate { arg ->
-                    val (name, valueStr) = arg.split('=')
-                    name to valueStr.toBooleanLenient()!!
-                }
-            } ?: emptyMap()
-
-            val arguments = flags + mapOf("libPath" to PERF_LIB_PATH, "utilsOnly" to UTILS_PERF_STAT)
-
-            perfHelper = PerfStat(PerfStatUtils.createConfiguration(arguments))
-        }
-    }
-
     private fun beforeAllPasses() {
-        initPerfStat()
-
         isolate()
 
         if (REPORT_PASS_EVENTS) {
@@ -427,8 +316,7 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
 
         for (i in 0 until PASSES) {
             println("Pass $i")
-            perfBenchListener = perfHelper?.takeIf { MEASURE_PERF_STAT }?.let { PerfBenchListener(it) }
-            bench = FirResolveBench(withProgress = false, perfBenchListener)
+            bench = FirResolveBench(withProgress = false)
             runTestOnce(i)
         }
         afterAllPasses()

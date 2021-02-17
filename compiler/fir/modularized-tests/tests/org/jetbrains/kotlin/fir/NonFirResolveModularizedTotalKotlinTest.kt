@@ -11,18 +11,13 @@ import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys.MESSAGE_COLLECTOR_KE
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.cli.common.toBooleanLenient
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
-import org.jetbrains.kotlin.perfstat.PerfStat
-import org.jetbrains.kotlin.perfstat.PerfStatUtils
 import java.io.FileOutputStream
 import java.io.PrintStream
-import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.full.memberProperties
 import kotlin.system.measureNanoTime
 
 private val USE_NI = System.getProperty("fir.bench.oldfe.ni", "true") == "true"
@@ -33,14 +28,9 @@ class NonFirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
     private var lines = 0
     private var measure = FirResolveBench.Measure()
 
-    private var perfBenchListener: PerfBenchListener? = null
-
-    private var perfHelper: PerfStat? = null
-
     private val times = mutableListOf<Long>()
 
     private fun runAnalysis(environment: KotlinCoreEnvironment) {
-        perfBenchListener?.before()
         val vmBefore = vmStateSnapshot()
         val time = measureNanoTime {
             try {
@@ -55,7 +45,6 @@ class NonFirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
             }
         }
         val vmAfter = vmStateSnapshot()
-        perfBenchListener?.after("Analyze")
 
         val psiFiles = environment.getSourceFiles()
         files += psiFiles.size
@@ -127,69 +116,18 @@ class NonFirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         return ProcessorAction.NEXT
     }
 
-    private fun reportPerfStat(perfBenchListener: PerfBenchListener, statistics: FirResolveBench.TotalStatistics, pass: Int) {
-
-        perfBenchListener.buildReport(System.out)
-        PrintStream(
-            FileOutputStream(
-                reportDir().resolve("perf-$reportDateStr.log"),
-                true
-            )
-        ).use { stream ->
-            stream.println("====== Pass $pass ======")
-            statistics.reportTimings(stream)
-            perfBenchListener.buildReport(stream)
-
-            stream.println()
-            stream.println()
-        }
-
-    }
-
-    override fun afterPass(pass: Int) {
-        perfBenchListener?.let {
-            reportPerfStat(
-                it,
-                FirResolveBench.TotalStatistics(
-                    0, 0, 0, 0, 0, 0, fileCount = files, totalLines = lines, emptyMap(),
-                    timePerTransformer = mapOf("Analyze" to measure)
-                ),
-                pass
-            )
-        }
-    }
+    override fun afterPass(pass: Int) {}
 
     override fun beforePass(pass: Int) {
         measure = FirResolveBench.Measure()
-        perfBenchListener = perfHelper?.let { PerfBenchListener(it) }
         files = 0
         lines = 0
         totalTime = 0
     }
 
-    private fun initPerfStat() {
-
-        if (MEASURE_PERF_STAT || UTILS_PERF_STAT) {
-
-            val flags = USE_PERF_STAT_CONFIG?.let { cfg ->
-                cfg.split(',').associate { arg ->
-                    val (name, valueStr) = arg.split('=')
-                    name to valueStr.toBooleanLenient()!!
-                }
-            } ?: emptyMap()
-
-            val arguments = flags + mapOf("libPath" to PERF_LIB_PATH, "utilsOnly" to UTILS_PERF_STAT)
-
-            perfHelper = PerfStat(PerfStatUtils.createConfiguration(arguments))
-        }
-    }
-
     fun testTotalKotlin() {
 
-        initPerfStat()
-
         isolate()
-        if (UTILS_PERF_STAT) perfHelper = null
 
         writeMessageToLog("use_ni: $USE_NI")
 
@@ -203,7 +141,5 @@ class NonFirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         val bestTime = times.minOrNull()!!
         val bestPass = times.indexOf(bestTime)
         dumpTime("Best pass: $bestPass", bestTime)
-
-        perfHelper?.close()
     }
 }
