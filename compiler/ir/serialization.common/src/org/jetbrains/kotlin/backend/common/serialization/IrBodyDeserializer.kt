@@ -5,8 +5,6 @@
 
 package org.jetbrains.kotlin.backend.common.serialization
 
-import org.jetbrains.kotlin.backend.common.LoggingContext
-import org.jetbrains.kotlin.backend.common.ir.ir2string
 import org.jetbrains.kotlin.backend.common.serialization.encodings.*
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrConst.ValueCase.*
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrOperation.OperationCase.*
@@ -20,8 +18,6 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
-import org.jetbrains.kotlin.ir.types.impl.IrErrorTypeImpl
-import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrBlock as ProtoBlock
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrBlockBody as ProtoBlockBody
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrBranch as ProtoBranch
@@ -72,11 +68,11 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.Loop as ProtoLoop
 import org.jetbrains.kotlin.backend.common.serialization.proto.MemberAccessCommon as ProtoMemberAccessCommon
 
 class IrBodyDeserializer(
-    val builtIns: IrBuiltIns,
-    val allowErrorNodes: Boolean,
-    val irFactory: IrFactory,
-    val fileReader: IrLibraryFile,
-    val declarationDeserializer: IrDeclarationDeserializer,
+    private val builtIns: IrBuiltIns,
+    private val allowErrorNodes: Boolean,
+    private val irFactory: IrFactory,
+    private val fileReader: IrLibraryFile,
+    private val declarationDeserializer: IrDeclarationDeserializer,
 ) {
 
     private val fileLoops = mutableMapOf<Int, IrLoop>()
@@ -84,7 +80,7 @@ class IrBodyDeserializer(
     private fun deserializeLoopHeader(loopIndex: Int, loopBuilder: () -> IrLoop): IrLoop =
         fileLoops.getOrPut(loopIndex, loopBuilder)
 
-    fun deserializeBlockBody(
+    private fun deserializeBlockBody(
         proto: ProtoBlockBody,
         start: Int, end: Int
     ): IrBlockBody {
@@ -99,7 +95,7 @@ class IrBodyDeserializer(
         return irFactory.createBlockBody(start, end, statements)
     }
 
-    fun deserializeBranch(proto: ProtoBranch, start: Int, end: Int): IrBranch {
+    private fun deserializeBranch(proto: ProtoBranch, start: Int, end: Int): IrBranch {
 
         val condition = deserializeExpression(proto.condition)
         val result = deserializeExpression(proto.result)
@@ -107,14 +103,14 @@ class IrBodyDeserializer(
         return IrBranchImpl(start, end, condition, result)
     }
 
-    fun deserializeCatch(proto: ProtoCatch, start: Int, end: Int): IrCatch {
+    private fun deserializeCatch(proto: ProtoCatch, start: Int, end: Int): IrCatch {
         val catchParameter = declarationDeserializer.deserializeIrVariable(proto.catchParameter)
         val result = deserializeExpression(proto.result)
 
         return IrCatchImpl(start, end, catchParameter, result)
     }
 
-    fun deserializeSyntheticBody(proto: ProtoSyntheticBody, start: Int, end: Int): IrSyntheticBody {
+    private fun deserializeSyntheticBody(proto: ProtoSyntheticBody, start: Int, end: Int): IrSyntheticBody {
         val kind = when (proto.kind!!) {
             ProtoSyntheticBodyKind.ENUM_VALUES -> IrSyntheticBodyKind.ENUM_VALUES
             ProtoSyntheticBodyKind.ENUM_VALUEOF -> IrSyntheticBodyKind.ENUM_VALUEOF
@@ -122,7 +118,7 @@ class IrBodyDeserializer(
         return IrSyntheticBodyImpl(start, end, kind)
     }
 
-    fun deserializeStatement(proto: ProtoStatement): IrElement {
+    internal fun deserializeStatement(proto: ProtoStatement): IrElement {
         val coordinates = BinaryCoordinates.decode(proto.coordinates)
         val start = coordinates.startOffset
         val end = coordinates.endOffset

@@ -26,7 +26,7 @@ class IrFileDeserializer(
     val symbolDeserializer: IrSymbolDeserializer,
     val declarationDeserializer: IrDeclarationDeserializer,
 ) {
-    val reversedSignatureIndex = fileProto.declarationIdList.map { symbolDeserializer.deserializeIdSignature(it) to it }.toMap()
+    val reversedSignatureIndex = fileProto.declarationIdList.associateBy { symbolDeserializer.deserializeIdSignature(it) }
 
     private var annotations: List<ProtoConstructorCall>? = fileProto.annotationList
 
