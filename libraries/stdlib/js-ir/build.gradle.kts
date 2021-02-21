@@ -146,7 +146,9 @@ tasks.withType<KotlinCompile<*>>().configureEach {
 }
 
 val compileKotlinJs by tasks.existing(KotlinCompile::class) {
-    kotlinOptions.freeCompilerArgs += "-Xir-module-name=kotlin"
+    require(this is org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile)
+    kotlinOptions.freeCompilerArgs = kotlinOptions.freeCompilerArgs.filter { !it.startsWith("-Xir-module-name") } + "-Xir-module-name=kotlin"
+    kotlinOptions.sourceMap = false
 }
 
 

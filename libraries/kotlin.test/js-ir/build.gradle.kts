@@ -50,7 +50,10 @@ tasks.withType<KotlinCompile<*>>().configureEach {
 }
 
 tasks.named("compileKotlinJs") {
-    (this as KotlinCompile<*>).kotlinOptions.freeCompilerArgs += "-Xir-module-name=kotlin-test"
+    require(this is org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile)
+    kotlinOptions.freeCompilerArgs = kotlinOptions.freeCompilerArgs.filter { !it.startsWith("-Xir-module-name") } + "-Xir-module-name=kotlin-test"
+    kotlinOptions.sourceMap = false
+
     dependsOn(commonMainSources)
     dependsOn(jsMainSources)
 }
