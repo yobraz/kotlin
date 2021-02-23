@@ -443,7 +443,7 @@ allprojects {
     }
 
     val jvmCompilerArgs = listOf(
-        "-Xjvm-default=compatibility",
+        "-Xjvm-default=all",
         "-Xno-optimized-callable-references",
         "-Xno-kotlin-nothing-value-exception",
         "-Xnormalize-constructor-calls=enable"
@@ -1118,7 +1118,7 @@ fun Project.configureJvmProject(javaHome: String, javaVersion: String) {
     tasks.withType<KotlinCompile> {
         kotlinOptions.jdkHome = javaHome
         kotlinOptions.jvmTarget = javaVersion
-        kotlinOptions.freeCompilerArgs += "-Xjvm-default=compatibility"
+        kotlinOptions.freeCompilerArgs += "-Xjvm-default=all"
     }
 
     tasks.withType<Test> {
