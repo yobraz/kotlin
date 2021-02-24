@@ -16,6 +16,7 @@ import java.io.Closeable
 import java.io.File
 import java.io.InputStream
 import java.net.URLClassLoader
+import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.ZipFile
 import javax.annotation.processing.Processor
 import kotlin.collections.LinkedHashSet
@@ -32,7 +33,18 @@ open class ProcessorLoader(private val options: KaptOptions, private val logger:
                 addAll(options.compileClasspath)
             }
         }
-        val classLoader = URLClassLoader(classpath.map { it.toURI().toURL() }.toTypedArray(), parentClassLoader)
+        val clKey = classpath.map { it.absolutePath }.toSet()
+        var miss = false
+        val classLoader = classloadersCache.getOrPut(clKey) {
+            miss = true
+            URLClassLoader(classpath.map { it.toURI().toURL() }.toTypedArray(), parentClassLoader)
+        }
+        if (miss) {
+            logger.info("!!!Cache miss for classloader: $clKey")
+        } else {
+            logger.info("!!!Cache hit for classloader: $clKey")
+        }
+
         this.annotationProcessingClassLoader = classLoader
 
         val processors = if (options.processors.isNotEmpty()) {
@@ -141,6 +153,10 @@ open class ProcessorLoader(private val options: KaptOptions, private val logger:
     }
 
     override fun close() {
-        annotationProcessingClassLoader?.close()
+//        annotationProcessingClassLoader?.close()
+    }
+
+    companion object {
+        private val classloadersCache = ConcurrentHashMap<Set<String>, URLClassLoader>()
     }
 }
