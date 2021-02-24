@@ -116,7 +116,8 @@ enum class KaptFlag(val description: String) {
     INCLUDE_COMPILE_CLASSPATH("Detect annotation processors in compile classpath"),
     INCREMENTAL_APT("Incremental annotation processing (apt mode)"),
     STRIP_METADATA("Strip @Metadata annotations from stubs"),
-    KEEP_KDOC_COMMENTS_IN_STUBS("Keep KDoc comments in stubs")
+    KEEP_KDOC_COMMENTS_IN_STUBS("Keep KDoc comments in stubs"),
+    USE_IR_BACKEND("Use IR backend in stub generation")
     ;
 }
 

@@ -174,6 +174,25 @@ class JvmIrCodegenFactory(private val phaseConfig: PhaseConfig) : CodegenFactory
         return result.toList()
     }
 
+    fun prepareIr(input: JvmIrBackendInput): JvmBackendContext {
+        val (state, irModuleFragment, symbolTable, sourceManager, phaseConfig, irProviders, extensions, backendExtension, _) = input
+        val context = JvmBackendContext(
+            state, sourceManager, irModuleFragment.irBuiltins, irModuleFragment,
+            symbolTable, phaseConfig, extensions, backendExtension
+        )
+        /* JvmBackendContext creates new unbound symbols, have to resolve them. */
+        ExternalDependenciesGenerator(symbolTable, irProviders).generateUnboundSymbolsAsDependencies()
+
+        state.mapInlineClass = { descriptor ->
+            context.typeMapper.mapType(context.referenceClass(descriptor).defaultType)
+        }
+
+        context.state.factory.registerSourceFiles(irModuleFragment.files.map(context.psiSourceManager::getKtFile))
+
+        JvmLower(context).lower(irModuleFragment)
+        return context
+    }
+
     fun doGenerateFilesInternal(input: JvmIrBackendInput) {
         val (state, irModuleFragment, symbolTable, sourceManager, phaseConfig, irProviders, extensions, backendExtension, notifyCodegenStart) = input
         val context = JvmBackendContext(

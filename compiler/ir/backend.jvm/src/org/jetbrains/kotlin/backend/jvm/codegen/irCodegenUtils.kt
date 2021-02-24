@@ -269,7 +269,7 @@ private val KOTLIN_MARKER_INTERFACES: Map<FqName, String> = run {
     kotlinMarkerInterfaces
 }
 
-internal fun IrTypeMapper.mapClassSignature(irClass: IrClass, type: Type): JvmClassSignature {
+fun IrTypeMapper.mapClassSignature(irClass: IrClass, type: Type): JvmClassSignature {
     val sw = BothSignatureWriter(BothSignatureWriter.Mode.CLASS)
     writeFormalTypeParameters(irClass.typeParameters, sw)
 

@@ -54,6 +54,8 @@ import org.jetbrains.kotlin.kapt3.base.util.getPackageNameJava9Aware
 import org.jetbrains.kotlin.kapt3.base.util.info
 import org.jetbrains.kotlin.kapt3.base.util.isJava11OrLater
 import org.jetbrains.kotlin.kapt3.diagnostic.KaptError
+import org.jetbrains.kotlin.kapt3.ir.KaptIrContextForStubGeneration
+import org.jetbrains.kotlin.kapt3.ir.KaptIrProducer
 import org.jetbrains.kotlin.kapt3.stubs.ClassFileToSourceStubConverter
 import org.jetbrains.kotlin.kapt3.stubs.ClassFileToSourceStubConverter.KaptStub
 import org.jetbrains.kotlin.kapt3.util.MessageCollectorBackedKaptLogger
@@ -219,6 +221,27 @@ abstract class AbstractKapt3Extension(
         }
     }
 
+    private fun generateStubsLegacy(
+        project: Project,
+        module: ModuleDescriptor,
+        bindingContext: BindingContext,
+        files: List<KtFile>
+    ) {
+        contextForStubGeneration(project, module, bindingContext, files.toList()).use { context ->
+            generateKotlinSourceStubs(context)
+        }
+    }
+
+    /*private fun generateStubsIr(
+        project: Project,
+        module: ModuleDescriptor,
+        bindingContext: BindingContext,
+        files: List<KtFile>
+    ) {
+        val backendContext = KaptIrProducer(compilerConfiguration).transformToIr(project, module, bindingContext, files)
+        val kaptContext = KaptIrContextForStubGeneration(options, false, logger, project, backendContext)
+    }*/
+
     private fun runAnnotationProcessing(kaptContext: KaptContext, processors: LoadedProcessors) {
         if (!options.mode.runAnnotationProcessing) return
 
@@ -300,6 +323,19 @@ abstract class AbstractKapt3Extension(
 
         saveStubs(kaptContext, kaptStubs)
         saveIncrementalData(kaptContext, logger.messageCollector, converter)
+    }
+
+    private fun generateKotlinSourceStubs(kaptContext: KaptContext, genF: () -> List<KaptStub>) {
+        val (stubGenerationTime, kaptStubs) = measureTimeMillis {
+            genF()
+        }
+
+        logger.info { "Java stub generation took $stubGenerationTime ms" }
+        logger.info { "Stubs for Kotlin classes: " + kaptStubs.joinToString { it.file.sourcefile.name } }
+
+        saveStubs(kaptContext, kaptStubs)
+        //todo incremental
+//        saveIncrementalData(kaptContext, logger.messageCollector, converter)
     }
 
     protected open fun saveStubs(kaptContext: KaptContext, stubs: List<KaptStub>) {

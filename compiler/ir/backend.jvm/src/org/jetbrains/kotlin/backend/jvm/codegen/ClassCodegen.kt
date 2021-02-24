@@ -480,7 +480,7 @@ class ClassCodegen private constructor(
         }
 }
 
-private fun IrClass.getFlags(languageVersionSettings: LanguageVersionSettings): Int =
+fun IrClass.getFlags(languageVersionSettings: LanguageVersionSettings): Int =
     origin.flags or
             getVisibilityAccessFlagForClass() or
             (if (isAnnotatedWithDeprecated) Opcodes.ACC_DEPRECATED else 0) or
