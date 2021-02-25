@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.backend.js.generateJsCode
 import org.jetbrains.kotlin.ir.backend.js.utils.NameTables
+import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.ir.descriptors.IrFunctionFactory
 import org.jetbrains.kotlin.ir.util.ExternalDependenciesGenerator
 import org.jetbrains.kotlin.ir.util.SymbolTable
@@ -34,7 +35,7 @@ class JsCoreScriptingCompiler(
     private val environment: KotlinCoreEnvironment,
     private val nameTables: NameTables,
     private val symbolTable: SymbolTable,
-    private val dependencyDescriptors: List<ModuleDescriptor>,
+    private val dependencyDescriptors: Collection<ModuleDescriptor>,
     private val replState: ReplCodeAnalyzerBase.ResettableAnalyzerState = ReplCodeAnalyzerBase.ResettableAnalyzerState()
 ) {
     fun compile(codeLine: ReplCodeLine): ReplCompileResult {
@@ -75,7 +76,7 @@ class JsCoreScriptingCompiler(
             irModuleFragment,
             emptySet(),
             environment.configuration,
-            true
+            true, irFactory = IrFactoryImpl
         )
 
         ExternalDependenciesGenerator(
