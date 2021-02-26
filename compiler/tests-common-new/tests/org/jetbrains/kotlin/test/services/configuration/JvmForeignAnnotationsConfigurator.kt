@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.test.directives.ForeignAnnotationsDirectives.JSR305_
 import org.jetbrains.kotlin.test.directives.model.DirectivesContainer
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 import org.jetbrains.kotlin.test.directives.model.singleOrZeroValue
+import org.jetbrains.kotlin.test.directives.model.singleValue
 import org.jetbrains.kotlin.test.model.TestModule
 import org.jetbrains.kotlin.test.services.*
 import org.jetbrains.kotlin.utils.JavaTypeEnhancementState
@@ -85,13 +86,12 @@ open class JvmForeignAnnotationsConfigurator(testServices: TestServices) : Envir
             val state = ReportLevel.findByDescription(stateDescription) ?: return@mapNotNull null
             name to state
         }.toMap()
-        val jSpecifyReportLevel = directives.singleOrZeroValue(JSPECIFY_STATE) ?: ReportLevel.STRICT
         return mapOf(
             JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState(
                 globalState,
                 migrationState,
                 userAnnotationsState,
-                jspecifyReportLevel = jSpecifyReportLevel
+                jspecifyReportLevel = directives.singleValue(JSPECIFY_STATE)
             )
         )
     }

@@ -44,30 +44,21 @@ class JavaTypeEnhancementStateParser(private val collector: MessageCollector) {
 
         val jspecifyReportLevel = parseJspecifyReportLevel(jspecifyState)
 
+        if (jspecifyReportLevel == null) {
+            collector.report(
+                CompilerMessageSeverity.ERROR,
+                "Unrecognized -Xjspecify-annotations option: $jspecifyState. Possible values are 'disable'/'warn'/'strict'"
+            )
+        }
+
         val state = JavaTypeEnhancementState(
             jsr305State.global ?: ReportLevel.WARN, jsr305State.migration, jsr305State.usedDefined,
             enableCompatqualCheckerFrameworkAnnotations =
             enableCompatqualCheckerFrameworkAnnotations
                 ?: JavaTypeEnhancementState.COMPATQUAL_CHECKER_FRAMEWORK_ANNOTATIONS_SUPPORT_DEFAULT_VALUE,
-            jspecifyReportLevel = jspecifyReportLevel
+            jspecifyReportLevel = jspecifyReportLevel ?: JavaTypeEnhancementState.DEFAULT_REPORT_LEVEL_FOR_JSPECIFY
         )
         return if (state == JavaTypeEnhancementState.DISABLED_JSR_305) JavaTypeEnhancementState.DISABLED_JSR_305 else state
-    }
-
-
-    private fun parseJspecifyReportLevel(jspecifyState: String?): ReportLevel {
-        if (jspecifyState == null) return JavaTypeEnhancementState.DEFAULT_REPORT_LEVEL_FOR_JSPECIFY
-        val reportLevel = ReportLevel.findByDescription(jspecifyState)
-
-        if (reportLevel == null) {
-            collector.report(
-                CompilerMessageSeverity.ERROR,
-                "Unrecognized -Xjspecify-annotations option: $jspecifyState. Possible values are 'disable'/'warn'/'strict'"
-            )
-            return JavaTypeEnhancementState.DEFAULT_REPORT_LEVEL_FOR_JSPECIFY
-        }
-
-        return reportLevel
     }
 
     private data class Jsr305State(
@@ -149,5 +140,16 @@ class JavaTypeEnhancementStateParser(private val collector: MessageCollector) {
         }
 
         return name to state
+    }
+
+    companion object {
+        fun parseJspecifyReportLevel(jspecifyState: String?): ReportLevel? {
+            if (jspecifyState == null) return JavaTypeEnhancementState.DEFAULT_REPORT_LEVEL_FOR_JSPECIFY
+
+            return ReportLevel.findByDescription(jspecifyState)
+        }
+
+        fun parseJspecifyReportLevelWithDefault(jspecifyState: String?) =
+            parseJspecifyReportLevel(jspecifyState) ?: JavaTypeEnhancementState.DEFAULT_REPORT_LEVEL_FOR_JSPECIFY
     }
 }

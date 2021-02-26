@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.config;
 import org.jetbrains.kotlin.load.java.JavaClassesTracker;
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCompilationComponents;
 import org.jetbrains.kotlin.modules.Module;
+import org.jetbrains.kotlin.utils.ReportLevel;
 
 import java.io.File;
 import java.util.List;
@@ -152,4 +153,7 @@ public class JVMConfigurationKeys {
 
     public static final CompilerConfigurationKey<Boolean> NO_REFLECT =
             CompilerConfigurationKey.create("Don't automatically include kotlin-reflect.jar into the output if the output is a jar");
+
+    public static final CompilerConfigurationKey<ReportLevel> JSPECIFY_STATE =
+            CompilerConfigurationKey.create("Turn the jspecify annotations support into the given state");
 }

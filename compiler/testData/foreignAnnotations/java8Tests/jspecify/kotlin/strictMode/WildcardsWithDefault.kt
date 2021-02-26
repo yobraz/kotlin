@@ -1,4 +1,5 @@
 // JAVA_SOURCES: WildcardsWithDefault.java
+// JSPECIFY_STATE: strict
 
 fun main(
             aNotNullNotNullNotNull: A<Any, Any, Any>,

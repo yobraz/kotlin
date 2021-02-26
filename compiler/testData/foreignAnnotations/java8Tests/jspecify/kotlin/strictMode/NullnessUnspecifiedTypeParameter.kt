@@ -1,6 +1,7 @@
 // JAVA_SOURCES: NullnessUnspecifiedTypeParameter.java
+// JSPECIFY_STATE: strict
 
-fun main(a1: NullnessUnspecifiedTypeParameter<Any>, a2: NullnessUnspecifiedTypeParameter<Any?>, x: Test): Unit {
+fun main(a1: NullnessUnspecifiedTypeParameter<Any>, a2: NullnessUnspecifiedTypeParameter<<!UPPER_BOUND_VIOLATED_BASED_ON_JAVA_ANNOTATIONS!>Any?<!>>, x: Test): Unit {
     a1.foo(null)
     a1.foo(1)
 

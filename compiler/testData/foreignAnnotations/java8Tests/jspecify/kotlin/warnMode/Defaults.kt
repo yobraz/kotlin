@@ -1,5 +1,5 @@
 // JAVA_SOURCES: Defaults.java
-// JSPECIFY_STATE warn
+// JSPECIFY_STATE: warn
 
 fun main(a: Defaults, x: Foo): Unit {
     // jspecify_nullness_mismatch

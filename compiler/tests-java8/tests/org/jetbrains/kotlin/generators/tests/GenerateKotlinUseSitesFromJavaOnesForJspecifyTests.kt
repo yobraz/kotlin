@@ -134,8 +134,8 @@ class GenerateKotlinUseSitesFromJavaOnesForJspecifyTests {
             val parsedCalls = parseCalls(parsedMethod.body)
             val generatedKotlinCode = generateKotlinCode(parsedMethod, parsedCalls)
 
-            writeKotlinCode(file, "strictMode", generatedKotlinCode)
-            writeKotlinCode(file, "warnMode", generatedKotlinCode, "// JSPECIFY_STATE warn\n")
+            writeKotlinCode(file, "strictMode", generatedKotlinCode, "// JSPECIFY_STATE: strict\n")
+            writeKotlinCode(file, "warnMode", generatedKotlinCode, "// JSPECIFY_STATE: warn\n")
         }
     }
 }

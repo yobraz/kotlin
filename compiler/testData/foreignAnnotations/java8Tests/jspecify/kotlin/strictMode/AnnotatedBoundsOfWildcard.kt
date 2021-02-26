@@ -1,4 +1,5 @@
 // JAVA_SOURCES: AnnotatedBoundsOfWildcard.java
+// JSPECIFY_STATE: strict
 
 fun main(
             aNotNullNotNullNotNull: Test<Derived, Derived, Derived>,

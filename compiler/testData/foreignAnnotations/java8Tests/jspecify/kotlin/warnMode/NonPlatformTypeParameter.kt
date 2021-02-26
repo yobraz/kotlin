@@ -1,5 +1,5 @@
 // JAVA_SOURCES: NonPlatformTypeParameter.java
-// JSPECIFY_STATE warn
+// JSPECIFY_STATE: warn
 
 fun <T : Test> main(a1: NonPlatformTypeParameter<Any?>, a2: NonPlatformTypeParameter<Test>, x: T): Unit {
     a1.foo(null)
