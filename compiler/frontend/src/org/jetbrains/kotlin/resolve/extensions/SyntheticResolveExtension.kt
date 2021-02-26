@@ -145,7 +145,6 @@ interface SyntheticResolveExtension {
 
     fun getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name> = emptyList()
 
-    @JvmDefault
     fun getSyntheticPropertiesNames(thisDescriptor: ClassDescriptor): List<Name> = emptyList()
 
     fun getSyntheticNestedClassNames(thisDescriptor: ClassDescriptor): List<Name> = emptyList()
@@ -155,7 +154,6 @@ interface SyntheticResolveExtension {
      * or null in case it needs to run resolution and inference and/or it is very costly.
      * Override this method if resolution started to fail with recursion.
      */
-    @JvmDefault
     fun getPossibleSyntheticNestedClassNames(thisDescriptor: ClassDescriptor): List<Name>? = getSyntheticNestedClassNames(thisDescriptor)
 
     fun addSyntheticSupertypes(thisDescriptor: ClassDescriptor, supertypes: MutableList<KotlinType>) {}
