@@ -33,6 +33,7 @@ val compileKotlin by tasks.getting(KotlinCompile::class) {
         jvmTarget = "1.6"
         jdkHome = rootProject.extra["JDK_16"] as String
         freeCompilerArgs += "-Xsuppress-deprecated-jvm-target-warning"
+        freeCompilerArgs += "-Xjvm-default=disable"
     }
 }
 

@@ -449,8 +449,12 @@ allprojects {
         }
     }
 
-    val jvmCompilerArgs = listOf(
-        "-Xjvm-default=compatibility",
+    val jvmCompilerArgs = listOfNotNull(
+        when {
+            jvmTarget != "1.6" && jvmDefaultMode == null -> "-Xjvm-default=all"
+            jvmDefaultMode == null -> null
+            else -> "-Xjvm-default=$jvmDefaultMode"
+        },
         "-Xno-optimized-callable-references",
         "-Xno-kotlin-nothing-value-exception",
         "-Xnormalize-constructor-calls=enable"
@@ -1121,7 +1125,17 @@ fun Project.configureJvmProject(javaHome: String, javaVersion: String) {
     tasks.withType<KotlinCompile> {
         kotlinOptions.jdkHome = javaHome
         kotlinOptions.jvmTarget = javaVersion
-        kotlinOptions.freeCompilerArgs += "-Xjvm-default=compatibility"
+        if (jvmDefaultMode == null) {
+            if (kotlinOptions.jvmTarget == "1.6") {
+                kotlinOptions.freeCompilerArgs -= "-Xjvm-default=all"
+            } else {
+                kotlinOptions.freeCompilerArgs += "-Xjvm-default=all"
+            }
+        } else {
+            kotlinOptions.freeCompilerArgs -= "-Xjvm-default=all"
+            kotlinOptions.freeCompilerArgs -= "-Xjvm-default=$jvmDefaultMode"
+            kotlinOptions.freeCompilerArgs += "-Xjvm-default=$jvmDefaultMode"
+        }
     }
 
     tasks.withType<Test> {
