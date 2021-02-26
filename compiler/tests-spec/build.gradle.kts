@@ -7,8 +7,8 @@ dependencies {
     testCompile(projectTests(":compiler"))
     testImplementation(projectTests(":compiler:test-infrastructure"))
     testImplementation(projectTests(":compiler:tests-common-new"))
-    testRuntimeOnly(platform("org.junit:junit-bom:5.7.0"))
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter")
+
+    testApiJUnit5()
 
     testCompileOnly(intellijDep()) {
         includeJars("groovy", "groovy-xml", rootProject = rootProject)
@@ -28,8 +28,9 @@ sourceSets {
     "test" { projectDefault() }
 }
 
-projectTest(parallel = true) {
+projectTest(parallel = true, jUnit5Enabled = true) {
     workingDir = rootDir
+    useJUnitPlatform()
 }
 
 val generateSpecTests by generator("org.jetbrains.kotlin.spec.utils.tasks.GenerateSpecTestsKt")
