@@ -52,7 +52,7 @@ interface TypeResolutionInterceptorExtension {
 
 @InternalNonStableExtensionPoints
 interface CallResolutionInterceptorExtension {
-    @JvmDefault
+
     fun interceptCandidates(
         candidates: Collection<NewResolutionOldInference.MyCandidate>,
         context: BasicCallResolutionContext,
@@ -63,7 +63,6 @@ interface CallResolutionInterceptorExtension {
         tracing: TracingStrategy
     ): Collection<NewResolutionOldInference.MyCandidate> = candidates
 
-    @JvmDefault
     fun interceptFunctionCandidates(
         candidates: Collection<FunctionDescriptor>,
         scopeTower: ImplicitScopeTower,
@@ -74,7 +73,6 @@ interface CallResolutionInterceptorExtension {
         location: LookupLocation
     ): Collection<FunctionDescriptor> = candidates
 
-    @JvmDefault
     fun interceptFunctionCandidates(
         candidates: Collection<FunctionDescriptor>,
         scopeTower: ImplicitScopeTower,
@@ -87,7 +85,6 @@ interface CallResolutionInterceptorExtension {
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<FunctionDescriptor> = candidates
 
-    @JvmDefault
     fun interceptVariableCandidates(
         candidates: Collection<VariableDescriptor>,
         scopeTower: ImplicitScopeTower,
@@ -98,7 +95,6 @@ interface CallResolutionInterceptorExtension {
         location: LookupLocation
     ): Collection<VariableDescriptor> = candidates
 
-    @JvmDefault
     fun interceptVariableCandidates(
         candidates: Collection<VariableDescriptor>,
         scopeTower: ImplicitScopeTower,
@@ -113,7 +109,6 @@ interface CallResolutionInterceptorExtension {
 
     @Suppress("DeprecatedCallableAddReplaceWith")
     @Deprecated("Please use dedicated interceptVariableCandidates and interceptFunctionCandidates instead")
-    @JvmDefault
     fun interceptCandidates(
         candidates: Collection<FunctionDescriptor>,
         scopeTower: ImplicitScopeTower,

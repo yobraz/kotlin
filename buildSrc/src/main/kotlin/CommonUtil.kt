@@ -48,6 +48,12 @@ var Project.jvmTarget: String?
         extra["jvmTarget"] = v
     }
 
+var Project.jvmDefaultMode: String?
+    get() = extra.takeIf { it.has("jvmDefaultMode") }?.get("jvmDefaultMode") as? String
+    set(v) {
+        extra["jvmDefaultMode"] = v
+    }
+
 var Project.javaHome: String?
     get() = extra.takeIf { it.has("javaHome") }?.get("javaHome") as? String
     set(v) {
