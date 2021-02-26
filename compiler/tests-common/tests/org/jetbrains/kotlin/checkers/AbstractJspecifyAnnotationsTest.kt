@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.checkers
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.kotlin.ObsoleteTestInfrastructure
 import org.jetbrains.kotlin.checkers.utils.CheckerTestUtil
+import org.jetbrains.kotlin.daemon.common.findWithTransform
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.ErrorsJvm
 import org.jetbrains.kotlin.test.MockLibraryUtilExt
 import java.io.File
@@ -39,12 +40,23 @@ abstract class AbstractJspecifyAnnotationsTest : AbstractDiagnosticsTest() {
 
     @OptIn(ExperimentalPathApi::class)
     override fun doTest(filePath: String) {
-        val ktSourceCode = File(filePath).readText()
-        val javaSourcesFilename = javaSourcesPathRegex.matcher(ktSourceCode).also { it.find() }.group(1)
-            ?: throw Exception("Java sources' path not found")
+        val ktSourceCode = File(filePath).readText().lines()
+
+        val directives = ktSourceCode.takeWhile { directivePattern.matcher(it).find() }
+        val javaSourcesFilename = directives.findWithTransform {
+            val matcher = javaSourcesPathRegex.matcher(it)
+            if (matcher.find()) true to matcher.group(1) else false to null
+        } ?: throw Exception("Java sources' path not found")
+
+        val ktSourceCodeWithoutDirectives = ktSourceCode.drop(directives.size).joinToString(System.lineSeparator())
+
         val javaSourcesFile = File("$JSPECIFY_JAVA_SOURCES_PATH/$javaSourcesFilename")
         val mergedSourceCode = buildString {
             appendLine("// ORIGINAL_KT_FILE: $filePath")
+
+            for (directive in directives) {
+                appendLine(directive)
+            }
 
             if (javaSourcesFilename.endsWith(".java")) {
                 appendLine(makeJavaClassesPublicAndSeparatedByFiles(javaSourcesFile.readText()))
@@ -56,7 +68,7 @@ abstract class AbstractJspecifyAnnotationsTest : AbstractDiagnosticsTest() {
                     appendLine(makeJavaClassesPublicAndSeparatedByFiles(javaFile.readText()))
                 }
             }
-            appendLine("// FILE: main.kt\n$ktSourceCode")
+            appendLine("// FILE: main.kt\n$ktSourceCodeWithoutDirectives")
         }
 
         super.doTest(createTempFile().apply { writeText(mergedSourceCode) }.toString())
@@ -128,7 +140,12 @@ abstract class AbstractJspecifyAnnotationsTest : AbstractDiagnosticsTest() {
         val mergedTestFilePath = originalKtFileRegex.matcher(actualText).also { it.find() }.group(1)
             ?: throw Exception("Path for original kt file in the merged file not found")
 
-        val textWithDiagnostics = actualText.substringAfter(MAIN_KT_FILE_DIRECTIVE).removeSuffix("\n")
+        val actualTextLines = actualText.lines()
+        val directives = actualTextLines.takeWhile { directivePattern.matcher(it).find() }
+            .filterNot { originalKtFileRegex.matcher(it).find() }
+            .joinToString(System.lineSeparator()) + System.lineSeparator()
+
+        val textWithDiagnostics = directives + actualText.substringAfter(MAIN_KT_FILE_DIRECTIVE).removeSuffix("\n")
         val diagnosedRanges = mutableListOf<DiagnosedRange>()
         val textWithoutDiagnostics = CheckerTestUtil.parseDiagnosedRanges(textWithDiagnostics, diagnosedRanges)
 
@@ -158,8 +175,9 @@ abstract class AbstractJspecifyAnnotationsTest : AbstractDiagnosticsTest() {
         const val JSPECIFY_JAVA_SOURCES_PATH = "compiler/testData/foreignAnnotations/java8Tests/jspecify/java"
         const val MAIN_KT_FILE_DIRECTIVE = "// FILE: main.kt\n"
 
-        private val originalKtFileRegex = Pattern.compile("""// ORIGINAL_KT_FILE: (.*?\.kts?)\n""")
-        private val javaSourcesPathRegex = Pattern.compile("""// JAVA_SOURCES: (.*?(?:\.java)?)\n""")
+        private val originalKtFileRegex = Pattern.compile("""// ORIGINAL_KT_FILE: (.*?\.kts?)""")
+        private val javaSourcesPathRegex = Pattern.compile("""^// JAVA_SOURCES: (.*?(?:\.java)?)$""")
+        private val directivePattern = Pattern.compile("""^//\s*[!]?([A-Z0-9_]+)(:[ \t]*(.*))? *$""")
 
         val diagnosticsToJspecifyMarksMap = mapOf(
             ErrorsJvm::NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS.name to JSPECIFY_NULLNESS_MISMATCH_MARK
