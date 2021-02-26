@@ -42,7 +42,7 @@ task<Exec>("downloadJspecifyTests") {
     doLast {
         copy {
             from("$tmpDirPath/samples")
-            into("${project.rootDir}/compiler/testData/foreignAnnotationsJava8/tests/jspecify/java")
+            into("${project.rootDir}/compiler/testData/foreignAnnotations/java8Tests/jspecify/java")
         }
     }
 }

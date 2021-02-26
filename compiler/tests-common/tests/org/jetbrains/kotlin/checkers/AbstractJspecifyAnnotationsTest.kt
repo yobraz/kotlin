@@ -155,7 +155,7 @@ abstract class AbstractJspecifyAnnotationsTest : AbstractDiagnosticsTest() {
     }
 
     companion object {
-        const val JSPECIFY_JAVA_SOURCES_PATH = "compiler/testData/foreignAnnotationsJava8/tests/jspecify/java"
+        const val JSPECIFY_JAVA_SOURCES_PATH = "compiler/testData/foreignAnnotations/java8Tests/jspecify/java"
         const val MAIN_KT_FILE_DIRECTIVE = "// FILE: main.kt\n"
 
         private val originalKtFileRegex = Pattern.compile("""// ORIGINAL_KT_FILE: (.*?\.kts?)\n""")

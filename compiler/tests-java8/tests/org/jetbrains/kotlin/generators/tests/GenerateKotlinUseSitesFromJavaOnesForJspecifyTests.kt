@@ -35,7 +35,7 @@ private data class ParsedCall(
 
 class GenerateKotlinUseSitesFromJavaOnesForJspecifyTests {
     companion object {
-        private const val TESTS_DIRECTORY = "compiler/testData/foreignAnnotationsJava8/tests/jspecify/java"
+        private const val TESTS_DIRECTORY = "compiler/testData/foreignAnnotations/java8Tests/jspecify/java"
 
         private const val JSPECIFY_ANNOTATIONS = """(?:$JSPECIFY_NULLABLE_ANNOTATION|$JSPECIFY_NULLNESS_UNSPECIFIED_ANNOTATION)"""
         private const val JSPECIFY_MARK = """(?:\/\/ $JSPECIFY_NULLNESS_MISMATCH_MARK)\n\s*"""
