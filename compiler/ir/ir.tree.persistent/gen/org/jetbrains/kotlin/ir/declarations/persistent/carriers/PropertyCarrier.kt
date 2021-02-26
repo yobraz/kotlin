@@ -21,7 +21,6 @@ internal interface PropertyCarrier : DeclarationCarrier{
     var setterField: IrSimpleFunction?
     var metadataField: MetadataSource?
     var attributeOwnerIdField: IrAttributeContainer
-    var isExternalField: Boolean
 
     override fun clone(): PropertyCarrier {
         return PropertyCarrierImpl(
@@ -33,8 +32,7 @@ internal interface PropertyCarrier : DeclarationCarrier{
             getterField,
             setterField,
             metadataField,
-            attributeOwnerIdField,
-            isExternalField
+            attributeOwnerIdField
         )
     }
 }
@@ -48,6 +46,5 @@ internal class PropertyCarrierImpl(
     override var getterField: IrSimpleFunction?,
     override var setterField: IrSimpleFunction?,
     override var metadataField: MetadataSource?,
-    override var attributeOwnerIdField: IrAttributeContainer,
-    override var isExternalField: Boolean
+    override var attributeOwnerIdField: IrAttributeContainer
 ) : PropertyCarrier

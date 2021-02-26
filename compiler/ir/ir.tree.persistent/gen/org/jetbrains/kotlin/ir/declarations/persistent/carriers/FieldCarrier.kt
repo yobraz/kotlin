@@ -20,7 +20,6 @@ internal interface FieldCarrier : DeclarationCarrier{
     var initializerField: IrExpressionBody?
     var correspondingPropertySymbolField: IrPropertySymbol?
     var metadataField: MetadataSource?
-    var isExternalField: Boolean
 
     override fun clone(): FieldCarrier {
         return FieldCarrierImpl(
@@ -31,8 +30,7 @@ internal interface FieldCarrier : DeclarationCarrier{
             typeField,
             initializerField,
             correspondingPropertySymbolField,
-            metadataField,
-            isExternalField
+            metadataField
         )
     }
 }
@@ -45,6 +43,5 @@ internal class FieldCarrierImpl(
     override var typeField: IrType,
     override var initializerField: IrExpressionBody?,
     override var correspondingPropertySymbolField: IrPropertySymbol?,
-    override var metadataField: MetadataSource?,
-    override var isExternalField: Boolean
+    override var metadataField: MetadataSource?
 ) : FieldCarrier

@@ -26,7 +26,6 @@ internal interface ConstructorCarrier : DeclarationCarrier{
     var visibilityField: DescriptorVisibility
     var typeParametersField: List<IrTypeParameter>
     var valueParametersField: List<IrValueParameter>
-    var isExternalField: Boolean
 
     override fun clone(): ConstructorCarrier {
         return ConstructorCarrierImpl(
@@ -41,8 +40,7 @@ internal interface ConstructorCarrier : DeclarationCarrier{
             metadataField,
             visibilityField,
             typeParametersField,
-            valueParametersField,
-            isExternalField
+            valueParametersField
         )
     }
 }
@@ -59,6 +57,5 @@ internal class ConstructorCarrierImpl(
     override var metadataField: MetadataSource?,
     override var visibilityField: DescriptorVisibility,
     override var typeParametersField: List<IrTypeParameter>,
-    override var valueParametersField: List<IrValueParameter>,
-    override var isExternalField: Boolean
+    override var valueParametersField: List<IrValueParameter>
 ) : ConstructorCarrier

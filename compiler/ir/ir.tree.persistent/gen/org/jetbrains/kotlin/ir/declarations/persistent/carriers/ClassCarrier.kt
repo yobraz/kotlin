@@ -26,7 +26,6 @@ internal interface ClassCarrier : DeclarationCarrier{
     var attributeOwnerIdField: IrAttributeContainer
     var typeParametersField: List<IrTypeParameter>
     var superTypesField: List<IrType>
-    var isExternalField: Boolean
 
     override fun clone(): ClassCarrier {
         return ClassCarrierImpl(
@@ -40,8 +39,7 @@ internal interface ClassCarrier : DeclarationCarrier{
             modalityField,
             attributeOwnerIdField,
             typeParametersField,
-            superTypesField,
-            isExternalField
+            superTypesField
         )
     }
 }
@@ -57,6 +55,5 @@ internal class ClassCarrierImpl(
     override var modalityField: Modality,
     override var attributeOwnerIdField: IrAttributeContainer,
     override var typeParametersField: List<IrTypeParameter>,
-    override var superTypesField: List<IrType>,
-    override var isExternalField: Boolean
+    override var superTypesField: List<IrType>
 ) : ClassCarrier

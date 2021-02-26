@@ -35,7 +35,7 @@ internal abstract class PersistentIrFunctionCommon(
     visibility: DescriptorVisibility,
     returnType: IrType,
     override val isInline: Boolean,
-    isExternal: Boolean,
+    override val isExternal: Boolean,
     override val isTailrec: Boolean,
     override val isSuspend: Boolean,
     override val isOperator: Boolean,
@@ -176,16 +176,6 @@ internal abstract class PersistentIrFunctionCommon(
         set(v) {
             if (correspondingPropertySymbol !== v) {
                 setCarrier().correspondingPropertySymbolField = v
-            }
-        }
-
-    override var isExternalField: Boolean = isExternal
-
-    override var isExternal: Boolean
-        get() = getCarrier().isExternalField
-        set(v) {
-            if (isExternal != v) {
-                setCarrier().isExternalField = v
             }
         }
 }

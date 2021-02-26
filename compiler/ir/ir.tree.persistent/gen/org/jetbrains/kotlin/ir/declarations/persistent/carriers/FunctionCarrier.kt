@@ -32,7 +32,6 @@ internal interface FunctionCarrier : DeclarationCarrier{
     var correspondingPropertySymbolField: IrPropertySymbol?
     var overriddenSymbolsField: List<IrSimpleFunctionSymbol>
     var attributeOwnerIdField: IrAttributeContainer
-    var isExternalField: Boolean
 
     override fun clone(): FunctionCarrier {
         return FunctionCarrierImpl(
@@ -50,8 +49,7 @@ internal interface FunctionCarrier : DeclarationCarrier{
             valueParametersField,
             correspondingPropertySymbolField,
             overriddenSymbolsField,
-            attributeOwnerIdField,
-            isExternalField
+            attributeOwnerIdField
         )
     }
 }
@@ -71,6 +69,5 @@ internal class FunctionCarrierImpl(
     override var valueParametersField: List<IrValueParameter>,
     override var correspondingPropertySymbolField: IrPropertySymbol?,
     override var overriddenSymbolsField: List<IrSimpleFunctionSymbol>,
-    override var attributeOwnerIdField: IrAttributeContainer,
-    override var isExternalField: Boolean
+    override var attributeOwnerIdField: IrAttributeContainer
 ) : FunctionCarrier
