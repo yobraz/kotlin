@@ -5,6 +5,9 @@ plugins {
     id("jps-compatible")
 }
 
+jvmTarget = "1.6"
+javaHome = rootProject.extra["JDK_16"] as String
+
 dependencies {
     compileOnly(project(":core:util.runtime"))
     compileOnly(project(":core:descriptors"))
@@ -30,8 +33,6 @@ val compileJava by tasks.getting(JavaCompile::class) {
 
 val compileKotlin by tasks.getting(KotlinCompile::class) {
     kotlinOptions {
-        jvmTarget = "1.6"
-        jdkHome = rootProject.extra["JDK_16"] as String
         freeCompilerArgs += "-Xsuppress-deprecated-jvm-target-warning"
     }
 }
