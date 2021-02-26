@@ -30,9 +30,10 @@ sourceSets {
 
 testsJar()
 
-projectTest(parallel = true) {
+projectTest(parallel = true, jUnit5Enabled = true) {
     workingDir = rootDir
     dependsOn(":dist")
+    useJUnitPlatform()
 }
 
 val generateSpecTests by generator("org.jetbrains.kotlin.spec.utils.tasks.GenerateSpecTestsKt")
