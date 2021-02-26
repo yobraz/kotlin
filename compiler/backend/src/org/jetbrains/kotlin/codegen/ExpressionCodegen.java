@@ -5533,11 +5533,4 @@ The "returned" value of try expression with no finally is either the last expres
             parentCodegen.getReifiedTypeParametersUsages().addUsedReifiedParameter(typeParameterDescriptor.getName().asString());
         }
     }
-
-    @Override
-    public void putReifiedOperationMarkerIfTypeIsReifiedParameter(
-            @NotNull KotlinTypeMarker type, @NotNull ReifiedTypeInliner.OperationKind operationKind
-    ) {
-        BaseExpressionCodegen.DefaultImpls.putReifiedOperationMarkerIfTypeIsReifiedParameter(this, type, operationKind);
-    }
 }
