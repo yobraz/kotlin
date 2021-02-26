@@ -118,9 +118,10 @@ private fun KotlinType.wereTypeArgumentsChanged(newArguments: List<TypeProjectio
     }
 
 private fun KotlinType.getEnhancementDeeplyInternal(): KotlinType {
-    val newArguments = arguments.enhanceTypeArguments()
-    val newArgumentsForUpperBound = if (this is FlexibleType) upperBound.arguments.enhanceTypeArguments() else newArguments
     val enhancedType = if (this is TypeWithEnhancement) enhancement else this
+    val newArguments = enhancedType.arguments.enhanceTypeArguments()
+    val newArgumentsForUpperBound =
+        if (enhancedType is FlexibleType) enhancedType.upperBound.arguments.enhanceTypeArguments() else newArguments
     val areArgumentsChanged = enhancedType.wereTypeArgumentsChanged(newArguments, newArgumentsForUpperBound)
 
     if (!areArgumentsChanged) return enhancedType

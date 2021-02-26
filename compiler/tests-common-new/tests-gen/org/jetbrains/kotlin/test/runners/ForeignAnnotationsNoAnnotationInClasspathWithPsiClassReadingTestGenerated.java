@@ -638,6 +638,18 @@ public class ForeignAnnotationsNoAnnotationInClasspathWithPsiClassReadingTestGen
             }
 
             @Test
+            @TestMetadata("packageDefaultNonNull.kt")
+            public void testPackageDefaultNonNull() throws Exception {
+                runTest("compiler/testData/foreignAnnotations/java8Tests/typeEnhancement/packageDefaultNonNull.kt");
+            }
+
+            @Test
+            @TestMetadata("packageDefaultNonNullWarn.kt")
+            public void testPackageDefaultNonNullWarn() throws Exception {
+                runTest("compiler/testData/foreignAnnotations/java8Tests/typeEnhancement/packageDefaultNonNullWarn.kt");
+            }
+
+            @Test
             @TestMetadata("returnTypeDifferentConstructor.kt")
             public void testReturnTypeDifferentConstructor() throws Exception {
                 runTest("compiler/testData/foreignAnnotations/java8Tests/typeEnhancement/returnTypeDifferentConstructor.kt");
