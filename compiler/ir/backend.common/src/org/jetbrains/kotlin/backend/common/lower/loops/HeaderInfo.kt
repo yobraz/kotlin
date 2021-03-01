@@ -256,6 +256,7 @@ internal interface HeaderInfoFromCallHandler<D> : HeaderInfoHandler<IrCall, D> {
 
 internal typealias ProgressionHandler = HeaderInfoFromCallHandler<ProgressionType>
 
+@JvmDefaultWithoutCompatibility
 internal abstract class HeaderInfoBuilder(
     context: CommonBackendContext,
     private val scopeOwnerSymbol: () -> IrSymbol,
