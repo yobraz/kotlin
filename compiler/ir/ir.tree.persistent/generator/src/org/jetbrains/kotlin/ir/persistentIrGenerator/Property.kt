@@ -15,7 +15,7 @@ internal fun PersistentIrGenerator.generateProperty() {
     writeFile("PersistentIrPropertyCommon.kt", renderFile("org.jetbrains.kotlin.ir.declarations.persistent") {
         lines(
             id,
-            +"internal abstract class PersistentIrPropertyCommon(",
+            +"@JvmDefaultWithoutCompatibility\n internal abstract class PersistentIrPropertyCommon(",
             arrayOf(
                 startOffset,
                 endOffset,

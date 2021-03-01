@@ -22,7 +22,7 @@ internal fun PersistentIrGenerator.generateFunction() {
     writeFile("PersistentIrFunctionCommon.kt", renderFile("org.jetbrains.kotlin.ir.declarations.persistent") {
         lines(
             id,
-            +"internal abstract class PersistentIrFunctionCommon(",
+            +"@JvmDefaultWithoutCompatibility\n internal abstract class PersistentIrFunctionCommon(",
             arrayOf(
                 startOffset,
                 endOffset,

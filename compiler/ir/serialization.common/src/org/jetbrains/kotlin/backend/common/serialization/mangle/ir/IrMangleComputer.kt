@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.load.java.JvmAnnotationNames
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
+@JvmDefaultWithoutCompatibility
 abstract class IrMangleComputer(protected val builder: StringBuilder, private val mode: MangleMode) :
     IrElementVisitor<Unit, Boolean>, KotlinMangleComputer<IrDeclaration> {
 

@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.ir.util.isPrimitiveArray
 import org.jetbrains.kotlin.name.FqName
 
 /** Builds a [HeaderInfo] for progressions built using the `indices` extension property. */
+@JvmDefaultWithoutCompatibility
 internal abstract class IndicesHandler(protected val context: CommonBackendContext) :
     ProgressionHandler {
 
