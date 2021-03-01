@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 
+@JvmDefaultWithoutCompatibility
 interface IrElementVisitor<out R, in D> {
     fun visitElement(element: IrElement, data: D): R
     fun visitModuleFragment(declaration: IrModuleFragment, data: D) = visitElement(declaration, data)
