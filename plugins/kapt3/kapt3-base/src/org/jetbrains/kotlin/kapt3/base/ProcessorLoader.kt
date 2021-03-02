@@ -23,7 +23,7 @@ import kotlin.collections.LinkedHashSet
 class LoadedProcessors(val processors: List<IncrementalProcessor>, val classLoader: ClassLoader)
 
 open class ProcessorLoader(private val options: KaptOptions, private val logger: KaptLogger) : Closeable {
-    private var annotationProcessingClassLoader: URLClassLoader? = null
+    private var classLoaderToClose: URLClassLoader? = null
 
     fun loadProcessors(parentClassLoader: ClassLoader = ClassLoader.getSystemClassLoader()): LoadedProcessors {
         val classpath = LinkedHashSet<File>().apply {
@@ -32,8 +32,14 @@ open class ProcessorLoader(private val options: KaptOptions, private val logger:
                 addAll(options.compileClasspath)
             }
         }
-        val classLoader = URLClassLoader(classpath.map { it.toURI().toURL() }.toTypedArray(), parentClassLoader)
-        this.annotationProcessingClassLoader = classLoader
+        val classLoader = if (options.processingClassLoader != null) {
+            logger.info("Use provided processing ClassLoader for classpath: $classpath")
+            options.processingClassLoader
+        } else {
+            val cl = URLClassLoader(classpath.map { it.toURI().toURL() }.toTypedArray(), parentClassLoader)
+            classLoaderToClose = cl
+            cl
+        }
 
         val processors = if (options.processors.isNotEmpty()) {
             logger.info("Annotation processor class names are set, skip AP discovery")
@@ -74,7 +80,7 @@ open class ProcessorLoader(private val options: KaptOptions, private val logger:
         }
     }
 
-    open fun doLoadProcessors(classpath: LinkedHashSet<File>, classLoader: URLClassLoader): List<Processor> {
+    open fun doLoadProcessors(classpath: LinkedHashSet<File>, classLoader: ClassLoader): List<Processor> {
         val processorNames = mutableSetOf<String>()
 
         fun processSingleInput(input: InputStream) {
@@ -141,6 +147,6 @@ open class ProcessorLoader(private val options: KaptOptions, private val logger:
     }
 
     override fun close() {
-        annotationProcessingClassLoader?.close()
+        classLoaderToClose?.close()
     }
 }

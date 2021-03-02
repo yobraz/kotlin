@@ -35,7 +35,10 @@ class KaptOptions(
     val flags: KaptFlags,
 
     val mode: AptMode,
-    val detectMemoryLeaks: DetectMemoryLeaksMode
+    val detectMemoryLeaks: DetectMemoryLeaksMode,
+
+    /* if defined use it to run processors instead of creating new one */
+    val processingClassLoader: ClassLoader?
 ) : KaptFlags {
     override fun get(flag: KaptFlag) = flags[flag]
 
@@ -78,7 +81,8 @@ class KaptOptions(
                 changedFiles, compiledSources, incrementalCache, classpathChanges,
                 sourcesOutputDir, classesOutputDir, stubsOutputDir, incrementalDataOutputDir,
                 processingClasspath, processors, processingOptions, javacOptions, KaptFlags.fromSet(flags),
-                mode, detectMemoryLeaks
+                mode, detectMemoryLeaks,
+                processingClassLoader = null
             )
         }
     }
