@@ -15,6 +15,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.FileCollection
@@ -458,7 +459,9 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
                     it.isVisible = false
                     it.isCanBeConsumed = false
                 }
+
             kaptTask.kaptClasspath.from(kaptClasspathConfiguration)
+            kaptTask.kaptExternalClasspath.from(*kaptClasspathConfiguration.files { it is ExternalDependency }.toTypedArray())
             kaptTask.kaptClasspathConfigurationNames.set(kaptClasspathConfigurations.map { it.name })
 
             KaptWithAndroid.androidVariantData(this)?.annotationProcessorOptionProviders?.let {

@@ -5,6 +5,8 @@
 
 package org.jetbrains.kotlin.gradle.internal
 
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.workers.IsolationMode
@@ -113,6 +115,7 @@ abstract class KaptWithoutKotlincTask @Inject constructor(private val workerExec
             stubsDir,
 
             kaptClasspath.files.sortedBy { it.path }.toList(),
+            kaptExternalClasspath.files.sortedBy { it.path }.toList(),
             annotationProcessorFqNames,
 
             getAnnotationProcessorOptions(),
@@ -165,7 +168,7 @@ private class KaptExecution @Inject constructor(
 
         private fun kaptClass(classLoader: ClassLoader) = Class.forName("org.jetbrains.kotlin.kapt3.base.Kapt", true, classLoader)
 
-        private var classLoadersProvider: ClassLoadersProvider? = null
+        private var classLoadersProvider: CachingClassLoadersProvider? = null
 
         private var cachedClassLoaderWithToolsJar: ClassLoader? = null
         private var cachedKaptClassLoader: ClassLoader? = null
@@ -214,7 +217,12 @@ private class KaptExecution @Inject constructor(
             .enumConstants.single { (it as Enum<*>).name == "NONE" }
 
         //in case cache was enabled and then disabled
-        val processingClassLoader = if (classloadersCacheSize > 0) classLoadersProvider?.getForClassPath(processingClasspath) else null
+        val processingClassLoader =
+            if (classloadersCacheSize > 0) {
+                classLoadersProvider!!.getSplitted(processingClasspath - processingExternalClasspath, processingExternalClasspath)
+            } else {
+                null
+            }
 
         Class.forName("org.jetbrains.kotlin.base.kapt3.KaptOptions", true, classLoader).constructors.single().newInstance(
             projectBaseDir,
@@ -269,6 +277,7 @@ private data class KaptOptionsForWorker(
     val stubsOutputDir: File,
 
     val processingClasspath: List<File>,
+    val processingExternalClasspath: List<File>,
     val processors: List<String>,
 
     val processingOptions: Map<String, String>,
