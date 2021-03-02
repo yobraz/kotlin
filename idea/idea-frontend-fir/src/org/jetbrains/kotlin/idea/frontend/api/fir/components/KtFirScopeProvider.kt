@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -153,10 +153,10 @@ internal class KtFirScopeProvider(
         val firLocalScopes = towerDataContext.localScopes
 
         @OptIn(ExperimentalStdlibApi::class)
-        val allKtScopes = buildList {
-            implicitReceiverScopes.mapTo(this, ::convertToKtScope)
-            nonLocalScopes.mapTo(this, ::convertToKtScope)
-            firLocalScopes.mapTo(this, ::convertToKtScope)
+        val allKtScopes = buildList<KtScope> {
+            implicitReceiverScopes.mapTo(target, ::convertToKtScope)
+            nonLocalScopes.mapTo(target, ::convertToKtScope)
+            firLocalScopes.mapTo(target, ::convertToKtScope)
         }
 
         KtScopeContext(

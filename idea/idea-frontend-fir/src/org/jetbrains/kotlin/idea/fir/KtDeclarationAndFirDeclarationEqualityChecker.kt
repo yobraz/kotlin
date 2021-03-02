@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -77,9 +77,9 @@ object KtDeclarationAndFirDeclarationEqualityChecker {
                 }
                 buildString {
                     append(classId.asSingleFqName().toString())
-                    val parameters = buildList {
+                    val parameters = buildList<FirTypeRef> {
                         receiverTypeRef?.let(::add)
-                        valueParameters.mapTo(this) { it.returnTypeRef }
+                        valueParameters.mapTo(target) { it.returnTypeRef }
                         returnTypeRef.let(::add)
                     }
                     if (parameters.isNotEmpty()) {
@@ -102,14 +102,14 @@ object KtDeclarationAndFirDeclarationEqualityChecker {
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    private val classIdToName: Map<String, String> = buildList {
-        StandardClassIds.primitiveArrayTypeByElementType.mapTo(this) { (classId, arrayClassId) ->
+    private val classIdToName: Map<String, String> = buildMap {
+        StandardClassIds.primitiveArrayTypeByElementType.entries.associateTo(this) { (classId, arrayClassId) ->
             classId.asString().replace('/', '.') to arrayClassId.asString().replace('/', '.')
         }
-        StandardClassIds.unsignedArrayTypeByElementType.mapTo(this) { (classId, arrayClassId) ->
+        StandardClassIds.unsignedArrayTypeByElementType.entries.associateTo(this) { (classId, arrayClassId) ->
             classId.asString().replace('/', '.') to arrayClassId.asString().replace('/', '.')
         }
-    }.toMap()
+    }
 
     private fun FirTypeProjection.renderTypeAsKotlinType() = when (this) {
         is FirStarProjection -> "*"

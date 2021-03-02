@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -176,8 +176,8 @@ fun JKClassSymbol.isArrayType(): Boolean =
     fqName in arrayFqNames
 
 @OptIn(ExperimentalStdlibApi::class)
-private val arrayFqNames = buildList {
-    JKJavaPrimitiveType.ALL.mapTo(this) { PrimitiveType.valueOf(it.jvmPrimitiveType.name).arrayTypeFqName.asString() }
+private val arrayFqNames = buildList<String> {
+    JKJavaPrimitiveType.ALL.mapTo(target) { PrimitiveType.valueOf(it.jvmPrimitiveType.name).arrayTypeFqName.asString() }
     add(StandardNames.FqNames.array.asString())
 }
 

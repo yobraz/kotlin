@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -318,7 +318,7 @@ internal object FirReferenceResolveHelper {
         @OptIn(ExperimentalStdlibApi::class)
         return buildList {
             symbolProvider.getTopLevelCallableSymbols(fir.packageFqName, name)
-                .mapTo(this) { it.fir.buildSymbol(symbolBuilder) }
+                .mapTo(target) { it.fir.buildSymbol(symbolBuilder) }
             symbolProvider
                 .getClassLikeSymbolByFqName(ClassId(fir.packageFqName, name))
                 ?.fir
