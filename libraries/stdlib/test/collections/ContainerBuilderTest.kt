@@ -1,3 +1,8 @@
+/*
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
+ */
+
 package test.collections
 
 import test.collections.behaviors.listBehavior
@@ -96,20 +101,20 @@ class ContainerBuilderTest {
         buildList<Char> {
             addAll(listOf('a', 'b', 'c', 'd', 'e'))
 
-            val subList = subList(1, 4)
-            compare(listOf('a', 'b', 'c', 'd', 'e'), this) { listBehavior() }
+            val subList = target.subList(1, 4)
+            compare(listOf('a', 'b', 'c', 'd', 'e'), target) { listBehavior() }
             compare(listOf('b', 'c', 'd'), subList) { listBehavior() }
 
-            set(2, '1')
-            compare(listOf('a', 'b', '1', 'd', 'e'), this) { listBehavior() }
+            target.set(2, '1')
+            compare(listOf('a', 'b', '1', 'd', 'e'), target) { listBehavior() }
             compare(listOf('b', '1', 'd'), subList) { listBehavior() }
 
             subList[2] = '2'
-            compare(listOf('a', 'b', '1', '2', 'e'), this) { listBehavior() }
+            compare(listOf('a', 'b', '1', '2', 'e'), target) { listBehavior() }
             compare(listOf('b', '1', '2'), subList) { listBehavior() }
 
             subList.add('3')
-            compare(listOf('a', 'b', '1', '2', '3', 'e'), this) { listBehavior() }
+            compare(listOf('a', 'b', '1', '2', '3', 'e'), target) { listBehavior() }
             compare(listOf('b', '1', '2', '3'), subList) { listBehavior() }
 
             val subSubList = subList.subList(2, 4)
@@ -118,7 +123,7 @@ class ContainerBuilderTest {
             repeat(20) { subSubList.add(subSubList.size - 2 * it, 'y') }
 
             val addedChars = "xy".repeat(20)
-            compare("ab123${addedChars}e".toList(), this) { listBehavior() }
+            compare("ab123${addedChars}e".toList(), target) { listBehavior() }
             compare("b123$addedChars".toList(), subList) { listBehavior() }
             compare("23$addedChars".toList(), subSubList) { listBehavior() }
         }

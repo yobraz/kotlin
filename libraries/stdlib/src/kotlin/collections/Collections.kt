@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -167,16 +167,42 @@ public inline fun <T> MutableList(size: Int, init: (index: Int) -> T): MutableLi
 @SinceKotlin("1.3")
 @ExperimentalStdlibApi
 @kotlin.internal.InlineOnly
-public inline fun <E> buildList(@BuilderInference builderAction: MutableList<E>.() -> Unit): List<E> {
+public inline fun <E> buildList(@BuilderInference builderAction: ListBuilder<E>.() -> Unit): List<E> {
     contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
     return buildListInternal(builderAction)
+}
+
+interface ListBuilder<T> {
+    val target: MutableList<T>
+    fun add(element: T): Boolean
+    fun addAll(elements: Sequence<T>): Boolean
+    fun addAll(elements: Iterable<T>): Boolean
+    fun addAll(elements: Iterator<T>): Boolean
+}
+
+operator fun <T> ListBuilder<T>.plusAssign(element: T) { this.add(element) }
+
+
+@PublishedApi
+internal class MutableListBuilder<T>(override val target: MutableList<T>) : ListBuilder<T> {
+    override fun add(element: T) = target.add(element)
+
+    override fun addAll(elements: Sequence<T>) = target.addAll(elements)
+
+    override fun addAll(elements: Iterable<T>) = target.addAll(elements)
+
+    override fun addAll(elements: Iterator<T>): Boolean {
+        var added = false
+        elements.forEach { target.add(it); added = true }
+        return added
+    }
 }
 
 @PublishedApi
 @SinceKotlin("1.3")
 @ExperimentalStdlibApi
 @kotlin.internal.InlineOnly
-internal expect inline fun <E> buildListInternal(builderAction: MutableList<E>.() -> Unit): List<E>
+internal expect inline fun <E> buildListInternal(builderAction: ListBuilder<E>.() -> Unit): List<E>
 
 /**
  * Builds a new read-only [List] by populating a [MutableList] using the given [builderAction]

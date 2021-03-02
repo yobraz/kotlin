@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -26,7 +26,7 @@ abstract class FirSymbolProvider(val session: FirSession) : FirSessionComponent 
 
     @OptIn(ExperimentalStdlibApi::class, FirSymbolProviderInternals::class)
     open fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name): List<FirCallableSymbol<*>> {
-        return buildList { getTopLevelCallableSymbolsTo(this, packageFqName, name) }
+        return buildList { getTopLevelCallableSymbolsTo(target, packageFqName, name) }
     }
 
     @FirSymbolProviderInternals
@@ -34,7 +34,7 @@ abstract class FirSymbolProvider(val session: FirSession) : FirSessionComponent 
 
     @OptIn(ExperimentalStdlibApi::class, FirSymbolProviderInternals::class)
     open fun getTopLevelFunctionSymbols(packageFqName: FqName, name: Name): List<FirNamedFunctionSymbol> {
-        return buildList { getTopLevelFunctionSymbolsTo(this, packageFqName, name) }
+        return buildList { getTopLevelFunctionSymbolsTo(target, packageFqName, name) }
     }
 
     @FirSymbolProviderInternals
@@ -42,7 +42,7 @@ abstract class FirSymbolProvider(val session: FirSession) : FirSessionComponent 
 
     @OptIn(ExperimentalStdlibApi::class, FirSymbolProviderInternals::class)
     open fun getTopLevelPropertySymbols(packageFqName: FqName, name: Name): List<FirPropertySymbol> {
-        return buildList { getTopLevelPropertySymbolsTo(this, packageFqName, name) }
+        return buildList { getTopLevelPropertySymbolsTo(target, packageFqName, name) }
     }
 
     @FirSymbolProviderInternals

@@ -70,7 +70,7 @@ object ErrorListDiagnosticListRenderer : DiagnosticListRenderer() {
     private fun DiagnosticData.getAllTypeArguments(): List<KType> = buildList {
         add(sourceElementType)
         add(psiType)
-        parameters.mapTo(this) { it.type }
+        parameters.mapTo(target) { it.type }
     }
 
     private fun SmartPrinter.printTypeArguments(typeArguments: List<KType>) {

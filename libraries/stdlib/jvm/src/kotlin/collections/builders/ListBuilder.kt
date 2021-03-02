@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -12,7 +12,12 @@ internal class ListBuilder<E> private constructor(
     private var isReadOnly: Boolean,
     private val backing: ListBuilder<E>?,
     private val root: ListBuilder<E>?
-) : MutableList<E>, RandomAccess, AbstractMutableList<E>() {
+) : MutableList<E>, RandomAccess, AbstractMutableList<E>(), kotlin.collections.ListBuilder<E> {
+
+    override val target: MutableList<E> = this
+    override fun addAll(elements: Sequence<E>): Boolean = target.addAll(elements)
+    override fun addAll(elements: Iterable<E>): Boolean = target.addAll(elements)
+    override fun addAll(elements: Iterator<E>): Boolean = target.addAll(elements.asSequence())
 
     constructor() : this(10)
 

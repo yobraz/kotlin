@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.fir.visitors.compose
 
 class FirWhenExhaustivenessTransformer(private val bodyResolveComponents: BodyResolveComponents) : FirTransformer<Nothing?>() {
     companion object {
-        private val exhaustivenessCheckers = listOf(
+        private val exhaustivenessCheckers: List<WhenExhaustivenessChecker> = listOf(
             WhenOnBooleanExhaustivenessChecker,
             WhenOnEnumExhaustivenessChecker,
             WhenOnSealedClassExhaustivenessChecker
@@ -63,9 +63,9 @@ class FirWhenExhaustivenessTransformer(private val bodyResolveComponents: BodyRe
         val session = bodyResolveComponents.session
         val cleanSubjectType = subjectType.fullyExpandedType(session).lowerBoundIfFlexible()
 
-        val checkers = buildList {
-            exhaustivenessCheckers.filterTo(this) { it.isApplicable(cleanSubjectType, session) }
-            if (isNotEmpty() && cleanSubjectType.isMarkedNullable) {
+        val checkers = buildList<WhenExhaustivenessChecker> {
+            exhaustivenessCheckers.filterTo(target) { it.isApplicable(cleanSubjectType, session) }
+            if (target.isNotEmpty() && cleanSubjectType.isMarkedNullable) {
                 add(WhenOnNullableExhaustivenessChecker)
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -23,8 +23,8 @@ public fun <T> listOf(element: T): List<T> = java.util.Collections.singletonList
 @SinceKotlin("1.3")
 @ExperimentalStdlibApi
 @kotlin.internal.InlineOnly
-internal actual inline fun <E> buildListInternal(builderAction: MutableList<E>.() -> Unit): List<E> {
-    return build(createListBuilder<E>().apply(builderAction))
+internal actual inline fun <E> buildListInternal(builderAction: kotlin.collections.ListBuilder<E>.() -> Unit): List<E> {
+    return build(createListBuilder<E>().apply { (this as ListBuilder<E>).builderAction() })
 }
 
 @PublishedApi

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -40,17 +40,17 @@ open class FirDependenciesSymbolProviderImpl(session: FirSession) : FirSymbolPro
 
     @OptIn(FirSymbolProviderInternals::class, ExperimentalStdlibApi::class)
     private fun computeTopLevelCallables(callableId: CallableId): List<FirCallableSymbol<*>> = buildList {
-        dependencyProviders.forEach { it.getTopLevelCallableSymbolsTo(this, callableId.packageName, callableId.callableName) }
+        dependencyProviders.forEach { it.getTopLevelCallableSymbolsTo(target, callableId.packageName, callableId.callableName) }
     }
 
     @OptIn(FirSymbolProviderInternals::class, ExperimentalStdlibApi::class)
     private fun computeTopLevelFunctions(callableId: CallableId): List<FirNamedFunctionSymbol> = buildList {
-        dependencyProviders.forEach { it.getTopLevelFunctionSymbolsTo(this, callableId.packageName, callableId.callableName) }
+        dependencyProviders.forEach { it.getTopLevelFunctionSymbolsTo(target, callableId.packageName, callableId.callableName) }
     }
 
     @OptIn(FirSymbolProviderInternals::class, ExperimentalStdlibApi::class)
     private fun computeTopLevelProperties(callableId: CallableId): List<FirPropertySymbol> = buildList {
-        dependencyProviders.forEach { it.getTopLevelPropertySymbolsTo(this, callableId.packageName, callableId.callableName) }
+        dependencyProviders.forEach { it.getTopLevelPropertySymbolsTo(target, callableId.packageName, callableId.callableName) }
     }
 
     private fun computePackage(it: FqName): FqName? =
