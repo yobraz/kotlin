@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -77,7 +77,7 @@ private class BooleanPatternWithExtractor(
     }
 }
 
-private fun <E : Any> MutableList<PatternWithExtractor<*>>.createPattern(
+private fun <E : Any> ListBuilder<PatternWithExtractor<*>>.createPattern(
     directive: String,
     configurationKey: CompilerConfigurationKey<E>,
     extractor: (String) -> E?,
@@ -85,7 +85,7 @@ private fun <E : Any> MutableList<PatternWithExtractor<*>>.createPattern(
     return ValuePatternWithExtractor(directive, configurationKey, extractor).also { this += it }
 }
 
-private fun MutableList<PatternWithExtractor<*>>.createPattern(
+private fun ListBuilder<PatternWithExtractor<*>>.createPattern(
     directive: String,
     configurationKey: CompilerConfigurationKey<Boolean>
 ): PatternWithExtractor<Boolean> {

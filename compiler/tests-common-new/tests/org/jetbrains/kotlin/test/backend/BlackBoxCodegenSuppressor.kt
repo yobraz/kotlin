@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -26,12 +26,12 @@ class BlackBoxCodegenSuppressor(
     @OptIn(ExperimentalStdlibApi::class)
     override fun suppressIfNeeded(failedAssertions: List<Throwable>): List<Throwable> {
         val moduleStructure = testServices.moduleStructure
-        val targetBackends = buildList {
+        val targetBackends = buildList<TargetBackend> {
             testServices.defaultsProvider.defaultTargetBackend?.let {
                 add(it)
                 return@buildList
             }
-            moduleStructure.modules.mapNotNullTo(this) { it.targetBackend }
+            moduleStructure.modules.mapNotNullTo(target) { it.targetBackend }
         }
         val ignoreDirective = when (moduleStructure.modules.map { it.frontendKind }.first()) {
             FrontendKinds.ClassicFrontend -> customIgnoreDirective ?: IGNORE_BACKEND

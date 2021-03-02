@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.test.compileJavaFilesExternally
 import org.jetbrains.kotlin.test.directives.CodegenTestDirectives
 import org.jetbrains.kotlin.test.directives.CodegenTestDirectives.USE_JAVAC_BASED_ON_JVM_TARGET
+import org.jetbrains.kotlin.test.directives.model.Directive
 import org.jetbrains.kotlin.test.model.TestModule
 import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.assertions
@@ -50,7 +51,7 @@ class JavaCompilerFacade(private val testServices: TestServices) {
 
     @OptIn(ExperimentalStdlibApi::class)
     private fun extractJavacOptions(module: TestModule, kotlinTarget: JvmTarget?, isJvmPreviewEnabled: Boolean): List<String> {
-        return buildList {
+        return buildList<String> {
             addAll(module.directives[CodegenTestDirectives.JAVAC_OPTIONS])
             if (kotlinTarget != null && isJvmPreviewEnabled) {
                 add("--release")
@@ -58,7 +59,7 @@ class JavaCompilerFacade(private val testServices: TestServices) {
                 add("--enable-preview")
                 return@buildList
             }
-            CodegenTestUtil.computeJavaTarget(this, kotlinTarget)?.let { javaTarget ->
+            CodegenTestUtil.computeJavaTarget(target, kotlinTarget)?.let { javaTarget ->
                 add("-source")
                 add(javaTarget)
                 add("-target")

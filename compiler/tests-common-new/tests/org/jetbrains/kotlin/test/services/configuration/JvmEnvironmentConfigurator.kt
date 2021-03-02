@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -232,7 +232,7 @@ class JvmEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfig
                     val dependencyModule = dependencyProvider.getTestModule(it.moduleName)
 
                     add(compiledClassesManager.getCompiledKotlinDirForModule(dependencyModule))
-                    addIfNotNull(compiledClassesManager.getCompiledJavaDirForModule(dependencyModule))
+                    compiledClassesManager.getCompiledJavaDirForModule(dependencyModule)?.let { add(it) }
                     addAll(compilerConfigurationProvider.getCompilerConfiguration(dependencyModule).jvmClasspathRoots)
                 }
             }

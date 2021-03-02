@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -103,9 +103,9 @@ object IgnoreTests {
         }
         if (INSERT_DIRECTIVE_AUTOMATICALLY) {
             testFile.insertDirectivesToFileAndAdditionalFile(directive, additionalFilesExtensions, directivePosition)
-            val filesWithDirectiveAdded = buildList {
+            val filesWithDirectiveAdded = buildList<Any?> {
                 add(testFile.fileName.toString())
-                additionalFilesExtensions.mapTo(this) { extension -> testFile.getSiblingFile(extension) }
+                additionalFilesExtensions.mapTo(target) { extension -> testFile.getSiblingFile(extension) }
             }
             throw AssertionError(
                 "Looks like the test $verb, ${directive.directiveText} was added to the ${filesWithDirectiveAdded.joinToString()}"
