@@ -97,7 +97,7 @@ builderAction: kotlin.collections.MutableList<E>.() -> kotlin.Unit): kotlin.coll
 @kotlin.ExperimentalStdlibApi
 @kotlin.internal.InlineOnly
 public inline fun <E> buildList(@kotlin.BuilderInference
-builderAction: kotlin.collections.MutableList<E>.() -> kotlin.Unit): kotlin.collections.List<E>
+builderAction: kotlin.collections.ListBuilder<E>.() -> kotlin.Unit): kotlin.collections.List<E>
 
 @kotlin.SinceKotlin(version = "1.3")
 @kotlin.ExperimentalStdlibApi
@@ -6602,6 +6602,8 @@ public operator fun <T> kotlin.collections.Set<T>.plus(elements: kotlin.collecti
 
 public operator fun <T> kotlin.collections.Set<T>.plus(elements: kotlin.sequences.Sequence<T>): kotlin.collections.Set<T>
 
+public operator fun <T> kotlin.collections.ListBuilder<T>.plusAssign(element: T): kotlin.Unit
+
 @kotlin.internal.InlineOnly
 public inline operator fun <T> kotlin.collections.MutableCollection<in T>.plusAssign(element: T): kotlin.Unit
 
@@ -10734,6 +10736,18 @@ public interface List<out E> : kotlin.collections.Collection<E> {
     public abstract fun listIterator(index: kotlin.Int): kotlin.collections.ListIterator<E>
 
     public abstract fun subList(fromIndex: kotlin.Int, toIndex: kotlin.Int): kotlin.collections.List<E>
+}
+
+public interface ListBuilder<T> {
+    public abstract val target: kotlin.collections.MutableList<T> { get; }
+
+    public abstract fun add(element: T): kotlin.Boolean
+
+    public abstract fun addAll(elements: kotlin.collections.Iterable<T>): kotlin.Boolean
+
+    public abstract fun addAll(elements: kotlin.collections.Iterator<T>): kotlin.Boolean
+
+    public abstract fun addAll(elements: kotlin.sequences.Sequence<T>): kotlin.Boolean
 }
 
 public interface ListIterator<out T> : kotlin.collections.Iterator<T> {

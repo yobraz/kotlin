@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -52,7 +52,7 @@ internal actual fun checkCountOverflow(count: Int): Int = TODO("Wasm stdlib: Col
 @SinceKotlin("1.3")
 @ExperimentalStdlibApi
 @kotlin.internal.InlineOnly
-internal actual inline fun <E> buildListInternal(builderAction: MutableList<E>.() -> Unit): List<E> {
+internal actual inline fun <E> buildListInternal(builderAction: ListBuilder<E>.() -> Unit): List<E> {
     return TODO("Wasm stdlib: Collections")
 }
 

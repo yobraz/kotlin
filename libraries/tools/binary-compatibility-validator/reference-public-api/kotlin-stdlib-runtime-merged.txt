@@ -2291,6 +2291,7 @@ public final class kotlin/collections/CollectionsKt {
 	public static final fun plus (Ljava/util/Collection;Ljava/lang/Object;)Ljava/util/List;
 	public static final fun plus (Ljava/util/Collection;Lkotlin/sequences/Sequence;)Ljava/util/List;
 	public static final fun plus (Ljava/util/Collection;[Ljava/lang/Object;)Ljava/util/List;
+	public static final fun plusAssign (Lkotlin/collections/ListBuilder;Ljava/lang/Object;)V
 	public static final fun random (Ljava/util/Collection;Lkotlin/random/Random;)Ljava/lang/Object;
 	public static final fun randomOrNull (Ljava/util/Collection;Lkotlin/random/Random;)Ljava/lang/Object;
 	public static final fun reduce (Ljava/lang/Iterable;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
@@ -2452,6 +2453,14 @@ public abstract class kotlin/collections/IntIterator : java/util/Iterator, kotli
 	public fun remove ()V
 }
 
+public abstract interface class kotlin/collections/ListBuilder {
+	public abstract fun add (Ljava/lang/Object;)Z
+	public abstract fun addAll (Ljava/lang/Iterable;)Z
+	public abstract fun addAll (Ljava/util/Iterator;)Z
+	public abstract fun addAll (Lkotlin/sequences/Sequence;)Z
+	public abstract fun getTarget ()Ljava/util/List;
+}
+
 public abstract class kotlin/collections/LongIterator : java/util/Iterator, kotlin/jvm/internal/markers/KMappedMarker {
 	public fun <init> ()V
 	public final fun next ()Ljava/lang/Long;
@@ -2533,6 +2542,15 @@ public final class kotlin/collections/MapsKt {
 	public static final fun toSortedMap (Ljava/util/Map;Ljava/util/Comparator;)Ljava/util/SortedMap;
 	public static final fun withDefault (Ljava/util/Map;Lkotlin/jvm/functions/Function1;)Ljava/util/Map;
 	public static final fun withDefaultMutable (Ljava/util/Map;Lkotlin/jvm/functions/Function1;)Ljava/util/Map;
+}
+
+public final class kotlin/collections/MutableListBuilder : kotlin/collections/ListBuilder {
+	public fun <init> (Ljava/util/List;)V
+	public fun add (Ljava/lang/Object;)Z
+	public fun addAll (Ljava/lang/Iterable;)Z
+	public fun addAll (Ljava/util/Iterator;)Z
+	public fun addAll (Lkotlin/sequences/Sequence;)Z
+	public fun getTarget ()Ljava/util/List;
 }
 
 public final class kotlin/collections/SetsKt {
