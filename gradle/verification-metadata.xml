@@ -6,6 +6,8 @@
       <trusted-artifacts>
          <trust version="202.7660.26" file="ivy-202.7660.26.xml"/>
          <trust version="202.7660.3" file="ivy-202.7660.3.xml"/>
+         <trust file=".*-javadoc[.]jar" regex="true"/>
+         <trust file=".*-sources[.]jar" regex="true"/>
       </trusted-artifacts>
    </configuration>
    <components>
