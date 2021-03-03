@@ -7,12 +7,15 @@ package org.jetbrains.kotlin.gradle.internal
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ExternalDependency
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerExecutor
 import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin.Companion.KAPT_WORKER_DEPENDENCIES_CONFIGURATION_NAME
 import org.jetbrains.kotlin.gradle.internal.kapt.classloaders.CachingClassLoadersProvider
+import org.jetbrains.kotlin.gradle.internal.kapt.classloaders.ClassLoadersCacheService
 import org.jetbrains.kotlin.gradle.internal.kapt.classloaders.ClassLoadersProvider
 import org.jetbrains.kotlin.gradle.internal.kapt.incremental.KaptIncrementalChanges
 import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
@@ -130,6 +133,13 @@ abstract class KaptWithoutKotlincTask @Inject constructor(private val workerExec
 
         val kaptClasspath = kaptJars + kotlinStdlibClasspath
 
+        val serviceProvider = project.getGradle().getSharedServices()
+            .registerIfAbsent("kaptClassLoadersService", ClassLoadersCacheService::class.java) { spec ->
+                val files = (kaptJars + kotlinStdlibClasspath + findToolsJar()).filterNotNull().map { it.toURI().toURL() }
+                spec.parameters.parentClassLoaderUrls = files
+                spec.parameters.size = classLoadersCacheSize
+            }
+
         workerExecutor.submit(KaptExecution::class.java) { config ->
             //TODO for gradle < 6.5
             val isolationModeStr = getValue("kapt.workers.isolation") ?: "none"
@@ -138,7 +148,7 @@ abstract class KaptWithoutKotlincTask @Inject constructor(private val workerExec
                 "none" -> IsolationMode.NONE
                 else -> IsolationMode.NONE
             }
-            config.params(optionsForWorker, findToolsJar()?.toURI()?.toURL()?.toString().orEmpty(), kaptClasspath, classLoadersCacheSize)
+            config.params(optionsForWorker, findToolsJar()?.toURI()?.toURL()?.toString().orEmpty(), kaptClasspath, serviceProvider)
             if (getValue("kapt.workers.log.classloading") == "true") {
                 // for tests
                 config.forkOptions.jvmArgs("-verbose:class")
@@ -161,7 +171,7 @@ private class KaptExecution @Inject constructor(
     val optionsForWorker: KaptOptionsForWorker,
     val toolsJarURLSpec: String,
     val kaptClasspath: List<File>,
-    val classloadersCacheSize: Int
+    val classLoadersCache: Provider<ClassLoadersCacheService>
 ) : Runnable {
     private companion object {
         private const val JAVAC_CONTEXT_CLASS = "com.sun.tools.javac.util.Context"
@@ -190,11 +200,6 @@ private class KaptExecution @Inject constructor(
         val kaptClassLoader = cachedKaptClassLoader ?: URLClassLoader(kaptClasspathUrls, classLoaderWithToolsJar)
         cachedKaptClassLoader = kaptClassLoader
 
-        if (classLoadersProvider == null && classloadersCacheSize > 0) {
-            logger.info("Initializing KAPT classloaders cache with size = $classloadersCacheSize")
-            classLoadersProvider = CachingClassLoadersProvider(classloadersCacheSize, cachedClassLoaderWithToolsJar!!)
-        }
-
         val kaptMethod = kaptClass(kaptClassLoader).declaredMethods.single { it.name == "kapt" }
         kaptMethod.invoke(null, createKaptOptions(kaptClassLoader))
     }
@@ -218,11 +223,7 @@ private class KaptExecution @Inject constructor(
 
         //in case cache was enabled and then disabled
         val processingClassLoader =
-            if (classloadersCacheSize > 0) {
-                classLoadersProvider!!.getSplitted(processingClasspath - processingExternalClasspath, processingExternalClasspath)
-            } else {
-                null
-            }
+            classLoadersCache.get().getClassLoader(processingClasspath - processingExternalClasspath, processingExternalClasspath)
 
         Class.forName("org.jetbrains.kotlin.base.kapt3.KaptOptions", true, classLoader).constructors.single().newInstance(
             projectBaseDir,
@@ -253,13 +254,15 @@ private class KaptExecution @Inject constructor(
         )
     }
 
-    private fun findRootClassLoader(): ClassLoader {
-        tailrec fun parentOrSelf(classLoader: ClassLoader): ClassLoader {
-            val parent = classLoader.parent ?: return classLoader
-            return parentOrSelf(parent)
-        }
-        return parentOrSelf(KaptExecution::class.java.classLoader)
+
+}
+
+private fun findRootClassLoader(): ClassLoader {
+    tailrec fun parentOrSelf(classLoader: ClassLoader): ClassLoader {
+        val parent = classLoader.parent ?: return classLoader
+        return parentOrSelf(parent)
     }
+    return parentOrSelf(KaptExecution::class.java.classLoader)
 }
 
 private data class KaptOptionsForWorker(
