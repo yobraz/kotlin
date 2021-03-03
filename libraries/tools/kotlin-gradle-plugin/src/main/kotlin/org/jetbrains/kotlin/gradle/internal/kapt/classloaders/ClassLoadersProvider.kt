@@ -32,7 +32,7 @@ class CreatingClassloadersProvider(private val parentClassLoader: ClassLoader = 
 class CachingClassLoadersProvider(
     size: Int,
     private val parentClassLoader: ClassLoader = ClassLoader.getSystemClassLoader()
-) : ClassLoadersProvider {
+) : ClassLoadersProvider, AutoCloseable {
 
     private val logger = LoggerFactory.getLogger(ClassLoadersProvider::class.java)
 
@@ -73,6 +73,10 @@ class CachingClassLoadersProvider(
                 makeClassLoader(makeKey(bottom), parent)
             }
         }
+    }
+
+    override fun close() {
+        cache.clear()
     }
 
     private fun makeClassLoader(key: CacheKey, parent: ClassLoader): URLClassLoader {
