@@ -7,10 +7,10 @@ package org.jetbrains.kotlin.gradle.targets.native.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.repositories.ArtifactRepository
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
-import org.gradle.api.file.RelativePath
+import org.gradle.api.file.*
 import org.gradle.api.logging.Logger
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.Optional
@@ -21,6 +21,8 @@ import org.jetbrains.kotlin.gradle.targets.native.cocoapods.MissingCocoapodsMess
 import org.jetbrains.kotlin.gradle.targets.native.cocoapods.MissingSpecReposMessage
 import org.jetbrains.kotlin.gradle.tasks.PodspecTask.Companion.retrievePods
 import org.jetbrains.kotlin.gradle.tasks.PodspecTask.Companion.retrieveSpecRepos
+import org.jetbrains.kotlin.gradle.utils.newFileProperty
+import org.jetbrains.kotlin.gradle.utils.newProperty
 import org.jetbrains.kotlin.konan.target.Family
 import java.io.File
 import java.io.Reader
@@ -54,22 +56,20 @@ open class PodInstallTask : DefaultTask() {
     internal lateinit var frameworkName: Provider<String>
 
     @get:Optional
-    @get:Input
-    internal val podfile = project.objects.property(File::class.java)
+    @get:PathSensitive(PathSensitivity.ABSOLUTE)
+    @get:InputFile
+    internal val podfile: RegularFileProperty = project.newFileProperty()
 
     @get:Optional
     @get:OutputDirectory
-    internal val podsXcodeProjDirProvider: Provider<File>?
-        get() = podfile.orNull?.let {
-            project.provider { it.parentFile.resolve("Pods").resolve("Pods.xcodeproj") }
-        }
-
+    internal val podsXcodeProjDirProvider: DirectoryProperty = project.objects.directoryProperty()
+        .fileProvider(project.provider { podfile.orNull?.asFile?.parentFile?.resolve("Pods")?.resolve("Pods.xcodeproj") })
 
     @TaskAction
     fun doPodInstall() {
-        podfile.orNull?.parentFile?.also { podfileDir ->
+        podfile.orNull?.asFile?.also { podfile ->
             val podInstallProcess = ProcessBuilder("pod", "install").apply {
-                directory(podfileDir)
+                directory(podfile.parentFile)
             }.start()
             val podInstallRetCode = podInstallProcess.waitFor()
             val podInstallOutput = podInstallProcess.inputStream.use { it.reader().readText() }
@@ -84,7 +84,7 @@ open class PodInstallTask : DefaultTask() {
                     podInstallOutput,
                     specReposMessages?.let {
                         """
-                            |Please, check that file "${podfile.get().path}" contains following lines in header:
+                            |Please, check that file "${podfile.path}" contains following lines in header:
                             |$it
                             |
                         """.trimMargin()
@@ -99,8 +99,8 @@ open class PodInstallTask : DefaultTask() {
 
                 ).joinToString("\n")
             }
-            with(podsXcodeProjDirProvider) {
-                check(this != null && get().exists() && get().isDirectory) {
+            with(podsXcodeProjDirProvider.orNull?.asFile) {
+                check(this != null && exists() && isDirectory) {
                     "The directory 'Pods/Pods.xcodeproj' was not created as a result of the `pod install` call."
                 }
             }
@@ -115,7 +115,7 @@ private interface ExtendedErrorDiagnostic {
 
 abstract class DownloadCocoapodsTask : DefaultTask() {
     @get:Input
-    internal lateinit var podName: Provider<String>
+    internal val podName: Property<String> = project.newProperty()
 }
 
 open class PodDownloadUrlTask : DownloadCocoapodsTask() {
@@ -123,14 +123,13 @@ open class PodDownloadUrlTask : DownloadCocoapodsTask() {
     @get:Nested
     internal lateinit var podSource: Provider<Url>
 
-    @get:Internal
-    internal val urlDir = project.cocoapodsBuildDirs.externalSources("url")
+    private val urlDir
+        get() = project.cocoapodsBuildDirs.externalSources("url")
 
 
     @get:OutputDirectory
-    internal val podSourceDir = project.provider {
-        urlDir.resolve(podName.get())
-    }
+    internal val podSourceDir: DirectoryProperty
+        get() = project.objects.directoryProperty().fileProvider(podName.map { pod -> urlDir.resolve(pod) })
 
     @get:Internal
     internal val permittedFileExtensions = listOf("zip", "tar", "tgz", "tbz", "txz", "gzip", "tar.gz", "tar.bz2", "tar.xz", "jar")
@@ -205,17 +204,17 @@ open class PodDownloadGitTask : DownloadCocoapodsTask() {
     @get:Nested
     internal lateinit var podSource: Provider<Git>
 
-    @get:Internal
-    internal val gitDir = project.cocoapodsBuildDirs.externalSources("git")
+    private val gitDir
+        get() = project.cocoapodsBuildDirs.externalSources("git")
 
     @get:OutputDirectory
-    internal val repo = project.provider {
-        gitDir.resolve(podName.get())
-    }
+    internal val repo: DirectoryProperty
+        get() = project.objects.directoryProperty().fileProvider(podName.map { pod -> gitDir.resolve(pod) })
 
     @TaskAction
     fun download() {
-        repo.get().deleteRecursively()
+        val repo = this.repo.get().asFile
+        repo.deleteRecursively()
         val git = podSource.get()
         val branch = git.tag ?: git.branch
         val commit = git.commit
@@ -243,7 +242,7 @@ open class PodDownloadGitTask : DownloadCocoapodsTask() {
             "git",
             "init"
         )
-        val repo = repo.get()
+        val repo = repo.get().asFile
         repo.mkdir()
         runCommand(initCommand, logger) { directory(repo) }
 
@@ -366,31 +365,34 @@ open class PodGenTask : DefaultTask() {
 
     @get:PathSensitive(PathSensitivity.ABSOLUTE)
     @get:InputFile
-    internal lateinit var podspec: Provider<File>
+    internal val podspec: RegularFileProperty = project.newFileProperty()
 
     @get:Input
     internal lateinit var useLibraries: Provider<Boolean>
 
     @get:Internal
-    lateinit var family: Family
+    internal lateinit var family: Provider<Family>
 
     @get:Nested
     internal lateinit var specRepos: Provider<SpecRepos>
 
     @get:Nested
-    val pods = project.objects.listProperty(CocoapodsDependency::class.java)
+    val pods: ListProperty<CocoapodsDependency> = project.objects.listProperty(CocoapodsDependency::class.java)
 
     @get:OutputDirectory
-    internal val podsXcodeProjDir: Provider<File>
-        get() = project.provider {
-            project.cocoapodsBuildDirs.synthetic(family)
-                .resolve(podspec.get().nameWithoutExtension)
-                .resolve("Pods")
-                .resolve("Pods.xcodeproj")
-        }
+    internal val podsXcodeProjDir: DirectoryProperty = project.objects.directoryProperty()
+        .fileProvider(
+            project.provider {
+                project.cocoapodsBuildDirs.synthetic(family.get())
+                    .resolve(podspec.get().asFile.nameWithoutExtension)
+                    .resolve("Pods")
+                    .resolve("Pods.xcodeproj")
+            }
+        )
 
     @TaskAction
     fun generate() {
+        val family = family.get()
         val syntheticDir = project.cocoapodsBuildDirs.synthetic(family).apply { mkdirs() }
         val localPodspecPaths = pods.get().mapNotNull { it.source?.getLocalPath(project, it.name) }
 
@@ -403,7 +405,7 @@ open class PodGenTask : DefaultTask() {
             "--gen-directory=${syntheticDir.absolutePath}",
             localPodspecPaths.takeIf { it.isNotEmpty() }?.joinToString(separator = ",")?.let { "--local-sources=$it" },
             specRepos.takeIf { it.isNotEmpty() }?.joinToString(separator = ",")?.let { "--sources=$it" },
-            podspec.get().absolutePath
+            podspec.get().asFile.absolutePath
         )
 
         val podGenDiagnostic = object : ExtendedErrorDiagnostic {
@@ -424,7 +426,7 @@ open class PodGenTask : DefaultTask() {
 
         runCommand(podGenProcessArgs, project.logger, podGenDiagnostic) { directory(syntheticDir) }
 
-        val podsXcprojFile = podsXcodeProjDir.get()
+        val podsXcprojFile = podsXcodeProjDir.get().asFile
         check(podsXcprojFile.exists() && podsXcprojFile.isDirectory) {
             "The directory '${podsXcprojFile.path}' was not created as a result of the `pod gen` call."
         }
@@ -444,18 +446,18 @@ open class PodSetupBuildTask : DefaultTask() {
     lateinit var pod: Provider<CocoapodsDependency>
 
     @get:OutputFile
-    internal val buildSettingsFile: Provider<File> = project.provider {
+    internal val buildSettingsFile: RegularFileProperty = project.newFileProperty {
         project.cocoapodsBuildDirs
             .buildSettings
             .resolve(getBuildSettingFileName(pod.get(), sdk.get()))
     }
 
     @get:Internal
-    internal lateinit var podsXcodeProjDir: Provider<File>
+    internal val podsXcodeProjDir: DirectoryProperty = project.objects.directoryProperty()
 
     @TaskAction
     fun setupBuild() {
-        val podsXcodeProjDir = podsXcodeProjDir.get()
+        val podsXcodeProjDir = podsXcodeProjDir.get().asFile
 
         val buildSettingsReceivingCommand = listOf(
             "xcodebuild", "-showBuildSettings",
@@ -467,7 +469,7 @@ open class PodSetupBuildTask : DefaultTask() {
         val outputText = runCommand(buildSettingsReceivingCommand, project.logger) { directory(podsXcodeProjDir.parentFile) }
 
         val buildSettingsProperties = PodBuildSettingsProperties.readSettingsFromReader(outputText.reader())
-        buildSettingsFile.get().let { bsf ->
+        buildSettingsFile.get().asFile.let { bsf ->
             buildSettingsProperties.writeSettings(bsf)
         }
     }
@@ -483,22 +485,22 @@ open class PodBuildTask : DefaultTask() {
 
     @get:PathSensitive(PathSensitivity.ABSOLUTE)
     @get:InputFile
-    internal lateinit var buildSettingsFile: Provider<File>
+    internal val buildSettingsFile: RegularFileProperty = project.newFileProperty()
 
     @get:Nested
     internal lateinit var pod: Provider<CocoapodsDependency>
 
     @get:PathSensitive(PathSensitivity.ABSOLUTE)
     @get:InputFiles
-    internal val srcDir: FileTree
-        get() = project.fileTree(
-            buildSettingsFile.map { PodBuildSettingsProperties.readSettingsFromReader(it.reader()).podsTargetSrcRoot }
-        )
+    internal val srcDir: DirectoryProperty = project.objects.directoryProperty().fileProvider(
+        buildSettingsFile.map { project.file(PodBuildSettingsProperties.readSettingsFromReader(it.asFile.reader()).podsTargetSrcRoot) }
+    )
 
     @get:Internal
-    internal var buildDir: Provider<File> = project.provider {
-        project.file(PodBuildSettingsProperties.readSettingsFromReader(buildSettingsFile.get().reader()).buildDir)
-    }
+    internal val buildDir: DirectoryProperty = project.objects.directoryProperty().fileProvider(
+        buildSettingsFile.map { project.file(PodBuildSettingsProperties.readSettingsFromReader(it.asFile.reader()).buildDir) }
+    )
+
 
     @get:Input
     internal lateinit var sdk: Provider<String>
@@ -512,13 +514,14 @@ open class PodBuildTask : DefaultTask() {
     }
 
     @get:Internal
-    internal lateinit var podsXcodeProjDir: Provider<File>
+    internal val podsXcodeProjDir: DirectoryProperty = project.objects.directoryProperty()
 
     @TaskAction
     fun buildDependencies() {
-        val podBuildSettings = PodBuildSettingsProperties.readSettingsFromReader(buildSettingsFile.get().reader())
+        val buildSettingsFile = buildSettingsFile.get().asFile
+        val podBuildSettings = PodBuildSettingsProperties.readSettingsFromReader(buildSettingsFile.reader())
 
-        val podsXcodeProjDir = podsXcodeProjDir.get()
+        val podsXcodeProjDir = podsXcodeProjDir.get().asFile
 
         val podXcodeBuildCommand = listOf(
             "xcodebuild",

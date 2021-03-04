@@ -7,8 +7,12 @@
 package org.jetbrains.kotlin.gradle.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.Project
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.wrapper.Wrapper
@@ -22,8 +26,8 @@ import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Compan
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.KOTLIN_TARGET_FOR_IOS_DEVICE
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.KOTLIN_TARGET_FOR_WATCHOS_DEVICE
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.SYNC_TASK_NAME
-import org.jetbrains.kotlin.gradle.plugin.cocoapods.asValidFrameworkName
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.cocoapodsBuildDirs
+import org.jetbrains.kotlin.gradle.utils.newFileProperty
 import java.io.File
 
 /**
@@ -33,51 +37,42 @@ import java.io.File
 open class PodspecTask : DefaultTask() {
 
     @get:Input
-    internal val specName = project.name.asValidFrameworkName()
+    internal lateinit var specName: Provider<String>
 
     @get:OutputFile
-    internal val outputFileProvider: Provider<File>
-        get() = project.provider { project.file("$specName.podspec") }
+    internal val outputFileProperty: RegularFileProperty = project.newFileProperty()
 
     @get:Input
     internal lateinit var needPodspec: Provider<Boolean>
 
     @get:Nested
-    val pods = project.objects.listProperty(CocoapodsDependency::class.java)
+    val pods: ListProperty<CocoapodsDependency> = project.objects.listProperty(CocoapodsDependency::class.java)
 
     @get:Input
     internal lateinit var version: Provider<String>
 
     @get:Input
     @get:Optional
-    internal val homepage = project.objects.property(String::class.java)
+    internal val homepage: Property<String> = project.objects.property(String::class.java)
 
     @get:Input
     @get:Optional
-    internal val license = project.objects.property(String::class.java)
+    internal val license: Property<String> = project.objects.property(String::class.java)
 
     @get:Input
     @get:Optional
-    internal val authors = project.objects.property(String::class.java)
+    internal val authors: Property<String> = project.objects.property(String::class.java)
 
     @get:Input
     @get:Optional
-    internal val summary = project.objects.property(String::class.java)
+    internal val summary: Property<String> = project.objects.property(String::class.java)
 
     @get:Input
     internal lateinit var frameworkName: Provider<String>
 
     @get:Nested
-    internal lateinit var ios: Provider<PodspecPlatformSettings>
-
-    @get:Nested
-    internal lateinit var osx: Provider<PodspecPlatformSettings>
-
-    @get:Nested
-    internal lateinit var tvos: Provider<PodspecPlatformSettings>
-
-    @get:Nested
-    internal lateinit var watchos: Provider<PodspecPlatformSettings>
+    internal val platformSettings: NamedDomainObjectCollection<PodspecPlatformSettings> =
+        project.container(PodspecPlatformSettings::class.java)
 
     init {
         onlyIf { needPodspec.get() }
@@ -86,7 +81,7 @@ open class PodspecTask : DefaultTask() {
     @TaskAction
     fun generate() {
 
-        val frameworkDir = project.cocoapodsBuildDirs.framework.relativeTo(outputFileProvider.get().parentFile).path
+        val frameworkDir = project.cocoapodsBuildDirs.framework.relativeTo(outputFileProperty.get().asFile.parentFile).path
         val dependencies = pods.get().map { pod ->
             val versionSuffix = if (pod.version != null) ", '${pod.version}'" else ""
             "|    spec.dependency '${pod.name}'$versionSuffix"
@@ -106,17 +101,19 @@ open class PodspecTask : DefaultTask() {
         val gradleCommand = "\$REPO_ROOT/${gradleWrapper!!.toRelativeString(project.projectDir)}"
         val syncTask = "${project.path}:$SYNC_TASK_NAME"
 
-        val deploymentTargets = run {
-            listOf(ios, osx, tvos, watchos).map { it.get() }.filter { it.deploymentTarget != null }.joinToString("\n") {
-                "|    spec.${it.name}.deployment_target = '${it.deploymentTarget}'"
+        val deploymentTargets = with(StringBuilder()) {
+            platformSettings.all {
+                if (it.deploymentTarget == null) return@all
+                append("|    spec.${it.name}.deployment_target = '${it.deploymentTarget}'\n")
             }
+            toString()
         }
 
-        with(outputFileProvider.get()) {
+        with(outputFileProperty.get().asFile) {
             writeText(
                 """
                 |Pod::Spec.new do |spec|
-                |    spec.name                     = '$specName'
+                |    spec.name                     = '${specName.get()}'
                 |    spec.version                  = '${version.get()}'
                 |    spec.homepage                 = '${homepage.getOrEmpty()}'
                 |    spec.source                   = { :git => "Not Published", :tag => "Cocoapods/#{spec.name}/#{spec.version}" }
@@ -145,7 +142,7 @@ open class PodspecTask : DefaultTask() {
                 |
                 |    spec.script_phases = [
                 |        {
-                |            :name => 'Build $specName',
+                |            :name => 'Build ${specName.get()}',
                 |            :execution_position => :before_compile,
                 |            :shell_path => '/bin/sh',
                 |            :script => <<-SCRIPT
@@ -170,7 +167,7 @@ open class PodspecTask : DefaultTask() {
                     Generated a podspec file at: ${absolutePath}.
                     To include it in your Xcode project, check that the following dependency snippet exists in your Podfile:
 
-                    pod '$specName', :path => '${parentFile.absolutePath}'
+                    pod '${specName.get()}', :path => '${parentFile.absolutePath}'
 
             """.trimIndent()
                 )
@@ -190,8 +187,11 @@ open class PodspecTask : DefaultTask() {
             else project.multiplatformExtensionOrNull?.cocoapodsExtensionOrNull?.podfile != null
                     || (project.parent?.let { hasPodfileOwnOrParent(it) } ?: false)
 
-        internal fun retrieveSpecRepos(project: Project): SpecRepos? = project.multiplatformExtensionOrNull?.cocoapodsExtensionOrNull?.specRepos
-        internal fun retrievePods(project: Project): List<CocoapodsDependency>? = project.multiplatformExtensionOrNull?.cocoapodsExtensionOrNull?.podsAsTaskInput
+        internal fun retrieveSpecRepos(project: Project): SpecRepos? =
+            project.multiplatformExtensionOrNull?.cocoapodsExtensionOrNull?.specRepos
+
+        internal fun retrievePods(project: Project): List<CocoapodsDependency>? =
+            project.multiplatformExtensionOrNull?.cocoapodsExtensionOrNull?.podsAsTaskInput
     }
 }
 
@@ -210,13 +210,13 @@ open class PodspecTask : DefaultTask() {
 open class DummyFrameworkTask : DefaultTask() {
 
     @OutputDirectory
-    val destinationDir = project.cocoapodsBuildDirs.framework
+    val destinationDir: RegularFileProperty = project.newFileProperty { project.cocoapodsBuildDirs.framework }
 
     @Input
     lateinit var frameworkName: Provider<String>
 
     private val frameworkDir: File
-        get() = destinationDir.resolve("${frameworkName.get()}.framework")
+        get() = destinationDir.get().asFile.resolve("${frameworkName.get()}.framework")
 
     private fun copyResource(from: String, to: File) {
         to.parentFile.mkdirs()
@@ -257,7 +257,7 @@ open class DummyFrameworkTask : DefaultTask() {
     @TaskAction
     fun create() {
         // Reset the destination directory
-        with(destinationDir) {
+        with(destinationDir.get().asFile) {
             deleteRecursively()
             mkdirs()
         }
@@ -285,17 +285,19 @@ open class DefFileTask : DefaultTask() {
     lateinit var pod: Provider<CocoapodsDependency>
 
     @get:OutputFile
-    val outputFile: File
-        get() = project.cocoapodsBuildDirs.defs.resolve("${pod.get().moduleName}.def")
+    val outputFile: RegularFileProperty =
+        project.newFileProperty { project.cocoapodsBuildDirs.defs.resolve("${pod.get().moduleName}.def") }
 
     @TaskAction
     fun generate() {
-        outputFile.parentFile.mkdirs()
-        outputFile.writeText(
-            """
-            language = Objective-C
-            modules = ${pod.get().moduleName}
-        """.trimIndent()
-        )
+        with(outputFile.get().asFile) {
+            parentFile.mkdirs()
+            writeText(
+                """
+                language = Objective-C
+                modules = ${pod.get().moduleName}
+                """.trimIndent()
+            )
+        }
     }
 }
