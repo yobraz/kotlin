@@ -464,6 +464,11 @@ object DIAGNOSTICS_LIST : DiagnosticList() {
             parameter<ConeKotlinType>("expectedType")
             parameter<ConeKotlinType>("actualType")
         }
+        val TYPE_CANT_BE_USED_FOR_CONST_VAL by error<FirSourceElement, KtProperty>(PositioningStrategy.CONST_MODIFIER) {
+            parameter<ConeKotlinType>("constValType")
+        }
+        val CONST_VAL_WITHOUT_INITIALIZER by error<FirSourceElement, KtProperty>(PositioningStrategy.CONST_MODIFIER)
+        val CONST_VAL_WITH_NON_CONST_INITIALIZER by error<FirSourceElement, KtExpression>()
     }
 
     val MPP_PROJECTS by object : DiagnosticGroup("Multi-platform projects") {
