@@ -10498,7 +10498,7 @@
          <artifact name="node-12.18.0-darwin-x64.tar.gz">
             <sha256 value="11fe50e670315d2d3c46317d23f7a019f46a3d08b534fbadee9a1bc3d4f81852" origin="https://nodejs.org/en/blog/release/v12.18.0/"/>
          </artifact>
-         <artifact name="node-v12.18.0-linux-x64.tar.gz">
+         <artifact name="node-12.18.0-linux-x64.tar.gz">
             <sha256 value="9526c0ee225037fc49a00e4bd5c5e2db26053f3f7c9ad124f5763d2eb80cff16" origin="https://nodejs.org/en/blog/release/v12.18.0/"/>
          </artifact>
          <artifact name="node-12.18.0-win-x64.zip">
