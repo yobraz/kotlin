@@ -378,8 +378,6 @@ abstract class FirVisitor<out R, in D> {
 
     open fun visitImplicitTypeRef(implicitTypeRef: FirImplicitTypeRef, data: D): R  = visitElement(implicitTypeRef, data)
 
-    open fun visitComposedSuperTypeRef(composedSuperTypeRef: FirComposedSuperTypeRef, data: D): R  = visitElement(composedSuperTypeRef, data)
-
     open fun visitUnionTypeRef(unionTypeRef: FirUnionTypeRef, data: D): R  = visitElement(unionTypeRef, data)
 
     open fun visitEffectDeclaration(effectDeclaration: FirEffectDeclaration, data: D): R  = visitElement(effectDeclaration, data)

@@ -616,10 +616,6 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
         visitElement(implicitTypeRef)
     }
 
-    open fun visitComposedSuperTypeRef(composedSuperTypeRef: FirComposedSuperTypeRef) {
-        visitElement(composedSuperTypeRef)
-    }
-
     open fun visitUnionTypeRef(unionTypeRef: FirUnionTypeRef) {
         visitElement(unionTypeRef)
     }
@@ -1122,10 +1118,6 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
 
     final override fun visitImplicitTypeRef(implicitTypeRef: FirImplicitTypeRef, data: Nothing?) {
         visitImplicitTypeRef(implicitTypeRef)
-    }
-
-    final override fun visitComposedSuperTypeRef(composedSuperTypeRef: FirComposedSuperTypeRef, data: Nothing?) {
-        visitComposedSuperTypeRef(composedSuperTypeRef)
     }
 
     final override fun visitUnionTypeRef(unionTypeRef: FirUnionTypeRef, data: Nothing?) {

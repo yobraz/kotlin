@@ -410,8 +410,6 @@ object ImplementationConfigurator : AbstractFirTreeImplementationConfigurator() 
             defaultEmptyList("annotations")
         }
 
-        impl(composedSuperTypeRef)
-
         impl(unionTypeRef)
 
         impl(reference, "FirStubReference") {

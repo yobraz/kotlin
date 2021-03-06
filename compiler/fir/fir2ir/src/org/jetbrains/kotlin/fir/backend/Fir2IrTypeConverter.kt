@@ -62,7 +62,6 @@ class Fir2IrTypeConverter(
         StandardClassIds.Char to irBuiltIns.charType
     )
 
-    fun FirTypeRef.toIrType(typeContext: ConversionTypeContext = ConversionTypeContext.DEFAULT): IrType {
     private val capturedTypeCache = mutableMapOf<ConeCapturedType, IrType>()
     private val errorTypeForCapturedTypeStub by lazy { createErrorType() }
 

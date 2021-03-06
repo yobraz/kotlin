@@ -1407,6 +1407,12 @@ public class Fir2IrTextTestGenerated extends AbstractFir2IrTextTest {
         }
 
         @Test
+        @TestMetadata("multicatch.kt")
+        public void testMulticatch() throws Exception {
+            runTest("compiler/testData/ir/irText/expressions/multicatch.kt");
+        }
+
+        @Test
         @TestMetadata("multipleSmartCasts.kt")
         public void testMultipleSmartCasts() throws Exception {
             runTest("compiler/testData/ir/irText/expressions/multipleSmartCasts.kt");
@@ -2690,6 +2696,12 @@ public class Fir2IrTextTestGenerated extends AbstractFir2IrTextTest {
         @TestMetadata("typeAliasWithUnsafeVariance.kt")
         public void testTypeAliasWithUnsafeVariance() throws Exception {
             runTest("compiler/testData/ir/irText/types/typeAliasWithUnsafeVariance.kt");
+        }
+
+        @Test
+        @TestMetadata("unionTypes.kt")
+        public void testUnionTypes() throws Exception {
+            runTest("compiler/testData/ir/irText/types/unionTypes.kt");
         }
 
         @Nested
