@@ -22481,6 +22481,12 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
                 }
 
                 @Test
+                @TestMetadata("superCallsClash.kt")
+                public void testSuperCallsClash() throws Exception {
+                    runTest("compiler/testData/codegen/box/jvm8/defaults/noDefaultImpls/superCallsClash.kt");
+                }
+
+                @Test
                 @TestMetadata("suspendFunction.kt")
                 public void testSuspendFunction() throws Exception {
                     runTest("compiler/testData/codegen/box/jvm8/defaults/noDefaultImpls/suspendFunction.kt");
