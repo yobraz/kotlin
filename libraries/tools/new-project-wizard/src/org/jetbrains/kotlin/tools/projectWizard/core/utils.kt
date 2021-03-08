@@ -102,7 +102,7 @@ class ListBuilder<T> {
     fun build() = irs.toList()
 }
 
-fun <T> buildList(builder: ListBuilder<T>.() -> Unit) =
+inline fun <T> buildList(builder: ListBuilder<T>.() -> Unit) =
     ListBuilder<T>().apply(builder).build()
 
 fun <T> buildPersistenceList(builder: ListBuilder<T>.() -> Unit) =
