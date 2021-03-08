@@ -17,6 +17,7 @@
 package org.jetbrains.uast.kotlin
 
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UExpression
@@ -29,6 +30,11 @@ class KotlinUReturnExpression(
         givenParent: UElement?
 ) : KotlinAbstractUExpression(givenParent), UReturnExpression, KotlinUElementWithType {
     override val returnExpression by lz { KotlinConverter.convertOrNull(sourcePsi.returnedExpression, this) }
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
 }
 
 class KotlinUImplicitReturnExpression(
@@ -44,4 +50,8 @@ class KotlinUImplicitReturnExpression(
         return returnExpression.toSourcePsiFakeAware()
     }
 
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
 }

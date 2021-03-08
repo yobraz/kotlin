@@ -54,4 +54,8 @@ class KotlinUCollectionLiteralExpression(
 
     override fun getArgumentForParameter(i: Int): UExpression? = valueArguments.getOrNull(i)
 
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
 }
