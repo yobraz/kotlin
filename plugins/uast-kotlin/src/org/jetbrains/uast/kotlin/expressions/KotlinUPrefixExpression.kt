@@ -17,6 +17,7 @@
 package org.jetbrains.uast.kotlin
 
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtPrefixExpression
 import org.jetbrains.uast.UElement
@@ -43,5 +44,14 @@ class KotlinUPrefixExpression(
         KtTokens.PLUSPLUS -> UastPrefixOperator.INC
         KtTokens.MINUSMINUS -> UastPrefixOperator.DEC
         else -> UastPrefixOperator.UNKNOWN
+    }
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun evaluate(): Any? {
+        return super<KotlinEvaluatableUElement>.evaluate()
+    }
+
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
     }
 }

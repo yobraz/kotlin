@@ -161,6 +161,14 @@ open class KotlinUSimpleReferenceExpression(
         override fun resolve(): PsiMethod? = resolveToPsiMethod(sourcePsi, accessorDescriptor)
     }
 
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun evaluate(): Any? {
+        return super<KotlinEvaluatableUElement>.evaluate()
+    }
+
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
 }
 
 class KotlinClassViaConstructorUSimpleReferenceExpression(
@@ -200,6 +208,11 @@ class KotlinClassViaConstructorUSimpleReferenceExpression(
     // In new inference, SAM constructor is substituted with a function descriptor, so we use candidate descriptor to preserve behavior
     private fun ResolvedCall<*>.descriptorForResolveViaConstructor(): CallableDescriptor? {
         return if (this is NewResolvedCallImpl) candidateDescriptor else resultingDescriptor
+    }
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
     }
 }
 
