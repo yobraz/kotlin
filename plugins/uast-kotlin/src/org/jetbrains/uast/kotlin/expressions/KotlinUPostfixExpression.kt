@@ -17,6 +17,7 @@
 package org.jetbrains.uast.kotlin
 
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtPostfixExpression
 import org.jetbrains.uast.*
@@ -45,5 +46,14 @@ class KotlinUPostfixExpression(
     override fun resolve(): PsiMethod? = when (sourcePsi.operationToken) {
         KtTokens.EXCLEXCL -> operand.tryResolve() as? PsiMethod
         else -> null
+    }
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun evaluate(): Any? {
+        return super<KotlinEvaluatableUElement>.evaluate()
+    }
+
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
     }
 }

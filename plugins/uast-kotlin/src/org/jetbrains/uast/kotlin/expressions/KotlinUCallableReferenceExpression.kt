@@ -18,6 +18,7 @@ package org.jetbrains.uast.kotlin
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.PsiType
 import com.intellij.psi.ResolveResult
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.resolve.BindingContext.DOUBLE_COLON_LHS
@@ -50,4 +51,9 @@ class KotlinUCallableReferenceExpression(
 
     override fun multiResolve(): Iterable<ResolveResult> = getResolveResultVariants(sourcePsi.callableReference)
 
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
 }

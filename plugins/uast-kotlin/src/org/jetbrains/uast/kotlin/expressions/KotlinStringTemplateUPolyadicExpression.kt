@@ -17,6 +17,7 @@
 package org.jetbrains.uast.kotlin
 
 import com.intellij.psi.PsiLanguageInjectionHost
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.uast.*
 import org.jetbrains.uast.expressions.UInjectionHost
@@ -45,4 +46,13 @@ class KotlinStringTemplateUPolyadicExpression(
 
     override fun asRenderString(): String = if (operands.isEmpty()) "\"\"" else super<UPolyadicExpression>.asRenderString()
     override fun asLogString(): String = if (operands.isEmpty()) "UPolyadicExpression (value = \"\")" else super.asLogString()
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun evaluate(): Any? {
+        return super<KotlinEvaluatableUElement>.evaluate()
+    }
+
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
 }

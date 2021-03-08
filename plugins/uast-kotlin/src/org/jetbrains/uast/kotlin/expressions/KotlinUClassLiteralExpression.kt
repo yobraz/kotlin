@@ -16,6 +16,7 @@
 
 package org.jetbrains.uast.kotlin
 
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.psi.KtClassLiteralExpression
 import org.jetbrains.kotlin.resolve.BindingContext.DOUBLE_COLON_LHS
 import org.jetbrains.uast.DEFAULT_EXPRESSION_TYPES_LIST
@@ -38,4 +39,9 @@ class KotlinUClassLiteralExpression(
             val receiverExpression = sourcePsi.receiverExpression ?: return null
             return KotlinConverter.convertExpression(receiverExpression, this, DEFAULT_EXPRESSION_TYPES_LIST)
         }
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
 }
