@@ -16,6 +16,7 @@
 
 package org.jetbrains.uast.kotlin
 
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.uast.UElement
@@ -35,4 +36,13 @@ class KotlinUThisExpression(
         get() = sourcePsi.getTargetLabel()?.let { KotlinUIdentifier(it, this) }
 
     override fun resolve() = sourcePsi.analyze()[BindingContext.LABEL_TARGET, sourcePsi.getTargetLabel()]
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
+
+    override fun evaluate(): Any? {
+        return super<KotlinEvaluatableUElement>.evaluate()
+    }
 }
