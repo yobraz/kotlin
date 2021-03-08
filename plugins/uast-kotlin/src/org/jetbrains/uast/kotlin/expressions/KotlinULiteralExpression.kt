@@ -36,6 +36,15 @@ class KotlinULiteralExpression(
     override val value by lz { evaluate() }
 
     override fun unwrapToSourcePsi(): List<PsiElement> = listOfNotNull(wrapULiteral(this).sourcePsi)
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
+
+    override fun evaluate(): Any? {
+        return super<KotlinEvaluatableUElement>.evaluate()
+    }
 }
 
 class KotlinStringULiteralExpression(

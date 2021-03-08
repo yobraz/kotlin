@@ -40,6 +40,15 @@ class KotlinUBinaryExpressionWithType(
         KtTokens.AS_SAFE -> KotlinBinaryExpressionWithTypeKinds.SAFE_TYPE_CAST
         else -> UastBinaryExpressionWithTypeKind.UNKNOWN
     }
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun evaluate(): Any? {
+        return super<KotlinEvaluatableUElement>.evaluate()
+    }
+
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
 }
 
 class KotlinCustomUBinaryExpressionWithType(

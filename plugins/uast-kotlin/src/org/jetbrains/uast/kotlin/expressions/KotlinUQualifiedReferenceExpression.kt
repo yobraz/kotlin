@@ -18,6 +18,7 @@ package org.jetbrains.uast.kotlin
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.uast.UCallExpression
@@ -45,4 +46,13 @@ class KotlinUQualifiedReferenceExpression(
             is UCallExpression -> selector.methodIdentifier
             else -> super.referenceNameElement
         }
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun evaluate(): Any? {
+        return super<KotlinEvaluatableUElement>.evaluate()
+    }
+
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
 }

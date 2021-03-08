@@ -38,4 +38,8 @@ class KotlinUArrayAccessExpression(
         return arrayType.arguments.firstOrNull()?.type?.toPsiType(this, arrayExpression, false )
     }
 
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun evaluate(): Any? {
+        return super<KotlinEvaluatableUElement>.evaluate()
+    }
 }

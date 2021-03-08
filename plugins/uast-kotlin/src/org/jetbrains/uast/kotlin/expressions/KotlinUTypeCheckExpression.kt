@@ -16,6 +16,7 @@
 
 package org.jetbrains.uast.kotlin
 
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.uast.UBinaryExpressionWithType
 import org.jetbrains.uast.UElement
@@ -38,4 +39,13 @@ class KotlinUTypeCheckExpression(
                 KotlinBinaryExpressionWithTypeKinds.NEGATED_INSTANCE_CHECK
             else
                 UastBinaryExpressionWithTypeKind.INSTANCE_CHECK
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
+
+    override fun evaluate(): Any? {
+        return super<KotlinEvaluatableUElement>.evaluate()
+    }
 }
