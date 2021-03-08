@@ -18,6 +18,7 @@ package org.jetbrains.uast.kotlin
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.PsiType
 import com.intellij.psi.ResolveResult
 import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 import org.jetbrains.uast.UElement
@@ -39,4 +40,13 @@ class KotlinUSafeQualifiedExpression(
 
     override fun resolve(): PsiElement? = sourcePsi.selectorExpression?.let { resolveToDeclaration(it) }
     override fun multiResolve(): Iterable<ResolveResult> = getResolveResultVariants(sourcePsi.selectorExpression)
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun evaluate(): Any? {
+        return super<KotlinEvaluatableUElement>.evaluate()
+    }
+
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
 }

@@ -16,6 +16,7 @@
 
 package org.jetbrains.uast.kotlin
 
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.psi.KtThrowExpression
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UThrowExpression
@@ -25,4 +26,9 @@ class KotlinUThrowExpression(
         givenParent: UElement?
 ) : KotlinAbstractUExpression(givenParent), UThrowExpression, KotlinUElementWithType {
     override val thrownExpression by lz { KotlinConverter.convertOrEmpty(sourcePsi.thrownExpression, this) }
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
 }

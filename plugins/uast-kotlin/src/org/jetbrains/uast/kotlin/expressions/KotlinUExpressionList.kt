@@ -17,6 +17,7 @@
 package org.jetbrains.uast.kotlin
 
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.types.TypeUtils
@@ -45,5 +46,10 @@ open class KotlinUExpressionList(
                 KotlinUExpressionList(psi, KotlinSpecialExpressionKinds.CLASS_BODY, uastParent).apply {
                     expressions = emptyList()
                 }
+    }
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
     }
 }
