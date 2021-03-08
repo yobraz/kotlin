@@ -18903,6 +18903,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
                     runTest("compiler/testData/codegen/box/jvm8/defaults/noDefaultImpls/simpleFunction.kt");
                 }
 
+                @TestMetadata("superCallsClash.kt")
+                public void testSuperCallsClash() throws Exception {
+                    runTest("compiler/testData/codegen/box/jvm8/defaults/noDefaultImpls/superCallsClash.kt");
+                }
+
                 @TestMetadata("suspendFunction.kt")
                 public void testSuspendFunction() throws Exception {
                     runTest("compiler/testData/codegen/box/jvm8/defaults/noDefaultImpls/suspendFunction.kt");
