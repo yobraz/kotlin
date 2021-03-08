@@ -89,4 +89,9 @@ class KotlinULambdaExpression(
 
         return "{ $renderedValueParameters\n$expressions\n}"
     }
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
 }

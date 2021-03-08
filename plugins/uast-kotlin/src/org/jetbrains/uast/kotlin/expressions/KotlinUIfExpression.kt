@@ -16,6 +16,7 @@
 
 package org.jetbrains.uast.kotlin
 
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UIdentifier
@@ -35,4 +36,13 @@ class KotlinUIfExpression(
 
     override val elseIdentifier: UIdentifier?
         get() = null
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
+
+    override fun evaluate(): Any? {
+        return super<KotlinEvaluatableUElement>.evaluate()
+    }
 }
