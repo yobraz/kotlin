@@ -10,7 +10,13 @@ open class KotlinUTypeReferenceExpression(
         override val type: PsiType,
         override val psi: PsiElement?,
         givenParent: UElement?
-) : KotlinAbstractUExpression(givenParent), UTypeReferenceExpression, KotlinUElementWithType
+) : KotlinAbstractUExpression(givenParent), UTypeReferenceExpression, KotlinUElementWithType {
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
+}
 
 
 class LazyKotlinUTypeReferenceExpression(

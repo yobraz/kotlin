@@ -18,6 +18,7 @@ package org.jetbrains.uast.kotlin
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -87,6 +88,15 @@ class KotlinUBinaryExpression(
                 it.constructor.declarationDescriptor?.fqNameSafe?.asString() == "kotlin.Number"
             }) applicableOperator else other
         }
+    }
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun evaluate(): Any? {
+        return super<KotlinEvaluatableUElement>.evaluate()
+    }
+
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
     }
 }
 

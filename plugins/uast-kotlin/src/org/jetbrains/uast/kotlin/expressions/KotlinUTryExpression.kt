@@ -16,6 +16,7 @@
 
 package org.jetbrains.uast.kotlin
 
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.psi.KtTryExpression
 import org.jetbrains.uast.*
 import org.jetbrains.uast.kotlin.declarations.KotlinUIdentifier
@@ -47,4 +48,9 @@ class KotlinUTryExpression(
 
     override val finallyIdentifier: UIdentifier?
         get() = null
+
+    //TODO: these overrides are required until uast migrate to -Xjvm-defaults
+    override fun getExpressionType(): PsiType? {
+        return super<KotlinUElementWithType>.getExpressionType()
+    }
 }
