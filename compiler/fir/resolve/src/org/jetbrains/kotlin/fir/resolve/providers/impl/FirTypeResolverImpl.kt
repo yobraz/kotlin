@@ -194,13 +194,11 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
                         coneKotlinType as ConeClassLikeType,
                         session
                     )
-                }.also { println("reduced"); println(it) }
+                }
 
                 ConeUnionType(
                     resolvedTypes,
                     superType
-//                    session.typeContext.commonSuperTypeOrNull(resolvedTypes)!!.also { println(it) }
-                    //ConeClassLikeTypeImpl(ConeClassLikeLookupTagImpl(ClassId.fromString("kotlin/Any")), emptyArray(), false)
                 )
             }
             is FirResolvedTypeRef -> typeRef.type
@@ -227,7 +225,7 @@ fun commonSuperType(type1: ConeClassLikeType, type2: ConeClassLikeType, session:
         if (getParentClass(refA, session) == null &&
             getParentClass(refB, session) == null
         )
-            return ConeClassLikeTypeImpl(ConeClassLikeLookupTagImpl(ClassId.fromString("kotlin/Any")), emptyArray(), false)
+            return ClassId.fromString("kotlin/Any").constructClassLikeType(emptyArray(), false)
         if (f) {
             if (getParentClass(refA, session) != null) {
                 visited.add(refA)

@@ -63,11 +63,7 @@ fun ConeKotlinType.ensureResolvedTypeDeclaration(
     useSiteSession: FirSession,
     requiredPhase: FirResolvePhase = FirResolvePhase.DECLARATIONS,
 ) {
-    if (this is ConeUnionType) {
-        (commonSuperType as ConeClassLikeType).lookupTag.toSymbol(useSiteSession)?.ensureResolved(FirResolvePhase.DECLARATIONS, useSiteSession)
-        (commonSuperType as ConeClassLikeType).fullyExpandedType(useSiteSession).lookupTag.toSymbol(useSiteSession)?.ensureResolved(FirResolvePhase.DECLARATIONS, useSiteSession)
-
-    } else if (this is ConeClassLikeType) {
+    if (this is ConeClassLikeType) {
         lookupTag.toSymbol(useSiteSession)?.ensureResolved(requiredPhase, useSiteSession)
         fullyExpandedType(useSiteSession).lookupTag.toSymbol(useSiteSession)?.ensureResolved(requiredPhase, useSiteSession)
     }

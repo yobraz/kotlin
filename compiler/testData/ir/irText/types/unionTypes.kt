@@ -16,33 +16,10 @@ fun getRandomObject(): Int | String | Boolean {
         "fff"
 }
 
-fun first() {
+fun main() {
     val obj = getRandomObject()
     getSize(obj)
-//    val x: Int | String = 5
-//
-    try {
-
-    } catch (e: java.lang.IllegalStateException | java.lang.NullPointerException) {
-
-    }
-//    return x
-//
-//
-//    val e: Int = when (x) {
-//        is Int -> x
-//        is String -> x.length
-//    }
-//
-//    System.out.println(x)
-//
-//    x = "fr"
-//
-//    System.out.println(x)
-//
-//    val z = ArrayList<Int | Boolean>()
-//    z.add(5)
-//    z.add(true)
-//
-//    System.out.println(z as ArrayList<Int | Boolean>)
+    getSize("foo")
+    getSize(1)
+    getSize(5.0)
 }

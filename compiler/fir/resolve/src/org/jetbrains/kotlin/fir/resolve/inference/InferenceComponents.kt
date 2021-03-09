@@ -8,14 +8,29 @@ package org.jetbrains.kotlin.fir.resolve.inference
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.types.ConeInferenceContext
 import org.jetbrains.kotlin.fir.types.ConeTypeApproximator
+import org.jetbrains.kotlin.fir.types.ConeUnionType
 import org.jetbrains.kotlin.resolve.calls.inference.components.*
 import org.jetbrains.kotlin.resolve.calls.inference.model.NewConstraintSystemImpl
+import org.jetbrains.kotlin.types.model.KotlinTypeMarker
+import org.jetbrains.kotlin.types.model.TypeConstructorMarker
 
 @NoMutableState
 class InferenceComponents(val session: FirSession) : FirSessionComponent {
     val ctx: ConeInferenceContext = object : ConeInferenceContext {
         override val session: FirSession
             get() = this@InferenceComponents.session
+
+        override fun TypeConstructorMarker.isUnion(): Boolean {
+            return this is ConeUnionType
+        }
+
+        override fun TypeConstructorMarker.getInnerTypesIfUnion(): Collection<KotlinTypeMarker> {
+            return (this as? ConeUnionType)?.innerTypes ?: emptyList()
+        }
+
+        override fun TypeConstructorMarker.getCommonSuperTypeIfUnion(): KotlinTypeMarker {
+            return (this as? ConeUnionType)?.commonSuperType ?: throw RuntimeException()
+        }
     }
 
     val approximator: ConeTypeApproximator = ConeTypeApproximator(ctx, session.languageVersionSettings)

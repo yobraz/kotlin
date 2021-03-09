@@ -204,12 +204,32 @@ object AbstractTypeChecker {
 
         if (!context.customIsSubtypeOf(subType, superType)) return false
 
-        return completeIsSubTypeOf(
-            context,
-            context.typeSystemContext.prepareType(context.refineType(subType)),
-            context.typeSystemContext.prepareType(context.refineType(superType)),
-            isFromNullabilityConstraint
-        )
+        with(context.typeSystemContext) {
+            val superTypeConstructor = superType.typeConstructor()
+            val subTypeConstructor = subType.typeConstructor()
+            return when {
+                superTypeConstructor.isUnion() && subTypeConstructor.isUnion() ->
+                    subTypeConstructor.getInnerTypesIfUnion().all { subTypeInner ->
+                        superTypeConstructor.getInnerTypesIfUnion().any { superTypeInner ->
+                            isSubtypeOf(context, subTypeInner, superTypeInner, isFromNullabilityConstraint)
+                        }
+                    }
+
+                superTypeConstructor.isUnion() ->
+                    superTypeConstructor.getInnerTypesIfUnion().any { isSubtypeOf(context, subType, it, isFromNullabilityConstraint) }
+
+                subTypeConstructor.isUnion() ->
+                    isSubtypeOf(context, subTypeConstructor.getCommonSuperTypeIfUnion(), superType, isFromNullabilityConstraint)
+
+                else ->
+                    completeIsSubTypeOf(
+                        context,
+                        context.typeSystemContext.prepareType(context.refineType(subType)),
+                        context.typeSystemContext.prepareType(context.refineType(superType)),
+                        isFromNullabilityConstraint
+                    )
+            }
+        }
     }
 
     fun equalTypes(context: AbstractTypeCheckerContext, a: KotlinTypeMarker, b: KotlinTypeMarker): Boolean =
@@ -311,10 +331,10 @@ object AbstractTypeChecker {
         superType: SimpleTypeMarker
     ): Boolean = with(context.typeSystemContext) {
         if (AbstractTypeChecker.RUN_SLOW_ASSERTIONS) {
-            assert(subType.isSingleClassifierType() || subType.typeConstructor().isIntersection() || context.isAllowedTypeVariable(subType)) {
+            assert(subType.isSingleClassifierType() || subType.typeConstructor().isIntersection() || subType.typeConstructor().isUnion() || context.isAllowedTypeVariable(subType)) {
                 "Not singleClassifierType and not intersection subType: $subType"
             }
-            assert(superType.isSingleClassifierType() || context .isAllowedTypeVariable(superType)) {
+            assert(superType.isSingleClassifierType() || superType.typeConstructor().isUnion() || context.isAllowedTypeVariable(superType)) {
                 "Not singleClassifierType superType: $superType"
             }
         }
@@ -659,13 +679,13 @@ object AbstractNullabilityChecker {
             if (AbstractTypeChecker.RUN_SLOW_ASSERTIONS) {
                 // it makes for case String? & Any <: String
                 assert(
-                    subType.isSingleClassifierType() || subType.typeConstructor().isIntersection() || context.isAllowedTypeVariable(
+                    subType.isSingleClassifierType() || subType.typeConstructor().isIntersection() || subType.typeConstructor().isUnion() || context.isAllowedTypeVariable(
                         subType
                     )
                 ) {
                     "Not singleClassifierType and not intersection subType: $subType"
                 }
-                assert(superType.isSingleClassifierType() || context.isAllowedTypeVariable(superType)) {
+                assert(superType.isSingleClassifierType() || superType.typeConstructor().isUnion() || context.isAllowedTypeVariable(superType)) {
                     "Not singleClassifierType superType: $superType"
                 }
             }

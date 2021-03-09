@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.types.model
 
 import org.jetbrains.kotlin.types.AbstractTypeCheckerContext
 import org.jetbrains.kotlin.types.Variance
+import java.lang.RuntimeException
 import kotlin.collections.ArrayList
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -305,7 +306,8 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun TypeConstructorMarker.supertypes(): Collection<KotlinTypeMarker>
     fun TypeConstructorMarker.isIntersection(): Boolean
     fun TypeConstructorMarker.isUnion(): Boolean = false
-    fun TypeConstructorMarker.getInnerTypes(): Collection<KotlinTypeMarker> = throw RuntimeException()
+    fun TypeConstructorMarker.getInnerTypesIfUnion(): Collection<KotlinTypeMarker> = throw RuntimeException()
+    fun TypeConstructorMarker.getCommonSuperTypeIfUnion(): KotlinTypeMarker = throw RuntimeException()
     fun TypeConstructorMarker.isClassTypeConstructor(): Boolean
     fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(): Boolean
     fun TypeConstructorMarker.isLocalType(): Boolean
