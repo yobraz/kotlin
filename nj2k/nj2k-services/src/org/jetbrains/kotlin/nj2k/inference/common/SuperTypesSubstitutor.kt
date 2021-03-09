@@ -28,7 +28,7 @@ class SuperTypesSubstitutor(private val superTypes: Map<ClassifierDescriptor, Ma
                     declarationDescriptor to type.constructor.parameters.zip(
                         typeReference.typeElement?.typeArgumentsAsTypes ?: return null
                     ) { parameter, argument ->
-                        parameter to (argument.typeElement ?: return null)
+                        parameter to (argument?.typeElement ?: return null)
                     }.toMap()
                 }.toMap()
             return SuperTypesSubstitutor(superTypes)

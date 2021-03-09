@@ -221,7 +221,7 @@ fun findDuplicates(typeAlias: KtTypeAlias): Map<KotlinPsiRange, () -> Unit> {
                 val userType = element.getParentOfTypeAndBranch<KtUserType> { referenceExpression }
                 if (userType != null) {
                     occurrence = userType
-                    arguments = userType.typeArgumentsAsTypes.mapNotNull { it.typeElement }
+                    arguments = userType.typeArgumentsAsTypes.mapNotNull { it?.typeElement }
                 } else continue
             }
             if (arguments.size != typeAliasDescriptor.declaredTypeParameters.size) continue

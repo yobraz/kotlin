@@ -44,10 +44,10 @@ open class UpperBoundChecker {
         }
     }
 
-    fun checkBounds(typeReference: KtTypeReference, type: KotlinType, trace: BindingTrace) {
+    fun checkBounds(typeReference: KtTypeReference?, type: KotlinType, trace: BindingTrace) {
         if (type.isError) return
 
-        val typeElement = typeReference.typeElement ?: return
+        val typeElement = typeReference?.typeElement ?: return
         val parameters = type.constructor.parameters
         val arguments = type.arguments
 

@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.jetbrains.kotlin.psi
 
-package org.jetbrains.kotlin.psi;
+import com.intellij.util.ArrayFactory
 
-import com.intellij.util.ArrayFactory;
-import org.jetbrains.annotations.NotNull;
+interface KtTypeElement : KtElement {
+    val typeArgumentsAsTypes: List<KtTypeReference?>
 
-import java.util.List;
+    companion object {
+        @JvmField
+        val EMPTY_ARRAY = emptyArray<KtTypeElement>()
 
-public interface KtTypeElement extends KtElement {
-    KtTypeElement[] EMPTY_ARRAY = new KtTypeElement[0];
-
-    ArrayFactory<KtTypeElement> ARRAY_FACTORY = count -> count == 0 ? EMPTY_ARRAY : new KtTypeElement[count];
-
-    // may contain null
-    @NotNull
-    List<KtTypeReference> getTypeArgumentsAsTypes();
+        @JvmField
+        val ARRAY_FACTORY = ArrayFactory { count: Int -> if (count == 0) EMPTY_ARRAY else arrayOfNulls<KtTypeElement>(count) }
+    }
 }

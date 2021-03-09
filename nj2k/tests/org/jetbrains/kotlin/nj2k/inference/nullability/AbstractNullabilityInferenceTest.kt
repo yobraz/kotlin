@@ -50,7 +50,7 @@ abstract class AbstractNullabilityInferenceTest : AbstractConstraintCollectorTes
         fun KtTypeReference.updateNullability() {
             NullabilityStateUpdater.changeState(typeElement ?: return, toNullable = true)
             for (typeArgument in typeElement!!.typeArgumentsAsTypes) {
-                typeArgument.updateNullability()
+                typeArgument?.updateNullability()
             }
         }
         for (typeReference in collectDescendantsOfType<KtTypeReference>()) {

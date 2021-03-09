@@ -67,7 +67,7 @@ abstract class AbstractMutabilityInferenceTest : AbstractConstraintCollectorTest
                 toMutable = true
             )
             for (typeArgument in typeElement!!.typeArgumentsAsTypes) {
-                typeArgument.updateMutability()
+                typeArgument?.updateMutability()
             }
         }
         for (typeReference in collectDescendantsOfType<KtTypeReference>()) {

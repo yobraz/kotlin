@@ -351,12 +351,13 @@ private fun repairAnnotationEntries(
 }
 
 private fun repairAnnotationEntries(
-    typeReference: KtTypeReference,
+    typeReference: KtTypeReference?,
     type: KotlinType,
     checker: TypeAccessibilityChecker
 ) {
-    repairAnnotations(checker, typeReference, type.annotations)
-    typeReference.typeElement?.typeArgumentsAsTypes?.zip(type.arguments)?.forEach { (reference, projection) ->
+    val target = typeReference ?: return
+    repairAnnotations(checker, target, type.annotations)
+    target.typeElement?.typeArgumentsAsTypes?.zip(type.arguments)?.forEach { (reference, projection) ->
         repairAnnotationEntries(reference, projection.type, checker)
     }
 }
