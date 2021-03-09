@@ -45,7 +45,7 @@ dependencies {
     testCompile(project(":js:js.translator"))
     testCompile(project(":native:frontend.native"))
     testCompileOnly(project(":plugins:android-extensions-compiler"))
-    testApi(projectTests(":generators:test-generator"))
+    testCompile(projectTests(":generators:test-generator"))
     testCompile(projectTests(":compiler:tests-compiler-utils"))
     testCompile(project(":kotlin-test:kotlin-test-jvm"))
     testCompile(projectTests(":compiler:tests-common-jvm6"))
