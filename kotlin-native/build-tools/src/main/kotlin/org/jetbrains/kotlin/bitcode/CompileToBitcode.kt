@@ -90,8 +90,24 @@ open class CompileToBitcode @Inject constructor(
                     listOf("-std=gnu11", "-O3", "-Wall", "-Wextra", "-Werror")
                 Language.CPP ->
                     listOfNotNull("-std=c++17", "-Werror", "-O2",
+                            // Common:
                             "-Wall", "-Wextra",
+
+                            // Safety & correctness:
+                            // TODO: Consider https://clang.llvm.org/docs/ThreadSafetyAnalysis.html
+                            "-Warray-bounds-pointer-arithmetic",
+                            "-Wcast-qual",
+                            // "-Wconversion",  // TODO: Enable this.
+                            "-Wfloat-equal",
+                            "-Wimplicit-fallthrough",
+                            "-Wstatic-in-inline",
+                            "-Wswitch-enum",
+                            "-Wundefined-reinterpret-cast",
+                            "-Wvector-conversion",
+
+                            // Disabled:
                             "-Wno-unused-parameter",  // False positives with polymorphic functions.
+
                             "-fPIC".takeIf { !HostManager().targetByName(target).isMINGW })
             }
             return commonFlags + sanitizerFlags + languageFlags + compilerArgs
