@@ -70,15 +70,19 @@ class GradleMultiplatformHighlightingTest : MultiplePluginVersionGradleImporting
     }
 }
 
+interface EditorHighlighter {
+    fun checkHighlighting(project: Project, editor: Editor)
+}
+
 abstract class GradleDaemonAnalyzerTestCase(
     val testLineMarkers: Boolean,
     val checkWarnings: Boolean,
     val checkInfos: Boolean,
     private val rootDisposable: Disposable
-) : DaemonAnalyzerTestCase() {
+) : DaemonAnalyzerTestCase(), EditorHighlighter {
     override fun doTestLineMarkers() = testLineMarkers
 
-    fun checkHighlighting(project: Project, editor: Editor) {
+    override fun checkHighlighting(project: Project, editor: Editor) {
         myProject = project
         try {
             runInEdtAndWait {
@@ -137,7 +141,7 @@ abstract class GradleDaemonAnalyzerTestCase(
 internal fun checkFiles(
     files: List<VirtualFile>,
     project: Project,
-    analyzer: GradleDaemonAnalyzerTestCase
+    analyzer: EditorHighlighter
 ) {
     var atLeastOneFile = false
 
