@@ -13,8 +13,10 @@ import org.jetbrains.kotlin.test.KtAssert;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
@@ -27,22 +29,29 @@ public class D8Checker {
 
     public static void check(ClassFileFactory outputFiles) {
         if (!RUN_D8_CHECKER) return;
+        runD8(builder -> addOutputFiles(builder, outputFiles));
+    }
 
+    public static void check(ClassFileFactory outputFiles, List<Path> classPathFiles) {
+        if (!RUN_D8_CHECKER) return;
         runD8(builder -> {
-            for (OutputFile file : ClassFileUtilsKt.getClassFiles(outputFiles)) {
-                byte[] bytes = file.asByteArray();
-                builder.addClassProgramData(bytes, new PathOrigin(Paths.get(file.getRelativePath())));
-            }
+            builder.addClasspathFiles(classPathFiles);
+            addOutputFiles(builder, outputFiles);
         });
+    }
+
+    private static void addOutputFiles(D8Command.Builder builder, ClassFileFactory outputFiles) {
+        for (OutputFile file : ClassFileUtilsKt.getClassFiles(outputFiles)) {
+            byte[] bytes = file.asByteArray();
+            builder.addClassProgramData(bytes, new PathOrigin(Paths.get(file.getRelativePath())));
+        }
     }
 
     public static void checkFilesWithD8(Collection<Pair<byte[], String>> classFiles) {
         if (!RUN_D8_CHECKER) return;
-        runD8(builder -> {
-            classFiles.forEach(pair -> {
-                builder.addClassProgramData(pair.getFirst(), new PathOrigin(Paths.get(pair.getSecond())));
-            });
-        });
+        runD8(builder -> classFiles.forEach(
+                pair -> builder.addClassProgramData(pair.getFirst(), new PathOrigin(Paths.get(pair.getSecond())))
+        ));
     }
 
     // Compilation with D8 should proceed with no output. There should be no info, warnings, or errors.
@@ -82,8 +91,7 @@ public class D8Checker {
         StringWriter writer = new StringWriter();
         try (PrintWriter printWriter = new PrintWriter(writer)) {
             e.printStackTrace(printWriter);
-            String stackTrace = writer.toString();
-            return stackTrace;
+            return writer.toString();
         }
     }
 }
