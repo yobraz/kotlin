@@ -1,4 +1,4 @@
-import org.jspecify.annotations.*;
+import org.jspecify.nullness.*;
 
 @DefaultNonNull
 public class WildcardsWithDefault {

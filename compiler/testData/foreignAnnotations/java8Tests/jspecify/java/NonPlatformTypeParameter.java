@@ -1,4 +1,4 @@
-import org.jspecify.annotations.*;
+import org.jspecify.nullness.*;
 
 public class NonPlatformTypeParameter<T extends @Nullable Object> {
     public void foo(T t) {}

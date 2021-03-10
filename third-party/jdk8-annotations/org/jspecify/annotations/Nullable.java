@@ -1,4 +1,4 @@
-package org.jspecify.annotations;
+package org.jspecify.nullness;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

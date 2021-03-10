@@ -3,7 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jspecify.annotations;
+package org.jspecify.nullness;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

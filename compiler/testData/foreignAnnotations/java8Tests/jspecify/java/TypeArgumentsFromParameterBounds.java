@@ -1,4 +1,4 @@
-import org.jspecify.annotations.*;
+import org.jspecify.nullness.*;
 
 @DefaultNonNull
 public class TypeArgumentsFromParameterBounds<T extends Object, E extends @Nullable Object, F extends @NullnessUnspecified Object> { }

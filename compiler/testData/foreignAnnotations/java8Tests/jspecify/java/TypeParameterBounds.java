@@ -1,4 +1,4 @@
-import org.jspecify.annotations.*;
+import org.jspecify.nullness.*;
 
 @DefaultNonNull
 class A<T> {
