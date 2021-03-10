@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.backend.jvm.lower.suspendFunctionOriginal
 import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.ir.descriptors.toIrBasedDescriptor
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
-import org.jetbrains.kotlin.ir.util.render
 
 interface IrInlineCallGenerator : IrCallGenerator {
     override fun genCall(
@@ -40,4 +39,8 @@ interface IrInlineCallGenerator : IrCallGenerator {
         expression: IrFunctionAccessExpression,
         isInsideIfCondition: Boolean,
     )
+
+    fun genCycleStub(text: String, codegen: ExpressionCodegen) {
+        AsmUtil.genThrow(codegen.visitor, "java/lang/UnsupportedOperationException", "Call is a part of inline call cycle: $text")
+    }
 }
