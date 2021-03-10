@@ -1,4 +1,4 @@
-@org.jspecify.nullness.DefaultNonNull
+@org.jspecify.nullness.NullMarked
 public class A {
     public void foo(String x) {}
 

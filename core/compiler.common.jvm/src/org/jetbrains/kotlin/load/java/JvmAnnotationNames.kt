@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.name.FqName
 val JSPECIFY_NULLABLE = FqName("org.jspecify.nullness.Nullable")
 val JSPECIFY_NULLNESS_UNKNOWN = FqName("org.jspecify.nullness.NullnessUnspecified")
 
-val JSPECIFY_DEFAULT_NOT_NULL = FqName("org.jspecify.nullness.DefaultNonNull")
+val JSPECIFY_DEFAULT_NOT_NULL = FqName("org.jspecify.nullness.NullMarked")
 
 val NULLABLE_ANNOTATIONS = listOf(
     JvmAnnotationNames.JETBRAINS_NULLABLE_ANNOTATION,

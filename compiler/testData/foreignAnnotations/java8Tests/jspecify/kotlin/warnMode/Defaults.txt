@@ -2,7 +2,7 @@ package
 
 public fun main(/*0*/ a: Defaults, /*1*/ x: Foo): kotlin.Unit
 
-@org.jspecify.nullness.DefaultNonNull public open class Defaults {
+@org.jspecify.nullness.NullMarked public open class Defaults {
     public constructor Defaults()
     public final var defaultField: Foo!
     @org.jspecify.nullness.Nullable public final var field: @org.jspecify.nullness.Nullable Foo!

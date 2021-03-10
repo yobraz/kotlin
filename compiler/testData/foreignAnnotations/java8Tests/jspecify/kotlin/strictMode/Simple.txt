@@ -17,7 +17,7 @@ public open class Derived : Base {
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }
 
-@org.jspecify.nullness.DefaultNonNull public open class Simple {
+@org.jspecify.nullness.NullMarked public open class Simple {
     public constructor Simple()
     @org.jspecify.nullness.Nullable public final var field: @org.jspecify.nullness.Nullable Derived!
     public open fun bar(): Derived!
@@ -27,7 +27,7 @@ public open class Derived : Base {
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }
 
-@org.jspecify.nullness.DefaultNonNull public open class Use {
+@org.jspecify.nullness.NullMarked public open class Use {
     public constructor Use()
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int

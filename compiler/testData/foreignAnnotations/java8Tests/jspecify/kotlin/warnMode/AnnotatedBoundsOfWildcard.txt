@@ -2,7 +2,7 @@ package
 
 public fun main(/*0*/ aNotNullNotNullNotNull: Test<Derived, Derived, Derived>, /*1*/ aNotNullNotNullNull: Test<Derived, Derived, Derived?>, /*2*/ aNotNullNullNotNull: Test<Derived, Derived?, Derived>, /*3*/ aNotNullNullNull: Test<Derived, Derived?, Derived?>, /*4*/ aAnyNotNullNotNullNotNull: Test<kotlin.Any, kotlin.Any, kotlin.Any>, /*5*/ aAnyNotNullNotNullNull: Test<kotlin.Any, kotlin.Any, kotlin.Any?>, /*6*/ aAnyNotNullNullNotNull: Test<kotlin.Any, kotlin.Any?, kotlin.Any>, /*7*/ aAnyNotNullNullNull: Test<kotlin.Any, kotlin.Any?, kotlin.Any?>, /*8*/ b: AnnotatedBoundsOfWildcard): kotlin.Unit
 
-@org.jspecify.nullness.DefaultNonNull public open class AnnotatedBoundsOfWildcard {
+@org.jspecify.nullness.NullMarked public open class AnnotatedBoundsOfWildcard {
     public constructor AnnotatedBoundsOfWildcard()
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open fun extendsAsIs(/*0*/ a: Test<out @org.jspecify.nullness.NullnessUnspecified Base!, out @org.jspecify.nullness.NullnessUnspecified Base!, out @org.jspecify.nullness.NullnessUnspecified Base!>!): kotlin.Unit
@@ -30,14 +30,14 @@ public open class Derived : Base {
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }
 
-@org.jspecify.nullness.DefaultNonNull public open class Test</*0*/ T : kotlin.Any!, /*1*/ E : @org.jspecify.nullness.Nullable kotlin.Any!, /*2*/ F : @org.jspecify.nullness.NullnessUnspecified kotlin.Any!> {
+@org.jspecify.nullness.NullMarked public open class Test</*0*/ T : kotlin.Any!, /*1*/ E : @org.jspecify.nullness.Nullable kotlin.Any!, /*2*/ F : @org.jspecify.nullness.NullnessUnspecified kotlin.Any!> {
     public constructor Test</*0*/ T : kotlin.Any!, /*1*/ E : @org.jspecify.nullness.Nullable kotlin.Any!, /*2*/ F : @org.jspecify.nullness.NullnessUnspecified kotlin.Any!>()
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }
 
-@org.jspecify.nullness.DefaultNonNull public open class Use {
+@org.jspecify.nullness.NullMarked public open class Use {
     public constructor Use()
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int

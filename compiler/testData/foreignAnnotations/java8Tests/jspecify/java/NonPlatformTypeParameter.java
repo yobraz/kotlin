@@ -7,7 +7,7 @@ public class NonPlatformTypeParameter<T extends @Nullable Object> {
 
 class Test {}
 
-@DefaultNonNull
+@NullMarked
 class Use {
     public <T extends Test> void main(NonPlatformTypeParameter<@Nullable Object> a1, NonPlatformTypeParameter<Test> a2, T x) {
         a1.foo(null);
