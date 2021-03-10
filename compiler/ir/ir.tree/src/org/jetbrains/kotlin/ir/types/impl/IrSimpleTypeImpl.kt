@@ -32,7 +32,7 @@ class IrSimpleTypeImpl(
     ) : this(null, classifier, hasQuestionMark, arguments, annotations, abbreviation)
 
     override fun equals(other: Any?): Boolean =
-        other is IrSimpleTypeImpl &&
+        (other is IrSimpleType && other !is IrCapturedType) &&
                 FqNameEqualityChecker.areEqual(classifier, other.classifier) &&
                 hasQuestionMark == other.hasQuestionMark &&
                 arguments == other.arguments
