@@ -764,20 +764,23 @@ class CompileKotlinAgainstCustomBinariesTest : AbstractKotlinCompilerIntegration
         )
         val library15 = compileLibrary(
             "library15",
-            additionalOptions = listOf("-language-version", "1.5")
+            additionalOptions = listOf("-language-version", "1.5", "-api-version", "1.5"),
+            checkKotlinOutput = { output ->
+                KotlinTestUtils.assertEqualsToFile(File(testDataDirectory, "libraryOutput15.txt"), output)
+            }
         )
         compileKotlin(
             "expectActualLv14.kt",
             output = tmpdir,
             classpath = listOf(library14, library15),
-            additionalOptions = listOf("-language-version", "1.4", "-Xmulti-platform"),
+            additionalOptions = listOf("-language-version", "1.4", "-Xmulti-platform", "-Xskip-prerelease-check"),
             expectedFileName = "output14.txt",
         )
         compileKotlin(
             "expectActualLv15.kt",
             output = tmpdir,
             classpath = listOf(library14, library15),
-            additionalOptions = listOf("-language-version", "1.5", "-Xmulti-platform"),
+            additionalOptions = listOf("-language-version", "1.5", "-api-version", "1.5", "-Xmulti-platform", "-Xskip-prerelease-check"),
             expectedFileName = "output15.txt",
         )
     }
