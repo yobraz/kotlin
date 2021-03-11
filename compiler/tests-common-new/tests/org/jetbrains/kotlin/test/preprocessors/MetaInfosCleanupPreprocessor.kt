@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.test.preprocessors
 
-import org.jetbrains.kotlin.codeMetaInfo.clearTextFromDiagnosticMarkup
+import org.jetbrains.kotlin.test.codeMetaInfo.clearTextFromDiagnosticMarkup
 import org.jetbrains.kotlin.test.model.TestFile
 import org.jetbrains.kotlin.test.services.SourceFilePreprocessor
 import org.jetbrains.kotlin.test.services.TestServices

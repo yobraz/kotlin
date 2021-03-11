@@ -3,10 +3,10 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.codeMetaInfo.renderConfigurations
+package org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations
 
 import com.intellij.openapi.util.text.StringUtil
-import org.jetbrains.kotlin.codeMetaInfo.model.CodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 
 abstract class AbstractCodeMetaInfoRenderConfiguration(var renderParams: Boolean = true) {
     private val clickOrPressRegex = "Click or press (.*)to navigate".toRegex() // We have different hotkeys on different platforms

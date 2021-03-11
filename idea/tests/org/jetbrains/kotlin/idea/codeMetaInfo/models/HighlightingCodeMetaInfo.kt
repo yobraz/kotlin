@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.idea.codeMetaInfo.models
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
-import org.jetbrains.kotlin.codeMetaInfo.model.CodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.HighlightingRenderConfiguration
 
 class HighlightingCodeMetaInfo(

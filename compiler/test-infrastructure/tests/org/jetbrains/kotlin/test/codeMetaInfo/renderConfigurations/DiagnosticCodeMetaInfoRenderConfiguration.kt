@@ -3,11 +3,11 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.codeMetaInfo.renderConfigurations
+package org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations
 
 import org.jetbrains.kotlin.checkers.diagnostics.factories.DebugInfoDiagnosticFactory1
-import org.jetbrains.kotlin.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.codeMetaInfo.model.DiagnosticCodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.rendering.*
 

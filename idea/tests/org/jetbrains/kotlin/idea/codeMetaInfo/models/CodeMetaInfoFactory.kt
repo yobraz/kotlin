@@ -8,10 +8,10 @@ package org.jetbrains.kotlin.idea.codeMetaInfo.models
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import org.jetbrains.kotlin.checkers.diagnostics.ActualDiagnostic
-import org.jetbrains.kotlin.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.codeMetaInfo.model.DiagnosticCodeMetaInfo
-import org.jetbrains.kotlin.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderConfiguration
-import org.jetbrains.kotlin.codeMetaInfo.renderConfigurations.DiagnosticCodeMetaInfoRenderConfiguration
+import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderConfiguration
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.DiagnosticCodeMetaInfoRenderConfiguration
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.HighlightingRenderConfiguration
 import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.LineMarkerRenderConfiguration

@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.test.utils
 
-import org.jetbrains.kotlin.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.codeMetaInfo.model.ParsedCodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.model.ParsedCodeMetaInfo
 import org.jetbrains.kotlin.test.model.TestFile
 import org.jetbrains.kotlin.test.model.TestModule
 import org.jetbrains.kotlin.test.services.AdditionalMetaInfoProcessor

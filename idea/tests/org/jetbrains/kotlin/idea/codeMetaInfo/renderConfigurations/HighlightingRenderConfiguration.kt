@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations
 
-import org.jetbrains.kotlin.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderConfiguration
+import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderConfiguration
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingCodeMetaInfo
 
 open class HighlightingRenderConfiguration(

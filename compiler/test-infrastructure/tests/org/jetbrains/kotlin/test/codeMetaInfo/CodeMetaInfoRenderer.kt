@@ -3,10 +3,10 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.codeMetaInfo
+package org.jetbrains.kotlin.test.codeMetaInfo
 
 import com.intellij.util.containers.Stack
-import org.jetbrains.kotlin.codeMetaInfo.model.CodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import java.io.File
 
 object CodeMetaInfoRenderer {

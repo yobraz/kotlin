@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.test.frontend.classic.handlers
 
 import org.jetbrains.kotlin.checkers.utils.DiagnosticsRenderingConfiguration
-import org.jetbrains.kotlin.codeMetaInfo.model.DiagnosticCodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.diagnostics.Diagnostic

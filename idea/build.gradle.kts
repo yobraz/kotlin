@@ -114,6 +114,7 @@ dependencies {
     testCompileOnly(project(":kotlin-reflect-api")) // TODO: fix import (workaround for jps build)
     testCompile(project(":kotlin-test:kotlin-test-junit"))
     testCompile(projectTests(":compiler:tests-common"))
+    testCompile(projectTests(":compiler:test-infrastructure"))
     testCompile(projectTests(":idea:idea-test-framework")) { isTransitive = false }
     testImplementation(projectTests(":idea:idea-frontend-independent")) { isTransitive = false }
     testCompile(project(":idea:idea-jvm")) { isTransitive = false }

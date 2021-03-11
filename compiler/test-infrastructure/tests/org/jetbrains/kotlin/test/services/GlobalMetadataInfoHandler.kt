@@ -5,10 +5,10 @@
 
 package org.jetbrains.kotlin.test.services
 
-import org.jetbrains.kotlin.codeMetaInfo.CodeMetaInfoParser
-import org.jetbrains.kotlin.codeMetaInfo.CodeMetaInfoRenderer
-import org.jetbrains.kotlin.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.codeMetaInfo.model.ParsedCodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoParser
+import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.model.ParsedCodeMetaInfo
 import org.jetbrains.kotlin.test.model.TestFile
 import org.jetbrains.kotlin.test.model.TestModule
 

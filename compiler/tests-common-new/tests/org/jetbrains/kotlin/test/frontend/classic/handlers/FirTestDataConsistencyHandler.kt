@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.test.frontend.classic.handlers
 
-import org.jetbrains.kotlin.codeMetaInfo.clearTextFromDiagnosticMarkup
+import org.jetbrains.kotlin.test.codeMetaInfo.clearTextFromDiagnosticMarkup
 import org.jetbrains.kotlin.test.WrappedException
 import org.jetbrains.kotlin.test.directives.FirDiagnosticsDirectives
 import org.jetbrains.kotlin.test.directives.model.DirectivesContainer

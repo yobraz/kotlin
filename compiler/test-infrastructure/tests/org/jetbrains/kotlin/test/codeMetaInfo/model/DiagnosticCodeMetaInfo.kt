@@ -3,10 +3,10 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.codeMetaInfo.model
+package org.jetbrains.kotlin.test.codeMetaInfo.model
 
 import com.intellij.openapi.util.TextRange
-import org.jetbrains.kotlin.codeMetaInfo.renderConfigurations.DiagnosticCodeMetaInfoRenderConfiguration
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.DiagnosticCodeMetaInfoRenderConfiguration
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 
 class DiagnosticCodeMetaInfo(
