@@ -49,7 +49,8 @@ abstract class ConstantValueGenerator(
         realType: KotlinType?,
         varargElementType: KotlinType? = null
     ): IrExpression? {
-        val constantKtType = realType ?: constantValue.getType(moduleDescriptor)
+        val constantValueType = constantValue.getType(moduleDescriptor)
+        val constantKtType = realType ?: constantValueType
         val constantType = constantKtType.toIrType()
 
         return when (constantValue) {
@@ -69,7 +70,7 @@ abstract class ConstantValueGenerator(
             is UShortValue -> IrConstImpl.short(startOffset, endOffset, constantType, constantValue.value)
 
             is ArrayValue -> {
-                val arrayElementType = varargElementType ?: constantValue.getType(moduleDescriptor).getArrayElementType()
+                val arrayElementType = varargElementType ?: constantValueType.getArrayElementType()
                 IrVarargImpl(
                     startOffset, endOffset,
                     constantType,
@@ -82,7 +83,7 @@ abstract class ConstantValueGenerator(
 
             is EnumValue -> {
                 val enumEntryDescriptor =
-                    constantKtType.memberScope.getContributedClassifier(constantValue.enumEntryName, NoLookupLocation.FROM_BACKEND)
+                    constantValueType.memberScope.getContributedClassifier(constantValue.enumEntryName, NoLookupLocation.FROM_BACKEND)
                         ?: throw AssertionError("No such enum entry ${constantValue.enumEntryName} in $constantType")
                 if (enumEntryDescriptor !is ClassDescriptor) {
                     throw AssertionError("Enum entry $enumEntryDescriptor should be a ClassDescriptor")
