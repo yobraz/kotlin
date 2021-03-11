@@ -18,10 +18,7 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
-import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeBuilder
-import org.jetbrains.kotlin.ir.types.impl.buildSimpleType
-import org.jetbrains.kotlin.ir.types.impl.buildTypeProjection
-import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
+import org.jetbrains.kotlin.ir.types.impl.*
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrBlock as ProtoBlock
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrBlockBody as ProtoBlockBody
@@ -194,11 +191,13 @@ class IrBodyDeserializer(
 
     fun deserializeAnnotation(proto: ProtoConstructorCall): IrConstructorCall {
 
-        class IrLazyAnnotationType : IrSimpleType {
+        // TODO: probably a bit more abstraction possible here up to `IrMemberAccessExpression`
+        // but at this point further complexization looks overengineered
+        class IrAnnotationType : IrDelegatedSimpleType() {
 
             var irConstructorCall: IrConstructorCall? = null
 
-            private val delegatedType: IrSimpleType by lazy { resolveType() }
+            override val delegate: IrSimpleType by lazy { resolveType() }
 
             private fun resolveType(): IrSimpleType {
                 val constructorCall = irConstructorCall ?: error("irConstructorCall should not be null at this stage")
@@ -233,25 +232,9 @@ class IrBodyDeserializer(
                 val substitutor = IrTypeSubstitutor(typeParameterSymbols, typeArguments, builtIns)
                 return substitutor.substitute(rawType) as IrSimpleType
             }
-
-            override val classifier: IrClassifierSymbol
-                get() = delegatedType.classifier
-            override val hasQuestionMark: Boolean
-                get() = delegatedType.hasQuestionMark
-            override val arguments: List<IrTypeArgument>
-                get() = delegatedType.arguments
-            override val abbreviation: IrTypeAbbreviation?
-                get() = delegatedType.abbreviation
-            override val annotations: List<IrConstructorCall>
-                get() = delegatedType.annotations
-
-            override fun equals(other: Any?): Boolean = delegatedType == other
-
-            override fun hashCode(): Int = delegatedType.hashCode()
-
         }
 
-        val irType = IrLazyAnnotationType()
+        val irType = IrAnnotationType()
         // TODO: use real coordinates
         return deserializeConstructorCall(proto, 0, 0, irType).also { irType.irConstructorCall = it }
     }
