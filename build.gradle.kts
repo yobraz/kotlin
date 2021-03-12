@@ -334,7 +334,9 @@ extra["tasksWithWarnings"] = listOf(
     ":kotlin-scripting-compiler:compileKotlin",
     ":plugins:uast-kotlin:compileKotlin",
     ":plugins:uast-kotlin:compileTestKotlin",
-    ":plugins:uast-kotlin-idea:compileKotlin"
+    ":plugins:uast-kotlin-idea:compileKotlin",
+    ":compiler:backend:compileKotlin",
+    ":compiler:backend.jvm:compileKotlin"
 )
 
 val tasksWithWarnings: List<String> by extra
