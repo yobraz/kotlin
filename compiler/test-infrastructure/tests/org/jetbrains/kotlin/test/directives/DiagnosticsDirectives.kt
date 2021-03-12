@@ -64,4 +64,10 @@ object DiagnosticsDirectives : SimpleDirectivesContainer() {
               only if they are defined in testdata.
         """.trimIndent()
     )
+
+    val RENDER_DIAGNOSTICS_MESSAGES by directive(
+        description = """
+            Render diagnostics arguments additionally to ID of diagnostic itself
+        """.trimIndent()
+    )
 }
