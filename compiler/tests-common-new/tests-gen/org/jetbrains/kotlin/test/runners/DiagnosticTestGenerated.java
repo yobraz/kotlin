@@ -15096,12 +15096,6 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
             }
 
             @Test
-            @TestMetadata("varPropertyWithInlineClassReceiver.kt")
-            public void testVarPropertyWithInlineClassReceiver() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/inlineClasses/varPropertyWithInlineClassReceiver.kt");
-            }
-
-            @Test
             @TestMetadata("varargsOnParametersOfInlineClassType.kt")
             public void testVarargsOnParametersOfInlineClassType() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/inlineClasses/varargsOnParametersOfInlineClassType.kt");
