@@ -1,15 +1,10 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
 package org.jetbrains.kotlin.test.directives
 
-import org.jetbrains.kotlin.test.backend.handlers.JvmBackendDiagnosticsHandler
-import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.USE_JAVAC
-import org.jetbrains.kotlin.test.directives.model.DirectiveApplicability
-import org.jetbrains.kotlin.test.directives.model.DirectiveApplicability.Any
-import org.jetbrains.kotlin.test.directives.model.DirectiveApplicability.Global
 import org.jetbrains.kotlin.test.directives.model.SimpleDirectivesContainer
 
 object DiagnosticsDirectives : SimpleDirectivesContainer() {
@@ -51,7 +46,7 @@ object DiagnosticsDirectives : SimpleDirectivesContainer() {
     val REPORT_JVM_DIAGNOSTICS_ON_FRONTEND by directive(
         description = """
             Collect additional jvm specific diagnostics on frontend
-            Note that this directive is not needed if ${JvmBackendDiagnosticsHandler::class} 
+            Note that this directive is not needed if org.jetbrains.kotlin.test.backend.handlers.JvmBackendDiagnosticsHandler 
               is enabled in test 
         """.trimIndent()
     )
