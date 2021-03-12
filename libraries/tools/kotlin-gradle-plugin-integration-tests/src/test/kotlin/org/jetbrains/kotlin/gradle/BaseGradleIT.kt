@@ -310,6 +310,15 @@ abstract class BaseGradleIT {
         }
     }
 
+    fun <T> measure(description: String, action: () -> T): T {
+        val start = System.currentTimeMillis()
+        return try {
+            action.invoke()
+        } finally {
+            println("[MEASURE]\t${System.currentTimeMillis() - start}\t$description")
+        }
+    }
+
     // Basically the same as `Project.build`, tells gradle to wait for debug on 5005 port
     // Faster to type than `project.build("-Dorg.gradle.debug=true")` or `project.build(options = defaultBuildOptions().copy(debug = true))`
     @Deprecated("Use, but do not commit!")
@@ -403,14 +412,18 @@ abstract class BaseGradleIT {
     }
 
     fun CompiledProject.assertContains(vararg expected: String, ignoreCase: Boolean = false): CompiledProject {
-        for (str in expected) {
-            assertTrue(output.contains(str.normalize(), ignoreCase), "Output should contain '$str'")
+        measure("assertContains($expected, $ignoreCase)") {
+            for (str in expected) {
+                assertTrue(output.contains(str.normalize(), ignoreCase), "Output should contain '$str'")
+            }
         }
         return this
     }
 
     fun CompiledProject.assertContainsRegex(expected: Regex): CompiledProject {
-        assertTrue(expected.containsMatchIn(output), "Output should contain pattern '$expected'")
+        measure("assertContainsRegex($expected)") {
+            assertTrue(expected.containsMatchIn(output), "Output should contain pattern '$expected'")
+        }
         return this
     }
 
@@ -423,8 +436,10 @@ abstract class BaseGradleIT {
     }
 
     fun CompiledProject.assertSubstringCount(substring: String, expectedCount: Int) {
-        val actualCount = Pattern.quote(substring).toRegex().findAll(output).count()
-        assertEquals(expectedCount, actualCount, "Number of occurrences in output for substring '$substring'")
+        measure("assertSubstringCount($substring)") {
+            val actualCount = Pattern.quote(substring).toRegex().findAll(output).count()
+            assertEquals(expectedCount, actualCount, "Number of occurrences in output for substring '$substring'")
+        }
     }
 
     fun CompiledProject.checkKotlinGradleBuildServices() {
@@ -433,22 +448,28 @@ abstract class BaseGradleIT {
     }
 
     fun CompiledProject.assertNotContains(vararg expected: String): CompiledProject {
-        for (str in expected) {
-            assertFalse(output.contains(str.normalize()), "Output should not contain '$str'")
+        measure("assertNotContains($expected") {
+            for (str in expected) {
+                assertFalse(output.contains(str.normalize()), "Output should not contain '$str'")
+            }
         }
         return this
     }
 
     fun CompiledProject.assertNotContains(regex: Regex) {
-        assertNull(regex.find(output), "Output should not contain '$regex'")
+        measure("assertNotContains($regex)") {
+            assertNull(regex.find(output), "Output should not contain '$regex'")
+        }
     }
 
     fun CompiledProject.assertNoWarnings() {
-        val warnings = "w: .*".toRegex().findAll(output).map { it.groupValues[0] }
+        measure("assertNoWarnings") {
+            val warnings = "w: .*".toRegex().findAll(output).map { it.groupValues[0] }
 
-        if (warnings.any()) {
-            val message = (listOf("Output should not contain any warnings:") + warnings).joinToString(SYSTEM_LINE_SEPARATOR)
-            throw IllegalStateException(message)
+            if (warnings.any()) {
+                val message = (listOf("Output should not contain any warnings:") + warnings).joinToString(SYSTEM_LINE_SEPARATOR)
+                throw IllegalStateException(message)
+            }
         }
     }
 
@@ -515,7 +536,9 @@ abstract class BaseGradleIT {
     }
 
     fun CompiledProject.findTasksByPattern(pattern: String): Set<String> {
-        return "task '($pattern)'".toRegex().findAll(output).mapTo(HashSet()) { it.groupValues[1] }
+        return measure("findTasksByPattern($pattern)") {
+            "task '($pattern)'".toRegex().findAll(output).mapTo(HashSet()) { it.groupValues[1] }
+        }
     }
 
     fun CompiledProject.assertTasksExecuted(tasks: Iterable<String>) {
@@ -631,7 +654,9 @@ Finished executing task ':$taskName'|
 )
 """.trimIndent().replace("\n", "").toRegex()
 
-        return taskOutputRegex.find(output)?.run { groupValues[1] } ?: error("Cannot find output for task $taskName")
+        return measure("getOutputForTask($taskName)") {
+            taskOutputRegex.find(output)?.run { groupValues[1] } ?: error("Cannot find output for task $taskName")
+        }
     }
 
     fun CompiledProject.assertCompiledKotlinSources(
