@@ -57,7 +57,7 @@ class DeclarationsDumpHandler(
                     testServices.moduleStructure.modules.any { it.languageVersionSettings.supportsFeature(LanguageFeature.NewInference) } -> ".ni"
 
             JvmEnvironmentConfigurationDirectives.USE_JAVAC in allDirectives
-                    && DiagnosticsDirectives.JAVAC_EXPECTED_FILE in allDirectives -> ".javac"
+                    && JvmEnvironmentConfigurationDirectives.JAVAC_EXPECTED_FILE in allDirectives -> ".javac"
 
             else -> ""
         }

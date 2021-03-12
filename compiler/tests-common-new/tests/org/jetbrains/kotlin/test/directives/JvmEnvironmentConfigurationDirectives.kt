@@ -90,4 +90,12 @@ object JvmEnvironmentConfigurationDirectives : SimpleDirectivesContainer() {
     val USE_OLD_INLINE_CLASSES_MANGLING_SCHEME by directive(
         description = "Enable old mangling scheme for inline classes"
     )
+
+    val SKIP_JAVAC by directive(
+        description = "Skip this test if $USE_JAVAC enabled"
+    )
+
+    val JAVAC_EXPECTED_FILE by directive(
+        description = "Dump descriptors to .javac.txt file if $USE_JAVAC enabled"
+    )
 }

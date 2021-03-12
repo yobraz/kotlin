@@ -42,14 +42,6 @@ object DiagnosticsDirectives : SimpleDirectivesContainer() {
         description = "Create separate .ni.txt file for declarations dump with new inference enabled"
     )
 
-    val SKIP_JAVAC by directive(
-        description = "Skip this test if $USE_JAVAC enabled"
-    )
-
-    val JAVAC_EXPECTED_FILE by directive(
-        description = "Dump descriptors to .javac.txt file if $USE_JAVAC enabled"
-    )
-
     val MARK_DYNAMIC_CALLS by directive(
         description = """
             Render debug info about dynamic calls
