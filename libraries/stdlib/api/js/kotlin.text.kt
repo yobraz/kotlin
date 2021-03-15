@@ -1,6 +1,9 @@
 @kotlin.SinceKotlin(version = "1.2")
 public val kotlin.String.Companion.CASE_INSENSITIVE_ORDER: kotlin.Comparator<kotlin.String> { get; }
 
+@kotlin.SinceKotlin(version = "1.5")
+public val kotlin.Char.category: kotlin.text.CharCategory { get; }
+
 public val kotlin.CharSequence.indices: kotlin.ranges.IntRange { get; }
 
 public val kotlin.CharSequence.lastIndex: kotlin.Int { get; }
@@ -160,6 +163,12 @@ public operator fun kotlin.CharSequence.contains(other: kotlin.CharSequence, ign
 @kotlin.internal.InlineOnly
 public inline operator fun kotlin.CharSequence.contains(regex: kotlin.text.Regex): kotlin.Boolean
 
+@kotlin.SinceKotlin(version = "1.5")
+public infix fun kotlin.CharSequence?.contentEquals(other: kotlin.CharSequence?): kotlin.Boolean
+
+@kotlin.SinceKotlin(version = "1.5")
+public fun kotlin.CharSequence?.contentEquals(other: kotlin.CharSequence?, ignoreCase: kotlin.Boolean): kotlin.Boolean
+
 @kotlin.internal.InlineOnly
 public inline fun kotlin.CharSequence.count(): kotlin.Int
 
@@ -281,6 +290,14 @@ public fun kotlin.CharSequence.first(): kotlin.Char
 
 public inline fun kotlin.CharSequence.first(predicate: (kotlin.Char) -> kotlin.Boolean): kotlin.Char
 
+@kotlin.SinceKotlin(version = "1.5")
+@kotlin.internal.InlineOnly
+public inline fun <R : kotlin.Any> kotlin.CharSequence.firstNotNullOf(transform: (kotlin.Char) -> R?): R
+
+@kotlin.SinceKotlin(version = "1.5")
+@kotlin.internal.InlineOnly
+public inline fun <R : kotlin.Any> kotlin.CharSequence.firstNotNullOfOrNull(transform: (kotlin.Char) -> R?): R?
+
 public fun kotlin.CharSequence.firstOrNull(): kotlin.Char?
 
 public inline fun kotlin.CharSequence.firstOrNull(predicate: (kotlin.Char) -> kotlin.Boolean): kotlin.Char?
@@ -361,12 +378,30 @@ public inline fun kotlin.text.StringBuilder.insertRange(index: kotlin.Int, value
 
 public fun kotlin.CharSequence.isBlank(): kotlin.Boolean
 
+@kotlin.SinceKotlin(version = "1.5")
+public fun kotlin.Char.isDefined(): kotlin.Boolean
+
+@kotlin.SinceKotlin(version = "1.5")
+public fun kotlin.Char.isDigit(): kotlin.Boolean
+
 @kotlin.internal.InlineOnly
 public inline fun kotlin.CharSequence.isEmpty(): kotlin.Boolean
 
 public fun kotlin.Char.isHighSurrogate(): kotlin.Boolean
 
+@kotlin.SinceKotlin(version = "1.5")
+public fun kotlin.Char.isISOControl(): kotlin.Boolean
+
+@kotlin.SinceKotlin(version = "1.5")
+public fun kotlin.Char.isLetter(): kotlin.Boolean
+
+@kotlin.SinceKotlin(version = "1.5")
+public fun kotlin.Char.isLetterOrDigit(): kotlin.Boolean
+
 public fun kotlin.Char.isLowSurrogate(): kotlin.Boolean
+
+@kotlin.SinceKotlin(version = "1.5")
+public fun kotlin.Char.isLowerCase(): kotlin.Boolean
 
 @kotlin.internal.InlineOnly
 public inline fun kotlin.CharSequence.isNotBlank(): kotlin.Boolean
@@ -381,6 +416,12 @@ public inline fun kotlin.CharSequence?.isNullOrBlank(): kotlin.Boolean
 public inline fun kotlin.CharSequence?.isNullOrEmpty(): kotlin.Boolean
 
 public fun kotlin.Char.isSurrogate(): kotlin.Boolean
+
+@kotlin.SinceKotlin(version = "1.5")
+public fun kotlin.Char.isTitleCase(): kotlin.Boolean
+
+@kotlin.SinceKotlin(version = "1.5")
+public fun kotlin.Char.isUpperCase(): kotlin.Boolean
 
 public fun kotlin.Char.isWhitespace(): kotlin.Boolean
 
@@ -894,6 +935,14 @@ public inline fun kotlin.CharSequence.takeWhile(predicate: (kotlin.Char) -> kotl
 
 public inline fun kotlin.String.takeWhile(predicate: (kotlin.Char) -> kotlin.Boolean): kotlin.String
 
+@kotlin.SinceKotlin(version = "1.5")
+@kotlin.ExperimentalStdlibApi
+public fun kotlin.Char.titlecase(): kotlin.String
+
+@kotlin.SinceKotlin(version = "1.5")
+@kotlin.ExperimentalStdlibApi
+public fun kotlin.Char.titlecaseChar(): kotlin.Char
+
 @kotlin.Deprecated(message = "Use Kotlin compiler 1.4 to avoid deprecation warning.")
 @kotlin.DeprecatedSinceKotlin(hiddenSince = "1.4")
 @kotlin.internal.InlineOnly
@@ -901,6 +950,12 @@ public inline fun kotlin.String.toBoolean(): kotlin.Boolean
 
 @kotlin.SinceKotlin(version = "1.4")
 public fun kotlin.String?.toBoolean(): kotlin.Boolean
+
+@kotlin.SinceKotlin(version = "1.5")
+public fun kotlin.String.toBooleanStrict(): kotlin.Boolean
+
+@kotlin.SinceKotlin(version = "1.5")
+public fun kotlin.String.toBooleanStrictOrNull(): kotlin.Boolean?
 
 public fun kotlin.String.toByte(): kotlin.Byte
 
@@ -1176,6 +1231,76 @@ public interface Appendable {
     public abstract fun append(value: kotlin.CharSequence?): kotlin.text.Appendable
 
     public abstract fun append(value: kotlin.CharSequence?, startIndex: kotlin.Int, endIndex: kotlin.Int): kotlin.text.Appendable
+}
+
+@kotlin.SinceKotlin(version = "1.5")
+public final enum class CharCategory : kotlin.Enum<kotlin.text.CharCategory> {
+    enum entry UNASSIGNED
+
+    enum entry UPPERCASE_LETTER
+
+    enum entry LOWERCASE_LETTER
+
+    enum entry TITLECASE_LETTER
+
+    enum entry MODIFIER_LETTER
+
+    enum entry OTHER_LETTER
+
+    enum entry NON_SPACING_MARK
+
+    enum entry ENCLOSING_MARK
+
+    enum entry COMBINING_SPACING_MARK
+
+    enum entry DECIMAL_DIGIT_NUMBER
+
+    enum entry LETTER_NUMBER
+
+    enum entry OTHER_NUMBER
+
+    enum entry SPACE_SEPARATOR
+
+    enum entry LINE_SEPARATOR
+
+    enum entry PARAGRAPH_SEPARATOR
+
+    enum entry CONTROL
+
+    enum entry FORMAT
+
+    enum entry PRIVATE_USE
+
+    enum entry SURROGATE
+
+    enum entry DASH_PUNCTUATION
+
+    enum entry START_PUNCTUATION
+
+    enum entry END_PUNCTUATION
+
+    enum entry CONNECTOR_PUNCTUATION
+
+    enum entry OTHER_PUNCTUATION
+
+    enum entry MATH_SYMBOL
+
+    enum entry CURRENCY_SYMBOL
+
+    enum entry MODIFIER_SYMBOL
+
+    enum entry OTHER_SYMBOL
+
+    enum entry INITIAL_QUOTE_PUNCTUATION
+
+    enum entry FINAL_QUOTE_PUNCTUATION
+
+    public final val code: kotlin.String { get; }
+
+    public final operator fun contains(char: kotlin.Char): kotlin.Boolean
+
+    public companion object of CharCategory {
+    }
 }
 
 @kotlin.SinceKotlin(version = "1.4")

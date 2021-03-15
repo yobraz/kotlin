@@ -5,11 +5,17 @@
 
 package org.jetbrains.kotlin.descriptors.commonizer.cir
 
-import org.jetbrains.kotlin.descriptors.commonizer.BuiltInsProvider
 import org.jetbrains.kotlin.descriptors.commonizer.CommonizerTarget
 
 interface CirRoot : CirDeclaration {
     val target: CommonizerTarget
-    val builtInsClass: String
-    val builtInsProvider: BuiltInsProvider
+
+    companion object {
+        @Suppress("NOTHING_TO_INLINE")
+        inline fun create(target: CommonizerTarget): CirRoot = CirRootImpl(target)
+    }
 }
+
+data class CirRootImpl(
+    override val target: CommonizerTarget
+) : CirRoot

@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.idea.frontend.api.ValidityToken
 import org.jetbrains.kotlin.idea.frontend.api.fir.KtSymbolByFirBuilder
+import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.annotations.KtFirAnnotationCall
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.FirRefWithValidityCheck
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.cached
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
@@ -19,9 +20,10 @@ import org.jetbrains.kotlin.idea.frontend.api.types.KtType
 internal class KtFirTypeAndAnnotations<T : FirDeclaration>(
     private val containingDeclaration: FirRefWithValidityCheck<T>,
     typeResolvePhase: FirResolvePhase,
-    private val builder: KtSymbolByFirBuilder,
+    _builder: KtSymbolByFirBuilder,
     private val typeRef: (T) -> FirTypeRef,
 ) : KtTypeAndAnnotations() {
+    private val builder by weakRef(_builder)
 
     override val token: ValidityToken get() = containingDeclaration.token
 
@@ -75,3 +77,10 @@ internal fun FirRefWithValidityCheck<FirCallableDeclaration<*>>.receiverTypeAndA
         }
     }
 }
+
+internal fun FirRefWithValidityCheck<FirCallableMemberDeclaration<*>>.dispatchReceiverTypeAndAnnotations(builder: KtSymbolByFirBuilder) =
+    withFir { fir ->
+        fir.dispatchReceiverType?.let {
+            builder.buildKtType(it)
+        }
+    }

@@ -404,7 +404,7 @@ class LocalDeclarationsLowering(
 
                 val oldCallee = expression.symbol.owner
                 val newCallee = oldCallee.transformed ?: return expression
-                val newReflectionTarget = expression.reflectionTarget?.run { owner.transformed }
+                val newReflectionTarget = expression.reflectionTarget?.run { owner.transformed ?: owner }
 
                 val typeParameters = if (newCallee is IrConstructor)
                     newCallee.parentAsClass.typeParameters
@@ -447,7 +447,7 @@ class LocalDeclarationsLowering(
             }
 
             override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
-                if (declaration is IrSymbolOwner && declaration in transformedDeclarations) {
+                if (declaration in transformedDeclarations) {
                     TODO()
                 }
                 return super.visitDeclaration(declaration)
@@ -725,6 +725,8 @@ class LocalDeclarationsLowering(
                 capturedValues, localClassContext, oldDeclaration, newDeclaration
             )
             newDeclaration.recordTransformedValueParameters(constructorContext)
+
+            newDeclaration.annotations = oldDeclaration.annotations
 
             newDeclaration.metadata = oldDeclaration.metadata
 

@@ -5,9 +5,6 @@
 
 package kotlin.text
 
-// actually \s is enough to match all whitespace, but \xA0 added because of different regexp behavior of Rhino used in Selenium tests
-public actual fun Char.isWhitespace(): Boolean = toString().matches("[\\s\\xA0]")
-
 /**
  * Converts this character to lower case using Unicode mapping rules of the invariant locale.
  */
@@ -83,6 +80,19 @@ public actual fun Char.uppercaseChar(): Char {
 public actual inline fun Char.uppercase(): String = toString().asDynamic().toUpperCase() as String
 
 /**
+ * Converts this character to title case using Unicode mapping rules of the invariant locale.
+ *
+ * This function performs one-to-one character mapping.
+ * To support one-to-many character mapping use the [titlecase] function.
+ * If this character has no mapping equivalent, the result of calling [uppercaseChar] is returned.
+ *
+ * @sample samples.text.Chars.titlecase
+ */
+@SinceKotlin("1.5")
+@ExperimentalStdlibApi
+public actual fun Char.titlecaseChar(): Char = titlecaseCharImpl()
+
+/**
  * Returns `true` if this character is a Unicode high-surrogate code unit (also known as leading-surrogate code unit).
  */
 public actual fun Char.isHighSurrogate(): Boolean = this in Char.MIN_HIGH_SURROGATE..Char.MAX_HIGH_SURROGATE
@@ -91,3 +101,151 @@ public actual fun Char.isHighSurrogate(): Boolean = this in Char.MIN_HIGH_SURROG
  * Returns `true` if this character is a Unicode low-surrogate code unit (also known as trailing-surrogate code unit).
  */
 public actual fun Char.isLowSurrogate(): Boolean = this in Char.MIN_LOW_SURROGATE..Char.MAX_LOW_SURROGATE
+
+/**
+ * Returns the Unicode general category of this character.
+ */
+@SinceKotlin("1.5")
+public actual val Char.category: CharCategory
+    get() = CharCategory.valueOf(getCategoryValue())
+
+/**
+ * Returns `true` if this character (Unicode code point) is defined in Unicode.
+ *
+ * A character is considered to be defined in Unicode if its [category] is not [CharCategory.UNASSIGNED].
+ */
+@SinceKotlin("1.5")
+public actual fun Char.isDefined(): Boolean {
+    if (this < '\u0080') {
+        return true
+    }
+    return getCategoryValue() != CharCategory.UNASSIGNED.value
+}
+
+/**
+ * Returns `true` if this character is a letter.
+ *
+ * A character is considered to be a letter if its [category] is [CharCategory.UPPERCASE_LETTER],
+ * [CharCategory.LOWERCASE_LETTER], [CharCategory.TITLECASE_LETTER], [CharCategory.MODIFIER_LETTER], or [CharCategory.OTHER_LETTER].
+ *
+ * @sample samples.text.Chars.isLetter
+ */
+@SinceKotlin("1.5")
+public actual fun Char.isLetter(): Boolean {
+    if (this in 'a'..'z' || this in 'A'..'Z') {
+        return true
+    }
+    if (this < '\u0080') {
+        return false
+    }
+    return isLetterImpl()
+}
+
+/**
+ * Returns `true` if this character is a letter or digit.
+ *
+ * @see isLetter
+ * @see isDigit
+ *
+ * @sample samples.text.Chars.isLetterOrDigit
+ */
+@SinceKotlin("1.5")
+public actual fun Char.isLetterOrDigit(): Boolean {
+    if (this in 'a'..'z' || this in 'A'..'Z' || this in '0'..'9') {
+        return true
+    }
+    if (this < '\u0080') {
+        return false
+    }
+
+    return isDigitImpl() || isLetterImpl()
+}
+
+/**
+ * Returns `true` if this character is a digit.
+ *
+ * A character is considered to be a digit if its [category] is [CharCategory.DECIMAL_DIGIT_NUMBER].
+ *
+ * @sample samples.text.Chars.isDigit
+ */
+@SinceKotlin("1.5")
+public actual fun Char.isDigit(): Boolean {
+    if (this in '0'..'9') {
+        return true
+    }
+    if (this < '\u0080') {
+        return false
+    }
+    return isDigitImpl()
+}
+
+/**
+ * Returns `true` if this character is an upper case letter.
+ *
+ * A character is considered to be an upper case letter if its [category] is [CharCategory.UPPERCASE_LETTER].
+ *
+ * @sample samples.text.Chars.isUpperCase
+ */
+@SinceKotlin("1.5")
+public actual fun Char.isUpperCase(): Boolean {
+    if (this in 'A'..'Z') {
+        return true
+    }
+    if (this < '\u0080') {
+        return false
+    }
+    return isUpperCaseImpl()
+}
+
+/**
+ * Returns `true` if this character is a lower case letter.
+ *
+ * A character is considered to be a lower case letter if its [category] is [CharCategory.LOWERCASE_LETTER].
+ *
+ * @sample samples.text.Chars.isLowerCase
+ */
+@SinceKotlin("1.5")
+public actual fun Char.isLowerCase(): Boolean {
+    if (this in 'a'..'z') {
+        return true
+    }
+    if (this < '\u0080') {
+        return false
+    }
+    return isLowerCaseImpl()
+}
+
+/**
+ * Returns `true` if this character is a title case letter.
+ *
+ * A character is considered to be a title case letter if its [category] is [CharCategory.TITLECASE_LETTER].
+ *
+ * @sample samples.text.Chars.isTitleCase
+ */
+@SinceKotlin("1.5")
+public actual fun Char.isTitleCase(): Boolean {
+    if (this < '\u0080') {
+        return false
+    }
+    return getCategoryValue() == CharCategory.TITLECASE_LETTER.value
+}
+
+/**
+ * Returns `true` if this character is an ISO control character.
+ *
+ * A character is considered to be an ISO control character if its [category] is [CharCategory.CONTROL].
+ *
+ * @sample samples.text.Chars.isISOControl
+ */
+@SinceKotlin("1.5")
+public actual fun Char.isISOControl(): Boolean {
+    return this <= '\u001F' || this in '\u007F'..'\u009F'
+}
+
+/**
+ * Determines whether a character is whitespace according to the Unicode standard.
+ * Returns `true` if the character is whitespace.
+ *
+ * @sample samples.text.Chars.isWhitespace
+ */
+public actual fun Char.isWhitespace(): Boolean = isWhitespaceImpl()

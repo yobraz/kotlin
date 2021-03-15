@@ -6,14 +6,11 @@
 package org.jetbrains.kotlin.test
 
 import com.intellij.openapi.Disposable
-import org.jetbrains.kotlin.test.directives.ConfigurationDirectives
-import org.jetbrains.kotlin.test.directives.LanguageSettingsDirectives
 import org.jetbrains.kotlin.test.directives.model.DirectivesContainer
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 import org.jetbrains.kotlin.test.model.*
 import org.jetbrains.kotlin.test.services.MetaTestConfigurator
 import org.jetbrains.kotlin.test.services.ModuleStructureExtractor
-import org.jetbrains.kotlin.test.services.SourceFilePreprocessor
 import org.jetbrains.kotlin.test.services.TestServices
 
 typealias Constructor<T> = (TestServices) -> T
@@ -45,3 +42,8 @@ abstract class TestConfiguration {
     abstract fun getAllHandlers(): List<AnalysisHandler<*>>
 }
 
+// ---------------------------- Utils ----------------------------
+
+fun <T, R> ((TestServices, T) -> R).bind(value: T): Constructor<R> {
+    return { this.invoke(it, value) }
+}

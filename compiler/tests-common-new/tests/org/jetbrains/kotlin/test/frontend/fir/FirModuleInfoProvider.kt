@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.test.frontend.fir
 import org.jetbrains.kotlin.fir.java.FirProjectSessionProvider
 import org.jetbrains.kotlin.fir.session.FirJvmModuleInfo
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.test.model.DependencyKind
 import org.jetbrains.kotlin.test.services.TestService
 import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.dependencyProvider
@@ -24,19 +25,16 @@ class FirModuleInfoProvider(
     fun convertToFirModuleInfo(module: TestModule): FirJvmModuleInfo {
         return firModuleInfoByModule.getOrPut(module) {
             val dependencies = mutableListOf(builtinsModuleInfoForModule(module))
-            module.dependencies.mapTo(dependencies) {
+            module.dependencies.filter { it.kind == DependencyKind.Source }.mapTo(dependencies) {
                 convertToFirModuleInfo(testServices.dependencyProvider.getTestModule(it.moduleName))
             }
-            FirJvmModuleInfo(
-                module.name,
-                dependencies
-            )
+            FirJvmModuleInfo(Name.identifier(module.name), dependencies)
         }
     }
 
     fun builtinsModuleInfoForModule(module: TestModule): FirJvmModuleInfo {
         return builtinsByModule.getOrPut(module) {
-            FirJvmModuleInfo(Name.special("<built-ins>"), emptyList())
+            FirJvmModuleInfo(Name.special("<built-ins>"))
         }
     }
 }

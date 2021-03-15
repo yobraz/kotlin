@@ -15,6 +15,7 @@
  */
 package org.jetbrains.kotlin.idea.codeInsight.gradle
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.application.WriteAction
@@ -31,10 +32,12 @@ import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.projectRoots.impl.ProjectJdkTableImpl
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -122,7 +125,7 @@ abstract class GradleImportingTestCase : ExternalSystemImportingTestCase() {
             "-Xmx256m -XX:MaxPermSize=64m"
         else ->
             // 128M should be enough for gradle 5.0+ (leak is fixed), and <4.0 (amount of tests is less)
-            "-Xms128M -Xmx192m -XX:MaxPermSize=64m"
+            "-Xms128M -Xmx256m -XX:MaxPermSize=64m"
     }
 
     override fun setUp() {
@@ -140,7 +143,7 @@ abstract class GradleImportingTestCase : ExternalSystemImportingTestCase() {
             val jdk = SdkConfigurationUtil.setupSdk(arrayOfNulls(0), jdkHomeDir, JavaSdk.getInstance(), true, null, GRADLE_JDK_NAME)
             TestCase.assertNotNull("Cannot create JDK for $myJdkHome", jdk)
             if (!jdkTable.allJdks.contains(jdk)) {
-                jdkTable.addJdk(jdk!!, testRootDisposable)
+                (jdkTable as ProjectJdkTableImpl).addTestJdk(jdk!!, testRootDisposable)
                 ProjectRootManager.getInstance(myProject).projectSdk = jdk
             }
             FileTypeManager.getInstance().associateExtension(GroovyFileType.GROOVY_FILE_TYPE, "gradle")
@@ -176,7 +179,10 @@ abstract class GradleImportingTestCase : ExternalSystemImportingTestCase() {
             ThrowableRunnable {
                 runWrite {
                     Arrays.stream(ProjectJdkTable.getInstance().allJdks).forEach { jdk: Sdk ->
-                        ProjectJdkTable.getInstance().removeJdk(jdk)
+                        (ProjectJdkTable.getInstance() as ProjectJdkTableImpl).removeTestJdk(jdk)
+                        if (jdk is Disposable) {
+                            Disposer.dispose((jdk as Disposable))
+                        }
                     }
                     for (sdk in removedSdks) {
                         SdkConfigurationUtil.addSdk(sdk)

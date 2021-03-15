@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.idea.fir.low.level.api.element.builder
 
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.parentsOfType
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.declarations.FirFile
@@ -16,11 +15,12 @@ import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.FirFileBuilder
 import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.ModuleFileCache
 import org.jetbrains.kotlin.idea.fir.low.level.api.file.structure.FileStructureCache
 import org.jetbrains.kotlin.idea.fir.low.level.api.file.structure.FileStructureElement
+import org.jetbrains.kotlin.idea.fir.low.level.api.util.hasFqName
+import org.jetbrains.kotlin.idea.fir.low.level.api.util.isNonAnonymousClassOrObject
 import org.jetbrains.kotlin.idea.util.getElementTextInContext
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import org.jetbrains.kotlin.psi.psiUtil.isAncestor
-import org.jetbrains.kotlin.psi.psiUtil.isObjectLiteral
 import org.jetbrains.kotlin.psi2ir.deparenthesize
 
 /**
@@ -103,6 +103,7 @@ private fun KtElement.getFirOfClosestParent(cache: Map<KtElement, FirElement>): 
 }
 
 
+// TODO: simplify
 internal inline fun PsiElement.getNonLocalContainingOrThisDeclaration(predicate: (KtDeclaration) -> Boolean = { true }): KtNamedDeclaration? {
     var container: PsiElement? = this
     while (container != null && container !is KtFile) {
@@ -111,6 +112,7 @@ internal inline fun PsiElement.getNonLocalContainingOrThisDeclaration(predicate:
             && container !is KtPrimaryConstructor
             && container.hasFqName()
             && container !is KtEnumEntry
+            && container !is KtFunctionLiteral
             && container.containingClassOrObject !is KtEnumEntry
             && predicate(container)
         ) {
@@ -120,14 +122,6 @@ internal inline fun PsiElement.getNonLocalContainingOrThisDeclaration(predicate:
     }
     return null
 }
-
-private fun KtDeclaration.isNonAnonymousClassOrObject() =
-    this is KtClassOrObject
-            && !this.isObjectLiteral()
-
-
-private fun KtDeclaration.hasFqName(): Boolean =
-    parentsOfType<KtDeclaration>(withSelf = false).all { it.isNonAnonymousClassOrObject() }
 
 internal fun PsiElement.getNonLocalContainingInBodyDeclarationWith(): KtNamedDeclaration? =
     getNonLocalContainingOrThisDeclaration { declaration ->

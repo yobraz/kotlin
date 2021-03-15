@@ -12,12 +12,12 @@ object A {
     const val inObject: Int = 4
 }
 
-class B(const val constructor: Int = 5)
+class B(<!CONST_VAL_NOT_TOP_LEVEL_OR_OBJECT!>const<!> val constructor: Int = 5)
 
 abstract class C {
-    <!INCOMPATIBLE_MODIFIERS!>open<!> <!INCOMPATIBLE_MODIFIERS!>const<!> val x: Int = 6
+    <!INCOMPATIBLE_MODIFIERS!>open<!> <!CONST_VAL_NOT_TOP_LEVEL_OR_OBJECT, INCOMPATIBLE_MODIFIERS!>const<!> val x: Int = 6
 
-    <!INCOMPATIBLE_MODIFIERS!>abstract<!> <!INCOMPATIBLE_MODIFIERS!>const<!> val y: Int = <!ABSTRACT_PROPERTY_WITH_INITIALIZER!>7<!>
+    <!INCOMPATIBLE_MODIFIERS!>abstract<!> <!CONST_VAL_NOT_TOP_LEVEL_OR_OBJECT, INCOMPATIBLE_MODIFIERS!>const<!> val y: Int = <!ABSTRACT_PROPERTY_WITH_INITIALIZER!>7<!>
 
     companion object {
         const val inCompaionObject = 8
@@ -54,14 +54,14 @@ fun foo(): Int {
 
 enum class MyEnum {
     A {
-        const val inEnumEntry = 16
+        <!CONST_VAL_NOT_TOP_LEVEL_OR_OBJECT!>const<!> val inEnumEntry = 16
     };
-    const val inEnum = 17
+    <!CONST_VAL_NOT_TOP_LEVEL_OR_OBJECT!>const<!> val inEnum = 17
 }
 
 class Outer {
     inner class Inner {
-        object C {
+        <!NESTED_CLASS_NOT_ALLOWED!>object C<!> {
             const val a = 18
         }
     }

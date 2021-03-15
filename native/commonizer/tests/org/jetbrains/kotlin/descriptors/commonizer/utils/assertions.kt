@@ -5,15 +5,16 @@
 
 package org.jetbrains.kotlin.descriptors.commonizer.utils
 
-import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.descriptors.commonizer.CommonizerResult
-import org.jetbrains.kotlin.resolve.scopes.MemberScope
-import org.jetbrains.kotlin.test.util.DescriptorValidator.*
-import org.jetbrains.kotlin.types.ErrorUtils
+import kotlinx.metadata.klib.KlibModuleMetadata
+import kotlinx.metadata.klib.annotations
+import org.jetbrains.kotlin.descriptors.commonizer.CommonizerTarget
+import org.jetbrains.kotlin.descriptors.commonizer.identityString
+import org.jetbrains.kotlin.descriptors.commonizer.metadata.utils.MetadataDeclarationsComparator
+import org.jetbrains.kotlin.descriptors.commonizer.metadata.utils.MetadataDeclarationsComparator.*
+import org.jetbrains.kotlin.descriptors.commonizer.metadata.utils.SerializedMetadataLibraryProvider
+import org.jetbrains.kotlin.library.SerializedMetadata
 import java.io.File
 import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
-import kotlin.test.assertFalse
 import kotlin.test.fail
 
 fun assertIsDirectory(file: File) {
@@ -22,57 +23,78 @@ fun assertIsDirectory(file: File) {
 }
 
 @ExperimentalContracts
-fun assertCommonizationPerformed(result: CommonizerResult) {
-    contract {
-        returns() implies (result is CommonizerResult.Done)
+fun assertModulesAreEqual(reference: SerializedMetadata, generated: SerializedMetadata, target: CommonizerTarget) {
+    val referenceModule = KlibModuleMetadata.read(SerializedMetadataLibraryProvider(reference))
+    val generatedModule = KlibModuleMetadata.read(SerializedMetadataLibraryProvider(generated))
+
+    when (val result = MetadataDeclarationsComparator.compare(referenceModule, generatedModule)) {
+        is Result.Success -> Unit
+        is Result.Failure -> {
+            val mismatches = result.mismatches
+                .filter(FILTER_OUT_ACCEPTABLE_MISMATCHES)
+                .sortedBy { it::class.java.simpleName + "_" + it.kind }
+
+            if (mismatches.isEmpty()) return
+
+            val digitCount = mismatches.size.toString().length
+
+            val failureMessage = buildString {
+                appendLine("${mismatches.size} mismatches found while comparing reference module ${referenceModule.name} (A) and generated module ${generatedModule.name} (B) for target ${target.identityString}:")
+                mismatches.forEachIndexed { index, mismatch ->
+                    appendLine((index + 1).toString().padStart(digitCount, ' ') + ". " + mismatch)
+                }
+            }
+
+            fail(failureMessage)
+        }
+    }
+}
+
+private val FILTER_OUT_ACCEPTABLE_MISMATCHES: (Mismatch) -> Boolean = { mismatch ->
+    var isAcceptableMismatch = false // don't filter it out by default
+
+    when (mismatch) {
+        is Mismatch.MissingEntity -> when (mismatch.kind) {
+            EntityKind.TypeKind.ABBREVIATED -> {
+                val usefulPath = mismatch.path
+                    .dropWhile { it !is PathElement.Package }
+                    .drop(1)
+
+                if (mismatch.missingInA) {
+                    if (usefulPath.size == 2
+                        && usefulPath[0] is PathElement.TypeAlias
+                        && (usefulPath[1] as? PathElement.Type)?.kind == EntityKind.TypeKind.EXPANDED
+                    ) {
+                        // extra abbreviated type appeared in commonized declaration, it's OK
+                        isAcceptableMismatch = true
+                    }
+                } else /*if (mismatch.missingInB)*/ {
+                    if (usefulPath.size > 2
+                        && usefulPath.any { (it as? PathElement.Type)?.kind == EntityKind.TypeKind.RETURN }
+                        && usefulPath[usefulPath.size - 2] is PathElement.TypeArgument
+                        && (usefulPath[usefulPath.size - 1] as? PathElement.Type)?.kind == EntityKind.TypeKind.TYPE_ARGUMENT
+                    ) {
+                        // extra abbreviated type gone in type argument of commonized declaration, it's OK
+                        isAcceptableMismatch = true
+                    }
+                }
+            }
+            else -> Unit
+        }
+        is Mismatch.DifferentValues -> when (mismatch.kind) {
+            EntityKind.FlagKind.REGULAR, EntityKind.FlagKind.GETTER, EntityKind.FlagKind.SETTER -> {
+                if (mismatch.name == "HAS_ANNOTATIONS"
+                    && mismatch.valueA == true
+                    && mismatch.valueB == false
+                    && (mismatch.path.last() as? PathElement.Property)?.propertyA?.annotations.isNullOrEmpty()
+                ) {
+                    // backing or delegate field annotations were not serialized (KT-44625) but the corresponding flag was raised, it's OK
+                    isAcceptableMismatch = true
+                }
+            }
+            else -> Unit
+        }
     }
 
-    if (result !is CommonizerResult.Done)
-        fail("$result is not instance of ${CommonizerResult.Done::class}")
-}
-
-@ExperimentalContracts
-fun assertModulesAreEqual(expected: ModuleDescriptor, actual: ModuleDescriptor, designatorMessage: String) {
-    val visitor = ComparingDeclarationsVisitor(designatorMessage)
-    val context = visitor.Context(actual)
-
-    expected.accept(visitor, context)
-}
-
-fun assertValidModule(module: ModuleDescriptor) = validate(
-    object : ValidationVisitor() {
-        override fun validateScope(scopeOwner: DeclarationDescriptor?, scope: MemberScope, collector: DiagnosticCollector) = Unit
-
-        override fun visitModuleDeclaration(descriptor: ModuleDescriptor, collector: DiagnosticCollector): Boolean {
-            assertValid(descriptor)
-            return super.visitModuleDeclaration(descriptor, collector)
-        }
-
-        override fun visitClassDescriptor(descriptor: ClassDescriptor, collector: DiagnosticCollector): Boolean {
-            assertValid(descriptor)
-            return super.visitClassDescriptor(descriptor, collector)
-        }
-
-        override fun visitFunctionDescriptor(descriptor: FunctionDescriptor, collector: DiagnosticCollector): Boolean {
-            assertValid(descriptor)
-            return super.visitFunctionDescriptor(descriptor, collector)
-        }
-
-        override fun visitPropertyDescriptor(descriptor: PropertyDescriptor, collector: DiagnosticCollector): Boolean {
-            assertValid(descriptor)
-            return super.visitPropertyDescriptor(descriptor, collector)
-        }
-
-        override fun visitConstructorDescriptor(constructorDescriptor: ConstructorDescriptor, collector: DiagnosticCollector): Boolean {
-            assertValid(constructorDescriptor)
-            return super.visitConstructorDescriptor(constructorDescriptor, collector)
-        }
-    },
-    module
-)
-
-@Suppress("NOTHING_TO_INLINE")
-private inline fun assertValid(descriptor: DeclarationDescriptor) = when (descriptor) {
-    is ModuleDescriptor -> descriptor.assertValid()
-    else -> assertFalse(ErrorUtils.isError(descriptor), "$descriptor is error")
+    !isAcceptableMismatch
 }

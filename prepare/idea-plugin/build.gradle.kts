@@ -19,6 +19,7 @@ val projectsToShadow by extra(listOf(
         ":compiler:backend.common.jvm",
         ":compiler:backend-common",
         ":compiler:backend.jvm",
+        ":compiler:backend.jvm:backend.jvm.entrypoint",
         ":compiler:ir.backend.common",
         ":compiler:ir.serialization.jvm",
         ":compiler:ir.serialization.common",
@@ -62,6 +63,7 @@ val projectsToShadow by extra(listOf(
         ":compiler:frontend",
         ":compiler:frontend.common",
         ":compiler:frontend.java",
+        ":compiler:frontend:cfg",
         ":idea",
         ":idea:idea-native",
         ":idea:idea-core",
@@ -124,7 +126,6 @@ val projectsToShadow by extra(listOf(
 // Projects published to maven copied to the plugin as separate jars
 val libraryProjects = listOf(
     ":kotlin-reflect",
-    ":kotlin-coroutines-experimental-compat",
     ":kotlin-compiler-client-embeddable",
     ":kotlin-daemon-client",
     ":kotlin-daemon-client-new",

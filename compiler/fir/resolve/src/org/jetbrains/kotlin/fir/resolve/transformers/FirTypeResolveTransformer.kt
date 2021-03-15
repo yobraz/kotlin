@@ -19,7 +19,10 @@ import org.jetbrains.kotlin.fir.types.impl.FirImplicitBuiltinTypeRef
 import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
 import org.jetbrains.kotlin.fir.visitors.compose
 
-class FirTypeResolveProcessor(session: FirSession, scopeSession: ScopeSession) : FirTransformerBasedResolveProcessor(session, scopeSession) {
+class FirTypeResolveProcessor(
+    session: FirSession,
+    scopeSession: ScopeSession
+) : FirTransformerBasedResolveProcessor(session, scopeSession) {
     override val transformer = FirTypeResolveTransformer(session, scopeSession)
 }
 
@@ -116,6 +119,14 @@ class FirTypeResolveTransformer(
         }
     }
 
+    override fun transformField(field: FirField, data: Nothing?): CompositeTransformResult<FirDeclaration> {
+        return withScopeCleanup {
+            field.replaceResolvePhase(FirResolvePhase.TYPES)
+            field.transformReturnTypeRef(this, data).transformAnnotations(this, data)
+            field.compose()
+        }
+    }
+
     override fun transformSimpleFunction(simpleFunction: FirSimpleFunction, data: Nothing?): CompositeTransformResult<FirDeclaration> {
         return withScopeCleanup {
             simpleFunction.addTypeParametersScope()
@@ -157,8 +168,8 @@ class FirTypeResolveTransformer(
         return implicitTypeRef.compose()
     }
 
-    override fun transformTypeRef(typeRef: FirTypeRef, data: Nothing?): CompositeTransformResult<FirTypeRef> {
-        return typeResolverTransformer.transformTypeRef(typeRef, towerScope)
+    override fun transformTypeRef(typeRef: FirTypeRef, data: Nothing?): CompositeTransformResult<FirResolvedTypeRef> {
+        return typeRef.transform(typeResolverTransformer, towerScope)
     }
 
     override fun transformValueParameter(valueParameter: FirValueParameter, data: Nothing?): CompositeTransformResult<FirStatement> {

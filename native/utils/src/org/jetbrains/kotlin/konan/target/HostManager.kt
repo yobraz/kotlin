@@ -16,7 +16,7 @@ open class HostManager(
 
     constructor(
             distribution: Distribution,
-            experimental: Boolean = false,
+            experimental: Boolean = false
     ) : this(distribution.subTargetProvider, experimental || distribution.experimentalEnabled)
 
     fun targetManager(userRequest: String? = null): TargetManager = TargetManagerImpl(userRequest, this)
@@ -73,6 +73,7 @@ open class HostManager(
         ),
         MACOS_X64 to setOf(
             MACOS_X64,
+            MACOS_ARM64,
             IOS_ARM32,
             IOS_ARM64,
             IOS_X64,

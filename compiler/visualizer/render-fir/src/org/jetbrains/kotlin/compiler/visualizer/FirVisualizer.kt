@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.fir.references.FirErrorNamedReference
 import org.jetbrains.kotlin.fir.references.FirNamedReference
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.directExpansionType
-import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
+import org.jetbrains.kotlin.fir.resolve.symbolProvider
 import org.jetbrains.kotlin.fir.resolve.getSymbolByLookupTag
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.firUnsafe
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
+import org.jetbrains.kotlin.types.ConstantValueKind
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 
 private typealias Stack = MutableList<Pair<String, MutableList<String>>>
@@ -277,7 +278,7 @@ class FirVisualizer(private val firFile: FirFile) : BaseRenderer() {
     inner class FirRenderer : FirVisitor<Unit, StringBuilder>() {
         private val session = firFile.session
         private val filePackage = firFile.packageFqName.toString().replace(".", "/")
-        private val symbolProvider = firFile.session.firSymbolProvider
+        private val symbolProvider = firFile.session.symbolProvider
 
         private fun removeCurrentFilePackage(fqName: String): String {
             return if (fqName.startsWith(filePackage) && !fqName.substring(filePackage.length + 1).contains("/")) {
@@ -444,7 +445,7 @@ class FirVisualizer(private val firFile: FirFile) : BaseRenderer() {
         }
 
         override fun <T> visitConstExpression(constExpression: FirConstExpression<T>, data: StringBuilder) {
-            if (constExpression.kind != FirConstKind.String) {
+            if (constExpression.kind != ConstantValueKind.String) {
                 data.append(constExpression.kind)
             }
         }

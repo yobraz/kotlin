@@ -84,6 +84,7 @@ class KotlinToResolvedCallTransformer(
     private val smartCastManager: SmartCastManager,
     private val typeApproximator: TypeApproximator,
     private val missingSupertypesResolver: MissingSupertypesResolver,
+    private val upperBoundChecker: UpperBoundChecker,
 ) {
     companion object {
         private val REPORT_MISSING_NEW_INFERENCE_DIAGNOSTIC
@@ -205,10 +206,12 @@ class KotlinToResolvedCallTransformer(
     ): ResolvedCall<D> {
         val psiKotlinCall = completedCallAtom.atom.psiKotlinCall
         return if (psiKotlinCall is PSIKotlinCallForInvoke) {
+            val diagnosticsForVariableCall = if (completedCallAtom.candidateDescriptor is FunctionDescriptor) emptyList() else diagnostics
+            val diagnosticsForFunctionCall = if (completedCallAtom.candidateDescriptor is FunctionDescriptor) diagnostics else emptyList()
             @Suppress("UNCHECKED_CAST")
             NewVariableAsFunctionResolvedCallImpl(
-                createOrGet(psiKotlinCall.variableCall.resolvedCall, trace, resultSubstitutor, diagnostics),
-                createOrGet(completedCallAtom, trace, resultSubstitutor, diagnostics),
+                createOrGet(psiKotlinCall.variableCall.resolvedCall, trace, resultSubstitutor, diagnosticsForVariableCall),
+                createOrGet(completedCallAtom, trace, resultSubstitutor, diagnosticsForFunctionCall),
             ) as ResolvedCall<D>
         } else {
             createOrGet(completedCallAtom, trace, resultSubstitutor, diagnostics)

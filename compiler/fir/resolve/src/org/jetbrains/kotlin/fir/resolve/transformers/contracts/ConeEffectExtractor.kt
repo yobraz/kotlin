@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.fir.visitors.FirDefaultVisitor
+import org.jetbrains.kotlin.types.ConstantValueKind
 
 class ConeEffectExtractor(
     private val session: FirSession,
@@ -103,9 +104,16 @@ class ConeEffectExtractor(
             else -> return null
         }
         val const = equalityOperatorCall.arguments[1] as? FirConstExpression<*> ?: return null
-        if (const.kind != FirConstKind.Null) return null
+        if (const.kind != ConstantValueKind.Null) return null
         val arg = equalityOperatorCall.arguments[0].accept(this, null) as? ConeValueParameterReference ?: return null
         return ConeIsNullPredicate(arg, isNegated)
+    }
+
+    override fun visitExpressionWithSmartcast(
+        expressionWithSmartcast: FirExpressionWithSmartcast,
+        data: Nothing?
+    ): ConeContractDescriptionElement? {
+        return expressionWithSmartcast.originalExpression.accept(this, data)
     }
 
     override fun visitQualifiedAccessExpression(
@@ -148,8 +156,8 @@ class ConeEffectExtractor(
 
     override fun <T> visitConstExpression(constExpression: FirConstExpression<T>, data: Nothing?): ConeContractDescriptionElement? {
         return when (constExpression.kind) {
-            FirConstKind.Null -> ConeConstantReference.NULL
-            FirConstKind.Boolean -> when (constExpression.value as Boolean) {
+            ConstantValueKind.Null -> ConeConstantReference.NULL
+            ConstantValueKind.Boolean -> when (constExpression.value as Boolean) {
                 true -> ConeBooleanConstantReference.TRUE
                 false -> ConeBooleanConstantReference.FALSE
             }

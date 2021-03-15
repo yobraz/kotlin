@@ -11,20 +11,24 @@ import org.jetbrains.kotlin.idea.fir.findPsi
 import org.jetbrains.kotlin.idea.fir.low.level.api.api.FirModuleResolveState
 import org.jetbrains.kotlin.idea.frontend.api.ValidityToken
 import org.jetbrains.kotlin.idea.frontend.api.fir.KtSymbolByFirBuilder
+import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.annotations.containsAnnotation
+import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.annotations.getAnnotationClassIds
+import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.annotations.toAnnotationsList
+import org.jetbrains.kotlin.idea.frontend.api.fir.utils.cached
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.firRef
+import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtFileSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtAnnotationCall
 import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtSymbolWithDeclarations
 import org.jetbrains.kotlin.idea.frontend.api.symbols.pointers.KtPsiBasedSymbolPointer
 import org.jetbrains.kotlin.idea.frontend.api.symbols.pointers.KtSymbolPointer
+import org.jetbrains.kotlin.name.ClassId
 
 internal class KtFirFileSymbol(
     fir: FirFile,
     resolveState: FirModuleResolveState,
     override val token: ValidityToken,
-    private val builder: KtSymbolByFirBuilder
 ) : KtFileSymbol(), KtSymbolWithDeclarations, KtFirSymbol<FirFile> {
-
     override val firRef = firRef(fir, resolveState)
     override val psi: PsiElement? by firRef.withFirAndCache { fir -> fir.findPsi(fir.session) }
 
@@ -33,7 +37,7 @@ internal class KtFirFileSymbol(
         TODO("Creating pointers for files from library is not supported yet")
     }
 
-    override val annotations: List<KtAnnotationCall> by firRef.withFirAndCache { fir ->
-        fir.annotations.map { KtFirAnnotationCall(firRef, it) }
-    }
+    override val annotations: List<KtAnnotationCall> by cached { firRef.toAnnotationsList() }
+    override fun containsAnnotation(classId: ClassId): Boolean = firRef.containsAnnotation(classId)
+    override val annotationClassIds: Collection<ClassId> by cached { firRef.getAnnotationClassIds() }
 }

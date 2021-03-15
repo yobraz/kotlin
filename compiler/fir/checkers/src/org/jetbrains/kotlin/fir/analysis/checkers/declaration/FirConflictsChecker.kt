@@ -5,14 +5,16 @@
 
 package org.jetbrains.kotlin.fir.analysis.checkers.declaration
 
-import org.jetbrains.kotlin.fir.FirSourceElement
+import org.jetbrains.kotlin.fir.FirSymbolOwner
 import org.jetbrains.kotlin.fir.analysis.checkers.FirDeclarationInspector
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
+import org.jetbrains.kotlin.fir.analysis.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
+import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 
 object FirConflictsChecker : FirBasicDeclarationChecker() {
     override fun check(declaration: FirDeclaration, context: CheckerContext, reporter: DiagnosticReporter) {
@@ -24,22 +26,22 @@ object FirConflictsChecker : FirBasicDeclarationChecker() {
             else -> return
         }
 
-        inspector.functionDeclarations.forEachNonSingle { it, hint ->
-            reporter.reportConflictingOverloads(it.source, hint)
+        inspector.functionDeclarations.forEachNonSingle { it, symbols ->
+            reporter.reportOn(it.source, FirErrors.CONFLICTING_OVERLOADS, symbols, context)
         }
 
-        inspector.otherDeclarations.forEachNonSingle { it, hint ->
-            reporter.reportConflictingDeclarations(it.source, hint)
+        inspector.otherDeclarations.forEachNonSingle { it, symbols ->
+            reporter.reportOn(it.source, FirErrors.REDECLARATION, symbols, context)
         }
     }
 
-    private fun Map<String, List<FirDeclaration>>.forEachNonSingle(action: (FirDeclaration, String) -> Unit) {
+    private fun Map<String, List<FirDeclaration>>.forEachNonSingle(action: (FirDeclaration, Collection<AbstractFirBasedSymbol<*>>) -> Unit) {
         for (value in values) {
             if (value.size > 1) {
-                val hint = value.joinToString { that -> that.toString() }
+                val symbols = value.mapNotNull { (it as? FirSymbolOwner<*>)?.symbol }
 
                 value.forEach {
-                    action(it, hint)
+                    action(it, symbols)
                 }
             }
         }
@@ -55,13 +57,5 @@ object FirConflictsChecker : FirBasicDeclarationChecker() {
         for (it in declaration.declarations) {
             inspector.collect(it)
         }
-    }
-
-    private fun DiagnosticReporter.reportConflictingOverloads(source: FirSourceElement?, declarations: String) {
-        source?.let { report(FirErrors.CONFLICTING_OVERLOADS.on(it, declarations)) }
-    }
-
-    private fun DiagnosticReporter.reportConflictingDeclarations(source: FirSourceElement?, declarations: String) {
-        source?.let { report(FirErrors.REDECLARATION.on(it, declarations)) }
     }
 }

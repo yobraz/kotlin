@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.fir.symbols.impl
 
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.symbols.AccessorSymbol
-import org.jetbrains.kotlin.fir.symbols.CallableId
+import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -24,6 +24,11 @@ sealed class FirFunctionSymbol<D : FirFunction<D>>(
 open class FirNamedFunctionSymbol(
     callableId: CallableId,
 ) : FirFunctionSymbol<FirSimpleFunction>(callableId)
+
+class FirIntersectionOverrideFunctionSymbol(
+    callableId: CallableId,
+    val intersections: Collection<FirCallableSymbol<*>>
+) : FirNamedFunctionSymbol(callableId)
 
 class FirConstructorSymbol(
     callableId: CallableId

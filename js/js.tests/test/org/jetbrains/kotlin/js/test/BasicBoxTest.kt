@@ -11,7 +11,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiManager
-import com.intellij.testFramework.assertEqualsToFile
 import junit.framework.TestCase
 import org.jetbrains.kotlin.checkers.CompilerTestLanguageVersionSettings
 import org.jetbrains.kotlin.checkers.parseLanguageVersionSettings
@@ -48,6 +47,7 @@ import org.jetbrains.kotlin.metadata.DebugProtoBuf
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.resolve.CompilerEnvironment
 import org.jetbrains.kotlin.serialization.js.JsModuleDescriptor
 import org.jetbrains.kotlin.serialization.js.JsSerializerProtocol
 import org.jetbrains.kotlin.serialization.js.KotlinJavascriptSerializationUtil
@@ -97,6 +97,9 @@ abstract class BasicBoxTest(
 
     protected open val testChecker get() = if (runTestInNashorn) NashornJsTestChecker else V8JsTestChecker
 
+    protected val logger = KotlinJsTestLogger()
+
+
     fun doTest(filePath: String) {
         doTestWithIgnoringByFailFile(filePath, coroutinesPackage = "")
     }
@@ -120,6 +123,9 @@ abstract class BasicBoxTest(
 
     open fun doTest(filePath: String, expectedResult: String, mainCallParameters: MainCallParameters, coroutinesPackage: String = "") {
         val file = File(filePath)
+
+        logger.logFile("Test file", file)
+
         val outputDir = getOutputDir(file)
         val dceOutputDir = getOutputDir(file, testGroupOutputDirForMinification)
         val pirOutputDir = getOutputDir(file, testGroupOutputDirForPir)
@@ -128,7 +134,7 @@ abstract class BasicBoxTest(
             fileContent = fileContent.replace("COROUTINES_PACKAGE", coroutinesPackage)
         }
 
-        val needsFullIrRuntime = KJS_WITH_FULL_RUNTIME.matcher(fileContent).find() || WITH_RUNTIME.matcher(fileContent).find()
+        val needsFullIrRuntime = KJS_WITH_FULL_RUNTIME.matcher(fileContent).find() || WITH_RUNTIME.matcher(fileContent).find() || WITH_STDLIB.matcher(fileContent).find()
 
 
         val actualMainCallParameters = if (CALL_MAIN_PATTERN.matcher(fileContent).find())
@@ -189,6 +195,8 @@ abstract class BasicBoxTest(
                 val dceOutputFileName = module.outputFileName(dceOutputDir) + ".js"
                 val pirOutputFileName = module.outputFileName(pirOutputDir) + ".js"
                 val isMainModule = mainModuleName == module.name
+
+                logger.logFile("Output JS", File(outputFileName))
                 generateJavaScriptFile(
                     testFactory.tmpDir,
                     file.parent,
@@ -901,7 +909,7 @@ abstract class BasicBoxTest(
 
         configuration.put(CommonConfigurationKeys.EXPECT_ACTUAL_LINKER, expectActualLinker)
 
-        return JsConfig(project, configuration, METADATA_CACHE, (JsConfig.JS_STDLIB + JsConfig.JS_KOTLIN_TEST).toSet())
+        return JsConfig(project, configuration, CompilerEnvironment, METADATA_CACHE, (JsConfig.JS_STDLIB + JsConfig.JS_KOTLIN_TEST).toSet())
     }
 
     private fun minifyAndRun(
@@ -929,7 +937,7 @@ abstract class BasicBoxTest(
             "kotlin-test.kotlin.test.DefaultAsserter"
         )
         val allFilesToMinify = filesToMinify.values + kotlinJsInputFile + kotlinTestJsInputFile
-        val dceResult = DeadCodeElimination.run(allFilesToMinify, additionalReachableNodes) { _, _ -> }
+        val dceResult = DeadCodeElimination.run(allFilesToMinify, additionalReachableNodes, true) { _, _ -> }
 
         val reachableNodes = dceResult.reachableNodes
         minificationThresholdChecker(reachableNodes.count { it.reachable })
@@ -995,16 +1003,6 @@ abstract class BasicBoxTest(
             }
             InTextDirectivesUtils.findStringWithPrefixes(text, "// LANGUAGE_VERSION:")?.let {
                 LanguageVersion.fromVersionString(it)?.toSettings()?.trySet()
-            }
-            if (!InTextDirectivesUtils.findLinesWithPrefixesRemoved(text, "// COMMON_COROUTINES_TEST").isEmpty()) {
-                assert(!text.contains("COROUTINES_PACKAGE")) { "Must replace COROUTINES_PACKAGE prior to tests compilation" }
-                if (!coroutinesPackage.isEmpty()) {
-                    if (coroutinesPackage == "kotlin.coroutines.experimental") {
-                        LanguageVersion.KOTLIN_1_2.toSettings().trySet()
-                    } else {
-                        LanguageVersion.KOTLIN_1_3.toSettings().trySet()
-                    }
-                }
             }
 
             parseLanguageVersionSettings(directives)?.trySet()
@@ -1093,6 +1091,7 @@ abstract class BasicBoxTest(
         private val CALL_MAIN_PATTERN = Pattern.compile("^// *CALL_MAIN *$", Pattern.MULTILINE)
         private val KJS_WITH_FULL_RUNTIME = Pattern.compile("^// *KJS_WITH_FULL_RUNTIME *\$", Pattern.MULTILINE)
         private val WITH_RUNTIME = Pattern.compile("^// *WITH_RUNTIME *\$", Pattern.MULTILINE)
+        private val WITH_STDLIB = Pattern.compile("^// *WITH_STDLIB *\$", Pattern.MULTILINE)
         private val EXPECT_ACTUAL_LINKER = Pattern.compile("^// EXPECT_ACTUAL_LINKER *$", Pattern.MULTILINE)
         private val SKIP_DCE_DRIVEN = Pattern.compile("^// *SKIP_DCE_DRIVEN *$", Pattern.MULTILINE)
         private val SPLIT_PER_MODULE = Pattern.compile("^// *SPLIT_PER_MODULE *$", Pattern.MULTILINE)
@@ -1126,3 +1125,13 @@ fun KotlinTestWithEnvironment.createPsiFile(fileName: String): KtFile {
 }
 
 fun KotlinTestWithEnvironment.createPsiFiles(fileNames: List<String>): List<KtFile> = fileNames.map(this::createPsiFile)
+
+class KotlinJsTestLogger {
+    val verbose = getBoolean("kotlin.js.test.verbose")
+
+    fun logFile(description: String, file: File) {
+        if (verbose) {
+            println("TEST_LOG: $description file://${file.absolutePath}")
+        }
+    }
+}

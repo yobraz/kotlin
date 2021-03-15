@@ -32,7 +32,7 @@ class SerializerForInlineClassGenerator(
 
         val encoderClass = serializerDescriptor.getClassFromSerializationPackage(SerialEntityNames.ENCODER_CLASS)
         val descriptorGetterSymbol = irAnySerialDescProperty?.owner?.getter!!.symbol
-        val encodeInline = encoderClass.referenceMethod(CallingConventions.encodeInline)
+        val encodeInline = encoderClass.referenceFunctionSymbol(CallingConventions.encodeInline)
         val serialDescGetter = irGet(descriptorGetterSymbol.owner.returnType, irThis(), descriptorGetterSymbol)
 
         // val inlineEncoder = encoder.encodeInline()
@@ -45,14 +45,14 @@ class SerializerForInlineClassGenerator(
         // inlineEncoder.encodeInt/String/SerializableValue
         val elementCall = formEncodeDecodePropertyCall(irGet(inlineEncoder), saveFunc.dispatchReceiverParameter!!, property, {innerSerial, sti ->
             val f =
-                encoderClass.referenceMethod("${CallingConventions.encode}${sti.elementMethodPrefix}SerializableValue")
+                encoderClass.referenceFunctionSymbol("${CallingConventions.encode}${sti.elementMethodPrefix}SerializableValue")
             f to listOf(
                 innerSerial,
                 value
             )
         }, {
             val f =
-                encoderClass.referenceMethod("${CallingConventions.encode}${it.elementMethodPrefix}")
+                encoderClass.referenceFunctionSymbol("${CallingConventions.encode}${it.elementMethodPrefix}")
             val args = if (it.elementMethodPrefix != "Unit") listOf(value) else emptyList()
             f to args
         })
@@ -67,7 +67,7 @@ class SerializerForInlineClassGenerator(
 
         val decoderClass = serializerDescriptor.getClassFromSerializationPackage(SerialEntityNames.DECODER_CLASS)
         val descriptorGetterSymbol = irAnySerialDescProperty?.owner?.getter!!.symbol
-        val decodeInline = decoderClass.referenceMethod(CallingConventions.decodeInline)
+        val decodeInline = decoderClass.referenceFunctionSymbol(CallingConventions.decodeInline)
         val serialDescGetter = irGet(descriptorGetterSymbol.owner.returnType, irThis(), descriptorGetterSymbol)
 
         // val inlineDecoder = decoder.decodeInline()
@@ -76,11 +76,11 @@ class SerializerForInlineClassGenerator(
         val property = serializableProperties.first()
         val inlinedType = property.type.toIrType()
         val actualCall = formEncodeDecodePropertyCall(inlineDecoder, loadFunc.dispatchReceiverParameter!!, property, { innerSerial, sti ->
-            decoderClass.referenceMethod( "${CallingConventions.decode}${sti.elementMethodPrefix}SerializableValue") to listOf(innerSerial)
+            decoderClass.referenceFunctionSymbol( "${CallingConventions.decode}${sti.elementMethodPrefix}SerializableValue") to listOf(innerSerial)
         }, {
-            decoderClass.referenceMethod("${CallingConventions.decode}${it.elementMethodPrefix}") to listOf()
+            decoderClass.referenceFunctionSymbol("${CallingConventions.decode}${it.elementMethodPrefix}") to listOf()
         }, returnTypeHint = inlinedType)
-        val value = coerceToBox(actualCall, inlinedType, loadFunc.returnType)
+        val value = coerceToBox(actualCall, loadFunc.returnType)
         +irReturn(value)
     }
 
@@ -101,7 +101,7 @@ class SerializerForInlineClassGenerator(
 
     // Compiler will elide these in corresponding inline class lowerings (when serialize/deserialize functions will be split in two)
 
-    private fun IrBlockBodyBuilder.coerceToBox(expression: IrExpression, propertyType: IrType, inlineClassBoxType: IrType): IrExpression =
+    private fun IrBlockBodyBuilder.coerceToBox(expression: IrExpression, inlineClassBoxType: IrType): IrExpression =
         irInvoke(
             null,
             serializableIrClass.constructors.single { it.isPrimary }.symbol,

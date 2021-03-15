@@ -17,8 +17,8 @@ expect var varWithPlatformGetSet: String
     expect get
     expect set
 
-expect val backingFieldVal: String = "no"
-expect var backingFieldVar: String = "no"
+expect val backingFieldVal: String = <!EXPECTED_PROPERTY_INITIALIZER!>"no"<!>
+expect var backingFieldVar: String = <!EXPECTED_PROPERTY_INITIALIZER!>"no"<!>
 
 expect val customAccessorVal: String
     get() = "no"
@@ -28,9 +28,9 @@ expect var customAccessorVar: String
 
 expect const val constVal: Int
 
-expect lateinit var lateinitVar: String
+expect <!EXPECTED_LATEINIT_PROPERTY!>lateinit<!> var lateinitVar: String
 
-expect val delegated: String by Delegate
+expect val delegated: String by <!EXPECTED_DELEGATED_PROPERTY!>Delegate<!>
 object Delegate { operator fun getValue(x: Any?, y: Any?): String = "" }
 
 fun test(): String {

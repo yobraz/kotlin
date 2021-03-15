@@ -8,17 +8,29 @@ package org.jetbrains.kotlin.idea.frontend.api.components
 import org.jetbrains.kotlin.idea.frontend.api.*
 import org.jetbrains.kotlin.idea.frontend.api.types.*
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.types.Variance
 
 abstract class KtTypeRenderer : KtAnalysisSessionComponent() {
     abstract fun render(type: KtType, options: KtTypeRendererOptions): String
 }
 
+interface KtTypeRendererMixIn : KtAnalysisSessionMixIn {
+    fun KtType.render(options: KtTypeRendererOptions = KtTypeRendererOptions.DEFAULT): String =
+        analysisSession.typeRenderer.render(this, options)
+}
+
 data class KtTypeRendererOptions(
     val renderFqNames: Boolean,
+    val renderFunctionTypes: Boolean
 ) {
     companion object {
         val DEFAULT = KtTypeRendererOptions(
-            renderFqNames = true
+            renderFqNames = true,
+            renderFunctionTypes = true,
+        )
+        val SHORT_NAMES = KtTypeRendererOptions(
+            renderFqNames = false,
+            renderFunctionTypes = true,
         )
     }
 }
@@ -32,9 +44,7 @@ class KtDefaultTypeRenderer(override val analysisSession: KtAnalysisSession, ove
         when (type) {
             is KtDenotableType -> when (type) {
                 is KtClassType -> {
-                    render(type.classId, options)
-                    renderTypeArgumentsIfNotEmpty(type.typeArguments, options)
-                    renderNullability(type.nullability)
+                    renderClassType(type, options)
                 }
                 is KtTypeParameterType -> {
                     append(type.name.asString())
@@ -63,6 +73,67 @@ class KtDefaultTypeRenderer(override val analysisSession: KtAnalysisSession, ove
         }
     }
 
+    private fun StringBuilder.renderClassType(
+        type: KtClassType,
+        options: KtTypeRendererOptions
+    ) {
+        when {
+            type is KtUsualClassType || !options.renderFunctionTypes -> {
+                renderClassTypeAsNonFunctional(type, options)
+            }
+            type is KtFunctionalType -> {
+                renderFunctionalType(type, options)
+            }
+        }
+    }
+
+    private fun StringBuilder.renderClassTypeAsNonFunctional(
+        type: KtClassType,
+        options: KtTypeRendererOptions
+    ) {
+        render(type.classId, options)
+        renderTypeArgumentsIfNotEmpty(type.typeArguments, options)
+        renderNullability(type.nullability)
+    }
+
+    private fun StringBuilder.renderFunctionalType(
+        type: KtFunctionalType,
+        options: KtTypeRendererOptions
+    ) {
+        wrapIf(type.nullability == KtTypeNullability.NULLABLE, left = "(", right = ")?") {
+            if (type.isSuspend) append("suspend ")
+            renderReceiverTypeOfFunctionalType(type, options)
+            renderParametersOfFunctionalType(type, options)
+            append(" -> ")
+            render(type.typeArguments.last(), options)
+        }
+    }
+
+    private fun StringBuilder.renderReceiverTypeOfFunctionalType(
+        type: KtFunctionalType,
+        options: KtTypeRendererOptions
+    ) {
+        type.receiverType?.let { receiverType ->
+            render(receiverType, options)
+            append(".")
+        }
+    }
+
+    private fun StringBuilder.renderParametersOfFunctionalType(
+        type: KtFunctionalType,
+        options: KtTypeRendererOptions
+    ) {
+        append("(")
+        val parameterTypes = type.parameterTypes
+        type.parameterTypes.forEachIndexed { index, parameterType ->
+            render(parameterType, options)
+            if (index != parameterTypes.lastIndex) {
+                append(", ")
+            }
+        }
+        append(")")
+    }
+
     private fun StringBuilder.renderTypeArgumentsIfNotEmpty(typeArguments: List<KtTypeArgument>, options: KtTypeRendererOptions) {
         if (typeArguments.isNotEmpty()) {
             append("<")
@@ -83,9 +154,9 @@ class KtDefaultTypeRenderer(override val analysisSession: KtAnalysisSession, ove
             }
             is KtTypeArgumentWithVariance -> {
                 val varianceWithSpace = when (typeArgument.variance) {
-                    KtTypeArgumentVariance.COVARIANT -> "out "
-                    KtTypeArgumentVariance.CONTRAVARIANT -> "in "
-                    KtTypeArgumentVariance.INVARIANT -> ""
+                    Variance.OUT_VARIANCE -> "out "
+                    Variance.IN_VARIANCE -> "in "
+                    Variance.INVARIANT -> ""
                 }
                 append(varianceWithSpace)
                 render(typeArgument.type, options)
@@ -111,5 +182,11 @@ class KtDefaultTypeRenderer(override val analysisSession: KtAnalysisSession, ove
         append("(")
         render()
         append(")")
+    }
+
+    private inline fun StringBuilder.wrapIf(condition: Boolean, left: String, right: String, render: StringBuilder.() -> Unit) {
+        if (condition) append(left)
+        render()
+        if (condition) append(right)
     }
 }

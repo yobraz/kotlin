@@ -11,8 +11,10 @@ import org.jetbrains.kotlin.fir.diagnostics.ConeDiagnostic
 import org.jetbrains.kotlin.fir.expressions.builder.buildConstExpression
 import org.jetbrains.kotlin.fir.expressions.builder.buildErrorExpression
 import org.jetbrains.kotlin.fir.expressions.builder.buildErrorLoop
-import org.jetbrains.kotlin.fir.expressions.impl.*
 import org.jetbrains.kotlin.fir.expressions.impl.FirBlockImpl
+import org.jetbrains.kotlin.fir.expressions.impl.FirPartiallyResolvedArgumentList
+import org.jetbrains.kotlin.fir.expressions.impl.FirResolvedArgumentList
+import org.jetbrains.kotlin.fir.expressions.impl.FirSingleExpressionBlock
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
@@ -21,6 +23,7 @@ import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import org.jetbrains.kotlin.fir.visitors.TransformData
 import org.jetbrains.kotlin.fir.visitors.transformInplace
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.types.ConstantValueKind
 
 inline val FirAnnotationCall.coneClassLikeType: ConeClassLikeType?
     get() = ((annotationTypeRef as? FirResolvedTypeRef)?.type as? ConeClassLikeType)
@@ -28,7 +31,7 @@ inline val FirAnnotationCall.coneClassLikeType: ConeClassLikeType?
 inline val FirAnnotationCall.classId: ClassId?
     get() = coneClassLikeType?.lookupTag?.classId
 
-fun <T> buildConstOrErrorExpression(source: FirSourceElement?, kind: FirConstKind<T>, value: T?, diagnostic: ConeDiagnostic): FirExpression =
+fun <T> buildConstOrErrorExpression(source: FirSourceElement?, kind: ConstantValueKind<T>, value: T?, diagnostic: ConeDiagnostic): FirExpression =
     value?.let {
         buildConstExpression(source, kind, it)
     } ?: buildErrorExpression {
@@ -40,8 +43,18 @@ inline val FirCall.arguments: List<FirExpression> get() = argumentList.arguments
 
 inline val FirCall.argument: FirExpression get() = argumentList.arguments.first()
 
+inline val FirCall.resolvedArgumentMapping: LinkedHashMap<FirExpression, FirValueParameter>?
+    get() = when (val argumentList = argumentList) {
+        is FirResolvedArgumentList -> argumentList.mapping
+        else -> null
+    }
+
 inline val FirCall.argumentMapping: LinkedHashMap<FirExpression, FirValueParameter>?
-    get() = (argumentList as? FirResolvedArgumentList)?.mapping
+    get() = when (val argumentList = argumentList) {
+        is FirResolvedArgumentList -> argumentList.mapping
+        is FirPartiallyResolvedArgumentList -> argumentList.mapping
+        else -> null
+    }
 
 fun FirExpression.toResolvedCallableReference(): FirResolvedNamedReference? {
     if (this is FirWrappedArgumentExpression) return expression.toResolvedCallableReference()

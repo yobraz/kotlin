@@ -239,7 +239,7 @@ fun main(args: Array<String>) {
                 model("resolve/partialBodyResolve")
             }
 
-            testClass<AbstractPsiCheckerTest> {
+            testClass<AbstractKotlinHighlightingPassTest> {
                 model("checker", recursive = false)
                 model("checker/regression")
                 model("checker/recovery")
@@ -711,10 +711,6 @@ fun main(args: Array<String>) {
 
             testClass<AbstractMultiPlatformHighlightingTest> {
                 model("multiModuleHighlighting/multiplatform/", recursive = false, extension = null)
-            }
-
-            testClass<AbstractHierarchicalExpectActualTest> {
-                model("multiModuleHighlighting/hierarchicalExpectActualMatching/", recursive = false, extension = null)
             }
 
             testClass<AbstractQuickFixMultiModuleTest> {

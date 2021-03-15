@@ -9,10 +9,12 @@ import com.google.common.collect.MapMaker
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.synthetic.FirSyntheticProperty
-import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
+import org.jetbrains.kotlin.fir.resolve.symbolProvider
 import org.jetbrains.kotlin.fir.resolve.getSymbolByLookupTag
+import org.jetbrains.kotlin.fir.resolve.inference.isFunctionalType
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassifierSymbol
@@ -29,6 +31,7 @@ import org.jetbrains.kotlin.idea.frontend.api.types.KtType
 import org.jetbrains.kotlin.idea.stubindex.PackageIndexUtil
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.types.Variance
 import java.util.concurrent.ConcurrentMap
 
 /**
@@ -45,7 +48,9 @@ internal class KtSymbolByFirBuilder private constructor(
 ) : ValidityTokenOwner {
     private val resolveState by weakRef(resolveState)
 
-    private val firProvider get() = resolveState.rootModuleSession.firSymbolProvider
+    private val firProvider get() = resolveState.rootModuleSession.symbolProvider
+    val rootSession: FirSession = resolveState.rootModuleSession
+
 
     constructor(
         resolveState: FirModuleResolveState,
@@ -142,7 +147,7 @@ internal class KtSymbolByFirBuilder private constructor(
     fun buildAnonymousFunctionSymbol(fir: FirAnonymousFunction) =
         symbolsCache.cache(fir) { KtFirAnonymousFunctionSymbol(fir, resolveState, token, this) }
 
-    fun buildFileSymbol(fir: FirFile) = filesCache.cache(fir) { KtFirFileSymbol(fir, resolveState, token, this) }
+    fun buildFileSymbol(fir: FirFile) = filesCache.cache(fir) { KtFirFileSymbol(fir, resolveState, token) }
 
     fun buildVariableSymbol(fir: FirProperty): KtVariableSymbol = symbolsCache.cache(fir) {
         when {
@@ -189,9 +194,9 @@ internal class KtSymbolByFirBuilder private constructor(
     }
 
     private fun ProjectionKind.toVariance() = when (this) {
-        ProjectionKind.OUT -> KtTypeArgumentVariance.COVARIANT
-        ProjectionKind.IN -> KtTypeArgumentVariance.CONTRAVARIANT
-        ProjectionKind.INVARIANT -> KtTypeArgumentVariance.INVARIANT
+        ProjectionKind.OUT -> Variance.OUT_VARIANCE
+        ProjectionKind.IN -> Variance.IN_VARIANCE
+        ProjectionKind.INVARIANT -> Variance.INVARIANT
         ProjectionKind.STAR -> error("KtStarProjectionTypeArgument be directly created")
     }
 
@@ -204,7 +209,10 @@ internal class KtSymbolByFirBuilder private constructor(
 
     fun buildKtType(coneType: ConeKotlinType): KtType = typesCache.cache(coneType) {
         when (coneType) {
-            is ConeClassLikeTypeImpl -> KtFirClassType(coneType, token, this)
+            is ConeClassLikeTypeImpl -> {
+                if (coneType.isFunctionalType(rootSession)) KtFirFunctionalType(coneType, token, this)
+                else KtFirUsualClassType(coneType, token, this)
+            }
             is ConeTypeParameterType -> KtFirTypeParameterType(coneType, token, this)
             is ConeClassErrorType -> KtFirErrorType(coneType, token)
             is ConeFlexibleType -> KtFirFlexibleType(coneType, token, this)

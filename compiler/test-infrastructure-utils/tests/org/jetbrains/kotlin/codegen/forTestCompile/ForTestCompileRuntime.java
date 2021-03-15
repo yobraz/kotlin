@@ -96,16 +96,6 @@ public class ForTestCompileRuntime {
     }
 
     @NotNull
-    public static File androidAnnotationsForTests() {
-        return assertExists(new File("dist/kotlinc/lib/kotlin-annotations-android.jar"));
-    }
-
-    @NotNull
-    public static File coroutinesCompatForTests() {
-        return assertExists(new File("dist/kotlinc/lib/kotlin-coroutines-experimental-compat.jar"));
-    }
-
-    @NotNull
     private static File assertExists(@NotNull File file) {
         if (!file.exists()) {
             throw new IllegalStateException(file + " does not exist. Run 'gradlew dist'");

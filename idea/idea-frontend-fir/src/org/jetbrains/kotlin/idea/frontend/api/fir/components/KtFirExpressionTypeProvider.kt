@@ -7,11 +7,16 @@ package org.jetbrains.kotlin.idea.frontend.api.fir.components
 
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
-import org.jetbrains.kotlin.fir.expressions.FirExpression
-import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
-import org.jetbrains.kotlin.fir.expressions.argumentMapping
+import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.psi
+import org.jetbrains.kotlin.fir.references.FirErrorNamedReference
+import org.jetbrains.kotlin.fir.references.FirNamedReference
+import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
+import org.jetbrains.kotlin.fir.resolve.diagnostics.ConeUnresolvedNameError
+import org.jetbrains.kotlin.fir.types.ConeClassErrorType
+import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.coneType
+import org.jetbrains.kotlin.idea.fir.low.level.api.api.getOrBuildFir
 import org.jetbrains.kotlin.idea.fir.low.level.api.api.getOrBuildFirOfType
 import org.jetbrains.kotlin.idea.fir.low.level.api.api.getOrBuildFirSafe
 import org.jetbrains.kotlin.idea.frontend.api.ValidityToken
@@ -20,6 +25,7 @@ import org.jetbrains.kotlin.idea.frontend.api.fir.KtFirAnalysisSession
 import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtTypedSymbol
 import org.jetbrains.kotlin.idea.frontend.api.types.KtType
 import org.jetbrains.kotlin.idea.frontend.api.withValidityAssertion
+import org.jetbrains.kotlin.idea.references.FirReferenceResolveHelper
 import org.jetbrains.kotlin.psi.*
 
 internal class KtFirExpressionTypeProvider(
@@ -32,7 +38,23 @@ internal class KtFirExpressionTypeProvider(
     }
 
     override fun getKtExpressionType(expression: KtExpression): KtType = withValidityAssertion {
-        expression.getOrBuildFirOfType<FirExpression>(firResolveState).typeRef.coneType.asKtType()
+        when (val fir = expression.getOrBuildFir(firResolveState)) {
+            is FirExpression -> fir.typeRef.coneType.asKtType()
+            is FirNamedReference -> fir.getReferencedElementType().asKtType()
+            is FirStatement -> with(analysisSession) { builtinTypes.UNIT }
+            else -> error("Unexpected ${fir::class}")
+        }
+    }
+
+    private fun FirNamedReference.getReferencedElementType(): ConeKotlinType {
+        val symbols = when (this) {
+            is FirResolvedNamedReference -> listOf(resolvedSymbol)
+            is FirErrorNamedReference -> FirReferenceResolveHelper.getFirSymbolsByErrorNamedReference(this)
+            else -> error("Unexpected ${this::class}")
+        }
+        val firCallableDeclaration = symbols.singleOrNull()?.fir as? FirCallableDeclaration<*>
+        return firCallableDeclaration?.returnTypeRef?.coneType
+            ?: ConeClassErrorType(ConeUnresolvedNameError(name))
     }
 
     override fun getExpectedType(expression: PsiElement): KtType? =

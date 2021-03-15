@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.cfg.UnreachableCode
 import org.jetbrains.kotlin.diagnostics.Errors.ACTUAL_WITHOUT_EXPECT
 import org.jetbrains.kotlin.diagnostics.Errors.NO_ACTUAL_FOR_EXPECT
+import org.jetbrains.kotlin.diagnostics.PositioningStrategies.INNER_MODIFIER
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.lexer.KtTokens.MODALITY_MODIFIERS
@@ -354,6 +355,9 @@ object PositioningStrategies {
     val VARIANCE_MODIFIER: PositioningStrategy<KtModifierListOwner> = modifierSetPosition(KtTokens.IN_KEYWORD, KtTokens.OUT_KEYWORD)
 
     @JvmField
+    val CONST_MODIFIER: PositioningStrategy<KtModifierListOwner> = modifierSetPosition(KtTokens.CONST_KEYWORD)
+
+    @JvmField
     val FOR_REDECLARATION: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
         override fun mark(element: PsiElement): List<TextRange> {
             val nameIdentifier = when (element) {
@@ -438,6 +442,14 @@ object PositioningStrategies {
     val MODALITY_MODIFIER: PositioningStrategy<KtModifierListOwner> = ModifierSetBasedPositioningStrategy(MODALITY_MODIFIERS)
 
     @JvmField
+    val INLINE_OR_VALUE_MODIFIER: PositioningStrategy<KtModifierListOwner> =
+        ModifierSetBasedPositioningStrategy(TokenSet.create(KtTokens.INLINE_KEYWORD, KtTokens.VALUE_KEYWORD))
+
+    @JvmField
+    val INNER_MODIFIER: PositioningStrategy<KtModifierListOwner> =
+        ModifierSetBasedPositioningStrategy(TokenSet.create(KtTokens.INNER_KEYWORD))
+
+    @JvmField
     val VARIANCE_IN_PROJECTION: PositioningStrategy<KtTypeProjection> = object : PositioningStrategy<KtTypeProjection>() {
         override fun mark(element: KtTypeProjection): List<TextRange> {
             return markElement(element.projectionToken!!)
@@ -504,6 +516,13 @@ object PositioningStrategies {
     val WHEN_EXPRESSION: PositioningStrategy<KtWhenExpression> = object : PositioningStrategy<KtWhenExpression>() {
         override fun mark(element: KtWhenExpression): List<TextRange> {
             return markElement(element.whenKeyword)
+        }
+    }
+
+    @JvmField
+    val IF_EXPRESSION: PositioningStrategy<KtIfExpression> = object : PositioningStrategy<KtIfExpression>() {
+        override fun mark(element: KtIfExpression): List<TextRange> {
+            return markElement(element.ifKeyword)
         }
     }
 
@@ -701,6 +720,44 @@ object PositioningStrategies {
                 is KtUnaryExpression -> mark(element.operationReference)
                 else -> super.mark(element)
             }
+        }
+    }
+
+    val DOT_BY_QUALIFIED: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
+        override fun mark(element: PsiElement): List<TextRange> {
+            when (element) {
+                is KtDotQualifiedExpression -> {
+                    return mark(element.operationTokenNode.psi)
+                }
+            }
+            return super.mark(element)
+        }
+    }
+
+    val SELECTOR_BY_QUALIFIED: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
+        override fun mark(element: PsiElement): List<TextRange> {
+            if (element is KtQualifiedExpression) {
+                when (val selectorExpression = element.selectorExpression) {
+                    is KtElement -> return mark(selectorExpression)
+                }
+            }
+            return super.mark(element)
+        }
+    }
+
+    val REFERENCE_BY_QUALIFIED: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
+        override fun mark(element: PsiElement): List<TextRange> {
+            when (element) {
+                is KtQualifiedExpression -> {
+                    when (val selectorExpression = element.selectorExpression) {
+                        is KtCallExpression -> return mark(selectorExpression.calleeExpression ?: selectorExpression)
+                        is KtReferenceExpression -> return mark(selectorExpression)
+                    }
+                }
+                is KtCallExpression -> return mark(element.calleeExpression ?: element)
+                is KtConstructorDelegationCall -> return mark(element.calleeExpression ?: element)
+            }
+            return super.mark(element)
         }
     }
 }

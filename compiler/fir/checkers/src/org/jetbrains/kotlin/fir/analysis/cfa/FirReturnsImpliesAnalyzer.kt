@@ -29,13 +29,14 @@ import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.fir.types.intersectTypesOrNull
 import org.jetbrains.kotlin.fir.types.isNullable
 import org.jetbrains.kotlin.types.AbstractTypeChecker
+import org.jetbrains.kotlin.types.ConstantValueKind
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.TypeCheckerProviderContext
 import org.jetbrains.kotlin.utils.addIfNotNull
 
 object FirReturnsImpliesAnalyzer : FirControlFlowChecker() {
 
-    override fun analyze(graph: ControlFlowGraph, reporter: DiagnosticReporter, checkerContext: CheckerContext) {
+    override fun analyze(graph: ControlFlowGraph, reporter: DiagnosticReporter, context: CheckerContext) {
         val function = graph.declaration as? FirFunction<*> ?: return
         val graphRef = function.controlFlowGraphReference as FirControlFlowGraphReferenceImpl
         val dataFlowInfo = graphRef.dataFlowInfo
@@ -52,6 +53,10 @@ object FirReturnsImpliesAnalyzer : FirControlFlowChecker() {
 
             override fun updateAllReceivers(flow: PersistentFlow) =
                 throw IllegalStateException("Update of all receivers is not possible for this logic system")
+
+            override fun ConeKotlinType.isAcceptableForSmartcast(): Boolean {
+                return true
+            }
         }
 
         effects.forEach { effect ->
@@ -61,7 +66,7 @@ object FirReturnsImpliesAnalyzer : FirControlFlowChecker() {
 
             if (wrongCondition) {
                 function.contractDescription.source?.let {
-                    reporter.report(FirErrors.WRONG_IMPLIES_CONDITION.on(it))
+                    reporter.report(FirErrors.WRONG_IMPLIES_CONDITION.on(it), context)
                 }
             }
         }
@@ -183,9 +188,9 @@ object FirReturnsImpliesAnalyzer : FirControlFlowChecker() {
     }
 
     private fun FirConstExpression<*>.isApplicableWith(operation: Operation): Boolean = when {
-        kind == FirConstKind.Null -> operation == Operation.EqNull
-        kind == FirConstKind.Boolean && operation == Operation.EqTrue -> (value as Boolean)
-        kind == FirConstKind.Boolean && operation == Operation.EqFalse -> !(value as Boolean)
+        kind == ConstantValueKind.Null -> operation == Operation.EqNull
+        kind == ConstantValueKind.Boolean && operation == Operation.EqTrue -> (value as Boolean)
+        kind == ConstantValueKind.Boolean && operation == Operation.EqFalse -> !(value as Boolean)
         else -> true
     }
 

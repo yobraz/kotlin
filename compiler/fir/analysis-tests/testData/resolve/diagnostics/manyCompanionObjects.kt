@@ -1,11 +1,11 @@
 class A {
-    <!REDECLARATION{LT}!>companion <!REDECLARATION{PSI}!>object<!> {
+    companion <!REDECLARATION!>object<!> {
 
-    }<!>
+    }
 
-    <!MANY_COMPANION_OBJECTS{LT}, REDECLARATION{LT}!>companion <!MANY_COMPANION_OBJECTS{PSI}, REDECLARATION{PSI}!>object<!> {
+    <!MANY_COMPANION_OBJECTS!>companion<!> <!REDECLARATION!>object<!> {
 
-    }<!>
+    }
 }
 
 class B {
@@ -13,7 +13,7 @@ class B {
 
     }
 
-    <!MANY_COMPANION_OBJECTS{LT}!>companion <!MANY_COMPANION_OBJECTS{PSI}!>object B<!> {
+    <!MANY_COMPANION_OBJECTS!>companion<!> object B {
 
-    }<!>
+    }
 }

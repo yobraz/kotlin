@@ -52,8 +52,12 @@ class RawFirBuilderTotalKotlinTestCase : AbstractRawFirBuilderTestCase() {
         println("BASE PATH: $testDataPath")
         for (file in root.walkTopDown()) {
             if (file.isDirectory) continue
-            val path = file.path
-            if ("testData" in path || "resources" in path || "api/js" in path.replace('\\', '/')) continue
+            val path = file.path.toLowerCase()
+            if ("testdata" in path ||
+                "kotlin-native" in path ||
+                "resources" in path ||
+                "api/js" in path.replace('\\', '/')
+            ) continue
             if (file.extension != "kt") continue
             try {
                 val ktFile = createKtFile(file.toRelativeString(root))
@@ -157,11 +161,11 @@ class RawFirBuilderTotalKotlinTestCase : AbstractRawFirBuilderTestCase() {
         println("KT DECLARATIONS: $ktDeclarations")
         println("KT REFERENCES: $ktReferences")
         if (!stubMode) {
-            assertEquals(0, expressionStubs)
+            assertEquals("# of expression stubs", 0, expressionStubs)
         }
-        assertEquals(0, errorExpressions)
-        assertEquals(0, errorDeclarations)
-        assertEquals(0, errorReferences)
+        assertEquals("# of error expressions", 0, errorExpressions)
+        assertEquals("# of error declarations", 0, errorDeclarations)
+        assertEquals("# of error references", 0, errorReferences)
     }
 
     fun testTotalKotlinWithExpressionTrees() {
@@ -176,8 +180,12 @@ class RawFirBuilderTotalKotlinTestCase : AbstractRawFirBuilderTestCase() {
         val root = File(testDataPath)
         for (file in root.walkTopDown()) {
             if (file.isDirectory) continue
-            val path = file.path
-            if ("testData" in path || "resources" in path || "api/js" in path.replace('\\', '/')) continue
+            val path = file.path.toLowerCase()
+            if ("kotlin-native" in path ||
+                "testdata" in path ||
+                "resources" in path ||
+                "api/js" in path.replace('\\', '/')
+            ) continue
             if (file.extension != "kt") continue
             val ktFile = createKtFile(file.toRelativeString(root))
             val firFile = ktFile.toFirFile()
@@ -203,8 +211,11 @@ class RawFirBuilderTotalKotlinTestCase : AbstractRawFirBuilderTestCase() {
         var counter = 0
         for (file in root.walkTopDown()) {
             if (file.isDirectory) continue
-            val path = file.path
-            if ("testData" in path || "testdata" in path || "resources" in path || "api/js" in path.replace('\\', '/')) continue
+            val path = file.path.toLowerCase()
+            if ("kotlin-native" in path ||
+                "testdata" in path ||
+                "resources" in path ||
+                "api/js" in path.replace('\\', '/')) continue
             if (file.extension != "kt") continue
             val ktFile = createKtFile(file.toRelativeString(root))
             val firFile: FirFile = ktFile.toFirFile()
@@ -258,12 +269,14 @@ class RawFirBuilderTotalKotlinTestCase : AbstractRawFirBuilderTestCase() {
                         it is KtStringTemplateExpression && it.entries.size <= 1 ||
                         it is KtDestructuringDeclaration && it.parent is KtParameter ||
                         it is KtArrayAccessExpression && it.parent is KtBinaryExpression ||
+                        it is KtCallExpression && it.parent is KtQualifiedExpression ||
                         it is KtNameReferenceExpression &&
                         (it.parent is KtUserType || it.parent is KtInstanceExpressionWithLabel ||
                                 it.parent is KtValueArgumentName || it.parent is KtTypeConstraint) ||
                         it.getStrictParentOfType<KtPackageDirective>() != null ||
                         it.getStrictParentOfType<KtImportDirective>() != null ||
                         (it is KtPropertyAccessor && !it.hasBody()) ||
+                        it is KtDestructuringDeclarationEntry && it.text == "_" ||
                         it is KtConstantExpression && it.parent.let { parent ->
                             parent is KtPrefixExpression && (parent.operationToken == KtTokens.MINUS || parent.operationToken == KtTokens.PLUS)
                         }

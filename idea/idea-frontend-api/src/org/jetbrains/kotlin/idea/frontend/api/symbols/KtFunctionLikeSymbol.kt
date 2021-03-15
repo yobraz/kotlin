@@ -10,13 +10,13 @@ import org.jetbrains.kotlin.idea.frontend.api.symbols.pointers.KtSymbolPointer
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
-abstract class KtFunctionLikeSymbol : KtCallableSymbol(), KtTypedSymbol, KtSymbolWithKind {
+abstract class KtFunctionLikeSymbol : KtCallableSymbol(), KtSymbolWithKind {
     abstract val valueParameters: List<KtParameterSymbol>
 
     abstract override fun createPointer(): KtSymbolPointer<KtFunctionLikeSymbol>
 }
 
-abstract class KtAnonymousFunctionSymbol : KtFunctionLikeSymbol() {
+abstract class KtAnonymousFunctionSymbol : KtFunctionLikeSymbol(), KtPossibleExtensionSymbol {
     final override val symbolKind: KtSymbolKind get() = KtSymbolKind.LOCAL
 
     abstract override fun createPointer(): KtSymbolPointer<KtAnonymousFunctionSymbol>
@@ -25,6 +25,7 @@ abstract class KtAnonymousFunctionSymbol : KtFunctionLikeSymbol() {
 abstract class KtFunctionSymbol : KtFunctionLikeSymbol(),
     KtNamedSymbol,
     KtPossibleExtensionSymbol,
+    KtPossibleMemberSymbol,
     KtSymbolWithTypeParameters,
     KtSymbolWithModality<KtCommonSymbolModality>,
     KtSymbolWithVisibility,
@@ -42,7 +43,11 @@ abstract class KtFunctionSymbol : KtFunctionLikeSymbol(),
     abstract override fun createPointer(): KtSymbolPointer<KtFunctionSymbol>
 }
 
-abstract class KtConstructorSymbol : KtFunctionLikeSymbol(), KtAnnotatedSymbol, KtSymbolWithVisibility {
+abstract class KtConstructorSymbol : KtFunctionLikeSymbol(),
+    KtPossibleMemberSymbol,
+    KtAnnotatedSymbol,
+    KtSymbolWithVisibility,
+    KtSymbolWithTypeParameters {
     abstract val isPrimary: Boolean
     abstract val containingClassIdIfNonLocal: ClassId?
 

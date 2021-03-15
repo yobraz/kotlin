@@ -16,10 +16,7 @@
 
 package org.jetbrains.kotlin.psi2ir.generators
 
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.builtins.createFunctionType
-import org.jetbrains.kotlin.builtins.isKFunctionType
-import org.jetbrains.kotlin.builtins.isKSuspendFunctionType
+import org.jetbrains.kotlin.builtins.*
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.declarations.DescriptorMetadataSource
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
@@ -159,20 +156,13 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
                 "Bound callable reference cannot have both receivers: $adapteeDescriptor"
             }
             val receiver = irDispatchReceiver ?: irExtensionReceiver
-            if (receiver == null) {
-                IrFunctionExpressionImpl(
-                    startOffset, endOffset, irFunctionalType, irAdapterFun, IrStatementOrigin.ADAPTED_FUNCTION_REFERENCE
-                )
-            } else {
-                // TODO add a bound receiver property to IrFunctionExpressionImpl?
-                val irAdapterRef = IrFunctionReferenceImpl(
-                    startOffset, endOffset, irFunctionalType, irAdapterFun.symbol, irAdapterFun.typeParameters.size,
-                    irAdapterFun.valueParameters.size, null, IrStatementOrigin.ADAPTED_FUNCTION_REFERENCE
-                )
-                IrBlockImpl(startOffset, endOffset, irFunctionalType, IrStatementOrigin.ADAPTED_FUNCTION_REFERENCE).apply {
-                    statements.add(irAdapterFun)
-                    statements.add(irAdapterRef.apply { extensionReceiver = receiver })
-                }
+            val irAdapterRef = IrFunctionReferenceImpl(
+                startOffset, endOffset, irFunctionalType, irAdapterFun.symbol, irAdapterFun.typeParameters.size,
+                irAdapterFun.valueParameters.size, adapteeSymbol, IrStatementOrigin.ADAPTED_FUNCTION_REFERENCE
+            )
+            IrBlockImpl(startOffset, endOffset, irFunctionalType, IrStatementOrigin.ADAPTED_FUNCTION_REFERENCE).apply {
+                statements.add(irAdapterFun)
+                statements.add(irAdapterRef.apply { extensionReceiver = receiver })
             }
         }
     }
@@ -389,7 +379,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
                 generateFunctionReference(startOffset, endOffset, type, symbol, callableDescriptor, typeArguments, origin)
             }
             is PropertyDescriptor -> {
-                val mutable = get(BindingContext.VARIABLE, ktElement)?.isVar ?: true
+                val mutable = ReflectionTypes.isNumberedKMutablePropertyType(type)
                 generatePropertyReference(startOffset, endOffset, type, callableDescriptor, typeArguments, origin, mutable)
             }
             else ->

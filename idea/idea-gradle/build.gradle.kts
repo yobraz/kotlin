@@ -24,7 +24,7 @@ dependencies {
     compileOnly(intellijPluginDep("Groovy"))
     compileOnly(intellijPluginDep("junit"))
     compileOnly(intellijPluginDep("testng"))
-    runtimeOnly(project(":kotlin-coroutines-experimental-compat"))
+    runtimeOnly( "org.jetbrains.kotlin:kotlin-coroutines-experimental-compat:1.4.20")
 
     compileOnly(project(":kotlin-gradle-statistics"))
 
@@ -99,21 +99,23 @@ testsJar()
 
 projectTest(parallel = false) {
     dependsOn(":dist")
-    dependsOnKotlinPluginInstall()
+    dependsOnKotlinGradlePluginInstall()
     if (!Ide.AS41.orHigher()) {
         systemProperty("android.studio.sdk.manager.disabled", "true")
     }
     workingDir = rootDir
     useAndroidSdk()
 
-    doFirst {
-        val mainResourceDirPath = File(project.buildDir, "resources/main").absolutePath
-        sourceSets["test"].runtimeClasspath = sourceSets["test"].runtimeClasspath.filter { file ->
-            if (!file.absolutePath.contains(mainResourceDirPath)) {
-                true
-            } else {
-                println("Remove `${file.path}` from the test runtime classpath")
-                false
+    if (kotlinBuildProperties.isJpsBuildEnabled) {
+        doFirst {
+            val mainResourceDirPath = File(project.buildDir, "resources/main").absolutePath
+            sourceSets["test"].runtimeClasspath = sourceSets["test"].runtimeClasspath.filter { file ->
+                if (!file.absolutePath.contains(mainResourceDirPath)) {
+                    true
+                } else {
+                    println("Remove `${file.path}` from the test runtime classpath")
+                    false
+                }
             }
         }
     }

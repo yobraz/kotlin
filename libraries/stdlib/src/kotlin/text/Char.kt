@@ -194,6 +194,33 @@ public expect fun Char.uppercaseChar(): Char
 public expect fun Char.uppercase(): String
 
 /**
+ * Converts this character to title case using Unicode mapping rules of the invariant locale.
+ *
+ * This function performs one-to-one character mapping.
+ * To support one-to-many character mapping use the [titlecase] function.
+ * If this character has no mapping equivalent, the result of calling [uppercaseChar] is returned.
+ *
+ * @sample samples.text.Chars.titlecase
+ */
+@SinceKotlin("1.5")
+@ExperimentalStdlibApi
+public expect fun Char.titlecaseChar(): Char
+
+/**
+ * Converts this character to title case using Unicode mapping rules of the invariant locale.
+ *
+ * This function supports one-to-many character mapping, thus the length of the returned string can be greater than one.
+ * For example, `'\uFB00'.titlecase()` returns `"\u0046\u0066"`,
+ * where `'\uFB00'` is the LATIN SMALL LIGATURE FF character (`ﬀ`).
+ * If this character has no title case mapping, the result of [uppercase] is returned instead.
+ *
+ * @sample samples.text.Chars.titlecase
+ */
+@SinceKotlin("1.5")
+@ExperimentalStdlibApi
+public fun Char.titlecase(): String = titlecaseImpl()
+
+/**
  * Concatenates this Char and a String.
  *
  * @sample samples.text.Chars.plus
@@ -227,3 +254,97 @@ public fun Char.equals(other: Char, ignoreCase: Boolean = false): Boolean {
  * Returns `true` if this character is a Unicode surrogate code unit.
  */
 public fun Char.isSurrogate(): Boolean = this in Char.MIN_SURROGATE..Char.MAX_SURROGATE
+
+/**
+ * Returns the Unicode general category of this character.
+ */
+@SinceKotlin("1.5")
+public expect val Char.category: CharCategory
+
+/**
+ * Returns `true` if this character (Unicode code point) is defined in Unicode.
+ *
+ * A character is considered to be defined in Unicode if its [category] is not [CharCategory.UNASSIGNED].
+ */
+@SinceKotlin("1.5")
+public expect fun Char.isDefined(): Boolean
+
+/**
+ * Returns `true` if this character is a letter.
+ *
+ * A character is considered to be a letter if its [category] is [CharCategory.UPPERCASE_LETTER],
+ * [CharCategory.LOWERCASE_LETTER], [CharCategory.TITLECASE_LETTER], [CharCategory.MODIFIER_LETTER], or [CharCategory.OTHER_LETTER].
+ *
+ * @sample samples.text.Chars.isLetter
+ */
+@SinceKotlin("1.5")
+public expect fun Char.isLetter(): Boolean
+
+/**
+ * Returns `true` if this character is a letter or digit.
+ *
+ * @see isLetter
+ * @see isDigit
+ *
+ * @sample samples.text.Chars.isLetterOrDigit
+ */
+@SinceKotlin("1.5")
+public expect fun Char.isLetterOrDigit(): Boolean
+
+/**
+ * Returns `true` if this character is a digit.
+ *
+ * A character is considered to be a digit if its [category] is [CharCategory.DECIMAL_DIGIT_NUMBER].
+ *
+ * @sample samples.text.Chars.isDigit
+ */
+@SinceKotlin("1.5")
+public expect fun Char.isDigit(): Boolean
+
+/**
+ * Returns `true` if this character is an upper case letter.
+ *
+ * A character is considered to be an upper case letter if its [category] is [CharCategory.UPPERCASE_LETTER].
+ *
+ * @sample samples.text.Chars.isUpperCase
+ */
+@SinceKotlin("1.5")
+public expect fun Char.isUpperCase(): Boolean
+
+/**
+ * Returns `true` if this character is a lower case letter.
+ *
+ * A character is considered to be a lower case letter if its [category] is [CharCategory.LOWERCASE_LETTER].
+ *
+ * @sample samples.text.Chars.isLowerCase
+ */
+@SinceKotlin("1.5")
+public expect fun Char.isLowerCase(): Boolean
+
+/**
+ * Returns `true` if this character is a title case letter.
+ *
+ * A character is considered to be a title case letter if its [category] is [CharCategory.TITLECASE_LETTER].
+ *
+ * @sample samples.text.Chars.isTitleCase
+ */
+@SinceKotlin("1.5")
+public expect fun Char.isTitleCase(): Boolean
+
+/**
+ * Returns `true` if this character is an ISO control character.
+ *
+ * A character is considered to be an ISO control character if its [category] is [CharCategory.CONTROL].
+ *
+ * @sample samples.text.Chars.isISOControl
+ */
+@SinceKotlin("1.5")
+public expect fun Char.isISOControl(): Boolean
+
+/**
+ * Determines whether a character is whitespace according to the Unicode standard.
+ * Returns `true` if the character is whitespace.
+ *
+ * @sample samples.text.Chars.isWhitespace
+ */
+public expect fun Char.isWhitespace(): Boolean

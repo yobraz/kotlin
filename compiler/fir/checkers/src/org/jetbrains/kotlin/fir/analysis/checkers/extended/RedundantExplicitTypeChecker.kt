@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirMemberDeclarationChecker
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
+import org.jetbrains.kotlin.fir.analysis.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.declarations.FirMemberDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirProperty
 import org.jetbrains.kotlin.fir.declarations.FirTypeAlias
@@ -20,6 +21,7 @@ import org.jetbrains.kotlin.fir.symbols.StandardClassIds
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.types.ConstantValueKind
 
 object RedundantExplicitTypeChecker : FirMemberDeclarationChecker() {
     override fun check(declaration: FirMemberDeclaration, context: CheckerContext, reporter: DiagnosticReporter) {
@@ -43,14 +45,14 @@ object RedundantExplicitTypeChecker : FirMemberDeclarationChecker() {
                         if (!type.isSame(StandardClassIds.Boolean)) return
                     }
                     KtNodeTypes.INTEGER_CONSTANT -> {
-                        if (initializer.kind == FirConstKind.Long) {
+                        if (initializer.kind == ConstantValueKind.Long) {
                             if (!type.isSame(StandardClassIds.Long)) return
                         } else {
                             if (!type.isSame(StandardClassIds.Int)) return
                         }
                     }
                     KtNodeTypes.FLOAT_CONSTANT -> {
-                        if (initializer.kind == FirConstKind.Float) {
+                        if (initializer.kind == ConstantValueKind.Float) {
                             if (!type.isSame(StandardClassIds.Float)) return
                         } else {
                             if (!type.isSame(StandardClassIds.Double)) return
@@ -83,7 +85,7 @@ object RedundantExplicitTypeChecker : FirMemberDeclarationChecker() {
             else -> return
         }
 
-        reporter.report(declaration.returnTypeRef.source, FirErrors.REDUNDANT_EXPLICIT_TYPE)
+        reporter.reportOn(declaration.returnTypeRef.source, FirErrors.REDUNDANT_EXPLICIT_TYPE, context)
     }
 
     private fun ConeKotlinType.isSame(other: ClassId?): Boolean {

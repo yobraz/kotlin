@@ -27,7 +27,7 @@ abstract class IrDeclarationReference : IrExpression() {
 
 abstract class IrGetSingletonValue : IrDeclarationReference()
 
-abstract class IrGetObjectValue : IrGetSingletonValue() {
+abstract class IrGetObjectValue : IrGetSingletonValue(), IrExpressionWithCopy {
     abstract override val symbol: IrClassSymbol
 }
 
@@ -38,7 +38,8 @@ abstract class IrGetEnumValue : IrGetSingletonValue() {
 /**
  * Platform-specific low-level reference to function.
  *
- * On JS platform represent a plain reference to JavaScript function.
+ * On JS platform it represents a plain reference to JavaScript function.
+ * On JVM platform it represents a MethodHandle constant.
  */
 abstract class IrRawFunctionReference : IrDeclarationReference() {
     abstract override val symbol: IrFunctionSymbol

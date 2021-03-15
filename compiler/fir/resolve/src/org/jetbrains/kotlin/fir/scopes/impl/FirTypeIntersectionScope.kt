@@ -14,8 +14,9 @@ import org.jetbrains.kotlin.fir.dispatchReceiverClassOrNull
 import org.jetbrains.kotlin.fir.originalForIntersectionOverrideAttr
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.scopes.*
-import org.jetbrains.kotlin.fir.symbols.CallableId
+import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.fir.symbols.impl.*
+import org.jetbrains.kotlin.fir.typeContext
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.AbstractTypeChecker
@@ -33,7 +34,7 @@ class FirTypeIntersectionScope private constructor(
     private val absentProperties: MutableSet<Name> = mutableSetOf()
     private val absentClassifiers: MutableSet<Name> = mutableSetOf()
 
-    private val typeContext = ConeTypeCheckerContext(isErrorTypeEqualsToAnything = false, isStubTypeEqualsToAnything = false, session)
+    private val typeCheckerContext = session.typeContext.newBaseTypeCheckerContext(false, false)
 
     private val overriddenSymbols: MutableMap<FirCallableSymbol<*>, Collection<MemberWithBaseScope<out FirCallableSymbol<*>>>> =
         mutableMapOf()
@@ -89,7 +90,7 @@ class FirTypeIntersectionScope private constructor(
             return false
         }
 
-        val allMembersWithScope = membersByScope.flatMapTo(mutableListOf()) { (scope, members) ->
+        val allMembersWithScope = membersByScope.flatMapTo(linkedSetOf()) { (scope, members) ->
             members.map { MemberWithBaseScope(it, scope) }
         }
 
@@ -105,13 +106,14 @@ class FirTypeIntersectionScope private constructor(
                 val intersectionOverride = intersectionOverrides.getOrPut(mostSpecific) {
                     val newModality = chooseIntersectionOverrideModality(extractedOverrides)
                     val newVisibility = chooseIntersectionVisibility(extractedOverrides)
+                    val extractedOverridesSymbols = extractedOverrides.map { it.member }
                     @Suppress("UNCHECKED_CAST")
                     when (mostSpecific) {
                         is FirNamedFunctionSymbol -> {
-                            createIntersectionOverride(mostSpecific, newModality, newVisibility)
+                            createIntersectionOverride(mostSpecific, extractedOverridesSymbols, newModality, newVisibility)
                         }
                         is FirPropertySymbol -> {
-                            createIntersectionOverride(mostSpecific, newModality, newVisibility)
+                            createIntersectionOverride(mostSpecific, extractedOverridesSymbols, newModality, newVisibility)
                         }
                         else -> {
                             throw IllegalStateException("Should not be here")
@@ -132,14 +134,18 @@ class FirTypeIntersectionScope private constructor(
 
     private fun <D : FirCallableSymbol<*>> chooseIntersectionOverrideModality(
         extractedOverridden: Collection<MemberWithBaseScope<D>>
-    ): Modality {
+    ): Modality? {
         var hasOpen = false
         var hasAbstract = false
 
         for ((member) in extractedOverridden) {
             when ((member.fir as FirMemberDeclaration).modality) {
                 Modality.FINAL -> return Modality.FINAL
-                Modality.SEALED -> error("Members should not be sealed: $member")
+                Modality.SEALED -> {
+                    // Members should not be sealed. But, that will be reported as WRONG_MODIFIER_TARGET, and here we shouldn't raise an
+                    // internal error. Instead, let the intersection override have the default modality: null.
+                    return null
+                }
                 Modality.OPEN -> {
                     hasOpen = true
                 }
@@ -255,16 +261,18 @@ class FirTypeIntersectionScope private constructor(
 
     private fun createIntersectionOverride(
         mostSpecific: FirNamedFunctionSymbol,
-        newModality: Modality,
+        overrides: Collection<FirCallableSymbol<*>>,
+        newModality: Modality?,
         newVisibility: Visibility,
     ): FirNamedFunctionSymbol {
 
         val newSymbol =
-            FirNamedFunctionSymbol(
+            FirIntersectionOverrideFunctionSymbol(
                 CallableId(
                     dispatchReceiverType.classId ?: mostSpecific.dispatchReceiverClassOrNull()?.classId!!,
                     mostSpecific.fir.name
-                )
+                ),
+                overrides
             )
         val mostSpecificFunction = mostSpecific.fir
         FirFakeOverrideGenerator.createCopyForFirFunction(
@@ -282,10 +290,11 @@ class FirTypeIntersectionScope private constructor(
 
     private fun createIntersectionOverride(
         mostSpecific: FirPropertySymbol,
-        newModality: Modality,
+        overrides: Collection<FirCallableSymbol<*>>,
+        newModality: Modality?,
         newVisibility: Visibility,
     ): FirPropertySymbol {
-        val newSymbol = FirPropertySymbol(mostSpecific.callableId)
+        val newSymbol = FirIntersectionOverridePropertySymbol(mostSpecific.callableId, overrides)
         val mostSpecificProperty = mostSpecific.fir
         FirFakeOverrideGenerator.createCopyForFirProperty(
             newSymbol, mostSpecificProperty, mostSpecificProperty.session, FirDeclarationOrigin.IntersectionOverride,
@@ -353,7 +362,7 @@ class FirTypeIntersectionScope private constructor(
             require(bFir is FirProperty) { "b is " + b.javaClass }
             // TODO: if (!OverridingUtil.isAccessorMoreSpecific(pa.getSetter(), pb.getSetter())) return false
             return if (aFir.isVar && bFir.isVar) {
-                AbstractTypeChecker.equalTypes(typeContext as AbstractTypeCheckerContext, aReturnType, bReturnType)
+                AbstractTypeChecker.equalTypes(typeCheckerContext as AbstractTypeCheckerContext, aReturnType, bReturnType)
             } else { // both vals or var vs val: val can't be more specific then var
                 !(!aFir.isVar && bFir.isVar) && isTypeMoreSpecific(aReturnType, bReturnType)
             }
@@ -362,7 +371,7 @@ class FirTypeIntersectionScope private constructor(
     }
 
     private fun isTypeMoreSpecific(a: ConeKotlinType, b: ConeKotlinType): Boolean =
-        AbstractTypeChecker.isSubtypeOf(typeContext as AbstractTypeCheckerContext, a, b)
+        AbstractTypeChecker.isSubtypeOf(typeCheckerContext as AbstractTypeCheckerContext, a, b)
 
     private fun <D : FirCallableSymbol<*>> findMemberWithMaxVisibility(members: Collection<MemberWithBaseScope<D>>): MemberWithBaseScope<D> {
         assert(members.isNotEmpty())
@@ -504,6 +513,14 @@ class FirTypeIntersectionScope private constructor(
 private class MemberWithBaseScope<D : FirCallableSymbol<*>>(val member: D, val baseScope: FirTypeScope) {
     operator fun component1() = member
     operator fun component2() = baseScope
+
+    override fun equals(other: Any?): Boolean {
+        return other is MemberWithBaseScope<*> && member == other.member
+    }
+
+    override fun hashCode(): Int {
+        return member.hashCode()
+    }
 }
 
 private fun <D : FirCallableSymbol<*>> D.withScope(baseScope: FirTypeScope) = MemberWithBaseScope(this, baseScope)

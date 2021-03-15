@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.backend.jvm.codegen
 
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.backend.common.psi.PsiSourceManager
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
@@ -22,8 +23,8 @@ class JvmSignatureClashDetector(
     private val type: Type,
     private val context: JvmBackendContext
 ) {
-    private val methodsBySignature = HashMap<RawSignature, MutableSet<IrFunction>>()
-    private val fieldsBySignature = HashMap<RawSignature, MutableSet<IrField>>()
+    private val methodsBySignature = LinkedHashMap<RawSignature, MutableSet<IrFunction>>()
+    private val fieldsBySignature = LinkedHashMap<RawSignature, MutableSet<IrField>>()
 
     fun trackField(irField: IrField, rawSignature: RawSignature) {
         fieldsBySignature.getOrPut(rawSignature) { SmartSet.create() }.add(irField)
@@ -49,7 +50,7 @@ class JvmSignatureClashDetector(
     }
 
     private fun getOverriddenFunctions(irFunction: IrSimpleFunction): Set<IrFunction> {
-        val result = HashSet<IrFunction>()
+        val result = LinkedHashSet<IrFunction>()
         collectOverridesOf(irFunction, result)
         return result
     }
@@ -146,14 +147,14 @@ class JvmSignatureClashDetector(
         irDeclarations: Collection<IrDeclaration>,
         conflictingJvmDeclarationsData: ConflictingJvmDeclarationsData
     ) {
-        val psiElements = irDeclarations.mapNotNullTo(HashSet()) { it.getElementForDiagnostics() }
+        val psiElements = irDeclarations.mapNotNullTo(LinkedHashSet()) { it.getElementForDiagnostics() }
         for (psiElement in psiElements) {
             context.psiErrorBuilder.at(psiElement)
                 .report(diagnosticFactory1, conflictingJvmDeclarationsData)
         }
     }
 
-    private fun IrDeclaration.findPsiElement() = context.psiSourceManager.findPsiElement(this)
+    private fun IrDeclaration.findPsiElement(): PsiElement? = PsiSourceManager.findPsiElement(this)
 
     private fun IrDeclaration.getElementForDiagnostics(): PsiElement? =
         findPsiElement()
@@ -176,7 +177,7 @@ class JvmSignatureClashDetector(
         // However, if needed, we can provide more meaningful information regarding function origin.
         return JvmDeclarationOrigin(
             JvmDeclarationOriginKind.OTHER,
-            context.psiSourceManager.findPsiElement(this),
+            PsiSourceManager.findPsiElement(this),
             toIrBasedDescriptor()
         )
     }

@@ -35,7 +35,6 @@ open class FirBodyResolveTransformer(
     val returnTypeCalculator: ReturnTypeCalculator = ReturnTypeCalculatorForFullBodyResolve(),
     outerBodyResolveContext: BodyResolveContext? = null
 ) : FirAbstractBodyResolveTransformer(phase) {
-    private var packageFqName = FqName.ROOT
 
     final override val context: BodyResolveContext =
         outerBodyResolveContext ?: BodyResolveContext(returnTypeCalculator, DataFlowAnalyzerContext.empty(session))
@@ -50,11 +49,9 @@ open class FirBodyResolveTransformer(
 
     override fun transformFile(file: FirFile, data: ResolutionMode): CompositeTransformResult<FirFile> {
         checkSessionConsistency(file)
-        context.cleanContextForAnonymousFunction()
-        context.cleanDataFlowContext()
+        context.clear()
         @OptIn(PrivateForInline::class)
         context.file = file
-        packageFqName = file.packageFqName
         return withScopeCleanup(context.fileImportsScope) {
             context.withTowerDataCleanup {
                 val importingScopes = createImportingScopes(file, session, components.scopeSession)
@@ -73,7 +70,7 @@ open class FirBodyResolveTransformer(
         return (element.transformChildren(this, data) as E).compose()
     }
 
-    override fun transformTypeRef(typeRef: FirTypeRef, data: ResolutionMode): CompositeTransformResult<FirTypeRef> {
+    override fun transformTypeRef(typeRef: FirTypeRef, data: ResolutionMode): CompositeTransformResult<FirResolvedTypeRef> {
         if (typeRef is FirResolvedTypeRef) {
             return typeRef.compose()
         }
@@ -250,8 +247,16 @@ open class FirBodyResolveTransformer(
         return declarationsTransformer.transformDeclarationStatus(declarationStatus, data)
     }
 
+    override fun transformEnumEntry(enumEntry: FirEnumEntry, data: ResolutionMode): CompositeTransformResult<FirDeclaration> {
+        return declarationsTransformer.transformEnumEntry(enumEntry, data)
+    }
+
     override fun transformProperty(property: FirProperty, data: ResolutionMode): CompositeTransformResult<FirProperty> {
         return declarationsTransformer.transformProperty(property, data)
+    }
+
+    override fun transformField(field: FirField, data: ResolutionMode): CompositeTransformResult<FirDeclaration> {
+        return declarationsTransformer.transformField(field, data)
     }
 
     override fun transformRegularClass(regularClass: FirRegularClass, data: ResolutionMode): CompositeTransformResult<FirStatement> {
@@ -336,6 +341,13 @@ open class FirBodyResolveTransformer(
 
     override fun <E : FirTargetElement> transformJump(jump: FirJump<E>, data: ResolutionMode): CompositeTransformResult<FirStatement> {
         return controlFlowStatementsTransformer.transformJump(jump, data)
+    }
+
+    override fun transformReturnExpression(
+        returnExpression: FirReturnExpression,
+        data: ResolutionMode
+    ): CompositeTransformResult<FirStatement> {
+        return controlFlowStatementsTransformer.transformReturnExpression(returnExpression, data)
     }
 
     override fun transformThrowExpression(

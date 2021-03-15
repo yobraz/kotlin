@@ -9,10 +9,8 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.kotlin.fir.PrivateForInline
 import org.jetbrains.kotlin.fir.declarations.*
-import org.jetbrains.kotlin.fir.resolve.FirTowerDataContext
-import org.jetbrains.kotlin.fir.resolve.FirTowerDataContextsForClassParts
-import org.jetbrains.kotlin.fir.resolve.FirTowerDataElement
-import org.jetbrains.kotlin.fir.resolve.ImplicitReceiverStack
+import org.jetbrains.kotlin.fir.expressions.FirCallableReferenceAccess
+import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.calls.ImplicitReceiverValue
 import org.jetbrains.kotlin.fir.resolve.dfa.DataFlowAnalyzerContext
 import org.jetbrains.kotlin.fir.resolve.dfa.PersistentFlow
@@ -22,8 +20,8 @@ import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.impl.FirLocalScope
 import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.utils.sure
 
 class BodyResolveContext(
     val returnTypeCalculator: ReturnTypeCalculator,
@@ -37,24 +35,32 @@ class BodyResolveContext(
     lateinit var file: FirFile
         internal set
 
-    val implicitReceiverStack: ImplicitReceiverStack get() = towerDataContext.implicitReceiverStack
+    @set:PrivateForInline
+    var towerDataContextsForClassParts: FirTowerDataContextsForClassParts =
+        FirTowerDataContextsForClassParts(forMemberDeclarations = FirTowerDataContext())
+
+    val towerDataContext: FirTowerDataContext
+        get() = towerDataContextsForClassParts.currentContext
+
+    val implicitReceiverStack: ImplicitReceiverStack
+        get() = towerDataContext.implicitReceiverStack
+
+    val towerDataContextForAnonymousFunctions: MutableMap<FirAnonymousFunctionSymbol, FirTowerDataContext>
+        get() = towerDataContextsForClassParts.towerDataContextForAnonymousFunctions
+
+    val towerDataContextForCallableReferences: MutableMap<FirCallableReferenceAccess, FirTowerDataContext>
+        get() = towerDataContextsForClassParts.towerDataContextForCallableReferences
 
     @set:PrivateForInline
-    var towerDataContext: FirTowerDataContext = FirTowerDataContext()
-
-    @set:PrivateForInline
-    var towerDataContextsForClassParts: FirTowerDataContextsForClassParts? = null
+    var containers: PersistentList<FirDeclaration> = persistentListOf()
 
     val containerIfAny: FirDeclaration?
         get() = containers.lastOrNull()
 
     @set:PrivateForInline
-    var containers: PersistentList<FirDeclaration> = persistentListOf()
-
-    val towerDataContextForAnonymousFunctions: MutableMap<FirAnonymousFunctionSymbol, FirTowerDataContext> = mutableMapOf()
-
-    @set:PrivateForInline
     var inferenceSession: FirInferenceSession = FirInferenceSession.DEFAULT
+
+    val anonymousFunctionsAnalyzedInDependentContext: MutableSet<FirFunctionSymbol<*>> = mutableSetOf()
 
     @OptIn(PrivateForInline::class)
     inline fun <R> withInferenceSession(inferenceSession: FirInferenceSession, block: () -> R): R {
@@ -79,20 +85,11 @@ class BodyResolveContext(
         }
     }
 
-    fun getTowerDataContextForStaticNestedClassesUnsafe(): FirTowerDataContext =
-        firTowerDataContextsForClassParts().forNestedClasses
-
-    fun getTowerDataContextForConstructorResolution(): FirTowerDataContext =
-        firTowerDataContextsForClassParts().forConstructorHeaders
-
     fun getPrimaryConstructorPureParametersScope(): FirLocalScope? =
-        towerDataContextsForClassParts?.primaryConstructorPureParametersScope
+        towerDataContextsForClassParts.primaryConstructorPureParametersScope
 
     fun getPrimaryConstructorAllParametersScope(): FirLocalScope? =
-        towerDataContextsForClassParts?.primaryConstructorAllParametersScope
-
-    private fun firTowerDataContextsForClassParts() =
-        towerDataContextsForClassParts.sure { "towerDataContextForStaticNestedClasses should not be null" }
+        towerDataContextsForClassParts.primaryConstructorAllParametersScope
 
     @OptIn(PrivateForInline::class)
     inline fun <T> withContainer(declaration: FirDeclaration, crossinline f: () -> T): T {
@@ -105,26 +102,65 @@ class BodyResolveContext(
         }
     }
 
-    inline fun <T> withTowerDataContext(context: FirTowerDataContext, f: () -> T): T {
-        return withTowerDataCleanup {
-            replaceTowerDataContext(context)
-            f()
-        }
-    }
-
     @OptIn(PrivateForInline::class)
     inline fun <R> withTowerDataCleanup(l: () -> R): R {
         val initialContext = towerDataContext
         return try {
             l()
         } finally {
-            towerDataContext = initialContext
+            replaceTowerDataContext(initialContext)
+        }
+    }
+
+    inline fun <T> withTowerDataMode(mode: FirTowerDataMode, f: () -> T): T {
+        return withTowerModeCleanup {
+            towerDataMode = mode
+            f()
+        }
+    }
+
+    inline fun <T> withAnonymousFunctionTowerDataContext(symbol: FirAnonymousFunctionSymbol, f: () -> T): T {
+        return withTowerModeCleanup {
+            towerDataContextsForClassParts.setAnonymousFunctionContext(symbol)
+            f()
+        }
+    }
+
+    inline fun <T> withCallableReferenceTowerDataContext(access: FirCallableReferenceAccess, f: () -> T): T {
+        return withTowerModeCleanup {
+            towerDataContextsForClassParts.setCallableReferenceContextIfAny(access)
+            f()
+        }
+    }
+
+    inline fun <R> withTowerModeCleanup(l: () -> R): R {
+        val initialMode = towerDataMode
+        return try {
+            l()
+        } finally {
+            towerDataMode = initialMode
         }
     }
 
     @OptIn(PrivateForInline::class)
+    inline fun <R> withLambdaBeingAnalyzedInDependentContext(lambda: FirAnonymousFunctionSymbol, l: () -> R): R {
+        anonymousFunctionsAnalyzedInDependentContext.add(lambda)
+        return try {
+            l()
+        } finally {
+            anonymousFunctionsAnalyzedInDependentContext.remove(lambda)
+        }
+    }
+
+    var towerDataMode: FirTowerDataMode
+        get() = towerDataContextsForClassParts.mode
+        set(value) {
+            towerDataContextsForClassParts.mode = value
+        }
+
+    @OptIn(PrivateForInline::class)
     fun replaceTowerDataContext(newContext: FirTowerDataContext) {
-        towerDataContext = newContext
+        towerDataContextsForClassParts.currentContext = newContext
     }
 
     fun addNonLocalTowerDataElement(element: FirTowerDataElement) {
@@ -156,6 +192,10 @@ class BodyResolveContext(
         updateLastScope { storeVariable(variable) }
     }
 
+    fun storeBackingField(property: FirProperty) {
+        updateLastScope { storeBackingField(property) }
+    }
+
     fun saveContextForAnonymousFunction(anonymousFunction: FirAnonymousFunction) {
         towerDataContextForAnonymousFunctions[anonymousFunction.symbol] = towerDataContext
     }
@@ -164,11 +204,9 @@ class BodyResolveContext(
         towerDataContextForAnonymousFunctions.remove(anonymousFunction.symbol)
     }
 
-    fun cleanContextForAnonymousFunction() {
+    fun clear() {
         towerDataContextForAnonymousFunctions.clear()
-    }
-
-    fun cleanDataFlowContext() {
+        towerDataContextForCallableReferences.clear()
         dataFlowAnalyzerContext.reset()
     }
 
@@ -181,10 +219,13 @@ class BodyResolveContext(
     fun createSnapshotForLocalClasses(
         returnTypeCalculator: ReturnTypeCalculator,
         targetedLocalClasses: Set<FirClass<*>>
-    ): BodyResolveContext = BodyResolveContext(returnTypeCalculator, dataFlowAnalyzerContext, targetedLocalClasses, outerLocalClassForNested).apply {
-        file = this@BodyResolveContext.file
-        towerDataContextForAnonymousFunctions.putAll(this@BodyResolveContext.towerDataContextForAnonymousFunctions)
-        containers = this@BodyResolveContext.containers
-        towerDataContext = this@BodyResolveContext.towerDataContext
-    }
+    ): BodyResolveContext =
+        BodyResolveContext(returnTypeCalculator, dataFlowAnalyzerContext, targetedLocalClasses, outerLocalClassForNested).apply {
+            file = this@BodyResolveContext.file
+            towerDataContextForAnonymousFunctions.putAll(this@BodyResolveContext.towerDataContextForAnonymousFunctions)
+            towerDataContextForCallableReferences.putAll(this@BodyResolveContext.towerDataContextForCallableReferences)
+            containers = this@BodyResolveContext.containers
+            replaceTowerDataContext(this@BodyResolveContext.towerDataContext)
+            anonymousFunctionsAnalyzedInDependentContext.addAll(this@BodyResolveContext.anonymousFunctionsAnalyzedInDependentContext)
+        }
 }

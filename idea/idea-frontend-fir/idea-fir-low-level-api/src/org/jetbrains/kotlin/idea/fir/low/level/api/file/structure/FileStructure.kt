@@ -5,8 +5,13 @@
 
 package org.jetbrains.kotlin.idea.fir.low.level.api.file.structure
 
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.diagnostics.Diagnostic
-import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirPsiDiagnostic
+import org.jetbrains.kotlin.fir.declarations.FirFile
+import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
+import org.jetbrains.kotlin.idea.fir.low.level.api.api.DiagnosticCheckerFilter
+import org.jetbrains.kotlin.idea.fir.low.level.api.element.builder.FirTowerDataContextCollector
 import org.jetbrains.kotlin.idea.fir.low.level.api.element.builder.getNonLocalContainingOrThisDeclaration
 import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.FirFileBuilder
 import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.ModuleFileCache
@@ -24,7 +29,8 @@ internal class FileStructure(
     private val firFile: FirFile,
     private val firLazyDeclarationResolver: FirLazyDeclarationResolver,
     private val firFileBuilder: FirFileBuilder,
-    private val moduleFileCache: ModuleFileCache
+    private val moduleFileCache: ModuleFileCache,
+    private val collector: FirTowerDataContextCollector
 ) {
     private val firIdeProvider = firFile.session.firIdeProvider
 
@@ -51,21 +57,44 @@ internal class FileStructure(
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    fun getAllDiagnosticsForFile(): Collection<Diagnostic> {
-        val containersForStructureElement = buildList {
-            add(ktFile)
-            ktFile.forEachDescendantOfType<KtDeclaration>(
-                canGoInside = { psi -> psi !is KtFunction && psi !is KtValVarKeywordOwner }
-            ) { declaration ->
-                if (FileStructureUtil.isStructureElementContainer(declaration)) {
-                    add(declaration)
-                }
+    fun getAllDiagnosticsForFile(diagnosticCheckerFilter: DiagnosticCheckerFilter): Collection<FirPsiDiagnostic<*>> {
+        val structureElements = getAllStructureElements()
+
+        return moduleFileCache.firFileLockProvider.withReadLock(firFile) {
+            buildSet {
+                collectDiagnosticsFromStructureElements(structureElements, diagnosticCheckerFilter)
             }
         }
-        val structureElements = containersForStructureElement.map(::getStructureElementFor)
-        return buildList {
-            structureElements.forEach { it.diagnostics.forEach { diagnostics -> addAll(diagnostics) } }
+    }
+
+    private fun MutableSet<FirPsiDiagnostic<*>>.collectDiagnosticsFromStructureElements(
+        structureElements: Collection<FileStructureElement>,
+        diagnosticCheckerFilter: DiagnosticCheckerFilter
+    ) {
+        structureElements.forEach { structureElement ->
+            structureElement.diagnostics.forEach(diagnosticCheckerFilter) { diagnostics ->
+                addAll(diagnostics)
+            }
         }
+    }
+
+    private fun getAllStructureElements(): Collection<FileStructureElement> {
+        val structureElements = mutableSetOf(getStructureElementFor(ktFile))
+        ktFile.accept(object : KtVisitorVoid() {
+            override fun visitElement(element: PsiElement) {
+                element.acceptChildren(this)
+            }
+
+            override fun visitDeclaration(dcl: KtDeclaration) {
+                val structureElement = getStructureElementFor(dcl)
+                structureElements += structureElement
+                if (structureElement !is ReanalyzableStructureElement<*>) {
+                    dcl.acceptChildren(this)
+                }
+            }
+        })
+
+        return structureElements
     }
 
 
@@ -80,7 +109,8 @@ internal class FileStructure(
             firDeclaration,
             moduleFileCache,
             FirResolvePhase.BODY_RESOLVE,
-            checkPCE = true
+            checkPCE = true,
+            towerDataContextCollector = collector
         )
         return moduleFileCache.firFileLockProvider.withReadLock(firFile) {
             FileElementFactory.createFileStructureElement(firDeclaration, declaration, firFile)
@@ -92,7 +122,8 @@ internal class FileStructure(
             val firFile = firFileBuilder.getFirFileResolvedToPhaseWithCaching(
                 container,
                 moduleFileCache,
-                FirResolvePhase.IMPORTS,
+                //TODO: Make resolve whole file into TYPES only for top level declarations or annotations with `file` site
+                FirResolvePhase.TYPES,
                 checkPCE = true
             )
             RootStructureElement(

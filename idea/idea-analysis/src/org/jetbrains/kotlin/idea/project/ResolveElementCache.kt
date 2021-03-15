@@ -15,7 +15,7 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.SLRUCache
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.cfg.ControlFlowInformationProvider
+import org.jetbrains.kotlin.cfg.ControlFlowInformationProviderImpl
 import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.context.SimpleGlobalContext
 import org.jetbrains.kotlin.context.withModule
@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.util.analyzeControlFlow
 import org.jetbrains.kotlin.idea.caches.trackers.KotlinCodeBlockModificationListener
 import org.jetbrains.kotlin.idea.caches.trackers.KotlinCodeBlockModificationListenerCompat
 import org.jetbrains.kotlin.idea.caches.trackers.inBlockModificationCount
-import org.jetbrains.kotlin.idea.compiler.IdeMainFunctionDetectorFactory
+import org.jetbrains.kotlin.idea.compiler.IdeSealedClassInheritorsProvider
 import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.TargetPlatform
@@ -43,7 +43,7 @@ import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
 import org.jetbrains.kotlin.resolve.lazy.*
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
-import java.util.*
+import org.jetbrains.kotlin.types.expressions.ExpressionTypingContext
 import java.util.concurrent.ConcurrentMap
 
 class ResolveElementCache(
@@ -646,7 +646,7 @@ class ResolveElementCache(
         forceResolveAnnotationsInside(property)
 
         for (accessor in property.accessors) {
-            ControlFlowInformationProvider(
+            ControlFlowInformationProviderImpl(
                 accessor, trace, accessor.languageVersionSettings, resolveSession.platformDiagnosticSuppressor
             ).checkDeclaration()
         }
@@ -677,7 +677,7 @@ class ResolveElementCache(
         ForceResolveUtil.forceResolveAllContents(functionDescriptor)
 
         val bodyResolver = createBodyResolver(resolveSession, trace, file, statementFilter)
-        bodyResolver.resolveFunctionBody(DataFlowInfo.EMPTY, trace, namedFunction, functionDescriptor, scope)
+        bodyResolver.resolveFunctionBody(DataFlowInfo.EMPTY, trace, namedFunction, functionDescriptor, scope, null)
 
         forceResolveAnnotationsInside(namedFunction)
 
@@ -696,7 +696,7 @@ class ResolveElementCache(
         ForceResolveUtil.forceResolveAllContents(constructorDescriptor)
 
         val bodyResolver = createBodyResolver(resolveSession, trace, file, statementFilter)
-        bodyResolver.resolveSecondaryConstructorBody(DataFlowInfo.EMPTY, trace, constructor, constructorDescriptor, scope)
+        bodyResolver.resolveSecondaryConstructorBody(DataFlowInfo.EMPTY, trace, constructor, constructorDescriptor, scope, null)
 
         forceResolveAnnotationsInside(constructor)
 
@@ -785,7 +785,9 @@ class ResolveElementCache(
             statementFilter,
             targetPlatform.findAnalyzerServices(file.project),
             file.languageVersionSettings,
-            IdeaModuleStructureOracle()
+            IdeaModuleStructureOracle(),
+            IdeSealedClassInheritorsProvider,
+            ControlFlowInformationProviderImpl.Factory,
         ).get()
     }
 
@@ -834,6 +836,8 @@ class ResolveElementCache(
         override fun getOuterDataFlowInfo(): DataFlowInfo = DataFlowInfo.EMPTY
 
         override fun getTopDownAnalysisMode() = topDownAnalysisMode
+
+        override fun getLocalContext(): ExpressionTypingContext? = null
     }
 
     companion object {
@@ -841,4 +845,3 @@ class ResolveElementCache(
         var forceFullAnalysisModeInTests: Boolean = false
     }
 }
-

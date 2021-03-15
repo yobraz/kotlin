@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.fir.expressions.impl.FirStubStatement
 import org.jetbrains.kotlin.fir.expressions.impl.FirUnitExpression
 import org.jetbrains.kotlin.fir.references.FirReference
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
+import org.jetbrains.kotlin.fir.references.FirSuperReference
 import org.jetbrains.kotlin.fir.resolve.isIteratorNext
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.*
@@ -66,7 +67,9 @@ class Fir2IrVisitor(
 
     override fun visitField(field: FirField, data: Any?): IrField {
         if (field.isSynthetic) {
-            return declarationStorage.getCachedIrField(field)!!
+            return declarationStorage.getCachedIrField(field)!!.apply {
+                memberGenerator.convertFieldContent(this, field)
+            }
         } else {
             throw AssertionError("Unexpected field: ${field.render()}")
         }
@@ -122,8 +125,7 @@ class Fir2IrVisitor(
         } else if (initializer is FirAnonymousObject) {
             // Otherwise, this is a default-ish enum entry, which doesn't need its own synthetic class.
             // During raw FIR building, we put the delegated constructor call inside an anonymous object.
-            val primaryConstructor = initializer.getPrimaryConstructorIfAny()
-            val delegatedConstructor = primaryConstructor?.delegatedConstructor
+            val delegatedConstructor = initializer.primaryConstructor?.delegatedConstructor
             if (delegatedConstructor != null) {
                 with(memberGenerator) {
                     irEnumEntry.initializerExpression = irFactory.createExpressionBody(
@@ -268,7 +270,7 @@ class Fir2IrVisitor(
     override fun visitProperty(property: FirProperty, data: Any?): IrElement {
         if (property.isLocal) return visitLocalVariable(property)
         val irProperty = declarationStorage.getCachedIrProperty(property)!!
-        return conversionScope.withProperty(irProperty) {
+        return conversionScope.withProperty(irProperty, property) {
             memberGenerator.convertPropertyContent(irProperty, property, containingClass = conversionScope.containerFirClass())
         }
     }
@@ -385,7 +387,8 @@ class Fir2IrVisitor(
             // Object case
             val firClass = boundSymbol.fir as FirClass
             val irClass = classifierStorage.getCachedIrClass(firClass)!!
-            if (firClass.classKind == ClassKind.OBJECT && !isThisForClassPhysicallyAvailable(irClass)) {
+            // NB: IR generates anonymous objects as classes, not singleton objects
+            if (firClass is FirRegularClass && firClass.classKind == ClassKind.OBJECT && !isThisForClassPhysicallyAvailable(irClass)) {
                 return thisReceiverExpression.convertWithOffsets { startOffset, endOffset ->
                     IrGetObjectValueImpl(startOffset, endOffset, irClass.defaultType, irClass.symbol)
                 }
@@ -469,16 +472,16 @@ class Fir2IrVisitor(
         }
     }
 
-    private fun convertToIrReceiverExpression(
+    internal fun convertToIrReceiverExpression(
         expression: FirExpression?,
         calleeReference: FirReference,
         callableReferenceAccess: FirCallableReferenceAccess? = null
     ): IrExpression? {
         return when (expression) {
-            null -> null
+            null -> return null
             is FirResolvedQualifier -> callGenerator.convertToGetObject(expression, callableReferenceAccess)
-            is FirExpressionWithSmartcast -> implicitCastInserter.convertToImplicitCastExpression(expression, calleeReference)
-            is FirFunctionCall, is FirThisReceiverExpression, is FirCallableReferenceAccess -> convertToIrExpression(expression)
+            is FirFunctionCall, is FirThisReceiverExpression, is FirCallableReferenceAccess, is FirExpressionWithSmartcast ->
+                convertToIrExpression(expression)
             else -> if (expression is FirQualifiedAccessExpression && expression.explicitReceiver == null) {
                 val variableAsFunctionMode = calleeReference is FirResolvedNamedReference &&
                         calleeReference.name != OperatorNameConventions.INVOKE &&
@@ -490,6 +493,10 @@ class Fir2IrVisitor(
             } else {
                 convertToIrExpression(expression)
             }
+        }?.run {
+            if (expression is FirQualifiedAccessExpression && expression.calleeReference is FirSuperReference) return@run this
+
+            implicitCastInserter.implicitCastFromDispatchReceiver(this, expression.typeRef, calleeReference)
         }
     }
 

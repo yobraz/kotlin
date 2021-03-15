@@ -6,17 +6,69 @@
 package org.jetbrains.kotlin.descriptors.commonizer.cir
 
 import org.jetbrains.kotlin.descriptors.ClassKind
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.descriptors.Visibility
 
-interface CirClass : CirClassifier, CirHasModality {
-    val kind: ClassKind
-    var companion: Name? // null means no companion object
+interface CirClass : CirClassifier, CirContainingClass {
+    var companion: CirName? // null means no companion object
     val isCompanion: Boolean
-    val isData: Boolean
-    val isInline: Boolean
+    val isValue: Boolean
     val isInner: Boolean
     val isExternal: Boolean
-    val supertypes: Collection<CirType>
+    var supertypes: List<CirType>
 
-    fun setSupertypes(supertypes: Collection<CirType>)
+    companion object {
+        @Suppress("NOTHING_TO_INLINE")
+        inline fun create(
+            annotations: List<CirAnnotation>,
+            name: CirName,
+            typeParameters: List<CirTypeParameter>,
+            visibility: Visibility,
+            modality: Modality,
+            kind: ClassKind,
+            companion: CirName?,
+            isCompanion: Boolean,
+            isData: Boolean,
+            isValue: Boolean,
+            isInner: Boolean,
+            isExternal: Boolean
+        ): CirClass = CirClassImpl(
+            annotations = annotations,
+            name = name,
+            typeParameters = typeParameters,
+            visibility = visibility,
+            modality = modality,
+            kind = kind,
+            companion = companion,
+            isCompanion = isCompanion,
+            isData = isData,
+            isValue = isValue,
+            isInner = isInner,
+            isExternal = isExternal
+        )
+    }
+}
+
+data class CirClassImpl(
+    override val annotations: List<CirAnnotation>,
+    override val name: CirName,
+    override val typeParameters: List<CirTypeParameter>,
+    override val visibility: Visibility,
+    override val modality: Modality,
+    override val kind: ClassKind,
+    override var companion: CirName?,
+    override val isCompanion: Boolean,
+    override val isData: Boolean,
+    override val isValue: Boolean,
+    override val isInner: Boolean,
+    override val isExternal: Boolean,
+) : CirClass {
+    private var _supertypes: List<CirType>? = null
+
+    override var supertypes: List<CirType>
+        get() = _supertypes ?: error("${::supertypes.name} has not been initialized yet")
+        set(value) {
+            check(_supertypes == null) { "Re-initialization of ${::supertypes.name}" }
+            _supertypes = value
+        }
 }

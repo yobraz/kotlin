@@ -795,6 +795,11 @@ public class QuickFixMultiFileTestGenerated extends AbstractQuickFixMultiFileTes
             runTest("idea/testData/quickfix/autoImports/importKotlinStaticPropertyOverloadedSetterFromJava.test");
         }
 
+        @TestMetadata("ImportOperatorInvokeWithConvention.before.Main.kt")
+        public void testImportOperatorInvokeWithConvention() throws Exception {
+            runTest("idea/testData/quickfix/autoImports/ImportOperatorInvokeWithConvention.before.Main.kt");
+        }
+
         @TestMetadata("importTrait.before.Main.kt")
         public void testImportTrait() throws Exception {
             runTest("idea/testData/quickfix/autoImports/importTrait.before.Main.kt");
@@ -1265,19 +1270,6 @@ public class QuickFixMultiFileTestGenerated extends AbstractQuickFixMultiFileTes
 
         public void testAllFilesPresentInCanBePrimaryConstructorProperty() throws Exception {
             KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/testData/quickfix/canBePrimaryConstructorProperty"), Pattern.compile("^(\\w+)\\.((before\\.Main\\.\\w+)|(test))$"), null, true);
-        }
-    }
-
-    @TestMetadata("idea/testData/quickfix/changeFeatureSupport")
-    @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
-    public static class ChangeFeatureSupport extends AbstractQuickFixMultiFileTest {
-        private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTest(this::doTestWithExtraFile, this, testDataFilePath);
-        }
-
-        public void testAllFilesPresentInChangeFeatureSupport() throws Exception {
-            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/testData/quickfix/changeFeatureSupport"), Pattern.compile("^(\\w+)\\.((before\\.Main\\.\\w+)|(test))$"), null, true);
         }
     }
 
@@ -3049,6 +3041,19 @@ public class QuickFixMultiFileTestGenerated extends AbstractQuickFixMultiFileTes
         }
     }
 
+    @TestMetadata("idea/testData/quickfix/inlineClass")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class InlineClass extends AbstractQuickFixMultiFileTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTestWithExtraFile, this, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInInlineClass() throws Exception {
+            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/testData/quickfix/inlineClass"), Pattern.compile("^(\\w+)\\.((before\\.Main\\.\\w+)|(test))$"), null, true);
+        }
+    }
+
     @TestMetadata("idea/testData/quickfix/inlineClassConstructorNotValParameter")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
@@ -3493,6 +3498,29 @@ public class QuickFixMultiFileTestGenerated extends AbstractQuickFixMultiFileTes
         }
     }
 
+    @TestMetadata("idea/testData/quickfix/moveToSealedParent")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class MoveToSealedParent extends AbstractQuickFixMultiFileTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTestWithExtraFile, this, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInMoveToSealedParent() throws Exception {
+            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/testData/quickfix/moveToSealedParent"), Pattern.compile("^(\\w+)\\.((before\\.Main\\.\\w+)|(test))$"), null, true);
+        }
+
+        @TestMetadata("nestedDeclarationToSealed.test")
+        public void testNestedDeclarationToSealed() throws Exception {
+            runTest("idea/testData/quickfix/moveToSealedParent/nestedDeclarationToSealed.test");
+        }
+
+        @TestMetadata("topLevelDeclarationToSealed.test")
+        public void testTopLevelDeclarationToSealed() throws Exception {
+            runTest("idea/testData/quickfix/moveToSealedParent/topLevelDeclarationToSealed.test");
+        }
+    }
+
     @TestMetadata("idea/testData/quickfix/moveTypeAliasToTopLevel")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
@@ -3529,19 +3557,6 @@ public class QuickFixMultiFileTestGenerated extends AbstractQuickFixMultiFileTes
             public void testAllFilesPresentInUnsafeInfixCall() throws Exception {
                 KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/testData/quickfix/nullables/unsafeInfixCall"), Pattern.compile("^(\\w+)\\.((before\\.Main\\.\\w+)|(test))$"), null, true);
             }
-        }
-    }
-
-    @TestMetadata("idea/testData/quickfix/obsoleteCoroutines")
-    @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
-    public static class ObsoleteCoroutines extends AbstractQuickFixMultiFileTest {
-        private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTest(this::doTestWithExtraFile, this, testDataFilePath);
-        }
-
-        public void testAllFilesPresentInObsoleteCoroutines() throws Exception {
-            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/testData/quickfix/obsoleteCoroutines"), Pattern.compile("^(\\w+)\\.((before\\.Main\\.\\w+)|(test))$"), null, true);
         }
     }
 

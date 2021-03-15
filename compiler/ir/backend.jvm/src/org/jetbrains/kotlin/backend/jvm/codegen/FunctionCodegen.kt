@@ -57,17 +57,21 @@ class FunctionCodegen(
     private fun doGenerate(): SMAPAndMethodNode {
         val signature = context.methodSignatureMapper.mapSignatureWithGeneric(irFunction)
         val flags = irFunction.calculateMethodFlags()
+        val isSynthetic = flags.and(Opcodes.ACC_SYNTHETIC) != 0
         val methodNode = MethodNode(
             Opcodes.API_VERSION,
             flags,
             signature.asmMethod.name,
             signature.asmMethod.descriptor,
-            signature.genericsSignature.takeIf { flags.and(Opcodes.ACC_SYNTHETIC) == 0 },
+            signature.genericsSignature
+                .takeIf {
+                    !isSynthetic && irFunction.origin != IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
+                },
             getThrownExceptions(irFunction)?.toTypedArray()
         )
         val methodVisitor: MethodVisitor = wrapWithMaxLocalCalc(methodNode)
 
-        if (context.state.generateParametersMetadata && flags.and(Opcodes.ACC_SYNTHETIC) == 0) {
+        if (context.state.generateParametersMetadata && !isSynthetic) {
             generateParameterNames(irFunction, methodVisitor, signature, context.state)
         }
 
@@ -137,9 +141,10 @@ class FunctionCodegen(
         isAnonymousObject || origin == JvmLoweredDeclarationOrigin.CONTINUATION_CLASS || origin == JvmLoweredDeclarationOrigin.SUSPEND_LAMBDA
 
     private fun IrFunction.getVisibilityForDefaultArgumentStub(): Int =
-        when (visibility) {
-            DescriptorVisibilities.PUBLIC -> Opcodes.ACC_PUBLIC
-            JavaDescriptorVisibilities.PACKAGE_VISIBILITY -> AsmUtil.NO_FLAG_PACKAGE_PRIVATE
+        when {
+            // TODO: maybe best to generate private default in interface as private
+            visibility == DescriptorVisibilities.PUBLIC || parentAsClass.isJvmInterface -> Opcodes.ACC_PUBLIC
+            visibility == JavaDescriptorVisibilities.PACKAGE_VISIBILITY -> AsmUtil.NO_FLAG_PACKAGE_PRIVATE
             else -> throw IllegalStateException("Default argument stub should be either public or package private: ${ir2string(this)}")
         }
 
@@ -165,7 +170,6 @@ class FunctionCodegen(
         }
         val isSynthetic = origin.isSynthetic ||
                 hasAnnotation(JVM_SYNTHETIC_ANNOTATION_FQ_NAME) ||
-                (isSuspend && DescriptorVisibilities.isPrivate(visibility) && !isInline) ||
                 isReifiable() ||
                 isDeprecatedHidden()
 

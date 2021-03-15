@@ -37,4 +37,18 @@ object AdditionalFilesDirectives : SimpleDirectivesContainer() {
             See file ./compiler/testData/diagnostics/helpers/coroutines/TailCallOptimizationChecker.kt
         """.trimIndent()
     )
+
+    val SPEC_HELPERS by directive(
+        description = """
+            Adds util functions from `test-spec` modules
+            See directory ./compiler/tests-spec/helpers/
+        """.trimIndent()
+    )
+
+    val INFERENCE_HELPERS by directive(
+        description = """
+            Adds util functions for type checking
+            See file ./compiler/testData/diagnostics/helpers/inference/inferenceUtils.kt
+        """.trimIndent()
+    )
 }

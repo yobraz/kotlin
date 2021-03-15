@@ -5,13 +5,8 @@
 
 package org.jetbrains.kotlin.fir.analysis.checkers.declaration
 
-import com.intellij.lang.ASTNode
-import com.intellij.lang.LighterASTNode
-import com.intellij.psi.tree.TokenSet
-import com.intellij.util.diff.FlyweightCapableTreeStructure
 import org.jetbrains.kotlin.KtNodeTypes
-import org.jetbrains.kotlin.fir.*
-import org.jetbrains.kotlin.fir.analysis.checkers.*
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
@@ -19,8 +14,6 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyAccessor
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.lexer.KtTokens.*
-import org.jetbrains.kotlin.psi.KtModifierList
-import org.jetbrains.kotlin.psi.KtModifierListOwner
 
 object FirModifierChecker : FirBasicDeclarationChecker() {
 
@@ -110,7 +103,8 @@ object FirModifierChecker : FirBasicDeclarationChecker() {
         secondModifier: FirModifier<*>,
         reporter: DiagnosticReporter,
         reportedNodes: MutableSet<FirModifier<*>>,
-        owner: FirDeclaration?
+        owner: FirDeclaration?,
+        context: CheckerContext
     ) {
         val firstToken = firstModifier.token
         val secondToken = secondModifier.token
@@ -118,21 +112,21 @@ object FirModifierChecker : FirBasicDeclarationChecker() {
             CompatibilityType.COMPATIBLE -> {
             }
             CompatibilityType.REPEATED ->
-                if (reportedNodes.add(secondModifier)) reporter.reportRepeatedModifier(secondModifier, secondToken)
+                if (reportedNodes.add(secondModifier)) reporter.reportRepeatedModifier(secondModifier, secondToken, context)
             CompatibilityType.REDUNDANT_2_TO_1 ->
-                reporter.reportRedundantModifier(secondModifier, secondToken, firstToken)
+                reporter.reportRedundantModifier(secondModifier, secondToken, firstToken, context)
             CompatibilityType.REDUNDANT_1_TO_2 ->
-                reporter.reportRedundantModifier(firstModifier, firstToken, secondToken)
+                reporter.reportRedundantModifier(firstModifier, firstToken, secondToken, context)
             CompatibilityType.DEPRECATED -> {
-                reporter.reportDeprecatedModifierPair(firstModifier, firstToken, secondToken)
-                reporter.reportDeprecatedModifierPair(secondModifier, secondToken, firstToken)
+                reporter.reportDeprecatedModifierPair(firstModifier, firstToken, secondToken, context)
+                reporter.reportDeprecatedModifierPair(secondModifier, secondToken, firstToken, context)
             }
             CompatibilityType.INCOMPATIBLE, CompatibilityType.COMPATIBLE_FOR_CLASSES -> {
                 if (compatibilityType == CompatibilityType.COMPATIBLE_FOR_CLASSES && owner is FirClass<*>) {
                     return
                 }
-                if (reportedNodes.add(firstModifier)) reporter.reportIncompatibleModifiers(firstModifier, firstToken, secondToken)
-                if (reportedNodes.add(secondModifier)) reporter.reportIncompatibleModifiers(secondModifier, secondToken, firstToken)
+                if (reportedNodes.add(firstModifier)) reporter.reportIncompatibleModifiers(firstModifier, firstToken, secondToken, context)
+                if (reportedNodes.add(secondModifier)) reporter.reportIncompatibleModifiers(secondModifier, secondToken, firstToken, context)
             }
         }
     }
@@ -140,7 +134,8 @@ object FirModifierChecker : FirBasicDeclarationChecker() {
     private fun checkModifiers(
         list: FirModifierList,
         owner: FirDeclaration,
-        reporter: DiagnosticReporter
+        reporter: DiagnosticReporter,
+        context: CheckerContext
     ) {
         // general strategy: report no more than one error and any number of warnings
         // therefore, a track of nodes with already reported errors should be kept
@@ -152,7 +147,7 @@ object FirModifierChecker : FirBasicDeclarationChecker() {
                 if (firstModifier == secondModifier) {
                     break
                 }
-                checkCompatibilityType(firstModifier, secondModifier, reporter, reportedNodes, owner)
+                checkCompatibilityType(firstModifier, secondModifier, reporter, reportedNodes, owner, context)
             }
         }
     }
@@ -175,93 +170,30 @@ object FirModifierChecker : FirBasicDeclarationChecker() {
         if (context.containingDeclarations.last() is FirDefaultPropertyAccessor) return
 
         val modifierList = with(FirModifierList) { source.getModifierList() }
-        modifierList?.let { checkModifiers(it, declaration, reporter) }
+        modifierList?.let { checkModifiers(it, declaration, reporter, context) }
     }
 
     private fun DiagnosticReporter.reportRepeatedModifier(
-        modifier: FirModifier<*>, keyword: KtModifierKeywordToken
+        modifier: FirModifier<*>, keyword: KtModifierKeywordToken, context: CheckerContext
     ) {
-        report(FirErrors.REPEATED_MODIFIER.on(modifier.source, keyword))
+        report(FirErrors.REPEATED_MODIFIER.on(modifier.source, keyword), context)
     }
 
     private fun DiagnosticReporter.reportRedundantModifier(
-        modifier: FirModifier<*>, firstKeyword: KtModifierKeywordToken, secondKeyword: KtModifierKeywordToken
+        modifier: FirModifier<*>, firstKeyword: KtModifierKeywordToken, secondKeyword: KtModifierKeywordToken, context: CheckerContext
     ) {
-        report(FirErrors.REDUNDANT_MODIFIER.on(modifier.source, firstKeyword, secondKeyword))
+        report(FirErrors.REDUNDANT_MODIFIER.on(modifier.source, firstKeyword, secondKeyword), context)
     }
 
     private fun DiagnosticReporter.reportDeprecatedModifierPair(
-        modifier: FirModifier<*>, firstKeyword: KtModifierKeywordToken, secondKeyword: KtModifierKeywordToken
+        modifier: FirModifier<*>, firstKeyword: KtModifierKeywordToken, secondKeyword: KtModifierKeywordToken, context: CheckerContext
     ) {
-        report(FirErrors.DEPRECATED_MODIFIER_PAIR.on(modifier.source, firstKeyword, secondKeyword))
+        report(FirErrors.DEPRECATED_MODIFIER_PAIR.on(modifier.source, firstKeyword, secondKeyword), context)
     }
 
     private fun DiagnosticReporter.reportIncompatibleModifiers(
-        modifier: FirModifier<*>, firstKeyword: KtModifierKeywordToken, secondKeyword: KtModifierKeywordToken
+        modifier: FirModifier<*>, firstKeyword: KtModifierKeywordToken, secondKeyword: KtModifierKeywordToken, context: CheckerContext
     ) {
-        report(FirErrors.INCOMPATIBLE_MODIFIERS.on(modifier.source, firstKeyword, secondKeyword))
-    }
-
-    private sealed class FirModifierList {
-        abstract val modifiers: List<FirModifier<*>>
-
-        class FirPsiModifierList(val modifierList: KtModifierList) : FirModifierList() {
-            override val modifiers: List<FirModifier.FirPsiModifier>
-                get() = modifierList.node.getChildren(MODIFIER_KEYWORD_SET).map { node ->
-                    FirModifier.FirPsiModifier(node, node.elementType as KtModifierKeywordToken)
-                }
-
-        }
-
-        class FirLightModifierList(
-            val modifierList: LighterASTNode,
-            val tree: FlyweightCapableTreeStructure<LighterASTNode>
-        ) : FirModifierList() {
-            override val modifiers: List<FirModifier.FirLightModifier>
-                get() {
-                    val modifierNodes = modifierList.getChildren(tree)
-                    return modifierNodes.filterNotNull()
-                        .filter { it.tokenType is KtModifierKeywordToken }
-                        .map { FirModifier.FirLightModifier(it, it.tokenType as KtModifierKeywordToken, tree) }
-                }
-        }
-
-        companion object {
-            fun FirSourceElement?.getModifierList(): FirModifierList? {
-                return when (this) {
-                    null -> null
-                    is FirPsiSourceElement<*> -> (psi as? KtModifierListOwner)?.modifierList?.let { FirPsiModifierList(it) }
-                    is FirLightSourceElement -> {
-                        val modifierListNode = lighterASTNode.getChildren(treeStructure).find { it?.tokenType == KtNodeTypes.MODIFIER_LIST }
-                            ?: return null
-                        FirLightModifierList(modifierListNode, treeStructure)
-                    }
-                }
-            }
-        }
-    }
-
-    private val MODIFIER_KEYWORD_SET = TokenSet.orSet(SOFT_KEYWORDS, TokenSet.create(IN_KEYWORD, FUN_KEYWORD))
-
-    sealed class FirModifier<Node : Any>(val node: Node, val token: KtModifierKeywordToken) {
-
-        class FirPsiModifier(
-            node: ASTNode,
-            token: KtModifierKeywordToken
-        ) : FirModifier<ASTNode>(node, token) {
-            override val source: FirSourceElement
-                get() = node.psi.toFirPsiSourceElement()
-        }
-
-        class FirLightModifier(
-            node: LighterASTNode,
-            token: KtModifierKeywordToken,
-            val tree: FlyweightCapableTreeStructure<LighterASTNode>
-        ) : FirModifier<LighterASTNode>(node, token) {
-            override val source: FirSourceElement
-                get() = node.toFirLightSourceElement(tree)
-        }
-
-        abstract val source: FirSourceElement
+        report(FirErrors.INCOMPATIBLE_MODIFIERS.on(modifier.source, firstKeyword, secondKeyword), context)
     }
 }

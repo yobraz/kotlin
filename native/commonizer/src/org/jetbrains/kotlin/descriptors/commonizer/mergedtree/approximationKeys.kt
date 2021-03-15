@@ -5,37 +5,40 @@
 
 package org.jetbrains.kotlin.descriptors.commonizer.mergedtree
 
-import org.jetbrains.kotlin.descriptors.*
+import kotlinx.metadata.*
+import kotlinx.metadata.klib.annotations
+import org.jetbrains.kotlin.descriptors.commonizer.cir.CirName
 import org.jetbrains.kotlin.descriptors.commonizer.cir.CirTypeSignature
 import org.jetbrains.kotlin.descriptors.commonizer.core.Commonizer
-import org.jetbrains.kotlin.descriptors.commonizer.utils.*
-import org.jetbrains.kotlin.descriptors.commonizer.utils.intern
-import org.jetbrains.kotlin.descriptors.commonizer.utils.signature
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.descriptors.commonizer.metadata.CirTypeParameterResolver
+import org.jetbrains.kotlin.descriptors.commonizer.utils.appendHashCode
+import org.jetbrains.kotlin.descriptors.commonizer.utils.computeSignature
+import org.jetbrains.kotlin.descriptors.commonizer.utils.hashCode
+import org.jetbrains.kotlin.descriptors.commonizer.utils.isObjCInteropCallableAnnotation
 
-/** Used for approximation of [PropertyDescriptor]s before running concrete [Commonizer]s */
+/** Used for approximation of [KmProperty]s before running concrete [Commonizer]s */
 data class PropertyApproximationKey(
-    private val name: Name,
-    private val extensionReceiverParameterType: CirTypeSignature?
+    val name: CirName,
+    val extensionReceiverParameterType: CirTypeSignature?
 ) {
-    constructor(property: PropertyDescriptor) : this(
-        property.name.intern(),
-        property.extensionReceiverParameter?.type?.signature
+    constructor(property: KmProperty, typeParameterResolver: CirTypeParameterResolver) : this(
+        CirName.create(property.name),
+        property.receiverParameterType?.computeSignature(typeParameterResolver)
     )
 }
 
-/** Used for approximation of [SimpleFunctionDescriptor]s before running concrete [Commonizer]s */
+/** Used for approximation of [KmFunction]s before running concrete [Commonizer]s */
 data class FunctionApproximationKey(
-    private val name: Name,
-    private val valueParametersTypes: Array<CirTypeSignature>,
+    val name: CirName,
+    val valueParametersTypes: Array<CirTypeSignature>,
     private val additionalValueParametersNamesHash: Int,
-    private val extensionReceiverParameterType: CirTypeSignature?
+    val extensionReceiverParameterType: CirTypeSignature?
 ) {
-    constructor(function: SimpleFunctionDescriptor) : this(
-        function.name.intern(),
-        function.valueParameters.toTypeSignatures(),
-        additionalValueParameterNamesHash(function),
-        function.extensionReceiverParameter?.type?.signature
+    constructor(function: KmFunction, typeParameterResolver: CirTypeParameterResolver) : this(
+        CirName.create(function.name),
+        function.valueParameters.computeSignatures(typeParameterResolver),
+        additionalValueParameterNamesHash(function.annotations, function.valueParameters),
+        function.receiverParameterType?.computeSignature(typeParameterResolver)
     )
 
     override fun equals(other: Any?): Boolean {
@@ -54,14 +57,14 @@ data class FunctionApproximationKey(
         .appendHashCode(additionalValueParametersNamesHash)
 }
 
-/** Used for approximation of [ConstructorDescriptor]s before running concrete [Commonizer]s */
+/** Used for approximation of [KmConstructor]s before running concrete [Commonizer]s */
 data class ConstructorApproximationKey(
-    private val valueParametersTypes: Array<CirTypeSignature>,
+    val valueParametersTypes: Array<CirTypeSignature>,
     private val additionalValueParametersNamesHash: Int
 ) {
-    constructor(constructor: ConstructorDescriptor) : this(
-        constructor.valueParameters.toTypeSignatures(),
-        additionalValueParameterNamesHash(constructor)
+    constructor(constructor: KmConstructor, typeParameterResolver: CirTypeParameterResolver) : this(
+        constructor.valueParameters.computeSignatures(typeParameterResolver),
+        additionalValueParameterNamesHash(constructor.annotations, constructor.valueParameters)
     )
 
     override fun equals(other: Any?): Boolean {
@@ -77,13 +80,13 @@ data class ConstructorApproximationKey(
 }
 
 @Suppress("NOTHING_TO_INLINE")
-private inline fun List<ValueParameterDescriptor>.toTypeSignatures(): Array<CirTypeSignature> =
-    Array(size) { index -> this[index].type.signature }
+private inline fun List<KmValueParameter>.computeSignatures(typeParameterResolver: CirTypeParameterResolver): Array<CirTypeSignature> =
+    if (isEmpty()) emptyArray() else Array(size) { index -> this[index].type?.computeSignature(typeParameterResolver).orEmpty() }
 
-private fun additionalValueParameterNamesHash(callable: FunctionDescriptor): Int {
+private fun additionalValueParameterNamesHash(annotations: List<KmAnnotation>, valueParameters: List<KmValueParameter>): Int {
     // TODO: add more precise checks when more languages than C & ObjC are supported
-    if (callable.annotations.none { it.isObjCInteropCallableAnnotation })
+    if (annotations.none { it.isObjCInteropCallableAnnotation })
         return 0 // do not calculate hash for non-ObjC callables
 
-    return callable.valueParameters.fold(0) { acc, next -> acc.appendHashCode(next.name) }
+    return valueParameters.fold(0) { acc, next -> acc.appendHashCode(next.name) }
 }

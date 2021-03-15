@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.builder.buildExpressionStub
 import org.jetbrains.kotlin.fir.resolve.defaultType
-import org.jetbrains.kotlin.fir.symbols.CallableId
+import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.fir.symbols.StandardClassIds
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
@@ -311,7 +311,7 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
             resolvePhase = FirResolvePhase.ANALYZED_DEPENDENCIES
             typeParameters += local.typeDeserializer.ownTypeParameters.map { it.fir }
             annotations +=
-                c.annotationDeserializer.loadPropertyAnnotations(c.containerSource, proto, local.nameResolver, local.typeTable)
+                c.annotationDeserializer.loadPropertyAnnotations(c.containerSource, proto, classProto, local.nameResolver, local.typeTable)
             annotations +=
                 c.annotationDeserializer.loadPropertyBackingFieldAnnotations(
                     c.containerSource, proto, local.nameResolver, local.typeTable
@@ -449,6 +449,7 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
             )
             annotations +=
                 c.annotationDeserializer.loadConstructorAnnotations(c.containerSource, proto, local.nameResolver, local.typeTable)
+            containerSource = c.containerSource
         }.build().apply {
             containingClassAttr = c.dispatchReceiver!!.lookupTag
             versionRequirementsTable = c.versionRequirementTable

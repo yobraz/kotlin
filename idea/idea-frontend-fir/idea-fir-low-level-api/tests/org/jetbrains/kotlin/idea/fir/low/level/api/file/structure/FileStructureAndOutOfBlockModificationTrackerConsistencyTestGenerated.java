@@ -29,9 +29,24 @@ public class FileStructureAndOutOfBlockModificationTrackerConsistencyTestGenerat
         KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/idea-frontend-fir/idea-fir-low-level-api/testdata/outOfBlockProjectWide"), Pattern.compile("^(.+)\\.kt$"), null, true);
     }
 
+    @TestMetadata("funInCompanionObject.kt")
+    public void testFunInCompanionObject() throws Exception {
+        runTest("idea/idea-frontend-fir/idea-fir-low-level-api/testdata/outOfBlockProjectWide/funInCompanionObject.kt");
+    }
+
     @TestMetadata("localFun.kt")
     public void testLocalFun() throws Exception {
         runTest("idea/idea-frontend-fir/idea-fir-low-level-api/testdata/outOfBlockProjectWide/localFun.kt");
+    }
+
+    @TestMetadata("memberFunWithType.kt")
+    public void testMemberFunWithType() throws Exception {
+        runTest("idea/idea-frontend-fir/idea-fir-low-level-api/testdata/outOfBlockProjectWide/memberFunWithType.kt");
+    }
+
+    @TestMetadata("memberPropertyWithType.kt")
+    public void testMemberPropertyWithType() throws Exception {
+        runTest("idea/idea-frontend-fir/idea-fir-low-level-api/testdata/outOfBlockProjectWide/memberPropertyWithType.kt");
     }
 
     @TestMetadata("topLevelExpressionBodyFunWithType.kt")

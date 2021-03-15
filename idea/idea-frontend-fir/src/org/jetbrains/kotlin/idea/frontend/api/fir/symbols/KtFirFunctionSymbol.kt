@@ -12,15 +12,21 @@ import org.jetbrains.kotlin.idea.fir.findPsi
 import org.jetbrains.kotlin.idea.fir.low.level.api.api.FirModuleResolveState
 import org.jetbrains.kotlin.idea.frontend.api.ValidityToken
 import org.jetbrains.kotlin.idea.frontend.api.fir.KtSymbolByFirBuilder
+import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.annotations.containsAnnotation
+import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.annotations.getAnnotationClassIds
+import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.annotations.toAnnotationsList
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.pointers.KtFirMemberFunctionSymbolPointer
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.pointers.createSignature
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.cached
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.firRef
+import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtFunctionSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.*
 import org.jetbrains.kotlin.idea.frontend.api.symbols.pointers.CanNotCreateSymbolPointerForLocalLibraryDeclarationException
 import org.jetbrains.kotlin.idea.frontend.api.symbols.pointers.KtPsiBasedSymbolPointer
 import org.jetbrains.kotlin.idea.frontend.api.symbols.pointers.KtSymbolPointer
+import org.jetbrains.kotlin.idea.frontend.api.types.KtType
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
@@ -28,8 +34,9 @@ internal class KtFirFunctionSymbol(
     fir: FirSimpleFunction,
     resolveState: FirModuleResolveState,
     override val token: ValidityToken,
-    private val builder: KtSymbolByFirBuilder
+    _builder: KtSymbolByFirBuilder
 ) : KtFunctionSymbol(), KtFirSymbol<FirSimpleFunction> {
+    private val builder by weakRef(_builder)
     override val firRef = firRef(fir, resolveState)
     override val psi: PsiElement? by firRef.withFirAndCache { fir -> fir.findPsi(fir.session) }
     override val name: Name get() = firRef.withFir { it.name }
@@ -47,12 +54,16 @@ internal class KtFirFunctionSymbol(
         }
     }
 
-    override val annotations: List<KtAnnotationCall> by cached {
-        firRef.toAnnotationsList()
-    }
+    override val annotations: List<KtAnnotationCall> by cached { firRef.toAnnotationsList() }
+    override fun containsAnnotation(classId: ClassId): Boolean = firRef.containsAnnotation(classId)
+    override val annotationClassIds: Collection<ClassId> by cached { firRef.getAnnotationClassIds() }
 
     override val isSuspend: Boolean get() = firRef.withFir { it.isSuspend }
     override val isOverride: Boolean get() = firRef.withFir { it.isOverride }
+
+    override val dispatchType: KtType? by cached {
+        firRef.dispatchReceiverTypeAndAnnotations(builder)
+    }
 
     override val receiverType: KtTypeAndAnnotations? by cached {
         firRef.receiverTypeAndAnnotations(builder)

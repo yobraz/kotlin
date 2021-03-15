@@ -8,15 +8,13 @@ package org.jetbrains.kotlin.descriptors.commonizer.core
 import com.intellij.util.containers.FactoryMap
 import org.jetbrains.kotlin.descriptors.commonizer.cir.CirCallableMemberWithParameters
 import org.jetbrains.kotlin.descriptors.commonizer.cir.CirHasAnnotations
+import org.jetbrains.kotlin.descriptors.commonizer.cir.CirName
 import org.jetbrains.kotlin.descriptors.commonizer.cir.CirValueParameter
-import org.jetbrains.kotlin.descriptors.commonizer.cir.factory.CirValueParameterFactory
 import org.jetbrains.kotlin.descriptors.commonizer.core.CallableValueParametersCommonizer.CallableToPatch.Companion.doNothing
 import org.jetbrains.kotlin.descriptors.commonizer.core.CallableValueParametersCommonizer.CallableToPatch.Companion.patchCallables
 import org.jetbrains.kotlin.descriptors.commonizer.mergedtree.CirKnownClassifiers
 import org.jetbrains.kotlin.descriptors.commonizer.utils.compactMapIndexed
-import org.jetbrains.kotlin.descriptors.commonizer.utils.intern
 import org.jetbrains.kotlin.descriptors.commonizer.utils.isObjCInteropCallableAnnotation
-import org.jetbrains.kotlin.name.Name
 
 class CallableValueParametersCommonizer(
     classifiers: CirKnownClassifiers
@@ -40,7 +38,7 @@ class CallableValueParametersCommonizer(
         companion object {
             fun doNothing(): () -> Unit = {}
 
-            fun List<CallableToPatch>.patchCallables(generated: Boolean, newNames: List<Name>): () -> Unit {
+            fun List<CallableToPatch>.patchCallables(generated: Boolean, newNames: List<CirName>): () -> Unit {
                 val callablesToPatch = filter { it.originalNames is ValueParameterNames.Generated == generated }
                     .takeIf { it.isNotEmpty() }
                     ?: return doNothing()
@@ -52,7 +50,7 @@ class CallableValueParametersCommonizer(
                         callable.valueParameters = callable.valueParameters.compactMapIndexed { index, valueParameter ->
                             val newName = newNames[index]
                             if (valueParameter.name != newName) {
-                                CirValueParameterFactory.create(
+                                CirValueParameter.createInterned(
                                     annotations = valueParameter.annotations,
                                     name = newName,
                                     returnType = valueParameter.returnType,
@@ -72,10 +70,10 @@ class CallableValueParametersCommonizer(
     private sealed class ValueParameterNames {
         object Generated : ValueParameterNames()
 
-        data class Real(val names: List<Name>) : ValueParameterNames()
+        data class Real(val names: List<CirName>) : ValueParameterNames()
 
         class MultipleReal(valueParameters: List<CirValueParameter>) : ValueParameterNames() {
-            val generatedNames: List<Name> = generatedNames(valueParameters)
+            val generatedNames: List<CirName> = generatedNames(valueParameters)
         }
 
         companion object {
@@ -87,7 +85,7 @@ class CallableValueParametersCommonizer(
                 var real = false
                 val names = callable.valueParameters.mapIndexed { index, valueParameter ->
                     val name = valueParameter.name
-                    val plainName = name.asString()
+                    val plainName = name.name
 
                     if (valueParameter.varargElementType != null) {
                         if (plainName != VARIADIC_ARGUMENTS) {
@@ -107,7 +105,7 @@ class CallableValueParametersCommonizer(
                 return if (real) Real(names) else Generated
             }
 
-            fun generatedNames(valueParameters: List<CirValueParameter>): List<Name> =
+            fun generatedNames(valueParameters: List<CirValueParameter>): List<CirName> =
                 valueParameters.mapIndexed { index, valueParameter ->
                     if (valueParameter.varargElementType != null) {
                         VARIADIC_ARGUMENTS_NAME
@@ -223,9 +221,9 @@ class CallableValueParametersCommonizer(
         private const val VARIADIC_ARGUMENTS = "variadicArguments"
         private const val REGULAR_ARGUMENT_PREFIX = "arg"
 
-        private val VARIADIC_ARGUMENTS_NAME = Name.identifier(VARIADIC_ARGUMENTS).intern()
-        private val REGULAR_ARGUMENT_NAMES = FactoryMap.create<Int, Name> { index ->
-            Name.identifier(REGULAR_ARGUMENT_PREFIX + index).intern()
+        private val VARIADIC_ARGUMENTS_NAME = CirName.create(VARIADIC_ARGUMENTS)
+        private val REGULAR_ARGUMENT_NAMES = FactoryMap.create<Int, CirName> { index ->
+            CirName.create(REGULAR_ARGUMENT_PREFIX + index)
         }
 
         private fun CirCallableMemberWithParameters.canNamesBeOverwritten(): Boolean {

@@ -39,9 +39,7 @@ import org.jetbrains.kotlin.gradle.model.builder.KotlinModelBuilder
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
 import org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode
-import org.jetbrains.kotlin.gradle.targets.js.ir.JsIrBinary
-import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
-import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrLink
+import org.jetbrains.kotlin.gradle.targets.js.ir.*
 import org.jetbrains.kotlin.gradle.targets.js.jsPluginDeprecationMessage
 import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
 import org.jetbrains.kotlin.gradle.tasks.*
@@ -264,8 +262,13 @@ internal class Kotlin2JsSourceSetProcessor(
         // outputFile can be set later during the configuration phase, get it only after the phase:
         project.whenEvaluated {
             kotlinTask.configure { kotlinTaskInstance ->
-                kotlinTaskInstance.kotlinOptions.outputFile = kotlinTaskInstance.outputFile.absolutePath
-                val outputDir = kotlinTaskInstance.outputFile.parentFile
+                val kotlinOptions = kotlinTaskInstance.kotlinOptions
+                val outputDir: File = kotlinTaskInstance.outputFile.parentFile
+                kotlinOptions.outputFile = if (!kotlinOptions.isProduceUnzippedKlib()) {
+                    kotlinTaskInstance.outputFile.absolutePath
+                } else {
+                    kotlinTaskInstance.outputFile.parentFile.absolutePath
+                }
                 if (outputDir.isParentOf(project.rootDir))
                     throw InvalidUserDataException(
                         "The output directory '$outputDir' (defined by outputFile of $kotlinTaskInstance) contains or " +
@@ -274,6 +277,20 @@ internal class Kotlin2JsSourceSetProcessor(
                                 "To fix this, consider using the default outputFile location instead of providing it explicitly."
                     )
                 kotlinTaskInstance.destinationDir = outputDir
+
+                if (
+                    kotlinOptions.freeCompilerArgs.contains(PRODUCE_JS) ||
+                    kotlinOptions.freeCompilerArgs.contains(PRODUCE_UNZIPPED_KLIB) ||
+                    kotlinOptions.freeCompilerArgs.contains(PRODUCE_ZIPPED_KLIB)
+                ) {
+                    // Configure FQ module name to avoid cyclic dependencies in klib manifests (see KT-36721).
+                    val baseName = if (kotlinCompilation.isMain()) {
+                        project.name
+                    } else {
+                        "${project.name}_${kotlinCompilation.name}"
+                    }
+                    kotlinTaskInstance.kotlinOptions.freeCompilerArgs += "$MODULE_NAME=${project.klibModuleName(baseName)}"
+                }
             }
 
             val subpluginEnvironment: SubpluginEnvironment = SubpluginEnvironment.loadSubplugins(project, kotlinPluginVersion)
@@ -336,23 +353,6 @@ internal class KotlinJsIrSourceSetProcessor(
         project.whenEvaluated {
             val subpluginEnvironment: SubpluginEnvironment = SubpluginEnvironment.loadSubplugins(project, kotlinPluginVersion)
             subpluginEnvironment.addSubpluginOptions(project, kotlinCompilation)
-        }
-
-        // outputFile can be set later during the configuration phase, get it only after the phase:
-        project.runOnceAfterEvaluated("KotlinJsIrSourceSetProcessor.doTargetSpecificProcessing", kotlinTask) {
-            val kotlinTaskInstance = kotlinTask.get()
-            kotlinTaskInstance.kotlinOptions.outputFile = kotlinTaskInstance.outputFile.absolutePath
-            val outputDir = kotlinTaskInstance.outputFile.parentFile
-
-            if (outputDir.isParentOf(project.rootDir))
-                throw InvalidUserDataException(
-                    "The output directory '$outputDir' (defined by outputFile of $kotlinTaskInstance) contains or " +
-                            "matches the project root directory '${project.rootDir}'.\n" +
-                            "Gradle will not be able to build the project because of the root directory lock.\n" +
-                            "To fix this, consider using the default outputFile location instead of providing it explicitly."
-                )
-
-            kotlinTaskInstance.destinationDir = outputDir
         }
     }
 }
@@ -456,7 +456,7 @@ internal abstract class AbstractKotlinPlugin(
                 }
             }
 
-            // Setup conf2ScopeMappings so that the API dependencies are wriiten with the compile scope in the POMs in case of 'java' plugin
+            // Setup conf2ScopeMappings so that the API dependencies are written with the compile scope in the POMs in case of 'java' plugin
             project.convention.getPlugin(MavenPluginConvention::class.java)
                 .conf2ScopeMappings.addMapping(0, project.configurations.getByName("api"), Conf2ScopeMappingContainer.COMPILE)
         }
@@ -564,9 +564,6 @@ internal abstract class AbstractKotlinPlugin(
 
             // Setup the consuming configurations:
             project.dependencies.attributesSchema.attribute(KotlinPlatformType.attribute)
-            kotlinTarget.compilations.all { compilation ->
-                AbstractKotlinTargetConfigurator.defineConfigurationsForCompilation(compilation)
-            }
 
             project.configurations.getByName("default").apply {
                 setupAsLocalTargetSpecificConfigurationIfSupported(kotlinTarget)
@@ -595,6 +592,7 @@ internal abstract class AbstractKotlinPlugin(
             buildSourceSetProcessor: (AbstractKotlinCompilation<*>) -> KotlinSourceSetProcessor<*>
         ) {
             kotlinTarget.compilations.all { compilation ->
+                AbstractKotlinTargetConfigurator.defineConfigurationsForCompilation(compilation)
                 buildSourceSetProcessor(compilation).run()
             }
         }
@@ -855,7 +853,17 @@ abstract class AbstractAndroidProjectHandler(private val kotlinConfigurationTool
             compileOnlyConfigurationName: String,
             runtimeOnlyConfigurationName: String
         ) {
-            project.addExtendsFromRelation(androidSourceSet.apiConfigurationName, apiConfigurationName)
+            if (project.configurations.findByName(androidSourceSet.apiConfigurationName) != null) {
+                project.addExtendsFromRelation(androidSourceSet.apiConfigurationName, apiConfigurationName)
+            } else {
+                // If any dependency is added to this configuration, report an error:
+                project.configurations.getByName(apiConfigurationName).dependencies.all { dependency ->
+                    throw InvalidUserCodeException(
+                        "API dependencies are not allowed for Android source set ${androidSourceSet.name}. " +
+                                "Please use an implementation dependency instead."
+                    )
+                }
+            }
             project.addExtendsFromRelation(androidSourceSet.implementationConfigurationName, implementationConfigurationName)
             project.addExtendsFromRelation(androidSourceSet.compileOnlyConfigurationName, compileOnlyConfigurationName)
             project.addExtendsFromRelation(androidSourceSet.runtimeOnlyConfigurationName, runtimeOnlyConfigurationName)
@@ -919,9 +927,9 @@ abstract class AbstractAndroidProjectHandler(private val kotlinConfigurationTool
 
     private fun applyAndroidJavaVersion(baseExtension: BaseExtension, kotlinOptions: KotlinJvmOptions) {
         val javaVersion =
-            listOf(baseExtension.compileOptions.sourceCompatibility, baseExtension.compileOptions.targetCompatibility).min()!!
-        if (javaVersion >= JavaVersion.VERSION_1_8)
-            kotlinOptions.jvmTarget = "1.8"
+            minOf(baseExtension.compileOptions.sourceCompatibility, baseExtension.compileOptions.targetCompatibility)
+        if (javaVersion == JavaVersion.VERSION_1_6)
+            kotlinOptions.jvmTarget = "1.6"
     }
 
     private fun preprocessVariant(

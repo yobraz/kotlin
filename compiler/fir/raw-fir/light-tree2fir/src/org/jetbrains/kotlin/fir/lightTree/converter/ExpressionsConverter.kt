@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.fir.lightTree.converter
 import com.intellij.lang.LighterASTNode
 import com.intellij.psi.TokenType
 import com.intellij.util.diff.FlyweightCapableTreeStructure
+import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.KtNodeTypes.*
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -38,10 +39,10 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
 import org.jetbrains.kotlin.fir.types.FirTypeProjection
 import org.jetbrains.kotlin.fir.types.FirTypeRef
-import org.jetbrains.kotlin.fir.types.builder.buildImplicitTypeRef
 import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.stubs.elements.KtConstantExpressionElementType
+import org.jetbrains.kotlin.types.ConstantValueKind
 import org.jetbrains.kotlin.types.expressions.OperatorConventions
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
@@ -154,7 +155,7 @@ class ExpressionsConverter(
                     val multiParameter = buildValueParameter {
                         session = baseSession
                         origin = FirDeclarationOrigin.Source
-                        returnTypeRef = buildImplicitTypeRef()
+                        returnTypeRef = valueParameter.firValueParameter.returnTypeRef
                         this.name = name
                         symbol = FirVariableSymbol(name)
                         defaultValue = null
@@ -375,14 +376,14 @@ class ExpressionsConverter(
                 }
                 val receiver = getAsFirExpression<FirExpression>(argument, "No operand")
                 if (operationToken == PLUS || operationToken == MINUS) {
-                    if (receiver is FirConstExpression<*> && receiver.kind == FirConstKind.IntegerLiteral) {
+                    if (receiver is FirConstExpression<*> && receiver.kind == ConstantValueKind.IntegerLiteral) {
                         val value = receiver.value as Long
                         val convertedValue = when (operationToken) {
                             MINUS -> -value
                             PLUS -> value
                             else -> error("Should not be here")
                         }
-                        return buildConstExpression(unaryExpression.toFirSourceElement(), FirConstKind.IntegerLiteral, convertedValue)
+                        return buildConstExpression(unaryExpression.toFirSourceElement(), ConstantValueKind.IntegerLiteral, convertedValue)
                     }
                 }
                 buildFunctionCall {
@@ -497,6 +498,9 @@ class ExpressionsConverter(
             }
 
             it.replaceExplicitReceiver(firReceiver)
+
+            @OptIn(FirImplementationDetail::class)
+            it.replaceSource(dotQualifiedExpression.toFirSourceElement())
         }
         return firSelector
     }
@@ -664,6 +668,7 @@ class ExpressionsConverter(
             source = whenExpression.toFirSourceElement()
             this.subject = subjectExpression
             this.subjectVariable = subjectVariable
+            usedAsExpression = whenExpression.usedAsExpression
             for (entry in whenEntries) {
                 val branch = entry.firBlock
                 branches += if (!entry.isElse) {
@@ -1082,6 +1087,7 @@ class ExpressionsConverter(
         }
 
         return buildWhenExpression {
+            source = ifExpression.toFirSourceElement()
             val trueBranch = convertLoopBody(thenBlock)
             branches += buildWhenBranch {
                 source = thenBlock?.toFirSourceElement()
@@ -1095,10 +1101,26 @@ class ExpressionsConverter(
                     condition = buildElseIfTrueCondition()
                     result = elseBranch
                 }
-
             }
+            usedAsExpression = ifExpression.usedAsExpression
         }
     }
+
+    private val LighterASTNode.usedAsExpression: Boolean
+        get() {
+            var parent = getParent() ?: return true
+            if (parent.elementType == ANNOTATED_EXPRESSION) {
+                parent = parent.getParent() ?: return true
+            }
+            val parentTokenType = parent.tokenType
+            if (parentTokenType == BLOCK) return false
+            if (parentTokenType == THEN || parentTokenType == ELSE || parentTokenType == WHEN_ENTRY) {
+                return parent.getParent()?.usedAsExpression ?: true
+            }
+            if (parentTokenType != BODY) return true
+            val type = parent.getParent()?.tokenType ?: return true
+            return !(type == FOR || type == WHILE || type == DO_WHILE)
+        }
 
     /**
      * @see org.jetbrains.kotlin.parsing.KotlinExpressionParsing.parseJump

@@ -12,11 +12,10 @@ import org.jetbrains.kotlin.fir.resolve.calls.Candidate
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintSystemError
 import org.jetbrains.kotlin.resolve.calls.tower.CandidateApplicability
 
 class ConeUnresolvedReferenceError(val name: Name? = null) : ConeDiagnostic() {
@@ -39,16 +38,9 @@ class ConeHiddenCandidateError(
 
 class ConeInapplicableCandidateError(
     val applicability: CandidateApplicability,
-    val candidateSymbol: AbstractFirBasedSymbol<*>,
-    val errors: List<ConstraintSystemError>
+    val candidate: Candidate,
 ) : ConeDiagnostic() {
-    constructor(applicability: CandidateApplicability, candidate: Candidate) : this(
-        applicability,
-        candidate.symbol,
-        candidate.system.errors
-    )
-
-    override val reason: String get() = "Inapplicable($applicability): ${describeSymbol(candidateSymbol)}"
+    override val reason: String get() = "Inapplicable($applicability): ${describeSymbol(candidate.symbol)}"
 }
 
 class ConeAmbiguityError(val name: Name, val applicability: CandidateApplicability, val candidates: Collection<AbstractFirBasedSymbol<*>>) : ConeDiagnostic() {
@@ -74,7 +66,7 @@ class ConeIllegalAnnotationError(val name: Name) : ConeDiagnostic() {
     override val reason: String get() = "Not a legal annotation: $name"
 }
 
-class ConeWrongNumberOfTypeArgumentsError(val desiredCount: Int, val type: FirRegularClassSymbol) : ConeDiagnostic() {
+class ConeWrongNumberOfTypeArgumentsError(val desiredCount: Int, val type: FirClassLikeSymbol<*>) : ConeDiagnostic() {
     override val reason: String get() = "Wrong number of type arguments"
 }
 
@@ -84,6 +76,10 @@ class ConeInstanceAccessBeforeSuperCall(val target: String) : ConeDiagnostic() {
 
 class ConeUnsupportedCallableReferenceTarget(val fir: FirCallableDeclaration<*>) : ConeDiagnostic() {
     override val reason: String get() = "Unsupported declaration for callable reference: ${fir.render()}"
+}
+
+class ConeTypeParameterSupertype(val symbol: FirTypeParameterSymbol) : ConeDiagnostic() {
+    override val reason: String get() = "Type parameter ${symbol.fir.name} cannot be a supertype"
 }
 
 private fun describeSymbol(symbol: AbstractFirBasedSymbol<*>): String {

@@ -52,27 +52,51 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
         val renderLambdaBodies: Boolean,
         val renderCallArguments: Boolean,
         val renderCallableFqNames: Boolean,
-        val renderDeclarationResolvePhase: Boolean
+        val renderDeclarationResolvePhase: Boolean,
+        val renderAnnotation: Boolean,
+        val renderBodies: Boolean = true,
+        val renderPropertyAccessors: Boolean = true,
     ) {
         object Normal : RenderMode(
             renderLambdaBodies = true,
             renderCallArguments = true,
             renderCallableFqNames = false,
-            renderDeclarationResolvePhase = false
+            renderDeclarationResolvePhase = false,
+            renderAnnotation = true,
         )
 
         object WithFqNames : RenderMode(
             renderLambdaBodies = true,
             renderCallArguments = true,
             renderCallableFqNames = true,
-            renderDeclarationResolvePhase = false
+            renderDeclarationResolvePhase = false,
+            renderAnnotation = true,
+        )
+
+        object WithFqNamesExceptAnnotation : RenderMode(
+            renderLambdaBodies = true,
+            renderCallArguments = true,
+            renderCallableFqNames = true,
+            renderDeclarationResolvePhase = false,
+            renderAnnotation = false,
         )
 
         object WithResolvePhases : RenderMode(
             renderLambdaBodies = true,
             renderCallArguments = true,
             renderCallableFqNames = false,
-            renderDeclarationResolvePhase = true
+            renderDeclarationResolvePhase = true,
+            renderAnnotation = true,
+        )
+
+        object NoBodies : RenderMode(
+            renderLambdaBodies = false,
+            renderCallArguments = false,
+            renderCallableFqNames = false,
+            renderDeclarationResolvePhase = false,
+            renderAnnotation = false,
+            renderBodies = false,
+            renderPropertyAccessors = false,
         )
     }
 
@@ -154,6 +178,7 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
     }
 
     private fun List<FirAnnotationCall>.renderAnnotations() {
+        if (!mode.renderAnnotation) return
         for (annotation in this) {
             visitAnnotationCall(annotation)
         }
@@ -429,6 +454,7 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
     override fun visitProperty(property: FirProperty) {
         visitVariable(property)
         if (property.isLocal) return
+        if (!mode.renderPropertyAccessors) return
         println()
         pushIndent()
         property.getter?.accept(this)
@@ -485,6 +511,7 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
     }
 
     override fun visitPropertyAccessor(propertyAccessor: FirPropertyAccessor) {
+        propertyAccessor.renderPhaseIfNeeded()
         propertyAccessor.annotations.renderAnnotations()
         print(propertyAccessor.visibility.asString() + " ")
         print(if (propertyAccessor.isGetter) "get" else "set")
@@ -496,6 +523,7 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
     }
 
     override fun visitAnonymousFunction(anonymousFunction: FirAnonymousFunction) {
+        anonymousFunction.renderPhaseIfNeeded()
         anonymousFunction.annotations.renderAnnotations()
         val label = anonymousFunction.label
         if (label != null) {
@@ -530,14 +558,17 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
         anonymousInitializer.body?.renderBody()
     }
 
-    private fun FirBlock.renderBody(additionalStatements: List<FirStatement> = emptyList()) = when (this) {
-        is FirLazyBlock -> {
-            println(" { LAZY_BLOCK }")
-        }
-        else -> renderInBraces {
-            for (statement in additionalStatements + statements) {
-                statement.accept(this@FirRenderer)
-                println()
+    private fun FirBlock.renderBody(additionalStatements: List<FirStatement> = emptyList()) {
+        if (!mode.renderBodies) return
+        when (this) {
+            is FirLazyBlock -> {
+                println(" { LAZY_BLOCK }")
+            }
+            else -> renderInBraces {
+                for (statement in additionalStatements + statements) {
+                    statement.accept(this@FirRenderer)
+                    println()
+                }
             }
         }
     }
@@ -591,6 +622,7 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
     }
 
     override fun visitValueParameter(valueParameter: FirValueParameter) {
+        valueParameter.renderPhaseIfNeeded()
         valueParameter.annotations.renderAnnotations()
         if (valueParameter.isCrossinline) {
             print("crossinline ")
@@ -859,7 +891,7 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
     }
 
     override fun visitErrorTypeRef(errorTypeRef: FirErrorTypeRef) {
-        visitTypeRef(errorTypeRef)
+        errorTypeRef.annotations.renderAnnotations()
         print("<ERROR TYPE REF: ${errorTypeRef.diagnostic.reason}>")
     }
 
@@ -918,6 +950,10 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
 
     override fun visitUserTypeRef(userTypeRef: FirUserTypeRef) {
         userTypeRef.annotations.renderAnnotations()
+        if (userTypeRef.customRenderer) {
+            print(userTypeRef.toString())
+            return
+        }
         for ((index, qualifier) in userTypeRef.qualifier.withIndex()) {
             if (index != 0) {
                 print(".")
@@ -956,10 +992,8 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
     override fun visitNamedReference(namedReference: FirNamedReference) {
         val symbol = namedReference.candidateSymbol
         when {
-            symbol != null -> {
-                print("R?C|${symbol.render()}|")
-            }
             namedReference is FirErrorNamedReference -> print("<${namedReference.diagnostic.reason}>#")
+            symbol != null -> print("R?C|${symbol.render()}|")
             else -> print("${namedReference.name}#")
         }
     }

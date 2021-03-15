@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -17,10 +17,11 @@ import org.jetbrains.kotlin.gradle.targets.js.dukat.ExternalsOutputFormat
 import org.jetbrains.kotlin.gradle.targets.js.dukat.ExternalsOutputFormat.Companion.externalsOutputFormatProperty
 import org.jetbrains.kotlin.gradle.targets.native.DisabledNativeTargetsReporter
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
-import org.jetbrains.kotlin.gradle.tasks.CacheBuilder
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.utils.SingleWarningPerBuild
+import org.jetbrains.kotlin.konan.target.KonanTarget
+import org.jetbrains.kotlin.konan.target.presetName
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
 import java.io.File
 import java.util.*
@@ -87,8 +88,19 @@ internal class PropertiesProvider private constructor(private val project: Proje
     val usePreciseJavaTracking: Boolean?
         get() = booleanProperty("kotlin.incremental.usePreciseJavaTracking")
 
+    private val useFallbackCompilerSearchPropName = "kotlin.useFallbackCompilerSearch"
+
+    @Deprecated("Unsupported and will be removed in next major releases")
     val useFallbackCompilerSearch: Boolean?
-        get() = booleanProperty("kotlin.useFallbackCompilerSearch")
+        get() {
+            if (property(useFallbackCompilerSearchPropName) != null) {
+                SingleWarningPerBuild.show(
+                    project,
+                    "Project property '$useFallbackCompilerSearchPropName' is deprecated."
+                )
+            }
+            return booleanProperty(useFallbackCompilerSearchPropName)
+        }
 
     val keepMppDependenciesIntactInPoms: Boolean?
         get() = booleanProperty("kotlin.mpp.keepMppDependenciesIntactInPoms")
@@ -195,10 +207,16 @@ internal class PropertiesProvider private constructor(private val project: Proje
         get() = property("kotlin.commonizer.jvmArgs")
 
     /**
-     * Dependencies caching strategy. The default is static.
+     * Dependencies caching strategy for all targets that support caches.
      */
-    val nativeCacheKind: NativeCacheKind
-        get() = property("kotlin.native.cacheKind")?.let { NativeCacheKind.byCompilerArgument(it) } ?: CacheBuilder.DEFAULT_CACHE_KIND
+    val nativeCacheKind: NativeCacheKind?
+        get() = property("kotlin.native.cacheKind")?.let { NativeCacheKind.byCompilerArgument(it) }
+
+    /**
+     * Dependencies caching strategy for [target].
+     */
+    fun nativeCacheKindForTarget(target: KonanTarget): NativeCacheKind? =
+        property("kotlin.native.cacheKind.${target.presetName}")?.let { NativeCacheKind.byCompilerArgument(it) }
 
     /**
      * Ignore overflow in [org.jetbrains.kotlin.gradle.internal.testing.TCServiceMessageOutputStreamHandler]
@@ -244,6 +262,9 @@ internal class PropertiesProvider private constructor(private val project: Proje
 
     val stdlibDefaultDependency: Boolean
         get() = booleanProperty("kotlin.stdlib.default.dependency") ?: true
+
+    val kotlinTestInferJvmVariant: Boolean
+        get() = booleanProperty("kotlin.test.infer.jvm.variant") ?: true
 
     private fun propertyWithDeprecatedVariant(propName: String, deprecatedPropName: String): String? {
         val deprecatedProperty = property(deprecatedPropName)

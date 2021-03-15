@@ -25,11 +25,11 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.java.JavaParserDefinition
 import com.intellij.mock.MockProject
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.application.TransactionGuardImpl
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.extensions.ExtensionsArea
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.Project
@@ -42,7 +42,6 @@ import com.intellij.openapi.vfs.impl.ZipHandler
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiManager
-import com.intellij.psi.compiled.ClassFileDecompilers
 import com.intellij.psi.impl.JavaClassSupersImpl
 import com.intellij.psi.impl.PsiElementFinderImpl
 import com.intellij.psi.impl.PsiTreeChangePreprocessor
@@ -59,7 +58,7 @@ import org.jetbrains.kotlin.asJava.finder.JavaElementFinder
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.CliModuleVisibilityManagerImpl
-import org.jetbrains.kotlin.cli.common.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
+import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
 import org.jetbrains.kotlin.cli.common.config.ContentRoot
 import org.jetbrains.kotlin.cli.common.config.KotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.kotlinSourceRoots
@@ -284,7 +283,7 @@ class KotlinCoreEnvironment private constructor(
 
     fun addKotlinSourceRoots(rootDirs: List<File>) {
         val roots = rootDirs.map { KotlinSourceRoot(it.absolutePath, isCommon = false) }
-        sourceFiles += createSourceFilesFromSourceRoots(configuration, project, roots)
+        sourceFiles += createSourceFilesFromSourceRoots(configuration, project, roots).toSet() - sourceFiles
     }
 
     fun createPackagePartProvider(scope: GlobalSearchScope): JvmPackagePartProvider {
@@ -477,11 +476,19 @@ class KotlinCoreEnvironment private constructor(
 
         fun getOrCreateApplicationEnvironmentForProduction(
             parentDisposable: Disposable, configuration: CompilerConfiguration
+        ): KotlinCoreApplicationEnvironment = getOrCreateApplicationEnvironment(parentDisposable, configuration, unitTestMode = false)
+
+        fun getOrCreateApplicationEnvironmentForTests(
+            parentDisposable: Disposable, configuration: CompilerConfiguration
+        ): KotlinCoreApplicationEnvironment = getOrCreateApplicationEnvironment(parentDisposable, configuration, unitTestMode = true)
+
+        private fun getOrCreateApplicationEnvironment(
+            parentDisposable: Disposable, configuration: CompilerConfiguration, unitTestMode: Boolean
         ): KotlinCoreApplicationEnvironment {
             synchronized(APPLICATION_LOCK) {
                 if (ourApplicationEnvironment == null) {
                     val disposable = Disposer.newDisposable()
-                    ourApplicationEnvironment = createApplicationEnvironment(disposable, configuration, unitTestMode = false)
+                    ourApplicationEnvironment = createApplicationEnvironment(disposable, configuration, unitTestMode)
                     ourProjectCount = 0
                     Disposer.register(disposable, Disposable {
                         synchronized(APPLICATION_LOCK) {
@@ -491,16 +498,13 @@ class KotlinCoreEnvironment private constructor(
                 }
                 // Disposing of the environment is unsafe in production then parallel builds are enabled, but turning it off universally
                 // breaks a lot of tests, therefore it is disabled for production and enabled for tests
-                if (System.getProperty(KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY).toBooleanLenient() != true) {
+                if (CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.value.toBooleanLenient() != true) {
                     // JPS may run many instances of the compiler in parallel (there's an option for compiling independent modules in parallel in IntelliJ)
                     // All projects share the same ApplicationEnvironment, and when the last project is disposed, the ApplicationEnvironment is disposed as well
-                    @Suppress("ObjectLiteralToLambda") // Disposer tree depends on identity of disposables.
-                    Disposer.register(parentDisposable, object : Disposable {
-                        override fun dispose() {
-                            synchronized(APPLICATION_LOCK) {
-                                if (--ourProjectCount <= 0) {
-                                    disposeApplicationEnvironment()
-                                }
+                    Disposer.register(parentDisposable, Disposable {
+                        synchronized(APPLICATION_LOCK) {
+                            if (--ourProjectCount <= 0) {
+                                disposeApplicationEnvironment()
                             }
                         }
                     })
@@ -530,7 +534,7 @@ class KotlinCoreEnvironment private constructor(
             registerApplicationExtensionPointsAndExtensionsFrom(configuration, "extensions/compiler.xml")
             // FIX ME WHEN BUNCH 202 REMOVED: this code is required to support compiler bundled to both 202 and 203.
             // Please, remove "com.intellij.psi.classFileDecompiler" EP registration once 202 is no longer supported by the compiler
-            if (!Extensions.getRootArea().hasExtensionPoint("com.intellij.psi.classFileDecompiler")) {
+            if (!ApplicationManager.getApplication().extensionArea.hasExtensionPoint("com.intellij.psi.classFileDecompiler")) {
                 registerApplicationExtensionPointsAndExtensionsFrom(configuration, "extensions/core.xml")
             }
 
@@ -564,7 +568,7 @@ class KotlinCoreEnvironment private constructor(
             CoreApplicationEnvironment.registerExtensionPointAndExtensions(
                 FileSystems.getDefault().getPath(pluginRoot.path),
                 configFilePath,
-                Extensions.getRootArea()
+                ApplicationManager.getApplication().extensionArea
             )
         }
 

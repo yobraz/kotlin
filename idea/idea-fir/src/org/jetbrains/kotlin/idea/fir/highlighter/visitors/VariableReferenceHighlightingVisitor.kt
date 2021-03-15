@@ -28,13 +28,14 @@ internal class VariableReferenceHighlightingVisitor(
     override fun visitSimpleNameExpression(expression: KtSimpleNameExpression) {
         if (!NameHighlighter.namesHighlightingEnabled) return
         if (expression.isAssignmentReference()) return
+        if (expression.isByNameArgumentReference()) return
         if (expression.parent is KtInstanceExpressionWithLabel) return
 
         if (expression.isAutoCreatedItParameter()) {
             createInfoAnnotation(
                 expression,
-                Colors.FUNCTION_LITERAL_DEFAULT_PARAMETER,
-                KotlinIdeaAnalysisBundle.message("automatically.declared.based.on.the.expected.type")
+                KotlinIdeaAnalysisBundle.message("automatically.declared.based.on.the.expected.type"),
+                Colors.FUNCTION_LITERAL_DEFAULT_PARAMETER
             )
             return
         }
@@ -53,6 +54,9 @@ internal class VariableReferenceHighlightingVisitor(
             }
         }
     }
+
+    private fun KtSimpleNameExpression.isByNameArgumentReference() =
+        parent is KtValueArgumentName
 
 
     private fun KtSimpleNameExpression.isAutoCreatedItParameter(): Boolean {

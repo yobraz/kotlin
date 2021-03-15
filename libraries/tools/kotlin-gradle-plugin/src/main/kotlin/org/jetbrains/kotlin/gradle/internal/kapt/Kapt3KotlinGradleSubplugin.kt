@@ -79,6 +79,7 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
         private val INFO_AS_WARNINGS = "kapt.info.as.warnings"
         private val INCLUDE_COMPILE_CLASSPATH = "kapt.include.compile.classpath"
         private val INCREMENTAL_APT = "kapt.incremental.apt"
+        private val KAPT_KEEP_KDOC_COMMENTS_IN_STUBS = "kapt.keep.kdoc.comments.in.stubs"
 
         const val KAPT_WORKER_DEPENDENCIES_CONFIGURATION_NAME = "kotlinKaptWorkerDependencies"
 
@@ -118,6 +119,10 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
 
         fun includeCompileClasspath(project: Project): Boolean? =
             project.findProperty(INCLUDE_COMPILE_CLASSPATH)?.run { toString().toBoolean() }
+
+        fun Project.isKaptKeepKdocCommentsInStubs(): Boolean {
+            return !(hasProperty(KAPT_KEEP_KDOC_COMMENTS_IN_STUBS) && property(KAPT_KEEP_KDOC_COMMENTS_IN_STUBS) == "false")
+        }
 
         fun findMainKaptConfiguration(project: Project) = project.findKaptConfiguration(SourceSet.MAIN_SOURCE_SET_NAME)
 
@@ -392,6 +397,7 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
         pluginOptions += SubpluginOption("mapDiagnosticLocations", "${kaptExtension.mapDiagnosticLocations}")
         pluginOptions += SubpluginOption("strictMode", "${kaptExtension.strictMode}")
         pluginOptions += SubpluginOption("stripMetadata", "${kaptExtension.stripMetadata}")
+        pluginOptions += SubpluginOption("keepKdocCommentsInStubs", "${project.isKaptKeepKdocCommentsInStubs()}")
         pluginOptions += SubpluginOption("showProcessorTimings", "${kaptExtension.showProcessorTimings}")
         pluginOptions += SubpluginOption("detectMemoryLeaks", kaptExtension.detectMemoryLeaks)
         pluginOptions += SubpluginOption("infoAsWarnings", "${project.isInfoAsWarnings()}")
@@ -451,7 +457,7 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
             }
 
             val kaptClasspathConfiguration =
-                project.configurations.create("_kaptClasspath_" + kaptTask.name).setExtendsFrom(kaptClasspathConfigurations).also {
+                project.configurations.create("kaptClasspath_" + kaptTask.name).setExtendsFrom(kaptClasspathConfigurations).also {
                     it.isVisible = false
                     it.isCanBeConsumed = false
                 }
@@ -519,6 +525,13 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
             registerSubpluginOptions(kaptTaskProvider, subpluginOptions)
         }
 
+        kaptTaskProvider.configure { task ->
+            task.onlyIf {
+                it as KaptTask
+                it.includeCompileClasspath || !it.kaptClasspath.isEmpty()
+            }
+        }
+
         return kaptTaskProvider
     }
 
@@ -557,11 +570,17 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
             kaptTask.stubsDir = getKaptStubsDir()
             kaptTask.setDestinationDir { getKaptIncrementalDataDir() }
             kaptTask.mapClasspath { kaptTask.kotlinCompileTask.classpath }
-            kaptTask.generatedSourcesDir = sourcesOutputDir
+            kaptTask.generatedSourcesDirs = listOf(sourcesOutputDir, kotlinSourcesOutputDir)
 
             kaptTask.kaptClasspathConfigurations = kaptClasspathConfigurations
 
             PropertiesProvider(project).mapKotlinTaskProperties(kaptTask)
+
+            if (!includeCompileClasspath) {
+                kaptTask.onlyIf {
+                    !(it as KaptGenerateStubsTask).kaptClasspath.isEmpty()
+                }
+            }
         }
 
         project.whenEvaluated {

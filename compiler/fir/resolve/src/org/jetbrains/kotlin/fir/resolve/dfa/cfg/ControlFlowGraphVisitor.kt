@@ -80,6 +80,16 @@ abstract class ControlFlowGraphVisitor<out R, in D> {
         return visitNode(node, data)
     }
 
+    // ----------------------------------- Field -----------------------------------
+
+    open fun visitFieldInitializerEnterNode(node: FieldInitializerEnterNode, data: D): R {
+        return visitNode(node, data)
+    }
+
+    open fun visitFieldInitializerExitNode(node: FieldInitializerExitNode, data: D): R {
+        return visitNode(node, data)
+    }
+
     // ----------------------------------- Init -----------------------------------
 
     open fun visitInitBlockEnterNode(node: InitBlockEnterNode, data: D): R {
@@ -274,6 +284,10 @@ abstract class ControlFlowGraphVisitor<out R, in D> {
     }
 
     open fun visitFunctionCallNode(node: FunctionCallNode, data: D): R {
+        return visitNode(node, data)
+    }
+
+    open fun visitCallableReferenceNode(node: CallableReferenceNode, data: D): R {
         return visitNode(node, data)
     }
 

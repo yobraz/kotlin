@@ -5,31 +5,25 @@
 
 package org.jetbrains.kotlin.descriptors.commonizer.utils
 
-import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
-import org.jetbrains.kotlin.types.getAbbreviation
+import kotlinx.metadata.Flag
+import kotlinx.metadata.KmFunction
+import kotlinx.metadata.KmProperty
+import kotlinx.metadata.klib.annotations
 
-internal fun SimpleFunctionDescriptor.isKniBridgeFunction() =
-    name.asString().startsWith("kniBridge")
+internal const val KNI_BRIDGE_FUNCTION_PREFIX = "kniBridge"
 
-internal fun SimpleFunctionDescriptor.isDeprecatedTopLevelFunction() =
-    containingDeclaration is PackageFragmentDescriptor && annotations.hasAnnotation(DEPRECATED_ANNOTATION_FQN)
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun KmFunction.isKniBridgeFunction() =
+    name.startsWith(KNI_BRIDGE_FUNCTION_PREFIX)
 
-// the following logic determines Kotlin functions with conflicting overloads in Darwin library:
-internal fun SimpleFunctionDescriptor.isIgnoredDarwinFunction(): Boolean {
-    if ((containingDeclaration as? PackageFragmentDescriptor)?.fqName?.isUnderDarwinPackage != true)
-        return false
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun KmFunction.isTopLevelDeprecatedFunction(isTopLevel: Boolean) =
+    isTopLevel && annotations.any { it.className == DEPRECATED_ANNOTATION_FULL_NAME }
 
-    val name = name.asString()
-    if (!name.startsWith("simd_") && !name.startsWith("__"))
-        return false
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun KmProperty.isFakeOverride() =
+    Flag.Property.IS_FAKE_OVERRIDE(flags)
 
-    return valueParameters.any { parameter ->
-        val type = parameter.type
-        val abbreviationType = type.getAbbreviation()
-
-        abbreviationType != null
-                && abbreviationType.declarationDescriptor.name.asString().startsWith("simd_")
-                && type.declarationDescriptor.name.asString() == "Vector128"
-    }
-}
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun KmFunction.isFakeOverride() =
+    Flag.Function.IS_FAKE_OVERRIDE(flags)

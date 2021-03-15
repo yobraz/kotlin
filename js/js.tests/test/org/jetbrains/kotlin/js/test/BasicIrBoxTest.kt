@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.cli.common.messages.AnalyzerWithCompilerReport
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.js.messageCollectorLogger
 import org.jetbrains.kotlin.ir.backend.js.*
-import org.jetbrains.kotlin.ir.declarations.persistent.PersistentIrFactory
+import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.js.config.JSConfigurationKeys
 import org.jetbrains.kotlin.js.config.JsConfig
 import org.jetbrains.kotlin.js.facade.MainCallParameters
@@ -103,19 +103,21 @@ abstract class BasicIrBoxTest(
             compilationCache[it] ?: error("Can't find compiled module for dependency $it")
         }).map { File(it).absolutePath }
 
-        val resolvedLibraries = jsResolveLibraries(allKlibPaths, messageCollectorLogger(MessageCollector.NONE))
+        val resolvedLibraries = jsResolveLibraries(allKlibPaths, emptyList(), messageCollectorLogger(MessageCollector.NONE))
 
         val actualOutputFile = outputFile.absolutePath.let {
             if (!isMainModule) it.replace("_v5.js", "/") else it
         }
 
         if (isMainModule) {
+            logger.logFile("Output JS", outputFile)
+
             val debugMode = getBoolean("kotlin.js.debugMode")
 
             val phaseConfig = if (debugMode) {
                 val allPhasesSet = jsPhases.toPhaseMap().values.toSet()
                 val dumpOutputDir = File(outputFile.parent, outputFile.nameWithoutExtension + "-irdump")
-                println("\n ------ Dumping phases to file://$dumpOutputDir")
+                logger.logFile("Dumping phasesTo", dumpOutputDir)
                 PhaseConfig(
                     jsPhases,
                     dumpToDirectory = dumpOutputDir.path,
@@ -150,8 +152,9 @@ abstract class BasicIrBoxTest(
                 compiledModule.dceJsCode?.writeTo(dceOutputFile, config)
 
                 if (generateDts) {
-                    val dtsFile = outputFile.withReplacedExtensionOrNull("_v5.js", ".d.ts")
-                    dtsFile?.write(compiledModule.tsDefinitions ?: error("No ts definitions"))
+                    val dtsFile = outputFile.withReplacedExtensionOrNull("_v5.js", ".d.ts")!!
+                    logger.logFile("Output d.ts", dtsFile)
+                    dtsFile.write(compiledModule.tsDefinitions ?: error("No ts definitions"))
                 }
             }
 
@@ -180,10 +183,12 @@ abstract class BasicIrBoxTest(
                 configuration = config.configuration,
                 allDependencies = resolvedLibraries,
                 friendDependencies = emptyList(),
-                irFactory = PersistentIrFactory,
+                irFactory = IrFactoryImpl,
                 outputKlibPath = actualOutputFile,
                 nopack = true
             )
+
+            logger.logFile("Output klib", File(actualOutputFile))
 
             compilationCache[outputFile.name.replace(".js", ".meta.js")] = actualOutputFile
         }

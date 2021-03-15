@@ -5,15 +5,17 @@
 
 package org.jetbrains.kotlin.test.builders
 
+import com.intellij.openapi.Disposable
+import org.jetbrains.kotlin.test.Constructor
 import org.jetbrains.kotlin.test.TestConfiguration
+import org.jetbrains.kotlin.test.TestInfrastructureInternals
 import org.jetbrains.kotlin.test.directives.model.DirectivesContainer
 import org.jetbrains.kotlin.test.impl.TestConfigurationImpl
 import org.jetbrains.kotlin.test.model.*
 import org.jetbrains.kotlin.test.services.*
 
-typealias Constructor<T> = (TestServices) -> T
-
 @DefaultsDsl
+@OptIn(TestInfrastructureInternals::class)
 class TestConfigurationBuilder {
     val defaultsProviderBuilder: DefaultsProviderBuilder = DefaultsProviderBuilder()
     lateinit var assertions: AssertionsService
@@ -27,6 +29,7 @@ class TestConfigurationBuilder {
     private val environmentConfigurators: MutableList<Constructor<EnvironmentConfigurator>> = mutableListOf()
 
     private val additionalSourceProviders: MutableList<Constructor<AdditionalSourceProvider>> = mutableListOf()
+    private val moduleStructureTransformers: MutableList<ModuleStructureTransformer> = mutableListOf()
 
     private val metaTestConfigurators: MutableList<Constructor<MetaTestConfigurator>> = mutableListOf()
     private val afterAnalysisCheckers: MutableList<Constructor<AfterAnalysisChecker>> = mutableListOf()
@@ -37,6 +40,19 @@ class TestConfigurationBuilder {
     val defaultRegisteredDirectivesBuilder: RegisteredDirectivesBuilder = RegisteredDirectivesBuilder()
 
     private val configurationsByTestDataCondition: MutableList<Pair<Regex, TestConfigurationBuilder.() -> Unit>> = mutableListOf()
+    private val additionalServices: MutableList<ServiceRegistrationData> = mutableListOf()
+
+    private var compilerConfigurationProvider: ((Disposable, List<EnvironmentConfigurator>) -> CompilerConfigurationProvider)? = null
+
+    lateinit var testInfo: KotlinTestInfo
+
+    inline fun <reified T : TestService> useAdditionalService(noinline serviceConstructor: (TestServices) -> T) {
+        useAdditionalService(service(serviceConstructor))
+    }
+
+    fun useAdditionalService(serviceRegistrationData: ServiceRegistrationData) {
+        additionalServices += serviceRegistrationData
+    }
 
     fun forTestsMatching(pattern: String, configuration: TestConfigurationBuilder.() -> Unit) {
         val regex = pattern.toMatchingRegexString().toRegex()
@@ -105,6 +121,16 @@ class TestConfigurationBuilder {
         additionalSourceProviders += providers
     }
 
+    @TestInfrastructureInternals
+    fun useModuleStructureTransformers(vararg transformers: ModuleStructureTransformer) {
+        moduleStructureTransformers += transformers
+    }
+
+    @TestInfrastructureInternals
+    fun useCustomCompilerConfigurationProvider(provider: (Disposable, List<EnvironmentConfigurator>) -> CompilerConfigurationProvider) {
+        compilerConfigurationProvider = provider
+    }
+
     fun useMetaTestConfigurators(vararg configurators: Constructor<MetaTestConfigurator>) {
         metaTestConfigurators += configurators
     }
@@ -128,6 +154,7 @@ class TestConfigurationBuilder {
             }
         }
         return TestConfigurationImpl(
+            testInfo,
             defaultsProviderBuilder.build(),
             assertions,
             facades,
@@ -136,11 +163,14 @@ class TestConfigurationBuilder {
             additionalMetaInfoProcessors,
             environmentConfigurators,
             additionalSourceProviders,
+            moduleStructureTransformers,
             metaTestConfigurators,
             afterAnalysisCheckers,
+            compilerConfigurationProvider,
             metaInfoHandlerEnabled,
             directives,
-            defaultRegisteredDirectivesBuilder.build()
+            defaultRegisteredDirectivesBuilder.build(),
+            additionalServices
         )
     }
 }

@@ -74,7 +74,10 @@ import org.jetbrains.kotlin.resolve.constants.*;
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluatorKt;
 import org.jetbrains.kotlin.resolve.descriptorUtil.DescriptorUtilsKt;
 import org.jetbrains.kotlin.resolve.inline.InlineUtil;
-import org.jetbrains.kotlin.resolve.jvm.*;
+import org.jetbrains.kotlin.resolve.jvm.AsmTypes;
+import org.jetbrains.kotlin.resolve.jvm.JvmBindingContextSlices;
+import org.jetbrains.kotlin.resolve.jvm.JvmConstantsKt;
+import org.jetbrains.kotlin.resolve.jvm.RuntimeAssertionInfo;
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOriginKt;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterKind;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterSignature;
@@ -85,6 +88,7 @@ import org.jetbrains.kotlin.synthetic.SyntheticJavaPropertyDescriptor;
 import org.jetbrains.kotlin.types.*;
 import org.jetbrains.kotlin.types.checker.ClassicTypeSystemContextImpl;
 import org.jetbrains.kotlin.types.expressions.DoubleColonLHS;
+import org.jetbrains.kotlin.types.model.KotlinTypeMarker;
 import org.jetbrains.kotlin.types.model.TypeParameterMarker;
 import org.jetbrains.kotlin.types.typesApproximation.CapturedTypeApproximationKt;
 import org.jetbrains.kotlin.util.OperatorNameConventions;
@@ -742,7 +746,11 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         // Some forms of for-loop can be optimized as post-condition loops.
         PseudoInsnsKt.fakeAlwaysFalseIfeq(v, continueLabel);
 
+        // Renew line number cause it could be reset by inline (resetLastLineNumber) in generator.checkPreCondition(loopExit).
+        markStartLineNumber(generator.getForExpression());
+        v.nop();
         generator.beforeBody();
+
         blockStackElements.push(new LoopBlockStackElement(loopExit, continueLabel, targetLabel(generator.getForExpression())));
         generator.body();
         blockStackElements.pop();
@@ -2519,19 +2527,37 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
             // $default method is not private, so you need no accessor to call it
             return descriptor;
         }
-        else if (InlineClassManglingRulesKt.shouldHideConstructorDueToInlineClassTypeValueParameters(descriptor.getOriginal())) {
-            // Constructors with inline class type value parameters should always be called using an accessor.
-            // NB this will require accessors even if the constructor itself is in a different module.
-            return new AccessorForConstructorDescriptor(
-                    (ClassConstructorDescriptor) descriptor.getOriginal(),
-                    descriptor.getContainingDeclaration(),
-                    getSuperCallTarget(resolvedCall.getCall()),
-                    AccessorKind.NORMAL
-            );
+        else if (shouldForceAccessorForConstructor(descriptor.getOriginal())) {
+            return createAccessorForHiddenConstructor(resolvedCall, descriptor);
         }
         else {
             return context.accessibleDescriptor(descriptor, getSuperCallTarget(resolvedCall.getCall()));
         }
+    }
+
+    private boolean shouldForceAccessorForConstructor(FunctionDescriptor descriptor) {
+        // Force using accessors on hidden constructors only
+        if (!isHiddenConstructor(descriptor)) {
+            return false;
+        }
+        // Don't use accessor when calling hidden constructor from the same class.
+        if (descriptor.getContainingDeclaration() == context.getContextDescriptor().getContainingDeclaration()) {
+            return false;
+        }
+        return true;
+    }
+
+    @NotNull
+    private AccessorForConstructorDescriptor createAccessorForHiddenConstructor(
+            @NotNull ResolvedCall<?> resolvedCall,
+            FunctionDescriptor descriptor
+    ) {
+        return new AccessorForConstructorDescriptor(
+                (ClassConstructorDescriptor) descriptor.getOriginal(),
+                descriptor.getContainingDeclaration(),
+                getSuperCallTarget(resolvedCall.getCall()),
+                AccessorKind.NORMAL
+        );
     }
 
     @NotNull
@@ -2668,7 +2694,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
     }
 
     @NotNull
-    Callable resolveToCallable(@NotNull FunctionDescriptor fd, boolean superCall, @NotNull ResolvedCall resolvedCall) {
+    Callable resolveToCallable(@NotNull FunctionDescriptor fd, boolean superCall, @NotNull ResolvedCall<?> resolvedCall) {
         IntrinsicMethod intrinsic = state.getIntrinsics().getIntrinsic(fd);
         if (intrinsic != null) {
             return intrinsic.toCallable(fd, superCall, resolvedCall, this);
@@ -2676,7 +2702,8 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
 
         fd = SamCodegenUtil.resolveSamAdapter(fd);
 
-        if (ArgumentGeneratorKt.shouldInvokeDefaultArgumentsStub(resolvedCall)) {
+        List<ResolvedValueArgument> valueArguments = resolvedCall.getValueArgumentsByIndex();
+        if (valueArguments != null && valueArguments.stream().anyMatch(it -> it instanceof DefaultValueArgument)) {
             // When we invoke a function with some arguments mapped as defaults,
             // we later reroute this call to an overridden function in a base class that processes the default arguments.
             // If the base class is generic, this overridden function can have a different Kotlin signature
@@ -5505,5 +5532,12 @@ The "returned" value of try expression with no finally is either the last expres
         if (typeParameterDescriptor.getContainingDeclaration() != context.getContextDescriptor()) {
             parentCodegen.getReifiedTypeParametersUsages().addUsedReifiedParameter(typeParameterDescriptor.getName().asString());
         }
+    }
+
+    @Override
+    public void putReifiedOperationMarkerIfTypeIsReifiedParameter(
+            @NotNull KotlinTypeMarker type, @NotNull ReifiedTypeInliner.OperationKind operationKind
+    ) {
+        BaseExpressionCodegen.DefaultImpls.putReifiedOperationMarkerIfTypeIsReifiedParameter(this, type, operationKind);
     }
 }

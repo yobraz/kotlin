@@ -9,20 +9,23 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirPsiDiagnostic
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
-import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.realPsi
+import org.jetbrains.kotlin.fir.resolve.FirTowerDataContext
 import org.jetbrains.kotlin.fir.resolve.providers.FirProvider
 import org.jetbrains.kotlin.idea.caches.project.IdeaModuleInfo
 import org.jetbrains.kotlin.idea.caches.project.ModuleSourceInfo
 import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
 import org.jetbrains.kotlin.idea.fir.low.level.api.annotations.InternalForInline
+import org.jetbrains.kotlin.idea.fir.low.level.api.api.DiagnosticCheckerFilter
 import org.jetbrains.kotlin.idea.fir.low.level.api.api.FirModuleResolveState
 import org.jetbrains.kotlin.idea.fir.low.level.api.diagnostics.DiagnosticsCollector
 import org.jetbrains.kotlin.idea.fir.low.level.api.element.builder.FirElementBuilder
 import org.jetbrains.kotlin.idea.fir.low.level.api.element.builder.FirTowerDataContextCollector
+import org.jetbrains.kotlin.idea.fir.low.level.api.element.builder.getClosestAvailableParentContext
 import org.jetbrains.kotlin.idea.fir.low.level.api.element.builder.getNonLocalContainingOrThisDeclaration
 import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.FirFileBuilder
 import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.ModuleFileCache
@@ -44,7 +47,17 @@ internal class FirModuleResolveStateImpl(
     val firLazyDeclarationResolver: FirLazyDeclarationResolver,
 ) : FirModuleResolveState() {
     override val rootModuleSession: FirIdeSourcesSession get() = sessionProvider.rootModuleSession
-    val fileStructureCache = FileStructureCache(firFileBuilder, firLazyDeclarationResolver)
+
+    /**
+     * WARNING! This object contains scopes for all statements and declarations that were ever resolved.
+     * It can grow unbounded if you never edit the files in the opened project.
+     *
+     * It is a temporary solution until we can retrieve scopes for any fir element without re-resolving it.
+     *
+     * TODO Fix this when refactoring that separates resolving and scopes creation is done
+     */
+    private val collector = FirTowerDataContextCollector()
+    val fileStructureCache = FileStructureCache(firFileBuilder, firLazyDeclarationResolver, collector)
     val elementBuilder = FirElementBuilder()
     private val diagnosticsCollector = DiagnosticsCollector(fileStructureCache, rootModuleSession.cache)
 
@@ -57,11 +70,11 @@ internal class FirModuleResolveStateImpl(
     override fun getFirFile(ktFile: KtFile): FirFile =
         firFileBuilder.buildRawFirFileWithCaching(ktFile, rootModuleSession.cache, lazyBodiesMode = false)
 
-    override fun getDiagnostics(element: KtElement): List<Diagnostic> =
-        diagnosticsCollector.getDiagnosticsFor(element)
+    override fun getDiagnostics(element: KtElement, filter: DiagnosticCheckerFilter): List<FirPsiDiagnostic<*>> =
+        diagnosticsCollector.getDiagnosticsFor(element, filter)
 
-    override fun collectDiagnosticsForFile(ktFile: KtFile): Collection<Diagnostic> =
-        diagnosticsCollector.collectDiagnosticsForFile(ktFile)
+    override fun collectDiagnosticsForFile(ktFile: KtFile, filter: DiagnosticCheckerFilter): Collection<FirPsiDiagnostic<*>> =
+        diagnosticsCollector.collectDiagnosticsForFile(ktFile, filter)
 
     override fun getBuiltFirFileOrNull(ktFile: KtFile): FirFile? {
         val cache = sessionProvider.getModuleCache(ktFile.getModuleInfo() as ModuleSourceInfo)
@@ -103,7 +116,13 @@ internal class FirModuleResolveStateImpl(
         )
         if (container.resolvePhase < FirResolvePhase.BODY_RESOLVE) {
             val cache = (container.session as FirIdeSourcesSession).cache
-            firLazyDeclarationResolver.lazyResolveDeclaration(container, cache, FirResolvePhase.BODY_RESOLVE, checkPCE = false /*TODO*/)
+            firLazyDeclarationResolver.lazyResolveDeclaration(
+                container,
+                cache,
+                FirResolvePhase.BODY_RESOLVE,
+                checkPCE = false, /*TODO*/
+                towerDataContextCollector = collector,
+            )
         }
         val firDeclaration = FirElementFinder.findElementIn<FirDeclaration>(container) { firDeclaration ->
             when (val realPsi = firDeclaration.realPsi) {
@@ -126,7 +145,13 @@ internal class FirModuleResolveStateImpl(
             is FirIdeSourcesSession -> session.cache
             else -> return declaration
         }
-        firLazyDeclarationResolver.lazyResolveDeclaration(declaration, fileCache, toPhase, checkPCE = true)
+        firLazyDeclarationResolver.lazyResolveDeclaration(
+            declaration,
+            fileCache,
+            toPhase,
+            checkPCE = true,
+            towerDataContextCollector = collector,
+        )
         return declaration
     }
 
@@ -135,7 +160,6 @@ internal class FirModuleResolveStateImpl(
         containerFirFile: FirFile,
         firIdeProvider: FirProvider,
         toPhase: FirResolvePhase,
-        towerDataContextCollector: FirTowerDataContextCollector
     ) {
         firFileBuilder.runCustomResolveWithPCECheck(containerFirFile, rootModuleSession.cache) {
             firLazyDeclarationResolver.runLazyResolveWithoutLock(
@@ -145,7 +169,7 @@ internal class FirModuleResolveStateImpl(
                 firIdeProvider,
                 fromPhase = firFunction.resolvePhase,
                 toPhase,
-                towerDataContextCollector,
+                towerDataContextCollector = collector,
                 checkPCE = true
             )
         }
@@ -153,4 +177,8 @@ internal class FirModuleResolveStateImpl(
 
     override fun getFirFile(declaration: FirDeclaration, cache: ModuleFileCache): FirFile? =
         cache.getContainerFirFile(declaration)
+
+    override fun getTowerDataContextForElement(element: KtElement): FirTowerDataContext? {
+        return collector.getClosestAvailableParentContext(element)
+    }
 }

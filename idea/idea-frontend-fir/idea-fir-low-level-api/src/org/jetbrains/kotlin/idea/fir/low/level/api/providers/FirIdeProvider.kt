@@ -95,12 +95,12 @@ internal class FirIdeProvider(
 
     // TODO move out of here
     // used only for completion
-    fun buildFunctionWithBody(ktNamedFunction: KtNamedFunction): FirFunction<*> {
-        return RawFirBuilder(session, kotlinScopeProvider).buildFunctionWithBody(ktNamedFunction)
+    fun buildFunctionWithBody(ktNamedFunction: KtNamedFunction, original: FirFunction<*>): FirFunction<*> {
+        return RawFirBuilder(session, kotlinScopeProvider).buildFunctionWithBody(ktNamedFunction, original)
     }
 
-    fun buildPropertyWithBody(ktNamedFunction: KtProperty): FirProperty {
-        return RawFirBuilder(session, kotlinScopeProvider).buildPropertyWithBody(ktNamedFunction)
+    fun buildPropertyWithBody(ktNamedFunction: KtProperty, original: FirProperty): FirProperty {
+        return RawFirBuilder(session, kotlinScopeProvider).buildPropertyWithBody(ktNamedFunction, original)
     }
 
 
@@ -114,10 +114,8 @@ internal class FirIdeProvider(
         TODO()
     }
 
-    override fun getClassNamesInPackage(fqName: FqName): Set<Name> {
-        // TODO: KT-41048
-        return emptySet()
-    }
+    override fun getClassNamesInPackage(fqName: FqName): Set<Name> =
+        indexHelper.getClassNamesInPackage(fqName)
 
     @NoMutableState
     private inner class SymbolProvider : FirSymbolProvider(session) {

@@ -12,6 +12,8 @@ import kotlin.test.fail
 
 abstract class AbstractCommonizerTest<T, R> {
 
+    class ObjectsNotEqual(message: String) : Throwable(message)
+
     @Test(expected = IllegalCommonizerStateException::class)
     fun failOnNoVariantsSubmitted() {
         createCommonizer().result
@@ -20,7 +22,7 @@ abstract class AbstractCommonizerTest<T, R> {
 
     protected abstract fun createCommonizer(): Commonizer<T, R>
 
-    protected open fun isEqual(a: R?, b: R?): Boolean = a == b
+    protected open fun areEqual(a: R?, b: R?): Boolean = a == b
 
     protected fun doTestSuccess(expected: R, vararg variants: T) {
         check(variants.isNotEmpty())
@@ -32,7 +34,7 @@ abstract class AbstractCommonizerTest<T, R> {
         }
 
         val actual = commonized.result
-        if (!isEqual(expected, actual)) fail("Expected: $expected\nActual: $actual")
+        if (!areEqual(expected, actual)) throw ObjectsNotEqual("Expected: $expected\nActual: $actual")
     }
 
     protected fun doTestFailure(

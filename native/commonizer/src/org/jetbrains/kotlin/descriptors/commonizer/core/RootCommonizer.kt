@@ -5,41 +5,23 @@
 
 package org.jetbrains.kotlin.descriptors.commonizer.core
 
-import org.jetbrains.kotlin.builtins.DefaultBuiltIns
-import org.jetbrains.kotlin.builtins.konan.KonanBuiltIns
-import org.jetbrains.kotlin.descriptors.commonizer.BuiltInsProvider
-import org.jetbrains.kotlin.descriptors.commonizer.LeafTarget
-import org.jetbrains.kotlin.descriptors.commonizer.SharedTarget
+import org.jetbrains.kotlin.descriptors.commonizer.LeafCommonizerTarget
+import org.jetbrains.kotlin.descriptors.commonizer.SharedCommonizerTarget
 import org.jetbrains.kotlin.descriptors.commonizer.cir.CirRoot
-import org.jetbrains.kotlin.descriptors.commonizer.cir.factory.CirRootFactory
 
 class RootCommonizer : AbstractStandardCommonizer<CirRoot, CirRoot>() {
-    private val leafTargets = mutableSetOf<LeafTarget>()
-    private var konanBuiltInsProvider: BuiltInsProvider? = null
+    private val leafTargets = mutableSetOf<LeafCommonizerTarget>()
 
-    override fun commonizationResult() = CirRootFactory.create(
-        target = SharedTarget(leafTargets),
-        builtInsClass = if (konanBuiltInsProvider != null) KonanBuiltIns::class.java.name else DefaultBuiltIns::class.java.name,
-        builtInsProvider = konanBuiltInsProvider ?: BuiltInsProvider.defaultBuiltInsProvider
+    override fun commonizationResult() = CirRoot.create(
+        target = SharedCommonizerTarget(leafTargets)
     )
 
     override fun initialize(first: CirRoot) {
-        leafTargets += first.target as LeafTarget
-        konanBuiltInsProvider = first.konanBuiltInsProvider
+        leafTargets += first.target as LeafCommonizerTarget
     }
 
     override fun doCommonizeWith(next: CirRoot): Boolean {
-        leafTargets += next.target as LeafTarget
-
-        // keep the first met KonanBuiltIns when all targets are Kotlin/Native
-        // otherwise use DefaultBuiltIns
-        if (konanBuiltInsProvider != null && next.konanBuiltInsProvider == null) {
-            konanBuiltInsProvider = null
-        }
-
+        leafTargets += next.target as LeafCommonizerTarget
         return true
     }
-
-    private inline val CirRoot.konanBuiltInsProvider
-        get() = if (builtInsClass == KonanBuiltIns::class.java.name) builtInsProvider else null
 }

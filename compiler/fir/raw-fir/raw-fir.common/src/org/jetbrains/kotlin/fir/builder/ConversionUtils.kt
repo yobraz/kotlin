@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.fir.types.builder.*
 import org.jetbrains.kotlin.fir.types.impl.*
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.types.ConstantValueKind
 import org.jetbrains.kotlin.types.expressions.OperatorConventions
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
@@ -308,8 +309,14 @@ fun FirPropertyBuilder.generateAccessorsByDelegate(
      * And for this case we can pass isForDelegateProviderCall to this reference
      *   generator function
      */
-    fun thisRef(isForDelegateProviderCall: Boolean = false): FirExpression =
+    fun thisRef(forDispatchReceiver: Boolean = false): FirExpression =
         when {
+            isExtension && !forDispatchReceiver -> buildThisReceiverExpression {
+                source = fakeSource
+                calleeReference = buildImplicitThisReference {
+                    boundSymbol = this@generateAccessorsByDelegate.symbol
+                }
+            }
             ownerSymbol != null -> buildThisReceiverExpression {
                 source = fakeSource
                 calleeReference = buildImplicitThisReference {
@@ -320,13 +327,7 @@ fun FirPropertyBuilder.generateAccessorsByDelegate(
                     type = ownerSymbol.constructStarProjectedType(typeParameterNumber)
                 }
             }
-            isExtension && !isForDelegateProviderCall -> buildThisReceiverExpression {
-                source = fakeSource
-                calleeReference = buildImplicitThisReference {
-                    boundSymbol = this@generateAccessorsByDelegate.symbol
-                }
-            }
-            else -> buildConstExpression(null, FirConstKind.Null, null)
+            else -> buildConstExpression(null, ConstantValueKind.Null, null)
         }
 
     fun delegateAccess() = buildQualifiedAccessExpression {
@@ -335,7 +336,7 @@ fun FirPropertyBuilder.generateAccessorsByDelegate(
             resolvedSymbol = delegateFieldSymbol
         }
         if (ownerSymbol != null) {
-            dispatchReceiver = thisRef()
+            dispatchReceiver = thisRef(forDispatchReceiver = true)
         }
     }
 
@@ -372,7 +373,7 @@ fun FirPropertyBuilder.generateAccessorsByDelegate(
             source = fakeSource
             name = PROVIDE_DELEGATE
         }
-        argumentList = buildBinaryArgumentList(thisRef(isForDelegateProviderCall = true), propertyRef())
+        argumentList = buildBinaryArgumentList(thisRef(forDispatchReceiver = true), propertyRef())
     }
     delegate = delegateBuilder.build()
     if (stubMode) return

@@ -296,7 +296,7 @@ public class KotlinTestUtils {
 
             String expectedText = StringUtilsKt.trimTrailingWhitespacesAndAddNewlineAtEOF(StringUtil.convertLineSeparators(expected.trim()));
 
-            if (!Comparing.equal(sanitizer.invoke(expectedText), sanitizer.invoke(actualText))) {
+            if (!Objects.equals(sanitizer.invoke(expectedText), sanitizer.invoke(actualText))) {
                 throw new FileComparisonFailure(message + ": " + expectedFile.getName(),
                                                 expected, actual, expectedFile.getAbsolutePath());
             }
@@ -621,7 +621,7 @@ public class KotlinTestUtils {
                     }
                 }
 
-                throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive.");
+                throw new AssertionError(String.format("Looks like this test can be unmuted. Remove \"%s%s\" directive.", ignoreDirective, targetBackend));
             }
         };
     }

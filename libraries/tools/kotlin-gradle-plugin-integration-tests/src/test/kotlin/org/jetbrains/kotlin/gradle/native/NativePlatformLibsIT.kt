@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.gradle.native.GeneralNativeIT.Companion.extractNativ
 import org.jetbrains.kotlin.gradle.transformProjectWithPluginsDsl
 import org.jetbrains.kotlin.gradle.util.modify
 import org.jetbrains.kotlin.gradle.utils.NativeCompilerDownloader
+import org.jetbrains.kotlin.gradle.utils.toStringPre1_5_20
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import org.jetbrains.kotlin.konan.target.presetName
@@ -54,7 +55,7 @@ class NativePlatformLibsIT : BaseGradleIT() {
         // Clean existing installation directories.
         val osName = HostManager.simpleOsName()
         val oldCompilerDir = DependencyDirectories.localKonanDir.resolve("kotlin-native-$osName-$oldCompilerVersion")
-        val currentCompilerDir = DependencyDirectories.localKonanDir.resolve("kotlin-native-$osName-$currentCompilerVersion")
+        val currentCompilerDir = DependencyDirectories.localKonanDir.resolve("kotlin-native-$osName-${currentCompilerVersion.toStringPre1_5_20()}")
 
         for (compilerDirectory in listOf(oldCompilerDir, currentCompilerDir)) {
             compilerDirectory.deleteRecursively()
@@ -137,23 +138,31 @@ class NativePlatformLibsIT : BaseGradleIT() {
 
     @Test
     fun testRerunGeneratorIfCacheKindChanged() {
-        // Currently we can generate caches only for macos_x64 and ios_x64.
-        Assume.assumeTrue(HostManager.hostIsMac)
+        // There are no cacheable targets on MinGW for now.
+        Assume.assumeFalse(HostManager.hostIsMingw)
 
         deleteInstalledCompilers()
 
-        with(platformLibrariesProject("iosX64")) {
-            // Build Mac libraries without caches.
-            buildWithLightDist("tasks") {
-                assertSuccessful()
-                assertContains("Generate platform libraries for ios_x64")
-            }
+        fun buildPlatformLibrariesWithoutAndWithCaches(target: KonanTarget) {
+            val presetName = target.presetName
+            val targetName = target.name
+            with(platformLibrariesProject(presetName)) {
+                // Build libraries without caches.
+                buildWithLightDist("tasks") {
+                    assertSuccessful()
+                    assertContains("Generate platform libraries for $targetName")
+                }
 
-            // Change cache kind and check that platform libraries generator was executed.
-            buildWithLightDist("tasks", "-Pkotlin.native.cacheKind=static") {
-                assertSuccessful()
-                assertContains("Precompile platform libraries for ios_x64 (precompilation: static)")
+                // Change cache kind and check that platform libraries generator was executed.
+                buildWithLightDist("tasks", "-Pkotlin.native.cacheKind.$presetName=static") {
+                    assertSuccessful()
+                    assertContains("Precompile platform libraries for $targetName (precompilation: static)")
+                }
             }
+        }
+        when {
+            HostManager.hostIsMac -> buildPlatformLibrariesWithoutAndWithCaches(KonanTarget.IOS_X64)
+            HostManager.hostIsLinux -> buildPlatformLibrariesWithoutAndWithCaches(KonanTarget.LINUX_X64)
         }
     }
 

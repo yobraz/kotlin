@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.ir.backend.js.lower.calls.CallsLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.cleanup.CleanupLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.coroutines.JsSuspendFunctionsLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.inline.CopyInlineFunctionBodyLowering
+import org.jetbrains.kotlin.ir.backend.js.lower.inline.jsRecordExtractedLocalClasses
 import org.jetbrains.kotlin.ir.backend.js.lower.inline.RemoveInlineDeclarationsWithReifiedTypeParametersLowering
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
@@ -185,6 +186,12 @@ private val stripTypeAliasDeclarationsPhase = makeDeclarationTransformerPhase(
     description = "Strip typealias declarations"
 )
 
+private val jsCodeOutliningPhase = makeBodyLoweringPhase(
+    ::JsCodeOutliningLowering,
+    name = "JsCodeOutliningLowering",
+    description = "Outline js() calls where JS code references Kotlin locals"
+)
+
 private val arrayConstructorPhase = makeBodyLoweringPhase(
     ::ArrayConstructorLowering,
     name = "ArrayConstructor",
@@ -211,7 +218,7 @@ private val localClassesInInlineFunctionsPhase = makeBodyLoweringPhase(
 )
 
 private val localClassesExtractionFromInlineFunctionsPhase = makeBodyLoweringPhase(
-    ::LocalClassesExtractionFromInlineFunctionsLowering,
+    { context -> LocalClassesExtractionFromInlineFunctionsLowering(context, BackendContext::jsRecordExtractedLocalClasses) },
     name = "localClassesExtractionFromInlineFunctionsPhase",
     description = "Move local classes from inline functions into nearest declaration container",
     prerequisite = setOf(localClassesInInlineFunctionsPhase)
@@ -398,7 +405,7 @@ private val localDeclarationsLoweringPhase = makeBodyLoweringPhase(
 )
 
 private val localClassExtractionPhase = makeBodyLoweringPhase(
-    ::LocalClassPopupLowering,
+    { context -> LocalClassPopupLowering(context, BackendContext::jsRecordExtractedLocalClasses) },
     name = "LocalClassExtractionPhase",
     description = "Move local declarations into nearest declaration container",
     prerequisite = setOf(localDeclarationsLoweringPhase)
@@ -713,6 +720,7 @@ private val loweringList = listOf<Lowering>(
     validateIrBeforeLowering,
     expectDeclarationsRemovingPhase,
     stripTypeAliasDeclarationsPhase,
+    jsCodeOutliningPhase,
     arrayConstructorPhase,
     lateinitNullableFieldsPhase,
     lateinitDeclarationLoweringPhase,

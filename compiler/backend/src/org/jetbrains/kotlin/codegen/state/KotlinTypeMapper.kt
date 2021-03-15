@@ -87,7 +87,6 @@ class KotlinTypeMapper @JvmOverloads constructor(
     private val moduleName: String,
     val languageVersionSettings: LanguageVersionSettings,
     private val useOldInlineClassesManglingScheme: Boolean,
-    private val incompatibleClassTracker: IncompatibleClassTracker = IncompatibleClassTracker.DoNothing,
     val jvmTarget: JvmTarget = JvmTarget.DEFAULT,
     private val isIrBackend: Boolean = false,
     private val typePreprocessor: ((KotlinType) -> KotlinType?)? = null,
@@ -375,13 +374,27 @@ class KotlinTypeMapper @JvmOverloads constructor(
         kind: OwnerKind? = null,
         resolvedCall: ResolvedCall<*>? = null
     ): CallableMethod {
+        fun mapDefaultCallback(descriptor: FunctionDescriptor, kind: OwnerKind): () -> Method {
+            if (useOldManglingRulesForFunctionAcceptingInlineClass && !useOldInlineClassesManglingScheme) {
+                return {
+                    val prevManglingState = useOldManglingRulesForFunctionAcceptingInlineClass
+                    useOldManglingRulesForFunctionAcceptingInlineClass = true
+                    mapDefaultMethod(descriptor, kind).also {
+                        useOldManglingRulesForFunctionAcceptingInlineClass = prevManglingState
+                    }
+                }
+            } else {
+                return { mapDefaultMethod(descriptor, kind) }
+            }
+        }
+
         // we generate constructors of inline classes as usual functions
         if (descriptor is ConstructorDescriptor && kind != OwnerKind.ERASED_INLINE_CLASS) {
             val method = mapSignatureSkipGeneric(descriptor.original)
             val owner = mapOwner(descriptor)
             val originalDescriptor = descriptor.original
             return CallableMethod(
-                owner, owner, { mapDefaultMethod(originalDescriptor, OwnerKind.IMPLEMENTATION) }, method, INVOKESPECIAL,
+                owner, owner, mapDefaultCallback(originalDescriptor, OwnerKind.IMPLEMENTATION), method, INVOKESPECIAL,
                 null, null, null, null, null, originalDescriptor.returnType, isInterfaceMethod = false, isDefaultMethodInInterface = false,
                 boxInlineClassBeforeInvoke = false
             )
@@ -480,9 +493,8 @@ class KotlinTypeMapper @JvmOverloads constructor(
                         boxInlineClassBeforeInvoke = true
                     }
                     else -> {
-                        val isPrivateFunInvocation =
-                            DescriptorVisibilities.isPrivate(functionDescriptor.visibility) && !functionDescriptor.isSuspend
-                        invokeOpcode = if (superCall || isPrivateFunInvocation) INVOKESPECIAL else INVOKEVIRTUAL
+                        invokeOpcode =
+                            if (superCall || DescriptorVisibilities.isPrivate(functionDescriptor.visibility)) INVOKESPECIAL else INVOKEVIRTUAL
                         isInterfaceMember = false
                     }
                 }
@@ -557,7 +569,7 @@ class KotlinTypeMapper @JvmOverloads constructor(
 
         return CallableMethod(
             owner, ownerForDefaultImpl,
-            { mapDefaultMethod(baseMethodDescriptor, getKindForDefaultImplCall(baseMethodDescriptor)) },
+            mapDefaultCallback(baseMethodDescriptor, getKindForDefaultImplCall(baseMethodDescriptor)),
             signature, invokeOpcode, thisClass, dispatchReceiverKotlinType, receiverParameterType, extensionReceiverKotlinType,
             calleeType, returnKotlinType,
             if (jvmTarget >= JvmTarget.JVM_1_8) isInterfaceMember else invokeOpcode == INVOKEINTERFACE,
@@ -831,8 +843,6 @@ class KotlinTypeMapper @JvmOverloads constructor(
         skipGenericSignature: Boolean,
         hasSpecialBridge: Boolean
     ): JvmMethodGenericSignature {
-        checkOwnerCompatibility(f)
-
         val sw = if (skipGenericSignature || f is AccessorForCallableDescriptor<*>)
             JvmSignatureWriter()
         else
@@ -952,15 +962,6 @@ class KotlinTypeMapper @JvmOverloads constructor(
             // and to `invokevirtual (...)Ljava/lang/Object;` in an expression context.
             expression.isUsedAsExpression(bindingContext) -> null to OBJECT_TYPE
             else -> null to Type.VOID_TYPE
-        }
-    }
-
-    private fun checkOwnerCompatibility(descriptor: FunctionDescriptor) {
-        val ownerClass = descriptor.getContainingKotlinJvmBinaryClass() ?: return
-
-        val version = ownerClass.classHeader.bytecodeVersion
-        if (!version.isCompatible()) {
-            incompatibleClassTracker.record(ownerClass)
         }
     }
 

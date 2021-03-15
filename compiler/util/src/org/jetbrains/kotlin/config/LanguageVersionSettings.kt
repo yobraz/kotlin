@@ -137,7 +137,7 @@ enum class LanguageFeature(
     AdaptedCallableReferenceAgainstReflectiveType(KOTLIN_1_5, defaultState = LanguageFeature.State.DISABLED),
     InferenceCompatibility(KOTLIN_1_5, kind = BUG_FIX),
     RequiredPrimaryConstructorDelegationCallInEnums(KOTLIN_1_5, kind = BUG_FIX),
-    ForbidAnonymousReturnTypesInPrivateInlineFunctions(KOTLIN_1_5, kind = BUG_FIX),
+    ApproximateAnonymousReturnTypesInPrivateInlineFunctions(KOTLIN_1_5, kind = BUG_FIX),
     ForbidReferencingToUnderscoreNamedParameterOfCatchBlock(KOTLIN_1_5, kind = BUG_FIX),
     UseCorrectExecutionOrderForVarargArguments(KOTLIN_1_5, kind = BUG_FIX),
     JvmRecordSupport(KOTLIN_1_5),
@@ -145,6 +145,8 @@ enum class LanguageFeature(
     AllowSealedInheritorsInDifferentFilesOfSamePackage(KOTLIN_1_5),
     SealedInterfaces(KOTLIN_1_5),
     JvmIrEnabledByDefault(KOTLIN_1_5),
+    // Disabled until the breaking change is approved by the committee, see KT-10884.
+    PackagePrivateFileClassesWithAllPrivateMembers(KOTLIN_1_5, defaultState = State.DISABLED),
 
     /*
      * Improvements include the following:
@@ -196,6 +198,8 @@ enum class LanguageFeature(
 
     InlineClasses(sinceVersion = KOTLIN_1_3, defaultState = State.ENABLED_WITH_WARNING, kind = UNSTABLE_FEATURE),
     JvmInlineValueClasses(sinceVersion = KOTLIN_1_5, defaultState = State.ENABLED, kind = OTHER),
+    SuspendFunctionsInFunInterfaces(sinceVersion = KOTLIN_1_5, defaultState = State.ENABLED, kind = OTHER),
+    SamWrapperClassesAreSynthetic(sinceVersion = KOTLIN_1_5, defaultState = State.ENABLED, kind = BUG_FIX)
     ;
 
     val presentableName: String
@@ -314,15 +318,18 @@ enum class LanguageVersion(val major: Int, val minor: Int) : DescriptionAware {
             str.split(".", "-").let { if (it.size >= 2) fromVersionString("${it[0]}.${it[1]}") else null }
 
         @JvmField
-        val OLDEST_DEPRECATED = KOTLIN_1_2
+        val OLDEST_DEPRECATED = KOTLIN_1_3
 
         @JvmField
-        val FIRST_SUPPORTED = KOTLIN_1_3
+        val FIRST_SUPPORTED = KOTLIN_1_4
 
         @JvmField
-        val LATEST_STABLE = KOTLIN_1_4
+        val LATEST_STABLE = KOTLIN_1_5
     }
 }
+
+fun LanguageVersion.isStableOrReadyForPreview(): Boolean =
+    isStable || this == KOTLIN_1_5
 
 interface LanguageVersionSettings {
     fun getFeatureSupport(feature: LanguageFeature): LanguageFeature.State
@@ -375,6 +382,9 @@ class LanguageVersionSettingsImpl @JvmOverloads constructor(
                 LanguageFeature.State.ENABLED_WITH_ERROR, LanguageFeature.State.DISABLED -> '-'
             }
             append(" $char$feature")
+        }
+        analysisFlags.forEach { (flag, value) ->
+            append(" $flag:$value")
         }
     }
 

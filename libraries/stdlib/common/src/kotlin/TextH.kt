@@ -63,7 +63,6 @@ expect enum class RegexOption {
 
 // From char.kt
 
-expect fun Char.isWhitespace(): Boolean
 expect fun Char.isHighSurrogate(): Boolean
 expect fun Char.isLowSurrogate(): Boolean
 
@@ -196,12 +195,16 @@ public expect fun CharSequence.repeat(n: Int): String
 
 /**
  * Returns a new string with all occurrences of [oldChar] replaced with [newChar].
+ * 
+ * @sample samples.text.Strings.replace
  */
 expect fun String.replace(oldChar: Char, newChar: Char, ignoreCase: Boolean = false): String
 
 /**
  * Returns a new string obtained by replacing all occurrences of the [oldValue] substring in this string
  * with the specified [newValue] string.
+ *
+ * @sample samples.text.Strings.replace
  */
 expect fun String.replace(oldValue: String, newValue: String, ignoreCase: Boolean = false): String
 
@@ -276,6 +279,8 @@ public expect fun String.toBoolean(): Boolean
 
 /**
  * Returns `true` if this string is not `null` and its content is equal to the word "true", ignoring case, and `false` otherwise.
+ *
+ * There are also strict versions of the function available on non-nullable String, [toBooleanStrict] and [toBooleanStrictOrNull].
  */
 @SinceKotlin("1.4")
 public expect fun String?.toBoolean(): Boolean

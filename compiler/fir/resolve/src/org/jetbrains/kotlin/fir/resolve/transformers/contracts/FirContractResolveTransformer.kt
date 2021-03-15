@@ -102,6 +102,11 @@ open class FirContractResolveTransformer(
             return property.compose()
         }
 
+        override fun transformField(field: FirField, data: ResolutionMode): CompositeTransformResult<FirDeclaration> {
+            field.updatePhase()
+            return field.compose()
+        }
+
         private fun transformPropertyAccessor(
             propertyAccessor: FirPropertyAccessor,
             owner: FirProperty
@@ -275,7 +280,7 @@ open class FirContractResolveTransformer(
             get() = contractDescription is FirLegacyRawContractDescription || contractDescription is FirRawContractDescription
 
         private fun FirDeclaration.updatePhase() {
-            replaceDeclarationResolvePhaseIfNeeded(this, FirResolvePhase.CONTRACTS)
+            transformer.replaceDeclarationResolvePhaseIfNeeded(this, FirResolvePhase.CONTRACTS)
         }
     }
 }

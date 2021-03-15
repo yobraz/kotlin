@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.idea.frontend.api.ValidityToken
 import org.jetbrains.kotlin.idea.frontend.api.fir.KtSymbolByFirBuilder
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.cached
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.firRef
+import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
 import org.jetbrains.kotlin.idea.frontend.api.symbols.*
 import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtTypeAndAnnotations
 import org.jetbrains.kotlin.idea.frontend.api.symbols.pointers.KtPsiBasedSymbolPointer
@@ -23,8 +24,9 @@ internal class KtFirAnonymousFunctionSymbol(
     fir: FirAnonymousFunction,
     resolveState: FirModuleResolveState,
     override val token: ValidityToken,
-    private val builder: KtSymbolByFirBuilder
+    _builder: KtSymbolByFirBuilder
 ) : KtAnonymousFunctionSymbol(), KtFirSymbol<FirAnonymousFunction> {
+    private val builder by weakRef(_builder)
     override val firRef = firRef(fir, resolveState)
     override val psi: PsiElement? by firRef.withFirAndCache { fir -> fir.findPsi(fir.session) }
 
@@ -36,6 +38,11 @@ internal class KtFirAnonymousFunctionSymbol(
         fir.valueParameters.map { valueParameter ->
             builder.buildParameterSymbol(valueParameter)
         }
+    }
+
+    override val isExtension: Boolean get() = firRef.withFir { it.receiverTypeRef != null }
+    override val receiverType: KtTypeAndAnnotations? by cached {
+        firRef.receiverTypeAndAnnotations(builder)
     }
 
     override fun createPointer(): KtSymbolPointer<KtAnonymousFunctionSymbol> {

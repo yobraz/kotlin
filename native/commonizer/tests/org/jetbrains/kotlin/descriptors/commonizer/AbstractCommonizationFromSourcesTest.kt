@@ -11,33 +11,38 @@ import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.analyzer.common.CommonDependenciesContainer
 import org.jetbrains.kotlin.analyzer.common.CommonPlatformAnalyzerServices
 import org.jetbrains.kotlin.analyzer.common.CommonResolverForModuleFactory
+import org.jetbrains.kotlin.backend.common.serialization.metadata.impl.ClassifierAliasingPackageFragmentDescriptor
+import org.jetbrains.kotlin.backend.common.serialization.metadata.impl.ExportedForwardDeclarationsPackageFragmentDescriptor
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.languageVersionSettings
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
+import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.commonizer.ResultsConsumer.ModuleResult
+import org.jetbrains.kotlin.descriptors.commonizer.ResultsConsumer.Status
 import org.jetbrains.kotlin.descriptors.commonizer.SourceModuleRoot.Companion.SHARED_TARGET_NAME
-import org.jetbrains.kotlin.descriptors.commonizer.mergedtree.ClassCollector
-import org.jetbrains.kotlin.descriptors.commonizer.mergedtree.FunctionCollector
-import org.jetbrains.kotlin.descriptors.commonizer.mergedtree.collectMembers
-import org.jetbrains.kotlin.descriptors.commonizer.mergedtree.collectNonEmptyPackageMemberScopes
+import org.jetbrains.kotlin.descriptors.commonizer.cir.CirPackageName
+import org.jetbrains.kotlin.descriptors.commonizer.konan.TargetedNativeManifestDataProvider
 import org.jetbrains.kotlin.descriptors.commonizer.utils.*
 import org.jetbrains.kotlin.descriptors.impl.DeclarationDescriptorVisitorEmptyBodies
 import org.jetbrains.kotlin.descriptors.impl.FunctionDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
+import org.jetbrains.kotlin.library.SerializedMetadata
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.CommonPlatforms
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.resolve.CompilerEnvironment
+import org.jetbrains.kotlin.resolve.scopes.ChainedMemberScope
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.test.KotlinTestUtils.newConfiguration
 import org.jetbrains.kotlin.test.testFramework.KtUsefulTestCase
 import org.jetbrains.kotlin.test.util.KtTestUtil
+import org.jetbrains.kotlin.utils.alwaysTrue
 import java.io.File
 import kotlin.contracts.ExperimentalContracts
 import kotlin.test.fail
@@ -68,31 +73,28 @@ abstract class AbstractCommonizationFromSourcesTest : KtUsefulTestCase() {
         val sourceModuleRoots: SourceModuleRoots = SourceModuleRoots.load(getTestDataDir())
         val analyzedModules: AnalyzedModules = AnalyzedModules.create(sourceModuleRoots, testRootDisposable)
 
-        val result: CommonizerResult = runCommonization(analyzedModules.toCommonizationParameters())
-        assertCommonizationPerformed(result)
+        val results = MockResultsConsumer()
+        runCommonization(analyzedModules.toCommonizerParameters(results))
+        assertEquals(Status.DONE, results.status)
 
-        val sharedTarget: SharedTarget = analyzedModules.sharedTarget
-        assertEquals(sharedTarget, result.sharedTarget)
+        val sharedTarget: SharedCommonizerTarget = analyzedModules.sharedTarget
+        assertEquals(sharedTarget, results.sharedTarget)
 
-        val sharedModuleAsExpected: ModuleDescriptor = analyzedModules.commonizedModules.getValue(sharedTarget)
-        val sharedModuleByCommonizer: ModuleDescriptor =
-            (result.modulesByTargets.getValue(sharedTarget).single() as ModuleResult.Commonized).module
+        val sharedModuleAsExpected: SerializedMetadata = analyzedModules.commonizedModules.getValue(sharedTarget)
+        val sharedModuleByCommonizer: SerializedMetadata =
+            (results.modulesByTargets.getValue(sharedTarget).single() as ModuleResult.Commonized).metadata
 
-        assertValidModule(sharedModuleAsExpected)
-        assertValidModule(sharedModuleByCommonizer)
-        assertModulesAreEqual(sharedModuleAsExpected, sharedModuleByCommonizer, "\"$sharedTarget\" target")
+        assertModulesAreEqual(sharedModuleAsExpected, sharedModuleByCommonizer, sharedTarget)
 
-        val leafTargets: Set<LeafTarget> = analyzedModules.leafTargets
-        assertEquals(leafTargets, result.leafTargets)
+        val leafTargets: Set<LeafCommonizerTarget> = analyzedModules.leafTargets
+        assertEquals(leafTargets, results.leafTargets)
 
         for (leafTarget in leafTargets) {
-            val leafTargetModuleAsExpected: ModuleDescriptor = analyzedModules.commonizedModules.getValue(leafTarget)
-            val leafTargetModuleByCommonizer: ModuleDescriptor =
-                (result.modulesByTargets.getValue(leafTarget).single() as ModuleResult.Commonized).module
+            val leafTargetModuleAsExpected: SerializedMetadata = analyzedModules.commonizedModules.getValue(leafTarget)
+            val leafTargetModuleByCommonizer: SerializedMetadata =
+                (results.modulesByTargets.getValue(leafTarget).single() as ModuleResult.Commonized).metadata
 
-            assertValidModule(leafTargetModuleAsExpected)
-            assertValidModule(leafTargetModuleByCommonizer)
-            assertModulesAreEqual(leafTargetModuleAsExpected, leafTargetModuleByCommonizer, "\"$leafTarget\" target")
+            assertModulesAreEqual(leafTargetModuleAsExpected, leafTargetModuleByCommonizer, leafTarget)
         }
     }
 }
@@ -116,18 +118,18 @@ private data class SourceModuleRoot(
 }
 
 private class SourceModuleRoots(
-    val originalRoots: Map<LeafTarget, SourceModuleRoot>,
+    val originalRoots: Map<LeafCommonizerTarget, SourceModuleRoot>,
     val commonizedRoots: Map<CommonizerTarget, SourceModuleRoot>,
-    val dependeeRoots: Map<CommonizerTarget, SourceModuleRoot>
+    val dependencyRoots: Map<CommonizerTarget, SourceModuleRoot>
 ) {
-    val leafTargets: Set<LeafTarget> = originalRoots.keys
-    val sharedTarget: SharedTarget
+    val leafTargets: Set<LeafCommonizerTarget> = originalRoots.keys
+    val sharedTarget: SharedCommonizerTarget
 
     init {
         check(leafTargets.size >= 2)
         check(leafTargets.none { it.name == SHARED_TARGET_NAME })
 
-        val sharedTargets = commonizedRoots.keys.filterIsInstance<SharedTarget>()
+        val sharedTargets = commonizedRoots.keys.filterIsInstance<SharedCommonizerTarget>()
         check(sharedTargets.size == 1)
 
         sharedTarget = sharedTargets.single()
@@ -135,30 +137,30 @@ private class SourceModuleRoots(
 
         val allTargets = leafTargets + sharedTarget
         check(commonizedRoots.keys == allTargets)
-        check(allTargets.containsAll(dependeeRoots.keys))
+        check(allTargets.containsAll(dependencyRoots.keys))
     }
 
     companion object {
         fun load(dataDir: File): SourceModuleRoots = try {
-            val originalRoots = listRoots(dataDir, ORIGINAL_ROOTS_DIR).mapKeys { LeafTarget(it.key) }
+            val originalRoots = listRoots(dataDir, ORIGINAL_ROOTS_DIR).mapKeys { LeafCommonizerTarget(it.key) }
 
             val leafTargets = originalRoots.keys
-            val sharedTarget = SharedTarget(leafTargets)
+            val sharedTarget = SharedCommonizerTarget(leafTargets)
 
             fun getTarget(targetName: String): CommonizerTarget =
                 if (targetName == SHARED_TARGET_NAME) sharedTarget else leafTargets.first { it.name == targetName }
 
             val commonizedRoots = listRoots(dataDir, COMMONIZED_ROOTS_DIR).mapKeys { getTarget(it.key) }
-            val dependeeRoots = listRoots(dataDir, DEPENDEE_ROOTS_DIR).mapKeys { getTarget(it.key) }
+            val dependencyRoots = listRoots(dataDir, DEPENDENCY_ROOTS_DIR).mapKeys { getTarget(it.key) }
 
-            SourceModuleRoots(originalRoots, commonizedRoots, dependeeRoots)
+            SourceModuleRoots(originalRoots, commonizedRoots, dependencyRoots)
         } catch (e: Exception) {
             fail("Source module misconfiguration in $dataDir", cause = e)
         }
 
         private const val ORIGINAL_ROOTS_DIR = "original"
         private const val COMMONIZED_ROOTS_DIR = "commonized"
-        private const val DEPENDEE_ROOTS_DIR = "dependee"
+        private const val DEPENDENCY_ROOTS_DIR = "dependency"
 
         private fun listRoots(dataDir: File, rootsDirName: String): Map<String, SourceModuleRoot> =
             dataDir.resolve(rootsDirName).listFiles()?.toSet().orEmpty().map(SourceModuleRoot::load).associateBy { it.targetName }
@@ -182,29 +184,31 @@ private class AnalyzedModuleDependencies(
 
 private class AnalyzedModules(
     val originalModules: Map<CommonizerTarget, ModuleDescriptor>,
-    val commonizedModules: Map<CommonizerTarget, ModuleDescriptor>,
-    val dependeeModules: Map<CommonizerTarget, List<ModuleDescriptor>>
+    val commonizedModules: Map<CommonizerTarget, SerializedMetadata>,
+    val dependencyModules: Map<CommonizerTarget, List<ModuleDescriptor>>
 ) {
-    val leafTargets: Set<LeafTarget>
-    val sharedTarget: SharedTarget
+    val leafTargets: Set<LeafCommonizerTarget>
+    val sharedTarget: SharedCommonizerTarget
 
     init {
         originalModules.keys.let { targets ->
             check(targets.isNotEmpty())
 
-            leafTargets = targets.filterIsInstance<LeafTarget>().toSet()
+            leafTargets = targets.filterIsInstance<LeafCommonizerTarget>().toSet()
             check(targets.size == leafTargets.size)
         }
 
-        sharedTarget = SharedTarget(leafTargets)
+        sharedTarget = SharedCommonizerTarget(leafTargets)
         val allTargets = leafTargets + sharedTarget
 
         check(commonizedModules.keys == allTargets)
-        check(allTargets.containsAll(dependeeModules.keys))
+        check(allTargets.containsAll(dependencyModules.keys))
     }
 
-    fun toCommonizationParameters(): CommonizerParameters {
-        val parameters = CommonizerParameters()
+    fun toCommonizerParameters(
+        resultsConsumer: ResultsConsumer, manifestDataProvider: TargetedNativeManifestDataProvider = MockNativeManifestDataProvider()
+    ) = CommonizerParameters(resultsConsumer, manifestDataProvider).also { parameters ->
+        parameters.dependencyModulesProvider = dependencyModules[sharedTarget]?.let(MockModulesProvider::create)
 
         leafTargets.forEach { leafTarget ->
             val originalModule = originalModules.getValue(leafTarget)
@@ -212,17 +216,11 @@ private class AnalyzedModules(
             parameters.addTarget(
                 TargetProvider(
                     target = leafTarget,
-                    builtInsClass = originalModule.builtIns::class.java,
-                    builtInsProvider = MockBuiltInsProvider(originalModule.builtIns),
                     modulesProvider = MockModulesProvider.create(originalModule),
-                    dependeeModulesProvider = dependeeModules[leafTarget]?.let(MockModulesProvider::create)
+                    dependencyModulesProvider = dependencyModules[leafTarget]?.let(MockModulesProvider::create)
                 )
             )
         }
-
-        parameters.dependeeModulesProvider = dependeeModules[sharedTarget]?.let(MockModulesProvider::create)
-
-        return parameters
     }
 
     companion object {
@@ -231,42 +229,47 @@ private class AnalyzedModules(
             parentDisposable: Disposable
         ): AnalyzedModules = with(sourceModuleRoots) {
             // phase 1: provide the modules that are the dependencies for "original" and "commonized" modules
-            val (dependeeModules, dependencies) = createDependeeModules(sharedTarget, dependeeRoots, parentDisposable)
+            val (dependencyModules: Map<CommonizerTarget, List<ModuleDescriptor>>, dependencies: AnalyzedModuleDependencies) =
+                createDependencyModules(sharedTarget, dependencyRoots, parentDisposable)
 
             // phase 2: build "original" and "commonized" modules
-            val originalModules = createModules(sharedTarget, originalRoots, dependencies, parentDisposable)
-            val commonizedModules = createModules(sharedTarget, commonizedRoots, dependencies, parentDisposable)
+            val originalModules: Map<CommonizerTarget, ModuleDescriptor> =
+                createModules(sharedTarget, originalRoots, dependencies, parentDisposable)
 
-            return AnalyzedModules(originalModules, commonizedModules, dependeeModules)
+            val commonizedModules: Map<CommonizerTarget, SerializedMetadata> =
+                createModules(sharedTarget, commonizedRoots, dependencies, parentDisposable)
+                    .mapValues { (_, moduleDescriptor) -> MockModulesProvider.SERIALIZER.serializeModule(moduleDescriptor) }
+
+            return AnalyzedModules(originalModules, commonizedModules, dependencyModules)
         }
 
-        private fun createDependeeModules(
-            sharedTarget: SharedTarget,
-            dependeeRoots: Map<out CommonizerTarget, SourceModuleRoot>,
+        private fun createDependencyModules(
+            sharedTarget: SharedCommonizerTarget,
+            dependencyRoots: Map<out CommonizerTarget, SourceModuleRoot>,
             parentDisposable: Disposable
         ): Pair<Map<CommonizerTarget, List<ModuleDescriptor>>, AnalyzedModuleDependencies> {
-            val customDependeeModules =
-                createModules(sharedTarget, dependeeRoots, AnalyzedModuleDependencies.EMPTY, parentDisposable, isDependeeModule = true)
+            val customDependencyModules =
+                createModules(sharedTarget, dependencyRoots, AnalyzedModuleDependencies.EMPTY, parentDisposable, isDependencyModule = true)
 
             val stdlibModule = DefaultBuiltIns.Instance.builtInsModule
 
-            val dependeeModules = (sharedTarget.targets + sharedTarget).associateWith { target ->
+            val dependencyModules = (sharedTarget.targets + sharedTarget).associateWith { target ->
                 // prepend stdlib for each target explicitly, so that the commonizer can see symbols from the stdlib
-                listOfNotNull(stdlibModule, customDependeeModules[target])
+                listOfNotNull(stdlibModule, customDependencyModules[target])
             }
 
-            return dependeeModules to AnalyzedModuleDependencies(
-                regularDependencies = dependeeModules,
-                expectByDependencies = dependeeModules.getValue(sharedTarget).filter { module -> module !== stdlibModule }
+            return dependencyModules to AnalyzedModuleDependencies(
+                regularDependencies = dependencyModules,
+                expectByDependencies = dependencyModules.getValue(sharedTarget).filter { module -> module !== stdlibModule }
             )
         }
 
         private fun createModules(
-            sharedTarget: SharedTarget,
+            sharedTarget: SharedCommonizerTarget,
             moduleRoots: Map<out CommonizerTarget, SourceModuleRoot>,
             dependencies: AnalyzedModuleDependencies,
             parentDisposable: Disposable,
-            isDependeeModule: Boolean = false
+            isDependencyModule: Boolean = false
         ): Map<CommonizerTarget, ModuleDescriptor> {
             val result = mutableMapOf<CommonizerTarget, ModuleDescriptor>()
 
@@ -274,7 +277,7 @@ private class AnalyzedModules(
 
             // first, process the common module
             moduleRoots[sharedTarget]?.let { moduleRoot ->
-                val commonModule = createModule(sharedTarget, sharedTarget, moduleRoot, dependencies, parentDisposable, isDependeeModule)
+                val commonModule = createModule(sharedTarget, sharedTarget, moduleRoot, dependencies, parentDisposable, isDependencyModule)
                 result[sharedTarget] = commonModule
                 dependenciesForOthers = dependencies.withExpectByDependency(commonModule)
             }
@@ -282,22 +285,22 @@ private class AnalyzedModules(
             // then, all platform modules
             moduleRoots.filterKeys { it != sharedTarget }.forEach { (leafTarget, moduleRoot) ->
                 result[leafTarget] =
-                    createModule(sharedTarget, leafTarget, moduleRoot, dependenciesForOthers, parentDisposable, isDependeeModule)
+                    createModule(sharedTarget, leafTarget, moduleRoot, dependenciesForOthers, parentDisposable, isDependencyModule)
             }
 
             return result
         }
 
         private fun createModule(
-            sharedTarget: SharedTarget,
+            sharedTarget: SharedCommonizerTarget,
             currentTarget: CommonizerTarget,
             moduleRoot: SourceModuleRoot,
             dependencies: AnalyzedModuleDependencies,
             parentDisposable: Disposable,
-            isDependeeModule: Boolean
+            isDependencyModule: Boolean
         ): ModuleDescriptor {
             val moduleName: String = moduleRoot.location.parentFile.parentFile.name.let {
-                if (isDependeeModule) "dependee-$it" else it
+                if (isDependencyModule) "dependency-$it" else it
             }
             check(Name.isValidIdentifier(moduleName))
 
@@ -318,17 +321,18 @@ private class AnalyzedModules(
                 .toList()
 
             val module = CommonResolverForModuleFactory.analyzeFiles(
-                files = psiFiles,
-                moduleName = Name.special("<$moduleName>"),
+                psiFiles,
+                Name.special("<$moduleName>"),
                 dependOnBuiltIns = true,
-                languageVersionSettings = environment.configuration.languageVersionSettings,
-                targetPlatform = CommonPlatforms.defaultCommonPlatform,
-                dependenciesContainer = DependenciesContainerImpl(sharedTarget, currentTarget, dependencies)
+                environment.configuration.languageVersionSettings,
+                CommonPlatforms.defaultCommonPlatform,
+                CompilerEnvironment,
+                dependenciesContainer = DependenciesContainerImpl(sharedTarget, currentTarget, dependencies),
             ) { content ->
                 environment.createPackagePartProvider(content.moduleContentScope)
             }.moduleDescriptor
 
-            if (!isDependeeModule)
+            if (!isDependencyModule)
                 module.accept(PatchingTestDescriptorVisitor, Unit)
 
             return module
@@ -337,7 +341,7 @@ private class AnalyzedModules(
 }
 
 private class DependenciesContainerImpl(
-    sharedTarget: SharedTarget,
+    sharedTarget: SharedCommonizerTarget,
     currentTarget: CommonizerTarget,
     dependencies: AnalyzedModuleDependencies
 ) : CommonDependenciesContainer {
@@ -389,24 +393,49 @@ private class DependenciesContainerImpl(
 
 private object PatchingTestDescriptorVisitor : DeclarationDescriptorVisitorEmptyBodies<Unit, Unit>() {
     override fun visitModuleDeclaration(descriptor: ModuleDescriptor, data: Unit) {
-        descriptor.collectNonEmptyPackageMemberScopes { _, memberScope ->
-            visitMemberScope(memberScope)
+        // we don's need to process fragments from other modules which are the dependencies of this module, so
+        // let's use the appropriate package fragment provider
+        val packageFragmentProvider = (descriptor as ModuleDescriptorImpl).packageFragmentProviderForModuleContentWithoutDependencies
+
+        fun recurse(packageFqName: FqName) {
+            val ownPackageMemberScopes = packageFragmentProvider.packageFragments(packageFqName)
+                .asSequence()
+                .filter { it !is ExportedForwardDeclarationsPackageFragmentDescriptor && it !is ClassifierAliasingPackageFragmentDescriptor }
+                .map { it.getMemberScope() }
+                .filter { it != MemberScope.Empty }
+                .toList()
+
+            if (ownPackageMemberScopes.isNotEmpty()) {
+                // don't include subpackages into chained member scope
+                val memberScope = ChainedMemberScope.create(
+                    "package member scope for $packageFqName",
+                    ownPackageMemberScopes
+                )
+
+                visitMemberScope(memberScope)
+            }
+
+            packageFragmentProvider.getSubPackagesOf(packageFqName, alwaysTrue()).toSet().map { recurse(it) }
         }
+
+        recurse(FqName.ROOT)
     }
 
     private fun visitMemberScope(memberScope: MemberScope) {
-        memberScope.collectMembers(
-            ClassCollector {
-                it.constructors.forEach(::visitCallableMemberDescriptor)
-                visitMemberScope(it.unsubstitutedMemberScope)
-            },
-            FunctionCollector {
-                visitCallableMemberDescriptor(it)
-            },
-            {
-                true // eat and ignore everything else
+        memberScope.getContributedDescriptors().forEach { descriptor ->
+            when (descriptor) {
+                is ClassDescriptor -> {
+                    descriptor.constructors.forEach(::visitCallableMemberDescriptor)
+                    visitMemberScope(descriptor.unsubstitutedMemberScope)
+                }
+                is SimpleFunctionDescriptor -> {
+                    if (descriptor.kind.isReal && !descriptor.isKniBridgeFunction() && !descriptor.isDeprecatedTopLevelFunction()) {
+                        visitCallableMemberDescriptor(descriptor)
+                    }
+                }
+                else -> Unit // ignore everything else
             }
-        )
+        }
     }
 
     private fun visitCallableMemberDescriptor(callableDescriptor: CallableMemberDescriptor) {
@@ -422,4 +451,10 @@ private object PatchingTestDescriptorVisitor : DeclarationDescriptorVisitorEmpty
             }
         }
     }
+
+    private fun SimpleFunctionDescriptor.isKniBridgeFunction() =
+        name.asString().startsWith(KNI_BRIDGE_FUNCTION_PREFIX)
+
+    private fun SimpleFunctionDescriptor.isDeprecatedTopLevelFunction() =
+        containingDeclaration is PackageFragmentDescriptor && annotations.hasAnnotation(DEPRECATED_ANNOTATION_FQN)
 }

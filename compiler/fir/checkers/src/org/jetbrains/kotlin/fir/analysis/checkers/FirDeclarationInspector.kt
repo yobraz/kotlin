@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.fir.analysis.checkers
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirFakeSourceElementKind
 import org.jetbrains.kotlin.fir.declarations.*
-import org.jetbrains.kotlin.fir.symbols.CallableId
+import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
@@ -149,6 +149,12 @@ interface FirDeclarationPresenter {
         appendRepresentation(it.symbol.callableId)
     }
 
+    fun StringBuilder.appendOperatorTag(it: FirSimpleFunction) {
+        if (it.isOperator) {
+            append("operator ")
+        }
+    }
+
     fun represent(it: FirSimpleFunction) = buildString {
         append('<')
         it.typeParameters.forEach {
@@ -161,9 +167,7 @@ interface FirDeclarationPresenter {
             appendRepresentation(it)
         }
         append(']')
-        if (it.isOperator) {
-            append("operator ")
-        }
+        appendOperatorTag(it)
         appendRepresentation(it.symbol.callableId)
         append('(')
         it.valueParameters.forEach {

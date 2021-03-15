@@ -5,87 +5,74 @@
 
 package org.jetbrains.kotlin.descriptors.commonizer.konan
 
-import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.commonizer.ModulesProvider
-import org.jetbrains.kotlin.descriptors.commonizer.ModulesProvider.CInteropModuleAttributes
 import org.jetbrains.kotlin.descriptors.commonizer.ModulesProvider.ModuleInfo
-import org.jetbrains.kotlin.descriptors.commonizer.utils.NativeFactories
-import org.jetbrains.kotlin.descriptors.commonizer.utils.createKotlinNativeForwardDeclarationsModule
-import org.jetbrains.kotlin.descriptors.commonizer.utils.strip
-import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
-import org.jetbrains.kotlin.incremental.components.LookupTracker
-import org.jetbrains.kotlin.storage.StorageManager
-import org.jetbrains.kotlin.utils.addIfNotNull
+import org.jetbrains.kotlin.konan.library.KONAN_STDLIB_NAME
+import org.jetbrains.kotlin.library.SerializedMetadata
+import org.jetbrains.kotlin.library.metadata.parseModuleHeader
 import java.io.File
 
-internal class NativeDistributionModulesProvider(
-    private val storageManager: StorageManager,
-    private val librariesToCommonize: NativeLibrariesToCommonize
-) : ModulesProvider {
-    override fun loadModuleInfos(): Map<String, ModuleInfo> {
-        return librariesToCommonize.libraries.associate { library ->
+internal class NativeDistributionModulesProvider(libraries: Collection<NativeLibrary>) : ModulesProvider {
+    internal class NativeModuleInfo(
+        name: String,
+        originalLocation: File,
+        val dependencies: Set<String>,
+        cInteropAttributes: ModulesProvider.CInteropModuleAttributes?
+    ) : ModuleInfo(name, originalLocation, cInteropAttributes)
+
+    private val libraryMap: Map<String, NativeLibrary>
+    private val moduleInfoMap: Map<String, NativeModuleInfo>
+
+    init {
+        val libraryMap = mutableMapOf<String, NativeLibrary>()
+        val moduleInfoMap = mutableMapOf<String, NativeModuleInfo>()
+
+        libraries.forEach { library ->
             val manifestData = library.manifestData
 
             val name = manifestData.uniqueName
             val location = File(library.library.libraryFile.path)
+            val dependencies = manifestData.dependencies.toSet()
 
             val cInteropAttributes = if (manifestData.isInterop) {
-                val packageFqName = manifestData.packageFqName
-                    ?: manifestData.shortName?.let { "platform.$it" }
-                    ?: manifestData.uniqueName.substringAfter("platform.").let { "platform.$it" }
-
-                CInteropModuleAttributes(packageFqName, manifestData.exportForwardDeclarations)
+                val packageFqName = manifestData.packageFqName ?: error("Main package FQ name not specified for module $name")
+                ModulesProvider.CInteropModuleAttributes(packageFqName, manifestData.exportForwardDeclarations)
             } else null
 
-            name to ModuleInfo(name, location, cInteropAttributes)
+            libraryMap.put(name, library)?.let { error("Duplicated libraries: $name") }
+            moduleInfoMap[name] = NativeModuleInfo(name, location, dependencies, cInteropAttributes)
         }
+
+        this.libraryMap = libraryMap
+        this.moduleInfoMap = moduleInfoMap
     }
 
-    override fun loadModules(dependencies: Collection<ModuleDescriptor>): Map<String, ModuleDescriptor> {
-        check(dependencies.isNotEmpty()) { "At least Kotlin/Native stdlib should be provided" }
+    override fun loadModuleInfos(): Collection<ModuleInfo> = moduleInfoMap.values
 
-        val dependenciesMap = mutableMapOf<String, MutableList<ModuleDescriptorImpl>>()
-        dependencies.forEach { dependency ->
-            val name = dependency.name.strip()
-            dependenciesMap.getOrPut(name) { mutableListOf() } += dependency as ModuleDescriptorImpl
+    override fun loadModuleMetadata(name: String): SerializedMetadata {
+        val library = libraryMap[name]?.library ?: error("No such library: $name")
+
+        val moduleHeader = library.moduleHeaderData
+        val fragmentNames = parseModuleHeader(moduleHeader).packageFragmentNameList.toSet()
+        val fragments = fragmentNames.map { fragmentName ->
+            val partNames = library.packageMetadataParts(fragmentName)
+            partNames.map { partName -> library.packageMetadata(fragmentName, partName) }
         }
 
-        val builtIns = dependencies.first().builtIns
-
-        val platformModulesMap = librariesToCommonize.libraries.associate { library ->
-            val name = library.manifestData.uniqueName
-            val module = NativeFactories.DefaultDeserializedDescriptorFactory.createDescriptorOptionalBuiltIns(
-                library = library.library,
-                languageVersionSettings = LanguageVersionSettingsImpl.DEFAULT,
-                storageManager = storageManager,
-                builtIns = builtIns,
-                packageAccessHandler = null,
-                lookupTracker = LookupTracker.DO_NOTHING
-            )
-
-            name to module
-        }
-
-        val forwardDeclarations = createKotlinNativeForwardDeclarationsModule(
-            storageManager = storageManager,
-            builtIns = builtIns
+        return SerializedMetadata(
+            module = moduleHeader,
+            fragments = fragments,
+            fragmentNames = fragmentNames.toList()
         )
+    }
 
-        platformModulesMap.forEach { (name, module) ->
-            val moduleDependencies = mutableListOf<ModuleDescriptorImpl>()
-            moduleDependencies += module
-
-            librariesToCommonize.getManifest(name).dependencies.forEach {
-                moduleDependencies.addIfNotNull(platformModulesMap[it])
-                moduleDependencies += dependenciesMap[it].orEmpty()
-            }
-
-            moduleDependencies += forwardDeclarations
-
-            module.setDependencies(moduleDependencies)
+    companion object {
+        fun forStandardLibrary(stdlib: NativeLibrary): ModulesProvider {
+            check(stdlib.manifestData.uniqueName == KONAN_STDLIB_NAME)
+            return NativeDistributionModulesProvider(listOf(stdlib))
         }
 
-        return platformModulesMap
+        fun platformLibraries(librariesToCommonize: NativeLibrariesToCommonize): ModulesProvider =
+            NativeDistributionModulesProvider(librariesToCommonize.libraries)
     }
 }

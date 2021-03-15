@@ -18,6 +18,8 @@ import com.intellij.pom.event.PomModelEvent
 import com.intellij.pom.event.PomModelListener
 import com.intellij.pom.tree.TreeAspect
 import com.intellij.pom.tree.events.TreeChangeEvent
+import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.FileElement
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.fir.low.level.api.element.builder.getNonLocalContainingInBodyDeclarationWith
@@ -67,16 +69,36 @@ internal class KotlinFirModificationTrackerService(project: Project) : Disposabl
 
         override fun modelChanged(event: PomModelEvent) {
             val changeSet = event.getChangeSet(treeAspect) as TreeChangeEvent? ?: return
-            if (changeSet.rootElement.psi.language != KotlinLanguage.INSTANCE) return
+            val psi = changeSet.rootElement.psi
+            if (psi.language != KotlinLanguage.INSTANCE) return
             val changedElements = changeSet.changedElements
 
-            handleChangedElementsInAllModules(changedElements, changeSet)
+            handleChangedElementsInAllModules(changedElements, changeSet, psi)
         }
 
         private fun handleChangedElementsInAllModules(
             changedElements: Array<out ASTNode>,
+            changeSet: TreeChangeEvent,
+            changeSetRootElementPsi: PsiElement
+        ) {
+            if (!changeSetRootElementPsi.isPhysical) {
+                /**
+                 * Element which do not belong to a project should not cause OOBM
+                 */
+                return
+            }
+            if (changedElements.isEmpty()) {
+                incrementModificationCountForFileChange(changeSet)
+            } else {
+                incrementModificationCountForSpecificElements(changedElements, changeSet)
+            }
+        }
+
+        private fun incrementModificationCountForSpecificElements(
+            changedElements: Array<out ASTNode>,
             changeSet: TreeChangeEvent
         ) {
+            require(changedElements.isNotEmpty())
             var isOutOfBlockChangeInAnyModule = false
 
             changedElements.forEach { element ->
@@ -90,6 +112,12 @@ internal class KotlinFirModificationTrackerService(project: Project) : Disposabl
             if (isOutOfBlockChangeInAnyModule) {
                 projectGlobalOutOfBlockInKotlinFilesModificationCount++
             }
+        }
+
+        private fun incrementModificationCountForFileChange(changeSet: TreeChangeEvent) {
+            val fileElement = changeSet.rootElement as FileElement ?: return
+            incrementModificationTrackerForContainingModule(fileElement)
+            projectGlobalOutOfBlockInKotlinFilesModificationCount++
         }
 
         private fun incrementModificationTrackerForContainingModule(element: ASTNode) {

@@ -7,11 +7,10 @@ dependencies {
     testRuntimeOnly(intellijDep()) // Should come before compiler, because of "progarded" stuff needed for tests
     testImplementation(kotlinStdlib())
 
-    testImplementation(platform("org.junit:junit-bom:5.7.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+    testApiJUnit5()
     testImplementation(projectTests(":compiler:tests-common"))
+    testImplementation(projectTests(":compiler:test-infrastructure"))
     testImplementation(projectTests(":compiler:tests-common-new"))
-    testImplementation(projectTests(":compiler:tests-common"))
     testImplementation(projectTests(":compiler"))
     testImplementation(projectTests(":compiler:fir:raw-fir:psi2fir"))
     testImplementation(projectTests(":compiler:fir:raw-fir:light-tree2fir"))

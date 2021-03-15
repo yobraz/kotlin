@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.types.expressions
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.kotlin.cfg.ControlFlowInformationProvider
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.context.GlobalContext
@@ -71,7 +72,8 @@ class LocalClassifierAnalyzer(
     private val kotlinTypeChecker: NewKotlinTypeChecker,
     private val samConversionResolver: SamConversionResolver,
     private val additionalClassPartsProvider: AdditionalClassPartsProvider,
-    private val sealedClassInheritorsProvider: SealedClassInheritorsProvider
+    private val sealedClassInheritorsProvider: SealedClassInheritorsProvider,
+    private val controlFlowInformationProviderFactory: ControlFlowInformationProvider.Factory,
 ) {
     fun processClassOrObject(
         scope: LexicalWritableScope?,
@@ -110,13 +112,15 @@ class LocalClassifierAnalyzer(
                 additionalClassPartsProvider,
                 sealedClassInheritorsProvider
             ),
-            analyzerServices
+            analyzerServices,
+            controlFlowInformationProviderFactory,
         )
 
         container.get<LazyTopDownAnalyzer>().analyzeDeclarations(
             TopDownAnalysisMode.LocalDeclarations,
             listOf(classOrObject),
-            context.dataFlowInfo
+            context.dataFlowInfo,
+            localContext = context
         )
     }
 }
@@ -180,11 +184,12 @@ class LocalClassDescriptorHolder(
                     override val syntheticResolveExtension = this@LocalClassDescriptorHolder.syntheticResolveExtension
                     override val delegationFilter: DelegationFilter = this@LocalClassDescriptorHolder.delegationFilter
                     override val wrappedTypeFactory: WrappedTypeFactory = this@LocalClassDescriptorHolder.wrappedTypeFactory
-                    override val kotlinTypeChecker: NewKotlinTypeChecker = this@LocalClassDescriptorHolder.kotlinTypeChecker
+                    override val kotlinTypeCheckerOfOwnerModule: NewKotlinTypeChecker = this@LocalClassDescriptorHolder.kotlinTypeChecker
                     override val samConversionResolver: SamConversionResolver = this@LocalClassDescriptorHolder.samConversionResolver
                     override val additionalClassPartsProvider: AdditionalClassPartsProvider =
                         this@LocalClassDescriptorHolder.additionalClassPartsProvider
-                    override val sealedClassInheritorsProvider: SealedClassInheritorsProvider = this@LocalClassDescriptorHolder.sealedClassInheritorsProvider
+                    override val sealedClassInheritorsProvider: SealedClassInheritorsProvider =
+                        this@LocalClassDescriptorHolder.sealedClassInheritorsProvider
                 },
                 containingDeclaration,
                 classOrObject.nameAsSafeName,

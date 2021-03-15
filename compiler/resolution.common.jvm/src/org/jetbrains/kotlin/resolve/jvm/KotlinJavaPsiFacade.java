@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.resolve.jvm;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbService;
@@ -38,7 +39,6 @@ import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.CommonProcessors;
 import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.Query;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
@@ -56,18 +56,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class KotlinJavaPsiFacade {
+public class KotlinJavaPsiFacade implements Disposable {
     private volatile KotlinPsiElementFinderWrapper[] elementFinders;
 
     private static class PackageCache {
         // long term cache
-        final ConcurrentMap<Pair<String, GlobalSearchScope>, PsiPackage> packageInLibScopeCache = ContainerUtil.newConcurrentMap();
+        final ConcurrentMap<Pair<String, GlobalSearchScope>, PsiPackage> packageInLibScopeCache = new ConcurrentHashMap<>();
 
         // short term caches
-        final ConcurrentMap<Pair<String, GlobalSearchScope>, PsiPackage> packageInScopeCache = ContainerUtil.newConcurrentMap();
-        final ConcurrentMap<String, Boolean> hasPackageInAllScopeCache = ContainerUtil.newConcurrentMap();
+        final ConcurrentMap<Pair<String, GlobalSearchScope>, PsiPackage> packageInScopeCache = new ConcurrentHashMap<>();
+        final ConcurrentMap<String, Boolean> hasPackageInAllScopeCache = new ConcurrentHashMap<>();
 
         void clear() {
             packageInScopeCache.clear();
@@ -96,9 +97,9 @@ public class KotlinJavaPsiFacade {
         emptyModifierList = new LightModifierList(PsiManager.getInstance(project), KotlinLanguage.INSTANCE);
 
         // drop entire cache when it is low free memory
-        LowMemoryWatcher.register(this::clearPackageCaches, project);
+        LowMemoryWatcher.register(this::clearPackageCaches, this);
 
-        MessageBusConnection connection = project.getMessageBus().connect();
+        MessageBusConnection connection = project.getMessageBus().connect(this);
 
         // VFS changes like create/delete/copy/move directory are subject to clean up short term caches
         connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
@@ -137,6 +138,11 @@ public class KotlinJavaPsiFacade {
                 }
             }
         });
+    }
+
+    @Override
+    public void dispose() {
+        clearPackageCaches();
     }
 
     public void clearPackageCaches() {

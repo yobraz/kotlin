@@ -6,16 +6,15 @@
 package org.jetbrains.kotlin.descriptors.commonizer.core
 
 import org.jetbrains.kotlin.descriptors.commonizer.cir.CirPackage
-import org.jetbrains.kotlin.descriptors.commonizer.cir.factory.CirPackageFactory
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.descriptors.commonizer.cir.CirPackageName
 
 class PackageCommonizer : AbstractStandardCommonizer<CirPackage, CirPackage>() {
-    private lateinit var fqName: FqName
+    private lateinit var packageName: CirPackageName
 
-    override fun commonizationResult() = CirPackageFactory.create(fqName = fqName)
+    override fun commonizationResult() = CirPackage.create(packageName = packageName)
 
     override fun initialize(first: CirPackage) {
-        fqName = first.fqName
+        packageName = first.packageName
     }
 
     override fun doCommonizeWith(next: CirPackage) = true

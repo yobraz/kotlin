@@ -5,9 +5,31 @@
 
 package org.jetbrains.kotlin.descriptors.commonizer.stats
 
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import java.io.Closeable
+import org.jetbrains.kotlin.descriptors.commonizer.CommonizerTarget
 
-interface StatsCollector : Closeable {
-    fun logStats(result: List<DeclarationDescriptor?>)
+fun StatsCollector(type: StatsType, targets: List<CommonizerTarget>): StatsCollector? {
+    return when (type) {
+        StatsType.RAW -> RawStatsCollector(targets)
+        StatsType.AGGREGATED -> AggregatedStatsCollector(targets)
+        StatsType.NONE -> null
+    }
+}
+
+enum class StatsType {
+    RAW, AGGREGATED, NONE;
+}
+
+interface StatsCollector {
+    data class StatsKey(
+        val id: String,
+        val extensionReceiver: String?,
+        val parameterNames: List<String>,
+        val parameterTypes: List<String>,
+        val declarationType: DeclarationType
+    ) {
+        constructor(id: String, declarationType: DeclarationType) : this(id, null, emptyList(), emptyList(), declarationType)
+    }
+
+    fun logDeclaration(targetIndex: Int, lazyStatsKey: () -> StatsKey)
+    fun writeTo(statsOutput: StatsOutput)
 }

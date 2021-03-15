@@ -7,8 +7,10 @@ package org.jetbrains.kotlin.gradle.tasks
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.logging.Logger
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.compile.AbstractCompile
@@ -20,6 +22,7 @@ import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporter
 import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporterImpl
 import org.jetbrains.kotlin.build.report.metrics.BuildTime
 import org.jetbrains.kotlin.build.report.metrics.measure
+import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.CommonToolArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
@@ -35,22 +38,19 @@ import org.jetbrains.kotlin.gradle.internal.*
 import org.jetbrains.kotlin.gradle.internal.tasks.TaskWithLocalState
 import org.jetbrains.kotlin.gradle.internal.tasks.allOutputFiles
 import org.jetbrains.kotlin.gradle.logging.*
+import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.COMPILER_CLASSPATH_CONFIGURATION_NAME
-import org.jetbrains.kotlin.gradle.plugin.KotlinMultiplatformPluginWrapper
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformPluginBase
-import org.jetbrains.kotlin.gradle.plugin.PLUGIN_CLASSPATH_CONFIGURATION_NAME
 import org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.associateWithTransitiveClosure
 import org.jetbrains.kotlin.gradle.plugin.mpp.ownModuleName
 import org.jetbrains.kotlin.gradle.report.ReportingSettings
+import org.jetbrains.kotlin.gradle.targets.js.ir.isProduceUnzippedKlib
 import org.jetbrains.kotlin.gradle.utils.*
-import org.jetbrains.kotlin.gradle.utils.isParentOf
-import org.jetbrains.kotlin.gradle.utils.pathsAsStringRelativeTo
-import org.jetbrains.kotlin.gradle.utils.toSortedPathsArray
 import org.jetbrains.kotlin.incremental.ChangedFiles
 import org.jetbrains.kotlin.library.impl.isKotlinLibrary
 import org.jetbrains.kotlin.utils.JsLibraryUtils
 import java.io.File
+import java.util.zip.ZipFile
 import javax.inject.Inject
 
 const val KOTLIN_BUILD_DIR_NAME = "kotlin"
@@ -100,28 +100,32 @@ abstract class AbstractKotlinCompileTool<T : CommonToolArguments>
     override val metrics: BuildMetricsReporter =
         BuildMetricsReporterImpl()
 
+    /**
+     * By default should be set by plugin from [COMPILER_CLASSPATH_CONFIGURATION_NAME] configuration.
+     *
+     * Empty classpath will fail the build.
+     */
+    @get:Classpath
+    internal val defaultCompilerClasspath: ConfigurableFileCollection =
+        project.objects.fileCollection()
+
     @get:Classpath
     @get:InputFiles
     internal val computedCompilerClasspath: List<File> by lazy {
-        compilerClasspath?.takeIf { it.isNotEmpty() }
-            ?: compilerJarFile?.let {
-                // a hack to remove compiler jar from the cp, will be dropped when compilerJarFile will be removed
-                listOf(it) + findKotlinCompilerClasspath(project).filter { !it.name.startsWith("kotlin-compiler") }
-            }
-            ?: if (!useFallbackCompilerSearch) {
-                try {
-                    project.configurations.getByName(COMPILER_CLASSPATH_CONFIGURATION_NAME).resolve().toList()
-                } catch (e: Exception) {
-                    logger.error(
-                        "Could not resolve compiler classpath. " +
-                                "Check if Kotlin Gradle plugin repository is configured in $project."
-                    )
-                    throw e
-                }
-            } else {
-                findKotlinCompilerClasspath(project)
-            }
-            ?: throw IllegalStateException("Could not find Kotlin Compiler classpath")
+        require(!defaultCompilerClasspath.isEmpty) {
+            "Default Kotlin compiler classpath is empty! Task: ${this::class.qualifiedName}"
+        }
+
+        when {
+            !compilerClasspath.isNullOrEmpty() -> compilerClasspath!!
+            compilerJarFile != null -> listOf(compilerJarFile!!) +
+                    defaultCompilerClasspath
+                        .filterNot {
+                            it.nameWithoutExtension.startsWith("kotlin-compiler")
+                        }
+            useFallbackCompilerSearch -> findKotlinCompilerClasspath(project)
+            else -> defaultCompilerClasspath.toList()
+        }
     }
 
 
@@ -137,18 +141,10 @@ public class GradleCompileTaskProvider {
         sessionsDir = GradleCompilerRunner.sessionsDir(task.project)
         projectName = task.project.rootProject.name.normalizeForFlagFile()
         val modulesInfo = GradleCompilerRunner.buildModulesInfo(task.project.gradle)
-        buildModulesInfo = if (!isConfigurationCacheAvailable(task.project.gradle)) {
-            task.project.provider {
-                object : IncrementalModuleInfoProvider {
-                    override val info = modulesInfo
-                }
-            }
-        } else {
-            task.project.gradle.sharedServices.registerIfAbsent(
-                IncrementalModuleInfoBuildService.getServiceName(), IncrementalModuleInfoBuildService::class.java
-            ) {
-                it.parameters.info.set(modulesInfo)
-            }
+        buildModulesInfo = task.project.gradle.sharedServices.registerIfAbsent(
+            IncrementalModuleInfoBuildService.getServiceName(), IncrementalModuleInfoBuildService::class.java
+        ) {
+            it.parameters.info.set(modulesInfo)
         }
         path = task.path
         logger = task.logger
@@ -221,7 +217,9 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
 
     @get:InputFiles
     @get:Classpath
-    open val pluginClasspath: FileCollection = project.configurations.getByName(PLUGIN_CLASSPATH_CONFIGURATION_NAME)
+    open val pluginClasspath: FileCollection by project.provider {
+        project.configurations.getByName(taskData.compilation.pluginConfigurationName)
+    }
 
     @get:Internal
     internal val pluginOptions = CompilerPluginOptions()
@@ -279,7 +277,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
     // Input is needed to force rebuild even if source files are not changed
 
     @get:Input
-    internal val coroutinesStr: Provider<String> = project.provider {coroutines.get().name}
+    internal val coroutinesStr: Provider<String> = project.provider { coroutines.get().name }
 
     @get:Input
     internal val coroutines: Provider<Coroutines> = project.provider {
@@ -308,6 +306,15 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
         taskData.compilation.moduleName
     }
 
+    init {
+        if (taskData.compilation is AbstractKotlinCompilation<*> &&
+            (taskData.compilation as AbstractKotlinCompilation<*>).friendArtifactsTask != null) {
+            this@AbstractKotlinCompile.dependsOn(
+                (taskData.compilation as AbstractKotlinCompilation<*>).friendArtifactsTask
+            )
+        }
+    }
+
     @get:Internal // takes part in the compiler arguments
     val friendPaths: FileCollection = project.files(
         project.provider {
@@ -331,6 +338,24 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
 
     @TaskAction
     fun execute(inputs: IncrementalTaskInputs) {
+        CompilerSystemProperties.systemPropertyGetter = {
+            if (it in kotlinDaemonProperties) kotlinDaemonProperties[it] else System.getProperty(it)
+        }
+        CompilerSystemProperties.systemPropertySetter = setter@{ key, value ->
+            val oldValue = kotlinDaemonProperties[key]
+            if (oldValue == value) return@setter oldValue
+            kotlinDaemonProperties[key] = value
+            System.setProperty(key, value)
+            oldValue
+        }
+        CompilerSystemProperties.systemPropertyCleaner = {
+            val oldValue = kotlinDaemonProperties[it]
+            kotlinDaemonProperties.remove(it)
+            System.clearProperty(it)
+            oldValue
+        }
+        CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.value = "true"
+
         // If task throws exception, but its outputs are changed during execution,
         // then Gradle forces next build to be non-incremental (see Gradle's DefaultTaskArtifactStateRepository#persistNewOutputs)
         // To prevent this, we backup outputs before incremental build and restore when exception is thrown
@@ -400,7 +425,11 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
     internal val isMultiplatform: Boolean by lazy { project.plugins.any { it is KotlinPlatformPluginBase || it is KotlinMultiplatformPluginWrapper } }
 
     @get:Internal
-    internal val abstractKotlinCompileArgumentsContributor by lazy { AbstractKotlinCompileArgumentsContributor(KotlinCompileArgumentsProvider(this)) }
+    internal val abstractKotlinCompileArgumentsContributor by lazy {
+        AbstractKotlinCompileArgumentsContributor(
+            KotlinCompileArgumentsProvider(this)
+        )
+    }
 
     override fun setupCompilerArgs(args: T, defaultsOnly: Boolean, ignoreClasspathResolutionErrors: Boolean) {
         abstractKotlinCompileArgumentsContributor.contributeArguments(
@@ -417,6 +446,15 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
     protected fun hasFilesInTaskBuildDirectory(): Boolean {
         val taskBuildDir = taskBuildDirectory
         return taskBuildDir.walk().any { it != taskBuildDir && it.isFile }
+    }
+
+    @get:Internal
+    val kotlinDaemonProperties: MutableMap<String, String?> by lazy {
+        if (isGradleVersionAtLeast(6, 5)) {
+            CompilerSystemProperties.values()
+                .associate { it.property to project.providers.systemProperty(it.property).forUseAtConfigurationTime().orNull }
+                .toMutableMap()
+        } else mutableMapOf()
     }
 }
 
@@ -499,10 +537,12 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
         K2JVMCompilerArguments()
 
     override fun setupCompilerArgs(args: K2JVMCompilerArguments, defaultsOnly: Boolean, ignoreClasspathResolutionErrors: Boolean) {
-        compilerArgumentsContributor.contributeArguments(args, compilerArgumentsConfigurationFlags(
-            defaultsOnly,
-            ignoreClasspathResolutionErrors
-        ))
+        compilerArgumentsContributor.contributeArguments(
+            args, compilerArgumentsConfigurationFlags(
+                defaultsOnly,
+                ignoreClasspathResolutionErrors
+            )
+        )
     }
 
     @get:Internal
@@ -594,26 +634,41 @@ internal open class KotlinCompileWithWorkers @Inject constructor(
     private val workerExecutor: WorkerExecutor
 ) : KotlinCompile() {
 
-    override fun compilerRunner() = GradleCompilerRunnerWithWorkers(GradleCompileTaskProvider(this), workerExecutor)
+    override fun compilerRunner() =
+        GradleCompilerRunnerWithWorkers(
+            GradleCompileTaskProvider(this),
+            workerExecutor
+        )
 }
 
 @CacheableTask
 internal open class Kotlin2JsCompileWithWorkers @Inject constructor(
+    objectFactory: ObjectFactory,
     private val workerExecutor: WorkerExecutor
-) : Kotlin2JsCompile() {
+) : Kotlin2JsCompile(objectFactory) {
 
-    override fun compilerRunner() = GradleCompilerRunnerWithWorkers(GradleCompileTaskProvider(this), workerExecutor)
+    override fun compilerRunner() =
+        GradleCompilerRunnerWithWorkers(
+            GradleCompileTaskProvider(this),
+            workerExecutor
+        )
 }
 
 @CacheableTask
 internal open class KotlinCompileCommonWithWorkers @Inject constructor(
     private val workerExecutor: WorkerExecutor
 ) : KotlinCompileCommon() {
-    override fun compilerRunner() = GradleCompilerRunnerWithWorkers(GradleCompileTaskProvider(this), workerExecutor)
+    override fun compilerRunner() =
+        GradleCompilerRunnerWithWorkers(
+            GradleCompileTaskProvider(this),
+            workerExecutor
+        )
 }
 
 @CacheableTask
-open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), KotlinJsCompile {
+open class Kotlin2JsCompile @Inject constructor(
+    objectFactory: ObjectFactory
+) : AbstractKotlinCompile<K2JSCompilerArguments>(), KotlinJsCompile {
 
     init {
         incremental = true
@@ -631,15 +686,25 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
     override fun isIncrementalCompilationEnabled(): Boolean =
         when {
             "-Xir-produce-js" in kotlinOptions.freeCompilerArgs -> false
-            "-Xir-produce-klib-dir" in kotlinOptions.freeCompilerArgs -> incrementalJsKlib
+            "-Xir-produce-klib-dir" in kotlinOptions.freeCompilerArgs -> false // TODO: it's not supported yet
             "-Xir-produce-klib-file" in kotlinOptions.freeCompilerArgs -> incrementalJsKlib
             else -> incremental
         }
 
-    @Suppress("unused")
-    @get:OutputFile
+    @get:Internal
     val outputFile: File
         get() = kotlinOptions.outputFile?.let(::File) ?: defaultOutputFile
+
+    @get:OutputFile
+    @get:Optional
+    val outputFileOrNull: File?
+        get() = outputFile.let { file ->
+            if (!kotlinOptions.isProduceUnzippedKlib()) {
+                file
+            } else {
+                null
+            }
+        }
 
     override fun findKotlinCompilerClasspath(project: Project): List<File> =
         findKotlinJsCompilerClasspath(project)
@@ -651,7 +716,14 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
         args.apply { fillDefaultValues() }
         super.setupCompilerArgs(args, defaultsOnly = defaultsOnly, ignoreClasspathResolutionErrors = ignoreClasspathResolutionErrors)
 
-        args.outputFile = outputFile.canonicalPath
+        try {
+            outputFile.canonicalPath
+        } catch (ex: Throwable) {
+            logger.warn("IO EXCEPTION: outputFile: ${outputFile.path}")
+            throw ex
+        }
+
+        args.outputFile = outputFile.absoluteFile.normalize().absolutePath
 
         if (defaultsOnly) return
 
@@ -663,12 +735,14 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
     @get:InputFiles
     @get:Optional
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    internal val friendDependencies: List<String>
-        get() {
-            val filter = libraryFilter
-            return friendPaths.files.filter {
-                it.exists() && filter(it)
-            }.map { it.absolutePath }
+    internal val friendDependencies: FileCollection = objectFactory
+        .fileCollection()
+        .from(friendPaths)
+        .filter {
+            // .jar files are not required for js compilation as friend modules
+            // and, because of `@InputFiles` and different normalization strategy from `@Classpath`,
+            // they produce build cache misses
+            it.exists() && !it.name.endsWith(".jar") && libraryFilter(it)
         }
 
     @Suppress("unused")
@@ -734,7 +808,7 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
                 null
         }
 
-        args.friendModules = friendDependencies.joinToString(File.pathSeparator)
+        args.friendModules = friendDependencies.files.joinToString(File.pathSeparator) { it.absolutePath }
 
         if (args.sourceMapBaseDirs == null && !args.sourceMapPrefix.isNullOrEmpty()) {
             args.sourceMapBaseDirs = absolutePathProvider

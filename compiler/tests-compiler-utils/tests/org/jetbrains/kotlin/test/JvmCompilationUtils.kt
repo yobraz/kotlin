@@ -21,22 +21,33 @@ import javax.tools.ToolProvider
 
 @JvmOverloads
 @Throws(IOException::class)
-fun compileJavaFiles(files: Collection<File>, options: List<String?>?, javaErrorFile: File? = null, assertions: Assertions): Boolean {
+fun compileJavaFiles(
+    files: Collection<File>,
+    options: List<String?>?,
+    javaErrorFile: File? = null,
+    assertions: Assertions,
+    ignoreJavaErrors: Boolean = false
+): Boolean {
     val javaCompiler = ToolProvider.getSystemJavaCompiler()
     val diagnosticCollector = DiagnosticCollector<JavaFileObject>()
     javaCompiler.getStandardFileManager(diagnosticCollector, Locale.ENGLISH, Charset.forName("utf-8")).use { fileManager ->
         val javaFileObjectsFromFiles = fileManager.getJavaFileObjectsFromFiles(files)
-        val task = javaCompiler.getTask(
-            StringWriter(),  // do not write to System.err
-            fileManager,
-            diagnosticCollector,
-            options,
-            null,
-            javaFileObjectsFromFiles
-        )
+        val task = try {
+            javaCompiler.getTask(
+                StringWriter(),  // do not write to System.err
+                fileManager,
+                diagnosticCollector,
+                options,
+                null,
+                javaFileObjectsFromFiles
+            )
+        } catch (e: Throwable) {
+            if (ignoreJavaErrors) return false
+            else throw e
+        }
         val success = task.call() // do NOT inline this variable, call() should complete before errorsToString()
         if (javaErrorFile == null || !javaErrorFile.exists()) {
-            assertions.assertTrue(success) { errorsToString(diagnosticCollector, true) }
+            assertions.assertTrue(success || ignoreJavaErrors) { errorsToString(diagnosticCollector, true) }
         } else {
             assertions.assertEqualsToFile(javaErrorFile, errorsToString(diagnosticCollector, false))
         }

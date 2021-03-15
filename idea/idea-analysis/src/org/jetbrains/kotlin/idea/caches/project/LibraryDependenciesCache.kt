@@ -19,6 +19,7 @@ import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.MultiMap
 import org.jetbrains.kotlin.idea.core.util.CachedValue
 import org.jetbrains.kotlin.idea.core.util.getValue
+import org.jetbrains.kotlin.idea.project.isHMPPEnabled
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.isCommon
 import java.util.*
@@ -62,7 +63,7 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
 
         val platform = libraryInfo.platform
 
-        for (module in getLibraryUsageIndex().modulesLibraryIsUsedIn[libraryInfo.library]) {
+        for (module in getLibraryUsageIndex().getModulesLibraryIsUsedIn(libraryInfo)) {
             if (!processedModules.add(module)) continue
 
             ModuleRootManager.getInstance(module).orderEntries().recursively().satisfying(condition).process(object : RootPolicy<Unit>() {
@@ -74,8 +75,8 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
                     val otherLibrary = libraryOrderEntry.library
                     if (otherLibrary is LibraryEx && !otherLibrary.isDisposed) {
                         val otherLibraryInfos = createLibraryInfo(project, otherLibrary)
-                        otherLibraryInfos.firstOrNull()?.platform?.let { otherLibraryPlatform ->
-                            if (compatiblePlatforms(platform, otherLibraryPlatform)) {
+                        otherLibraryInfos.firstOrNull()?.let { otherLibraryInfo ->
+                            if (compatiblePlatforms(platform, otherLibraryInfo.platform)) {
                                 libraries.addAll(otherLibraryInfos)
                             }
                         }
@@ -84,7 +85,10 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
 
                 override fun visitJdkOrderEntry(jdkOrderEntry: JdkOrderEntry, value: Unit) {
                     val jdk = jdkOrderEntry.jdk ?: return
-                    sdks += SdkInfo(project, jdk)
+                    SdkInfo(project, jdk).also { sdkInfo ->
+                        if (compatiblePlatforms(platform, sdkInfo.platform))
+                            sdks += sdkInfo
+                    }
                 }
             }, Unit)
         }
@@ -106,7 +110,7 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
     }
 
     private inner class LibraryUsageIndex {
-        val modulesLibraryIsUsedIn: MultiMap<Library, Module> = MultiMap.createSet()
+        private val modulesLibraryIsUsedIn: MultiMap<Library, Module> = MultiMap.createSet()
 
         init {
             for (module in ModuleManager.getInstance(project).modules) {
@@ -117,6 +121,16 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
                             modulesLibraryIsUsedIn.putValue(library, module)
                         }
                     }
+                }
+            }
+        }
+
+        fun getModulesLibraryIsUsedIn(libraryInfo: LibraryInfo) = sequence<Module> {
+            val ideaModelInfosCache = getIdeaModelInfosCache(project)
+            for (module in modulesLibraryIsUsedIn[libraryInfo.library]) {
+                val mappedModuleInfos = ideaModelInfosCache.getModuleInfosForModule(module)
+                if (mappedModuleInfos.any { it.platform.canDependOn(libraryInfo, module.isHMPPEnabled) }) {
+                    yield(module)
                 }
             }
         }

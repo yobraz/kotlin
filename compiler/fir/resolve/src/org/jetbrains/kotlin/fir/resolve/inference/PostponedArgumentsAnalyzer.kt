@@ -37,7 +37,6 @@ interface LambdaAnalyzer {
         receiverType: ConeKotlinType?,
         parameters: List<ConeKotlinType>,
         expectedReturnType: ConeKotlinType?, // null means, that return type is not proper i.e. it depends on some type variables
-        rawReturnType: ConeKotlinType,
         stubsForPostponedVariables: Map<TypeVariableMarker, StubTypeMarker>
     ): ReturnArgumentsAnalysisResult
 }
@@ -68,12 +67,15 @@ class PostponedArgumentsAnalyzer(
     }
 
     private fun processCallableReference(atom: ResolvedCallableReferenceAtom, candidate: Candidate) {
-        if (atom.postponed) {
+        if (atom.mightNeedAdditionalResolution) {
             callResolver.resolveCallableReference(candidate.csBuilder, atom)
         }
 
         val callableReferenceAccess = atom.reference
         atom.analyzed = true
+
+        resolutionContext.bodyResolveContext.towerDataContextForCallableReferences.remove(callableReferenceAccess)
+
         val (resultingCandidate, applicability) = atom.resultingCandidate
             ?: Pair(null, CandidateApplicability.INAPPLICABLE)
 
@@ -126,7 +128,6 @@ class PostponedArgumentsAnalyzer(
             receiver,
             parameters,
             expectedTypeForReturnArguments,
-            rawReturnType,
             stubsForPostponedVariables
         )
         applyResultsOfAnalyzedLambdaToCandidateSystem(c, lambda, candidate, results, expectedTypeForReturnArguments, ::substitute)
@@ -167,14 +168,14 @@ class PostponedArgumentsAnalyzer(
         val lastExpression = lambda.atom.body?.statements?.lastOrNull() as? FirExpression
         var hasExpressionInReturnArguments = false
         // No constraint for return expressions of lambda if it has Unit return type.
-        val lambdaReturnType = lambda.returnType.let(substitute).takeUnless { it.isUnit }
+        val lambdaReturnType = lambda.returnType.let(substitute).takeUnless { it.isUnitOrFlexibleUnit }
         returnArguments.forEach {
             if (it !is FirExpression) return@forEach
             hasExpressionInReturnArguments = true
             // If it is the last expression, and the expected type is Unit, that expression will be coerced to Unit.
             // If the last expression is of Unit type, of course it's not coercion-to-Unit case.
             val lastExpressionCoercedToUnit =
-                it == lastExpression && expectedReturnType?.isUnit == true && !it.typeRef.coneType.isUnit
+                it == lastExpression && expectedReturnType?.isUnitOrFlexibleUnit == true && !it.typeRef.coneType.isUnitOrFlexibleUnit
             // No constraint for the last expression of lambda if it will be coerced to Unit.
             if (!lastExpressionCoercedToUnit) {
                 candidate.resolveArgumentExpression(

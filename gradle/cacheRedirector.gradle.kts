@@ -53,6 +53,8 @@ val mirroredUrls = listOf(
     "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev",
     "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap",
     "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/eap",
+    "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies",
+    "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-ide",
     "https://kotlin.bintray.com/dukat",
     "https://kotlin.bintray.com/kotlin-dependencies",
     "https://oss.sonatype.org/content/repositories/releases",
@@ -75,7 +77,9 @@ val mirroredUrls = listOf(
     "https://www.python.org/ftp",
     "https://www.jetbrains.com/intellij-repository/nightly",
     "https://www.jetbrains.com/intellij-repository/releases",
-    "https://www.jetbrains.com/intellij-repository/snapshots"
+    "https://www.jetbrains.com/intellij-repository/snapshots",
+    "https://kotlin.bintray.com/kotlinx",
+    "https://nodejs.org/dist"
 )
 
 val aliases = mapOf(
@@ -197,7 +201,9 @@ tasks.named("checkBuild").configure {
     dependsOn(checkRepositories)
 }
 
-if (cacheRedirectorEnabled()) {
-    logger.info("Redirecting repositories for $displayName")
-    repositories.redirect()
+afterEvaluate {
+    if (cacheRedirectorEnabled()) {
+        logger.info("Redirecting repositories for $displayName")
+        repositories.redirect()
+    }
 }

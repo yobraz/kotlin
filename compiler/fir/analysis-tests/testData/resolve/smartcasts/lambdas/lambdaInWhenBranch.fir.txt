@@ -1,6 +1,6 @@
 FILE: lambdaInWhenBranch.kt
     private sealed class Sealed : R|kotlin/Any| {
-        private constructor(): R|Sealed| {
+        protected constructor(): R|Sealed| {
             super<R|kotlin/Any|>()
         }
 
@@ -13,7 +13,7 @@ FILE: lambdaInWhenBranch.kt
         public final val t: R|kotlin/String| = R|<local>/t|
             public get(): R|kotlin/String|
 
-        public final fun component1(): R|kotlin/String|
+        public final operator fun component1(): R|kotlin/String|
 
         public final fun copy(t: R|kotlin/String| = this@R|/SubClass1|.R|/SubClass1.t|): R|SubClass1|
 

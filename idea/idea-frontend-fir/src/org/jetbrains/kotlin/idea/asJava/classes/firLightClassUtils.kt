@@ -10,10 +10,7 @@ import com.intellij.psi.PsiReferenceList
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.kotlin.analyzer.KotlinModificationTrackerService
-import org.jetbrains.kotlin.asJava.classes.KotlinSuperTypeListBuilder
-import org.jetbrains.kotlin.asJava.classes.KtLightClass
-import org.jetbrains.kotlin.asJava.classes.METHOD_INDEX_BASE
-import org.jetbrains.kotlin.asJava.classes.shouldNotBeVisibleAsLightClass
+import org.jetbrains.kotlin.asJava.classes.*
 import org.jetbrains.kotlin.asJava.elements.KtLightField
 import org.jetbrains.kotlin.asJava.elements.KtLightMethod
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
@@ -24,10 +21,7 @@ import org.jetbrains.kotlin.idea.frontend.api.analyze
 import org.jetbrains.kotlin.idea.frontend.api.fir.analyzeWithSymbolAsContext
 import org.jetbrains.kotlin.idea.frontend.api.hackyAllowRunningOnEdt
 import org.jetbrains.kotlin.idea.frontend.api.symbols.*
-import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtCommonSymbolModality
-import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtSymbolVisibility
-import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtSymbolWithMembers
-import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtTypeAndAnnotations
+import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.*
 import org.jetbrains.kotlin.idea.frontend.api.types.KtClassType
 import org.jetbrains.kotlin.idea.frontend.api.types.KtType
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -124,6 +118,23 @@ private fun lightClassForEnumEntry(ktEnumEntry: KtEnumEntry): KtLightClass? {
     return (targetField as? FirLightFieldForEnumEntry)?.initializingClass as? KtLightClass
 }
 
+internal fun FirLightClassForSymbol.createConstructors(
+    declarations: Sequence<KtConstructorSymbol>,
+    result: MutableList<KtLightMethod>
+) {
+    for (declaration in declarations) {
+        if (declaration.isHiddenOrSynthetic()) continue
+        result.add(
+            FirLightConstructorForSymbol(
+                constructorSymbol = declaration,
+                lightMemberOrigin = null,
+                containingClass = this@createConstructors,
+                methodIndex = METHOD_INDEX_BASE
+            )
+        )
+    }
+}
+
 internal fun FirLightClassBase.createMethods(
     declarations: Sequence<KtCallableSymbol>,
     result: MutableList<KtLightMethod>,
@@ -170,22 +181,11 @@ internal fun FirLightClassBase.createMethods(
                     }
                 }
             }
-            is KtConstructorSymbol -> {
-                if (declaration.isHiddenOrSynthetic()) continue
-                result.add(
-                    FirLightConstructorForSymbol(
-                        constructorSymbol = declaration,
-                        lightMemberOrigin = null,
-                        containingClass = this@createMethods,
-                        methodIndex = METHOD_INDEX_BASE
-                    )
-                )
-            }
             is KtPropertySymbol -> {
 
                 if (declaration is KtKotlinPropertySymbol && declaration.isConst) continue
 
-                if (declaration.visibility == KtSymbolVisibility.PRIVATE &&
+                if (declaration.visibility.isPrivateOrPrivateToThis() &&
                     declaration.getter?.hasBody == false &&
                     declaration.setter?.hasBody == false
                 ) continue
@@ -194,7 +194,7 @@ internal fun FirLightClassBase.createMethods(
 
                 fun KtPropertyAccessorSymbol.needToCreateAccessor(siteTarget: AnnotationUseSiteTarget): Boolean {
                     if (isInline) return false
-                    if (!hasBody && visibility == KtSymbolVisibility.PRIVATE) return false
+                    if (!hasBody && visibility.isPrivateOrPrivateToThis()) return false
                     if (declaration.isHiddenOrSynthetic(siteTarget)) return false
                     if (isHiddenOrSynthetic()) return false
                     return true
@@ -232,6 +232,7 @@ internal fun FirLightClassBase.createMethods(
                     )
                 }
             }
+            is KtConstructorSymbol -> error("Constructors should be handled separately and not passed to this function")
         }
     }
 }
@@ -326,4 +327,22 @@ internal fun KtSymbolWithMembers.createInnerClasses(manager: PsiManager): List<F
     //    result.add(KtLightClassForInterfaceDefaultImpls(classOrObject))
     //}
     return result
+}
+
+@OptIn(HackToForceAllowRunningAnalyzeOnEDT::class)
+internal fun KtClassOrObject.checkIsInheritor(baseClassOrigin: KtClassOrObject, checkDeep: Boolean): Boolean {
+    return analyze(this) {
+        val thisSymbol = this@checkIsInheritor.getClassOrObjectSymbol()
+        val baseSymbol = baseClassOrigin.getClassOrObjectSymbol()
+
+        if (thisSymbol == baseSymbol) return@analyze false
+
+        val baseType = baseSymbol.buildSelfClassType()
+
+        if (checkDeep) {
+            thisSymbol.buildSelfClassType().isSubTypeOf(baseType)
+        } else {
+            thisSymbol.superTypes.any { baseType.isEqualTo(it.type) }
+        }
+    }
 }

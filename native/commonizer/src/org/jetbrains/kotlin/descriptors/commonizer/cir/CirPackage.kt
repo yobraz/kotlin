@@ -5,4 +5,15 @@
 
 package org.jetbrains.kotlin.descriptors.commonizer.cir
 
-interface CirPackage : CirDeclaration, CirHasFqName
+interface CirPackage : CirDeclaration {
+    val packageName: CirPackageName
+
+    companion object {
+        @Suppress("NOTHING_TO_INLINE")
+        inline fun create(packageName: CirPackageName): CirPackage = CirPackageImpl(packageName)
+    }
+}
+
+data class CirPackageImpl(
+    override val packageName: CirPackageName
+) : CirPackage

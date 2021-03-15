@@ -5,9 +5,15 @@
 
 package org.jetbrains.kotlin.test.generators
 
+import org.jetbrains.kotlin.generators.model.annotation
 import org.jetbrains.kotlin.generators.util.TestGeneratorUtil
 import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlin.test.runners.*
+import org.jetbrains.kotlin.test.runners.codegen.*
+import org.jetbrains.kotlin.test.runners.ir.AbstractFir2IrTextTest
+import org.jetbrains.kotlin.test.runners.ir.AbstractIrTextTest
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 fun generateJUnit5CompilerTests(args: Array<String>) {
     val excludedFirTestdataPattern = "^(.+)\\.fir\\.kts?\$"
@@ -53,6 +59,58 @@ fun generateJUnit5CompilerTests(args: Array<String>) {
                 model("foreignAnnotations/tests")
                 model("foreignAnnotations/java8Tests", excludeDirs = listOf("jspecify", "typeEnhancementOnCompiledJava"))
             }
+
+            testClass<AbstractBlackBoxCodegenTest> {
+                model("codegen/box")
+            }
+
+            testClass<AbstractIrBlackBoxCodegenTest> {
+                model("codegen/box")
+            }
+
+            testClass<AbstractJvmIrAgainstOldBoxTest> {
+                model("codegen/box/compileKotlinAgainstKotlin")
+            }
+
+            testClass<AbstractJvmOldAgainstIrBoxTest> {
+                model("codegen/box/compileKotlinAgainstKotlin")
+            }
+
+            testClass<AbstractIrTextTest> {
+                model("ir/irText")
+            }
+
+            testClass<AbstractBytecodeTextTest> {
+                model("codegen/bytecodeText")
+            }
+
+            testClass<AbstractIrBytecodeTextTest> {
+                model("codegen/bytecodeText")
+            }
+
+            testClass<AbstractBlackBoxInlineCodegenTest> {
+                model("codegen/boxInline")
+            }
+
+            testClass<AbstractIrBlackBoxInlineCodegenTest> {
+                model("codegen/boxInline")
+            }
+
+            testClass<AbstractCompileKotlinAgainstInlineKotlinTest> {
+                model("codegen/boxInline")
+            }
+
+            testClass<AbstractIrCompileKotlinAgainstInlineKotlinTest> {
+                model("codegen/boxInline")
+            }
+
+            testClass<AbstractJvmIrAgainstOldBoxInlineTest> {
+                model("codegen/boxInline")
+            }
+
+            testClass<AbstractJvmOldAgainstIrBoxInlineTest> {
+                model("codegen/boxInline")
+            }
         }
 
         // ---------------------------------------------- FIR tests ----------------------------------------------
@@ -64,16 +122,38 @@ fun generateJUnit5CompilerTests(args: Array<String>) {
             }
         }
 
+        testGroup(testsRoot = "compiler/fir/fir2ir/tests-gen", testDataRoot = "compiler/testData") {
+            testClass<AbstractFirBlackBoxCodegenTest> {
+                model("codegen/box")
+            }
+
+            testClass<AbstractFirBlackBoxInlineCodegenTest> {
+                model("codegen/boxInline")
+            }
+        }
+
         testGroup("compiler/fir/analysis-tests/tests-gen", "compiler/fir/analysis-tests/testData") {
             testClass<AbstractFirDiagnosticTest> {
                 model("resolve", pattern = TestGeneratorUtil.KT_WITHOUT_DOTS_IN_NAME)
                 model("resolveWithStdlib", pattern = TestGeneratorUtil.KT_WITHOUT_DOTS_IN_NAME)
             }
 
-            testClass<AbstractFirDiagnosticsWithLightTreeTest> {
+            testClass<AbstractFirDiagnosticsWithLightTreeTest>(
+                annotations = listOf(annotation(Execution::class.java, ExecutionMode.SAME_THREAD))
+            ) {
                 model("resolve", pattern = TestGeneratorUtil.KT_WITHOUT_DOTS_IN_NAME)
+                model("resolveWithStdlib", pattern = TestGeneratorUtil.KT_WITHOUT_DOTS_IN_NAME)
+            }
+        }
+
+        testGroup(testsRoot = "compiler/fir/fir2ir/tests-gen", testDataRoot = "compiler/testData") {
+            testClass<AbstractFir2IrTextTest> {
+                model("ir/irText")
+            }
+
+            testClass<AbstractFirBytecodeTextTest> {
+                model("codegen/bytecodeText")
             }
         }
     }
-
 }

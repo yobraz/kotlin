@@ -231,12 +231,18 @@ class KaptIncrementalWithIsolatingApt : KaptIncrementalIT() {
         """.trimIndent()
         )
 
-        val allKotlinStubs = setOf(
+        val annotatedKotlinStubs = setOf(
             project.projectDir.resolve("build/tmp/kapt3/stubs/main/foo/A.java").canonicalPath,
             project.projectDir.resolve("build/tmp/kapt3/stubs/main/bar/B.java").canonicalPath,
             project.projectDir.resolve("build/tmp/kapt3/stubs/main/bar/UseBKt.java").canonicalPath,
             project.projectDir.resolve("build/tmp/kapt3/stubs/main/baz/UtilKt.java").canonicalPath,
+            project.projectDir.resolve("build/tmp/kapt3/stubs/main/baz/UtilKt.java").canonicalPath,
             project.projectDir.resolve("build/tmp/kapt3/stubs/main/error/NonExistentClass.java").canonicalPath
+        )
+
+        val allKotlinStubs = annotatedKotlinStubs + setOf(
+            project.projectDir.resolve("build/tmp/kapt3/stubs/main/delegate/Delegate.java").canonicalPath,
+            project.projectDir.resolve("build/tmp/kapt3/stubs/main/delegate/Usage.java").canonicalPath
         )
 
         project.build("clean", "build") {
@@ -248,7 +254,7 @@ class KaptIncrementalWithIsolatingApt : KaptIncrementalIT() {
         classpathTypeSource.writeText(classpathTypeSource.readText().replace("}", "int i = 10;\n}"))
         project.build("build") {
             assertSuccessful()
-            assertEquals(allKotlinStubs, getProcessedSources(output))
+            assertEquals(annotatedKotlinStubs, getProcessedSources(output))
         }
     }
 
@@ -261,7 +267,7 @@ class KaptIncrementalWithIsolatingApt : KaptIncrementalIT() {
         val project = Project("kaptIncrementalWithParceler", GradleVersionRequired.None).apply {
             setupWorkingDir()
         }
-        val options = defaultBuildOptions().copy(androidGradlePluginVersion = AGPVersion.v3_4_1)
+        val options = defaultBuildOptions().copy(androidGradlePluginVersion = AGPVersion.v3_6_0)
         project.build("clean", ":mylibrary:assembleDebug", options = options) {
             assertSuccessful()
         }
