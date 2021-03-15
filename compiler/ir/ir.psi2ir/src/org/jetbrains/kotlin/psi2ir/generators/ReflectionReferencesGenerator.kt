@@ -18,21 +18,18 @@ package org.jetbrains.kotlin.psi2ir.generators
 
 import org.jetbrains.kotlin.builtins.*
 import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.ir.declarations.DescriptorMetadataSource
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
-import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
-import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
-import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.symbols.IrVariableSymbol
+import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
 import org.jetbrains.kotlin.ir.util.referenceClassifier
 import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.ir.util.withScope
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
+import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
@@ -42,6 +39,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.ImportedFromObjectCallableDescriptor
 import org.jetbrains.kotlin.resolve.calls.model.*
 import org.jetbrains.kotlin.resolve.scopes.receivers.TransientReceiver
+import org.jetbrains.kotlin.synthetic.SyntheticJavaPropertyDescriptor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.expressions.DoubleColonLHS
 
@@ -428,6 +426,93 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
         }
     }
 
+    private val PropertyDescriptor.isJavaSyntheticProperty: Boolean
+        get() = containingDeclaration is ModuleDescriptor
+
+    private fun resolvePropertySymbol(descriptor: PropertyDescriptor): IrPropertySymbol {
+        val symbol = context.symbolTable.referenceProperty(descriptor)
+        if (descriptor.isJavaSyntheticProperty && !symbol.isBound) {
+            // This is the special case of synthetic java properties when requested property doesn't even exist by IR design
+            // requires its symbol to be bound so let do that
+            // see `irText/declarations/provideDelegate/javaDelegate.kt` and KT-45297
+            assert(descriptor is SyntheticJavaPropertyDescriptor)
+            val offset = UNDEFINED_OFFSET
+            val origin = IrDeclarationOrigin.SYNTHETIC_JAVA_PROPERTY_DELEGATE
+            context.symbolTable.declareProperty(offset, offset, origin, descriptor, true) { propertySymbol ->
+                context.irFactory.createProperty(
+                    offset,
+                    offset,
+                    origin,
+                    propertySymbol,
+                    descriptor.name,
+                    descriptor.visibility,
+                    descriptor.modality,
+                    descriptor.isVar,
+                    descriptor.isConst,
+                    descriptor.isLateInit,
+                    descriptor.isDelegated,
+                    descriptor.isExternal, descriptor.isExpect,
+                    false, null
+                ).also { property ->
+                    property.getter = descriptor.getter?.let { getter ->
+                        context.symbolTable.declareSimpleFunction(getter) { getterSymbol ->
+                            context.irFactory.createFunction(
+                                offset,
+                                offset,
+                                origin,
+                                getterSymbol,
+                                getter.name,
+                                getter.visibility,
+                                getter.modality,
+                                getter.returnType!!.toIrType(),
+                                getter.isInline,
+                                getter.isExternal,
+                                getter.isTailrec,
+                                getter.isSuspend,
+                                getter.isOperator,
+                                getter.isInfix,
+                                getter.isExpect,
+                                false,
+                                null
+                            ).also {
+                                it.correspondingPropertySymbol = propertySymbol
+                                it.parent = Nowhere
+                            }
+                        }
+                    }
+                    property.setter = descriptor.setter?.let { setter ->
+                        context.symbolTable.declareSimpleFunction(setter) { setterSymbol ->
+                            context.irFactory.createFunction(
+                                offset,
+                                offset,
+                                origin,
+                                setterSymbol,
+                                setter.name,
+                                setter.visibility,
+                                setter.modality,
+                                setter.returnType!!.toIrType(),
+                                setter.isInline,
+                                setter.isExternal,
+                                setter.isTailrec,
+                                setter.isSuspend,
+                                setter.isOperator,
+                                setter.isInfix,
+                                setter.isExpect,
+                                false,
+                                null
+                            ).also {
+                                it.correspondingPropertySymbol = propertySymbol
+                                it.parent = Nowhere
+                            }
+                        }
+                    }
+                    property.parent = Nowhere
+                }
+            }
+        }
+        return symbol
+    }
+
     private fun generatePropertyReference(
         startOffset: Int,
         endOffset: Int,
@@ -440,7 +525,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
         val originalProperty = propertyDescriptor.original
         val originalGetter = originalProperty.getter?.original
         val originalSetter = if (mutable) originalProperty.setter?.original else null
-        val originalSymbol = context.symbolTable.referenceProperty(originalProperty)
+        val originalSymbol = resolvePropertySymbol(originalProperty)
 
         return IrPropertyReferenceImpl(
             startOffset, endOffset, type.toIrType(),
@@ -500,4 +585,25 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
         arguments.last().type,
         suspendFunction
     )
+}
+
+private object Nowhere : IrDeclarationParent {
+    override val startOffset: Int
+        get() = UNDEFINED_OFFSET
+    override val endOffset: Int
+        get() = UNDEFINED_OFFSET
+
+    override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R {
+        error("Nowhere should not be visited")
+    }
+
+    override fun <D> acceptChildren(visitor: IrElementVisitor<Unit, D>, data: D) {
+        error("Nowhere should not be visited")
+    }
+
+    override fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D) {
+        error("Nowhere should not be visited")
+    }
+
+    override fun toString(): String = "Nowhere"
 }
