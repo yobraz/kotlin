@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.cli.common
 
-import com.intellij.util.LineSeparator
 import java.util.*
 
 enum class CompilerSystemProperties(val property: String) {
@@ -36,7 +35,8 @@ enum class CompilerSystemProperties(val property: String) {
     KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY("kotlin.environment.keepalive"),
     COMPILE_DAEMON_CUSTOM_RUN_FILES_PATH_FOR_TESTS("kotlin.daemon.custom.run.files.path.for.tests"),
     KOTLIN_COLORS_ENABLED_PROPERTY("kotlin.colors.enabled"),
-    OS_NAME("os.name")
+    OS_NAME("os.name"),
+    COMPILE_INCREMENTAL_WITH_JAR_SNAPSHOT_PROPERTY("kotlin.daemon.jar.snapshot.enabled")
     ;
 
     var value
@@ -64,6 +64,11 @@ enum class CompilerSystemProperties(val property: String) {
 
 val isWindows: Boolean
     get() = CompilerSystemProperties.OS_NAME.value!!.toLowerCase(Locale.ENGLISH).startsWith("windows")
+
+fun String?.isTrue(defaultValue: Boolean = false): Boolean = when (this) {
+    null -> defaultValue
+    else -> this.toBoolean()
+}
 
 fun String?.toBooleanLenient(): Boolean? = when (this?.toLowerCase()) {
     null -> false

@@ -22,8 +22,10 @@ import org.jetbrains.kotlin.build.report.BuildReporter
 import org.jetbrains.kotlin.build.report.metrics.BuildTime
 import org.jetbrains.kotlin.build.report.metrics.BuildAttribute
 import org.jetbrains.kotlin.build.report.metrics.measure
+import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.cli.common.isTrue
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.compilerRunner.MessageCollectorToOutputItemsCollectorAdapter
 import org.jetbrains.kotlin.compilerRunner.OutputItemsCollectorImpl
@@ -61,10 +63,7 @@ abstract class IncrementalCompilerRunner<
     protected open val kotlinSourceFilesExtensions: List<String> = DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS
 
     //TODO temporal measure to ensure quick disable, should be deleted after successful release
-    protected val compileWithSnapshotProperty = "kotlin.compile.incremental.snapshot"
-    //TODO read property properly
-//    protected val withSnapshot: Boolean = (System.getProperty(compileWithSnapshotProperty) ?: true) as Boolean
-    protected val withSnapshot: Boolean = true
+    protected val withSnapshot: Boolean = CompilerSystemProperties.COMPILE_INCREMENTAL_WITH_JAR_SNAPSHOT_PROPERTY.value.isTrue(true)
 
     protected abstract fun isICEnabled(): Boolean
     protected abstract fun createCacheManager(args: Args, projectDir: File?): CacheManager
@@ -92,6 +91,9 @@ abstract class IncrementalCompilerRunner<
         assert(isICEnabled()) { "Incremental compilation is not enabled" }
         var caches = createCacheManager(args, projectDir)
 
+        if (withSnapshot) {
+            reporter.report { "Incremental compilation with jar snapshot enabled" }
+        }
         //TODO if jar-snapshot is corrupted unable to rebuild. Should roll back to withSnapshot = false?
         val classpathJarSnapshot =
             if (withSnapshot) {
