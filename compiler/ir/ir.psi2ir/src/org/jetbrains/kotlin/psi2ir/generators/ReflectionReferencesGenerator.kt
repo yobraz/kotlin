@@ -432,7 +432,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
     private fun resolvePropertySymbol(descriptor: PropertyDescriptor): IrPropertySymbol {
         val symbol = context.symbolTable.referenceProperty(descriptor)
         if (descriptor.isJavaSyntheticProperty && !symbol.isBound) {
-            // This is the special case of synthetic java properties when requested property doesn't even exist by IR design
+            // This is the special case of synthetic java properties when requested property doesn't even exist but IR design
             // requires its symbol to be bound so let do that
             // see `irText/declarations/provideDelegate/javaDelegate.kt` and KT-45297
             assert(descriptor is SyntheticJavaPropertyDescriptor)
