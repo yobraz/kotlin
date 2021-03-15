@@ -1,0 +1,26 @@
+package k
+
+var p1: @FlexibleNullability String? /* by */
+  field = J()::getFoo
+  get(): @FlexibleNullability String? {
+    return #p1$delegate.getValue<@FlexibleNullability String?>(thisRef = null, property = ::p1)
+  }
+  set(<set-?>: @FlexibleNullability String?) {
+    #p1$delegate.setValue<@FlexibleNullability String?>(thisRef = null, property = ::p1, value = <set-?>)
+  }
+
+var p2: @FlexibleNullability String? /* by */
+  field = J()::getFoo
+  get(): @FlexibleNullability String? {
+    return #p2$delegate.getValue<@FlexibleNullability String?>(thisRef = null, property = ::p2)
+  }
+  set(<set-?>: @FlexibleNullability String?) {
+    #p2$delegate.setValue<@FlexibleNullability String?>(thisRef = null, property = ::p2, value = <set-?>)
+  }
+
+fun box(): String {
+  <set-p1>(<set-?> = "O")
+  <set-p2>(<set-?> = "K")
+  return <get-p1>().plus(other = <get-p2>())
+}
+
