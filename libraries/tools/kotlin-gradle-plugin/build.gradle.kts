@@ -10,6 +10,8 @@ plugins {
     id("jps-compatible")
 }
 
+jvmDefaultMode="all-compatibility"
+
 apply(from = "functionalTest.gradle.kts")
 val functionalTestImplementation by configurations
 
@@ -125,7 +127,7 @@ tasks {
         kotlinOptions.languageVersion = "1.3"
         kotlinOptions.apiVersion = "1.3"
         kotlinOptions.freeCompilerArgs += listOf(
-            "-Xskip-prerelease-check", "-Xsuppress-version-warnings"
+            "-Xskip-prerelease-check", "-Xsuppress-version-warnings", "-Xjvm-default=all-compatibility"
         )
     }
 

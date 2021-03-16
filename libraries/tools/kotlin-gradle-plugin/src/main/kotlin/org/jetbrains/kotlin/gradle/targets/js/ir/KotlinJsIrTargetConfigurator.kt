@@ -146,4 +146,13 @@ open class KotlinJsIrTargetConfigurator(kotlinPluginVersion: String) :
             attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.common)
         }
     }
+
+    //compatibility mode requirement, could be removed after switch to `all`
+    override fun configureTarget(target: KotlinJsIrTarget) {
+        super<KotlinTargetWithTestsConfigurator>.configureTarget(target)
+    }
+
+    override fun configureTest(target: KotlinJsIrTarget) {
+        super.configureTest(target)
+    }
 }
