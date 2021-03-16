@@ -16,10 +16,7 @@
 
 package org.jetbrains.kotlin.psi2ir.generators
 
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.builtins.createFunctionType
-import org.jetbrains.kotlin.builtins.isKFunctionType
-import org.jetbrains.kotlin.builtins.isKSuspendFunctionType
+import org.jetbrains.kotlin.builtins.*
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
@@ -495,16 +492,16 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
             get() = null
     }
 
-    private fun resolvePropertySymbol(descriptor: PropertyDescriptor): DelegatedPropertySymbols {
+    private fun resolvePropertySymbol(descriptor: PropertyDescriptor, mutable: Boolean): DelegatedPropertySymbols {
         val symbol = context.symbolTable.referenceProperty(descriptor)
         if (descriptor is SyntheticJavaPropertyDescriptor) {
             // This is the special case of synthetic java properties when requested property doesn't even exist but IR design
             // requires its symbol to be bound so let do that
             // see `irText/declarations/provideDelegate/javaDelegate.kt` and KT-45297
             val getterSymbol = context.symbolTable.referenceSimpleFunction(descriptor.getMethod)
-            val setterSymbol = descriptor.setMethod?.let {
+            val setterSymbol = if (mutable) descriptor.setMethod?.let {
                 context.symbolTable.referenceSimpleFunction(it)
-            }
+            } else null
             if (!symbol.isBound) {
                 val offset = UNDEFINED_OFFSET
                 context.symbolTable.declareProperty(offset, offset, IrDeclarationOrigin.SYNTHETIC_JAVA_PROPERTY_DELEGATE, descriptor) {
@@ -514,7 +511,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
             return DelegatedPropertySymbols(symbol, getterSymbol, setterSymbol)
         } else {
             val getterSymbol = descriptor.getter?.let { context.symbolTable.referenceSimpleFunction(it) }
-            val setterSymbol = descriptor.setter?.let { context.symbolTable.referenceSimpleFunction(it) }
+            val setterSymbol = if (mutable) descriptor.setter?.let { context.symbolTable.referenceSimpleFunction(it) } else null
             return DelegatedPropertySymbols(symbol, getterSymbol, setterSymbol)
         }
     }
@@ -526,10 +523,10 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
         propertyDescriptor: PropertyDescriptor,
         typeArguments: Map<TypeParameterDescriptor, KotlinType>?,
         origin: IrStatementOrigin?,
-        @Suppress("UNUSED_PARAMETER") mutable: Boolean
+        mutable: Boolean
     ): IrPropertyReference {
         val originalProperty = propertyDescriptor.original
-        val symbols = resolvePropertySymbol(originalProperty)
+        val symbols = resolvePropertySymbol(originalProperty, mutable)
 
         return IrPropertyReferenceImpl(
             startOffset, endOffset, type.toIrType(),
