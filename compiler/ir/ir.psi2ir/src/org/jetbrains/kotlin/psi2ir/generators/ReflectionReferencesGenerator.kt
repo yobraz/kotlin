@@ -426,86 +426,36 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
         }
     }
 
-    private val PropertyDescriptor.isJavaSyntheticProperty: Boolean
-        get() = containingDeclaration is ModuleDescriptor
+    private fun FunctionDescriptor.createSyntheticAccessor(propertySymbol: IrPropertySymbol): IrSimpleFunction {
+        return context.symbolTable.declareSimpleFunction(this) { accessorSymbol ->
+            context.irFactory.createFunction(
+                UNDEFINED_OFFSET, UNDEFINED_OFFSET, IrDeclarationOrigin.SYNTHETIC_JAVA_PROPERTY_DELEGATE,
+                accessorSymbol, name, visibility, modality, returnType!!.toIrType(),
+                isInline, isExternal, isTailrec, isSuspend, isOperator, isInfix, isExpect, isFakeOverride = false
+            ).also {
+                it.correspondingPropertySymbol = propertySymbol
+                it.parent = Nowhere
+            }
+        }
+    }
 
     private fun resolvePropertySymbol(descriptor: PropertyDescriptor): IrPropertySymbol {
         val symbol = context.symbolTable.referenceProperty(descriptor)
-        if (descriptor.isJavaSyntheticProperty && !symbol.isBound) {
+        if (descriptor is SyntheticJavaPropertyDescriptor && !symbol.isBound) {
             // This is the special case of synthetic java properties when requested property doesn't even exist but IR design
             // requires its symbol to be bound so let do that
             // see `irText/declarations/provideDelegate/javaDelegate.kt` and KT-45297
-            assert(descriptor is SyntheticJavaPropertyDescriptor)
             val offset = UNDEFINED_OFFSET
             val origin = IrDeclarationOrigin.SYNTHETIC_JAVA_PROPERTY_DELEGATE
             context.symbolTable.declareProperty(offset, offset, origin, descriptor, true) { propertySymbol ->
                 context.irFactory.createProperty(
-                    offset,
-                    offset,
-                    origin,
-                    propertySymbol,
-                    descriptor.name,
-                    descriptor.visibility,
-                    descriptor.modality,
-                    descriptor.isVar,
-                    descriptor.isConst,
-                    descriptor.isLateInit,
-                    descriptor.isDelegated,
-                    descriptor.isExternal, descriptor.isExpect,
-                    false, null
+                    offset, offset, origin, propertySymbol,
+                    descriptor.name, descriptor.visibility, descriptor.modality,
+                    descriptor.isVar, descriptor.isConst, descriptor.isLateInit, descriptor.isDelegated,
+                    descriptor.isExternal, descriptor.isExpect, isFakeOverride = false
                 ).also { property ->
-                    property.getter = descriptor.getter?.let { getter ->
-                        context.symbolTable.declareSimpleFunction(getter) { getterSymbol ->
-                            context.irFactory.createFunction(
-                                offset,
-                                offset,
-                                origin,
-                                getterSymbol,
-                                getter.name,
-                                getter.visibility,
-                                getter.modality,
-                                getter.returnType!!.toIrType(),
-                                getter.isInline,
-                                getter.isExternal,
-                                getter.isTailrec,
-                                getter.isSuspend,
-                                getter.isOperator,
-                                getter.isInfix,
-                                getter.isExpect,
-                                false,
-                                null
-                            ).also {
-                                it.correspondingPropertySymbol = propertySymbol
-                                it.parent = Nowhere
-                            }
-                        }
-                    }
-                    property.setter = descriptor.setter?.let { setter ->
-                        context.symbolTable.declareSimpleFunction(setter) { setterSymbol ->
-                            context.irFactory.createFunction(
-                                offset,
-                                offset,
-                                origin,
-                                setterSymbol,
-                                setter.name,
-                                setter.visibility,
-                                setter.modality,
-                                setter.returnType!!.toIrType(),
-                                setter.isInline,
-                                setter.isExternal,
-                                setter.isTailrec,
-                                setter.isSuspend,
-                                setter.isOperator,
-                                setter.isInfix,
-                                setter.isExpect,
-                                false,
-                                null
-                            ).also {
-                                it.correspondingPropertySymbol = propertySymbol
-                                it.parent = Nowhere
-                            }
-                        }
-                    }
+                    property.getter = descriptor.getter?.createSyntheticAccessor(propertySymbol)
+                    property.setter = descriptor.setter?.createSyntheticAccessor(propertySymbol)
                     property.parent = Nowhere
                 }
             }
