@@ -1,4 +1,5 @@
 // WITH_RUNTIME
+// SKIP_KT_DUMP
 
 // FILE: box.kt
 
