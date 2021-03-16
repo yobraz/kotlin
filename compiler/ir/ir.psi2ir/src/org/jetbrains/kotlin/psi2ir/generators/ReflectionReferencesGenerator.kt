@@ -583,24 +583,3 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
         suspendFunction
     )
 }
-
-private object Nowhere : IrDeclarationParent {
-    override val startOffset: Int
-        get() = UNDEFINED_OFFSET
-    override val endOffset: Int
-        get() = UNDEFINED_OFFSET
-
-    override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R {
-        error("Nowhere should not be visited")
-    }
-
-    override fun <D> acceptChildren(visitor: IrElementVisitor<Unit, D>, data: D) {
-        error("Nowhere should not be visited")
-    }
-
-    override fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D) {
-        error("Nowhere should not be visited")
-    }
-
-    override fun toString(): String = "Nowhere"
-}
