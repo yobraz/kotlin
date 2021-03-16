@@ -427,7 +427,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
         }
     }
 
-    private class DelegatedPropertySymbols(val propertSymbol: IrPropertySymbol, val getterSymbol: IrSimpleFunctionSymbol?, val setterSymbol: IrSimpleFunctionSymbol?)
+    private class DelegatedPropertySymbols(val propertySymbol: IrPropertySymbol, val getterSymbol: IrSimpleFunctionSymbol?, val setterSymbol: IrSimpleFunctionSymbol?)
 
     private fun resolvePropertySymbol(descriptor: PropertyDescriptor): DelegatedPropertySymbols {
         val symbol = context.symbolTable.referenceProperty(descriptor)
@@ -526,7 +526,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
 
         return IrPropertyReferenceImpl(
             startOffset, endOffset, type.toIrType(),
-            symbols.propertSymbol,
+            symbols.propertySymbol,
             if (typeArguments != null) propertyDescriptor.typeParametersCount else 0,
             getFieldForPropertyReference(originalProperty),
             symbols.getterSymbol,
