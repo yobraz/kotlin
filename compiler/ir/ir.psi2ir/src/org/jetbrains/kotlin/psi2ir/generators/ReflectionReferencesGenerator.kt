@@ -395,8 +395,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
                 generateFunctionReference(startOffset, endOffset, type, symbol, callableDescriptor, typeArguments, origin)
             }
             is PropertyDescriptor -> {
-                val mutable = ReflectionTypes.isNumberedKMutablePropertyType(type)
-                generatePropertyReference(startOffset, endOffset, type, callableDescriptor, typeArguments, origin, mutable)
+                generatePropertyReference(startOffset, endOffset, type, callableDescriptor, typeArguments, origin)
             }
             else ->
                 throw AssertionError("Unexpected callable reference: $callableDescriptor")
@@ -520,8 +519,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
         type: KotlinType,
         propertyDescriptor: PropertyDescriptor,
         typeArguments: Map<TypeParameterDescriptor, KotlinType>?,
-        origin: IrStatementOrigin?,
-        @Suppress("UNUSED_PARAMETER") mutable: Boolean
+        origin: IrStatementOrigin?
     ): IrPropertyReference {
         val originalProperty = propertyDescriptor.original
         val symbols = resolvePropertySymbol(originalProperty)
