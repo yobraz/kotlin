@@ -572,6 +572,15 @@ abstract class KotlinNativeTargetWithTestsConfigurator<
             project.kotlinTestRegistry.registerTestTask(testTaskOrProvider)
         }
     }
+
+    //compatibility mode requirement, could be removed after switch to `all`
+    override fun configureTarget(target: TargetType) {
+        super<KotlinTargetWithTestsConfigurator>.configureTarget(target)
+    }
+
+    override fun configureTest(target: TargetType) {
+        super.configureTest(target)
+    }
 }
 
 class KotlinNativeTargetWithHostTestsConfigurator(kotlinPluginVersion: String) :
