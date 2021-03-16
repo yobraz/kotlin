@@ -16,7 +16,10 @@
 
 package org.jetbrains.kotlin.psi2ir.generators
 
-import org.jetbrains.kotlin.builtins.*
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.builtins.createFunctionType
+import org.jetbrains.kotlin.builtins.isKFunctionType
+import org.jetbrains.kotlin.builtins.isKSuspendFunctionType
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
@@ -29,8 +32,6 @@ import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
 import org.jetbrains.kotlin.ir.util.referenceClassifier
 import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.ir.util.withScope
-import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
-import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
@@ -429,83 +430,87 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
 
     private class DelegatedPropertySymbols(val propertySymbol: IrPropertySymbol, val getterSymbol: IrSimpleFunctionSymbol?, val setterSymbol: IrSimpleFunctionSymbol?)
 
+    private class IrSyntheticJavaDelegatedProperty(
+        @ObsoleteDescriptorBasedAPI
+        override val descriptor: SyntheticJavaPropertyDescriptor,
+        override val symbol: IrPropertySymbol,
+        private val getterSymbol: IrSimpleFunctionSymbol,
+        private val setterSymbol: IrSimpleFunctionSymbol?,
+        override val factory: IrFactory
+    ) : IrProperty() {
+
+        init {
+            symbol.bind(this)
+        }
+
+        override val isVar: Boolean
+            get() = descriptor.isVar
+        override val isConst: Boolean
+            get() = descriptor.isConst
+        override val isLateinit: Boolean
+            get() = descriptor.isLateInit
+        override val isDelegated: Boolean
+            get() = descriptor.isDelegated
+        override val isExpect: Boolean
+            get() = descriptor.isExpect
+        override val isFakeOverride: Boolean
+            get() = false
+        override var backingField: IrField?
+            get() = null
+            set(_) {}
+        override var getter: IrSimpleFunction?
+            get() = getterSymbol.owner.also { it.correspondingPropertySymbol = symbol }
+            set(_) {}
+        override var setter: IrSimpleFunction?
+            get() = setterSymbol?.owner?.also { it.correspondingPropertySymbol = symbol }
+            set(_) {}
+        override val startOffset: Int
+            get() = UNDEFINED_OFFSET
+        override val endOffset: Int
+            get() = UNDEFINED_OFFSET
+        override var origin: IrDeclarationOrigin
+            get() = IrDeclarationOrigin.SYNTHETIC_JAVA_PROPERTY_DELEGATE
+            set(_) {}
+        override var parent: IrDeclarationParent
+            get() = getterSymbol.owner.parent
+            set(_) {}
+        override var annotations: List<IrConstructorCall>
+            get() = emptyList()
+            set(_) {}
+        override val isExternal: Boolean
+            get() = descriptor.isExternal
+        override val name: Name
+            get() = descriptor.name
+        override val modality: Modality
+            get() = descriptor.modality
+        override var visibility: DescriptorVisibility
+            get() = descriptor.visibility
+            set(_) {}
+        override var metadata: MetadataSource? = DescriptorMetadataSource.Property(descriptor)
+        override var attributeOwnerId: IrAttributeContainer
+            get() = this
+            set(_) {}
+        override val containerSource: DeserializedContainerSource?
+            get() = null
+    }
+
     private fun resolvePropertySymbol(descriptor: PropertyDescriptor): DelegatedPropertySymbols {
         val symbol = context.symbolTable.referenceProperty(descriptor)
-        if (descriptor is SyntheticJavaPropertyDescriptor ) {
+        if (descriptor is SyntheticJavaPropertyDescriptor) {
             // This is the special case of synthetic java properties when requested property doesn't even exist but IR design
             // requires its symbol to be bound so let do that
             // see `irText/declarations/provideDelegate/javaDelegate.kt` and KT-45297
-            val getterSym = context.symbolTable.referenceSimpleFunction(descriptor.getMethod)
-            val setterSym = descriptor.setMethod?.let {
+            val getterSymbol = context.symbolTable.referenceSimpleFunction(descriptor.getMethod)
+            val setterSymbol = descriptor.setMethod?.let {
                 context.symbolTable.referenceSimpleFunction(it)
             }
             if (!symbol.isBound) {
                 val offset = UNDEFINED_OFFSET
-                val origin = IrDeclarationOrigin.SYNTHETIC_JAVA_PROPERTY_DELEGATE
-                context.symbolTable.declareProperty(offset, offset, origin, descriptor) { propertySymbol ->
-                    object : IrProperty() {
-                        private val getterSymbol: IrSimpleFunctionSymbol = getterSym
-                        private val setterSymbol: IrSimpleFunctionSymbol? = setterSym
-
-                        @ObsoleteDescriptorBasedAPI
-                        override val descriptor: SyntheticJavaPropertyDescriptor
-                            get() = descriptor
-                        override val symbol: IrPropertySymbol
-                            get() = propertySymbol
-                        override val isVar: Boolean
-                            get() = descriptor.isVar
-                        override val isConst: Boolean
-                            get() = descriptor.isConst
-                        override val isLateinit: Boolean
-                            get() = descriptor.isLateInit
-                        override val isDelegated: Boolean
-                            get() = descriptor.isDelegated
-                        override val isExpect: Boolean
-                            get() = descriptor.isExpect
-                        override val isFakeOverride: Boolean
-                            get() = false
-                        override var backingField: IrField?
-                            get() = null
-                            set(_) {}
-                        override var getter: IrSimpleFunction?
-                            get() = getterSymbol.owner.also { it.correspondingPropertySymbol = propertySymbol }
-                            set(_) {}
-                        override var setter: IrSimpleFunction?
-                            get() = setterSymbol?.owner?.also { it.correspondingPropertySymbol = propertySymbol }
-                            set(_) {}
-                        override val startOffset: Int
-                            get() = UNDEFINED_OFFSET
-                        override val endOffset: Int
-                            get() = UNDEFINED_OFFSET
-                        override var origin: IrDeclarationOrigin
-                            get() = IrDeclarationOrigin.SYNTHETIC_JAVA_PROPERTY_DELEGATE
-                            set(_) {}
-                        override var parent: IrDeclarationParent
-                            get() = getterSymbol.owner.parent
-                            set(_) {}
-                        override val factory: IrFactory = context.irFactory
-                        override var annotations: List<IrConstructorCall>
-                            get() = emptyList()
-                            set(_) {}
-                        override val isExternal: Boolean
-                            get() = descriptor.isExternal
-                        override val name: Name
-                            get() = descriptor.name
-                        override val modality: Modality
-                            get() = descriptor.modality
-                        override var visibility: DescriptorVisibility
-                            get() = descriptor.visibility
-                            set(_) {}
-                        override var metadata: MetadataSource? = DescriptorMetadataSource.Property(descriptor)
-                        override var attributeOwnerId: IrAttributeContainer
-                            get() = this
-                            set(_) {}
-                        override val containerSource: DeserializedContainerSource?
-                            get() = null
-                    }.also { propertySymbol.bind(it) }
+                context.symbolTable.declareProperty(offset, offset, IrDeclarationOrigin.SYNTHETIC_JAVA_PROPERTY_DELEGATE, descriptor) {
+                    IrSyntheticJavaDelegatedProperty(descriptor, it, getterSymbol, setterSymbol, context.irFactory)
                 }
             }
-            return DelegatedPropertySymbols(symbol, getterSym, setterSym)
+            return DelegatedPropertySymbols(symbol, getterSymbol, setterSymbol)
         } else {
             val getterSymbol = descriptor.getter?.let { context.symbolTable.referenceSimpleFunction(it) }
             val setterSymbol = descriptor.setter?.let { context.symbolTable.referenceSimpleFunction(it) }
