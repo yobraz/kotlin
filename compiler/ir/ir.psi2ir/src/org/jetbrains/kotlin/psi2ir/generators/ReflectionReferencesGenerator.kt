@@ -428,7 +428,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
 
     private class DelegatedPropertySymbols(val propertySymbol: IrPropertySymbol, val getterSymbol: IrSimpleFunctionSymbol?, val setterSymbol: IrSimpleFunctionSymbol?)
 
-    private class IrSyntheticJavaDelegatedProperty(
+    private class IrSyntheticJavaProperty(
         @ObsoleteDescriptorBasedAPI
         override val descriptor: SyntheticJavaPropertyDescriptor,
         override val symbol: IrPropertySymbol,
@@ -505,7 +505,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
             if (!symbol.isBound) {
                 val offset = UNDEFINED_OFFSET
                 context.symbolTable.declareProperty(offset, offset, IrDeclarationOrigin.SYNTHETIC_JAVA_PROPERTY_DELEGATE, descriptor) {
-                    IrSyntheticJavaDelegatedProperty(descriptor, it, getterSymbol, setterSymbol, context.irFactory)
+                    IrSyntheticJavaProperty(descriptor, it, getterSymbol, setterSymbol, context.irFactory)
                 }
             }
             return DelegatedPropertySymbols(symbol, getterSymbol, setterSymbol)
