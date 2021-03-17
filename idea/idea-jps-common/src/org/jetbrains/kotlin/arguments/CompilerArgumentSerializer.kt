@@ -16,7 +16,7 @@ interface CompilerArgumentsSerializer<T : CommonToolArguments> {
     fun serialize(arguments: T): Element = element.apply { fillElement(arguments) }
 }
 
-class CompilerArgumentSerializerV4<T : CommonToolArguments> : CompilerArgumentsSerializer<T> {
+class CompilerArgumentsSerializerV4<T : CommonToolArguments> : CompilerArgumentsSerializer<T> {
     override val element: Element
         get() = Element(ROOT_ELEMENT_NAME)
 
