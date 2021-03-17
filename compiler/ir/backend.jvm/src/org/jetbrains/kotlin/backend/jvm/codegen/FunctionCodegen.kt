@@ -57,21 +57,17 @@ class FunctionCodegen(
     private fun doGenerate(): SMAPAndMethodNode {
         val signature = context.methodSignatureMapper.mapSignatureWithGeneric(irFunction)
         val flags = irFunction.calculateMethodFlags()
-        val isSynthetic = flags.and(Opcodes.ACC_SYNTHETIC) != 0
         val methodNode = MethodNode(
             Opcodes.API_VERSION,
             flags,
             signature.asmMethod.name,
             signature.asmMethod.descriptor,
-            signature.genericsSignature
-                .takeIf {
-                    !isSynthetic && irFunction.origin != IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
-                },
+            signature.genericsSignature.takeIf { flags.and(Opcodes.ACC_SYNTHETIC) == 0 },
             getThrownExceptions(irFunction)?.toTypedArray()
         )
         val methodVisitor: MethodVisitor = wrapWithMaxLocalCalc(methodNode)
 
-        if (context.state.generateParametersMetadata && !isSynthetic) {
+        if (context.state.generateParametersMetadata && flags.and(Opcodes.ACC_SYNTHETIC) == 0) {
             generateParameterNames(irFunction, methodVisitor, signature, context.state)
         }
 
