@@ -8,8 +8,7 @@ plugins {
 group = "org.jetbrains.kotlin"
 
 repositories {
-    mavenLocal()
-    jcenter()
+    mavenCentral()
 }
 
 kotlin {

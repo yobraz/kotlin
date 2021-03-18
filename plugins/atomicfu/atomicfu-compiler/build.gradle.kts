@@ -43,8 +43,7 @@ val atomicfuRuntimeForTests by configurations.creating {
 }
 
 repositories {
-    mavenLocal()
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
@@ -96,61 +95,30 @@ projectTest(parallel = true) {
     doFirst {
         systemProperty("atomicfuRuntimeForTests.classpath", atomicfuRuntimeForTests.asPath)
     }
-    setUpJsBoxTests(jsEnabled = true, jsIrEnabled = true)
+    setUpJsIrBoxTests()
 }
-
-enum class OsName { WINDOWS, MAC, LINUX, UNKNOWN }
-enum class OsArch { X86_32, X86_64, UNKNOWN }
-data class OsType(val name: OsName, val arch: OsArch)
 
 fun Test.setupV8() {
     dependsOn(":js:js.tests:unzipV8")
-    val currentOsType = run {
-        val gradleOs = OperatingSystem.current()
-        val osName = when {
-            gradleOs.isMacOsX -> OsName.MAC
-            gradleOs.isWindows -> OsName.WINDOWS
-            gradleOs.isLinux -> OsName.LINUX
-            else -> OsName.UNKNOWN
-        }
-
-        val osArch = when (System.getProperty("sun.arch.data.model")) {
-            "32" -> OsArch.X86_32
-            "64" -> OsArch.X86_64
-            else -> OsArch.UNKNOWN
-        }
-
-        OsType(osName, osArch)
+    doFirst {
+        val unzipV8Task = project.tasks.getByPath(":js:js.tests:unzipV8")
+        systemProperty("javascript.engine.path.V8", File(unzipV8Task.outputs.files.single().path, "d8"))
     }
-    val v8osString = when (currentOsType) {
-        OsType(OsName.LINUX, OsArch.X86_32) -> "linux32"
-        OsType(OsName.LINUX, OsArch.X86_64) -> "linux64"
-        OsType(OsName.MAC, OsArch.X86_64) -> "mac64"
-        OsType(OsName.WINDOWS, OsArch.X86_32) -> "win32"
-        OsType(OsName.WINDOWS, OsArch.X86_64) -> "win64"
-        else -> error("unsupported os type $currentOsType")
-    }
-    val v8Path = "${rootDir.absolutePath}/js/js.tests/build/tools/v8-${v8osString}-rel-8.8.104/"
-    val v8ExecutablePath = File(v8Path, "d8")
-    systemProperty("javascript.engine.path.V8", v8ExecutablePath)
-    inputs.dir(v8Path)
 }
 
-fun Test.setUpJsBoxTests(jsEnabled: Boolean, jsIrEnabled: Boolean) {
+fun Test.setUpJsIrBoxTests() {
     setupV8()
 
     dependsOn(":dist")
-    if (jsIrEnabled) {
-        dependsOn(":kotlin-stdlib-js-ir:compileKotlinJs")
-        systemProperty("kotlin.js.full.stdlib.path", "libraries/stdlib/js-ir/build/classes/kotlin/js/main")
-        dependsOn(":kotlin-stdlib-js-ir-minimal-for-test:compileKotlinJs")
-        systemProperty("kotlin.js.reduced.stdlib.path", "libraries/stdlib/js-ir-minimal-for-test/build/classes/kotlin/js/main")
-        dependsOn(":kotlin-test:kotlin-test-js-ir:compileKotlinJs")
-        systemProperty("kotlin.js.kotlin.test.path", "libraries/kotlin.test/js-ir/build/classes/kotlin/js/main")
-        systemProperty("kotlin.js.kotlin.test.path", "libraries/kotlin.test/js-ir/build/classes/kotlin/js/main")
-        systemProperty("kotlin.js.test.root.out.dir", "$buildDir/")
-        systemProperty("atomicfu.classpath", atomicfuClasspath.asPath)
-    }
+    dependsOn(":kotlin-stdlib-js-ir:compileKotlinJs")
+    systemProperty("kotlin.js.full.stdlib.path", "libraries/stdlib/js-ir/build/classes/kotlin/js/main")
+    dependsOn(":kotlin-stdlib-js-ir-minimal-for-test:compileKotlinJs")
+    systemProperty("kotlin.js.reduced.stdlib.path", "libraries/stdlib/js-ir-minimal-for-test/build/classes/kotlin/js/main")
+    dependsOn(":kotlin-test:kotlin-test-js-ir:compileKotlinJs")
+    systemProperty("kotlin.js.kotlin.test.path", "libraries/kotlin.test/js-ir/build/classes/kotlin/js/main")
+    systemProperty("kotlin.js.kotlin.test.path", "libraries/kotlin.test/js-ir/build/classes/kotlin/js/main")
+    systemProperty("kotlin.js.test.root.out.dir", "$buildDir/")
+    systemProperty("atomicfu.classpath", atomicfuClasspath.asPath)
 }
 
 val generateTests by generator("org.jetbrains.kotlin.generators.tests.GenerateJsTestsKt")
