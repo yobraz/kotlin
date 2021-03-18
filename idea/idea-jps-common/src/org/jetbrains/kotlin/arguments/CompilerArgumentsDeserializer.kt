@@ -14,14 +14,12 @@ import kotlin.reflect.KMutableProperty1
 
 interface CompilerArgumentsDeserializer<T : CommonToolArguments> {
     val compilerArguments: T
-    fun parseElement(element: Element)
-    fun deserialize(element: Element): T = compilerArguments.apply { parseElement(element) }
+    fun deserializeFrom(element: Element)
 }
 
-class CompilerArgumentsDeserializerV4<T : CommonToolArguments>(override val compilerArguments: T) : CompilerArgumentsDeserializer<T> {
-    override fun parseElement(element: Element) {
-        val rootArgumentElement = element.getChild(ROOT_ELEMENT_NAME)
-        val flagArgumentsByName = readFlagArguments(rootArgumentElement)
+class CompilerArgumentsDeserializerV5<T : CommonToolArguments>(override val compilerArguments: T) : CompilerArgumentsDeserializer<T> {
+    override fun deserializeFrom(element: Element) {
+        val flagArgumentsByName = readFlagArguments(element)
         val flagArgumentsPropertiesMap = CompilerArgumentsContentProspector.getFlagCompilerArgumentProperties(compilerArguments::class)
             .associateBy { it.name }
         flagArgumentsByName.forEach { (name, value) ->
@@ -29,14 +27,14 @@ class CompilerArgumentsDeserializerV4<T : CommonToolArguments>(override val comp
             mutableProp.set(compilerArguments, value)
         }
 
-        val stringArgumentsByName = readStringArguments(rootArgumentElement)
+        val stringArgumentsByName = readStringArguments(element)
         val stringArgumentPropertiesMap = CompilerArgumentsContentProspector.getStringCompilerArgumentProperties(compilerArguments::class)
             .associateBy { it.name }
         stringArgumentsByName.forEach { (name, arg) ->
             val mutableProp = stringArgumentPropertiesMap[name].safeAs<KMutableProperty1<T, String?>>() ?: return@forEach
             mutableProp.set(compilerArguments, arg)
         }
-        val arrayArgumentsByName = readArrayArguments(rootArgumentElement)
+        val arrayArgumentsByName = readArrayArguments(element)
         val arrayArgumentPropertiesMap = CompilerArgumentsContentProspector.getArrayCompilerArgumentProperties(compilerArguments::class)
             .associateBy { it.name }
         arrayArgumentsByName.forEach { (name, arr) ->

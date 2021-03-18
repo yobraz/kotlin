@@ -116,16 +116,15 @@ class CompilerArgumentsSerializationTest {
 
     private inline fun <reified T : CommonToolArguments> doSerializeDeserializeAndCompareTest(configure: T.() -> Unit = {}) {
         val oldInstance = T::class.java.newInstance().apply(configure)
-        val serializer = CompilerArgumentsSerializerV4<T>()
-        val mockFacetElement = Element("ROOT")
-        val element = serializer.serialize(oldInstance)
-        mockFacetElement.addContent(element)
+        val serializer = CompilerArgumentsSerializerV5<T>(oldInstance)
+        val mockRootElement = Element("MOCK_ROOT")
+        val compilerArgumentElement = serializer.serializeTo(mockRootElement)
         val newInstance = T::class.java.newInstance()
-        val deserializer = CompilerArgumentsDeserializerV4(newInstance)
-        val deserializedArguments = deserializer.deserialize(mockFacetElement)
+        val deserializer = CompilerArgumentsDeserializerV5(newInstance)
+        deserializer.deserializeFrom(compilerArgumentElement)
         T::class.memberProperties.mapNotNull { it.safeAs<KProperty1<T, *>>() }.forEach {
-            assert(it.get(oldInstance) == it.get(deserializedArguments)) {
-                "Property ${it.name} has different values before (${it.get(oldInstance)}) and after (${it.get(deserializedArguments)}) serialization"
+            assert(it.get(oldInstance) == it.get(newInstance)) {
+                "Property ${it.name} has different values before (${it.get(oldInstance)}) and after (${it.get(newInstance)}) serialization"
             }
         }
     }
@@ -165,9 +164,7 @@ class CompilerArgumentsSerializationTest {
     companion object {
         private val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
 
-        private fun generateRandomString(length: Int) = (1..length)
-            .map { i -> Random.nextInt(0, charPool.size) }
-            .map(charPool::get)
-            .joinToString("")
+        private fun generateRandomString(length: Int) =
+            generateSequence { Random.nextInt(0, charPool.size) }.take(length).map(charPool::get).joinToString("")
     }
 }

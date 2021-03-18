@@ -12,32 +12,32 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import kotlin.reflect.KProperty1
 
 interface CompilerArgumentsSerializer<T : CommonToolArguments> {
-    val element: Element
-    fun fillElement(arguments: T)
-    fun serialize(arguments: T): Element = element.apply { fillElement(arguments) }
+    val arguments: T
+    fun serializeTo(element: Element): Element
 }
 
-class CompilerArgumentsSerializerV4<T : CommonToolArguments> : CompilerArgumentsSerializer<T> {
-    override val element: Element by lazy { Element(ROOT_ELEMENT_NAME) }
+class CompilerArgumentsSerializerV5<T : CommonToolArguments>(override val arguments: T) : CompilerArgumentsSerializer<T> {
 
-    override fun fillElement(arguments: T) {
+    override fun serializeTo(element: Element): Element = Element(ROOT_ELEMENT_NAME).apply {
         val flagArgumentsByName = CompilerArgumentsContentProspector.getFlagCompilerArgumentProperties(arguments::class)
             .mapNotNull { prop -> prop.safeAs<KProperty1<T, Boolean>>()?.get(arguments)?.let { prop.name to it } }.toMap()
-        saveFlagArguments(element, flagArgumentsByName)
+        saveFlagArguments(this, flagArgumentsByName)
 
         val stringArgumentsByName = CompilerArgumentsContentProspector.getStringCompilerArgumentProperties(arguments::class)
             .mapNotNull { prop -> prop.safeAs<KProperty1<T, String?>>()?.get(arguments)?.let { prop.name to it } }.toMap()
-        saveStringArguments(element, stringArgumentsByName)
+        saveStringArguments(this, stringArgumentsByName)
 
         val arrayArgumentsByName = CompilerArgumentsContentProspector.getArrayCompilerArgumentProperties(arguments::class)
             .mapNotNull { prop -> prop.safeAs<KProperty1<T, Array<String>?>>()?.get(arguments)?.let { prop.name to it } }
             .filterNot { it.second.isEmpty() }
             .toMap()
-        saveArrayArguments(element, arrayArgumentsByName)
+        saveArrayArguments(this, arrayArgumentsByName)
         val freeArgs = CompilerArgumentsContentProspector.freeArgsProperty.get(arguments)
-        saveElementsList(element, FREE_ARGS_ROOT_ELEMENTS_NAME, FREE_ARGS_ELEMENT_NAME, freeArgs)
-        val internalArguments = CompilerArgumentsContentProspector.internalArgumentsProperty.get(arguments).map { it.stringRepresentation }
-        saveElementsList(element, INTERNAL_ARGS_ROOT_ELEMENTS_NAME, INTERNAL_ARGS_ELEMENT_NAME, internalArguments)
+        saveElementsList(this, FREE_ARGS_ROOT_ELEMENTS_NAME, FREE_ARGS_ELEMENT_NAME, freeArgs)
+        val internalArguments = CompilerArgumentsContentProspector.internalArgumentsProperty.get(arguments)
+            .map { it.stringRepresentation }
+        saveElementsList(this, INTERNAL_ARGS_ROOT_ELEMENTS_NAME, INTERNAL_ARGS_ELEMENT_NAME, internalArguments)
+        element.addContent(this)
     }
 
     companion object {

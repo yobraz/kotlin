@@ -12,6 +12,10 @@ import com.intellij.util.xmlb.XmlSerializer
 import org.jdom.DataConversionException
 import org.jdom.Element
 import org.jdom.Text
+import org.jetbrains.kotlin.arguments.CompilerArgumentsDeserializerV5
+import org.jetbrains.kotlin.arguments.CompilerArgumentsSerializer
+import org.jetbrains.kotlin.arguments.CompilerArgumentsSerializerV5
+import org.jetbrains.kotlin.arguments.ROOT_ELEMENT_NAME
 import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.platform.*
@@ -125,7 +129,10 @@ fun Element.getFacetPlatformByConfigurationElement(): TargetPlatform {
     }.orDefault() // finally, fallback to the default platform
 }
 
-private fun readV2AndLaterConfig(element: Element): KotlinFacetSettings {
+private fun readV2AndLaterConfig(
+    element: Element,
+    argumentReader: (Element, CommonToolArguments) -> Unit = { el, arg -> XmlSerializer.deserializeInto(arg, el) }
+): KotlinFacetSettings {
     return KotlinFacetSettings().apply {
         element.getAttributeValue("useProjectSettings")?.let { useProjectSettings = it.toBoolean() }
         val targetPlatform = element.getFacetPlatformByConfigurationElement()
@@ -165,12 +172,12 @@ private fun readV2AndLaterConfig(element: Element): KotlinFacetSettings {
             compilerSettings = CompilerSettings()
             XmlSerializer.deserializeInto(compilerSettings!!, it)
         }
-        element.getChild("compilerArguments")?.let {
+        element.getChild(ROOT_ELEMENT_NAME)?.let {
             compilerArguments = targetPlatform.createArguments {
                 freeArgs = mutableListOf()
                 internalArguments = mutableListOf()
             }
-            XmlSerializer.deserializeInto(compilerArguments!!, it)
+            argumentReader(it, compilerArguments!!)
             compilerArguments!!.detectVersionAutoAdvance()
         }
         productionOutputPath = element.getChild("productionOutputPath")?.let {
@@ -202,8 +209,12 @@ private fun readV2Config(element: Element): KotlinFacetSettings {
     return readV2AndLaterConfig(element)
 }
 
-private fun readLatestConfig(element: Element): KotlinFacetSettings {
+private fun readV4Config(element: Element): KotlinFacetSettings {
     return readV2AndLaterConfig(element)
+}
+
+private fun readLatestConfig(element: Element): KotlinFacetSettings {
+    return readV2AndLaterConfig(element) { el, bean -> CompilerArgumentsDeserializerV5(bean).deserializeFrom(el) }
 }
 
 fun deserializeFacetSettings(element: Element): KotlinFacetSettings {
@@ -216,6 +227,7 @@ fun deserializeFacetSettings(element: Element): KotlinFacetSettings {
         1 -> readV1Config(element)
         2 -> readV2Config(element)
         3 -> readV3Config(element)
+        4 -> readV4Config(element)
         KotlinFacetSettings.CURRENT_VERSION -> readLatestConfig(element)
         else -> return KotlinFacetSettings() // Reset facet configuration if versions don't match
     }.apply { this.version = version }
@@ -330,7 +342,7 @@ private fun KotlinFacetSettings.writeLatestConfig(element: Element) {
         element.addContent(
             Element("externalSystemTestTasks").apply {
                 externalSystemRunTasks.forEach { task ->
-                    when(task) {
+                    when (task) {
                         is ExternalSystemTestRunTask -> {
                             addContent(
                                 Element("externalSystemTestTask").apply { addContent(task.toStringRepresentation()) }
@@ -365,7 +377,7 @@ private fun KotlinFacetSettings.writeLatestConfig(element: Element) {
     }
     compilerArguments?.let { copyBean(it) }?.let {
         it.convertPathsToSystemIndependent()
-        val compilerArgumentsXml = buildChildElement(element, "compilerArguments", it, filter)
+        val compilerArgumentsXml = CompilerArgumentsSerializerV5(it).serializeTo(element)
         compilerArgumentsXml.dropVersionsIfNecessary(it)
     }
 }
