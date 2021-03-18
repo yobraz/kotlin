@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":kotlin-reflect"))
 
     testImplementation(commonDep("junit:junit"))
+    testImplementation(intellijCoreDep()) { includeJars("jdom") }
 }
 
 sourceSets {
