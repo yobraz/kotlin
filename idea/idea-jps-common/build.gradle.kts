@@ -1,4 +1,3 @@
-
 plugins {
     kotlin("jvm")
     id("jps-compatible")
@@ -14,6 +13,7 @@ dependencies {
     compile(project(":native:frontend.native"))
     compileOnly(intellijDep())
     compileOnly(jpsStandalone()) { includeJars("jps-model") }
+    implementation(project(":kotlin-reflect"))
 
     testImplementation(commonDep("junit:junit"))
 }
