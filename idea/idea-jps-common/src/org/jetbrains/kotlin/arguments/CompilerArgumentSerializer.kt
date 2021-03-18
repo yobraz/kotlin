@@ -19,17 +19,32 @@ interface CompilerArgumentsSerializer<T : CommonToolArguments> {
 class CompilerArgumentsSerializerV5<T : CommonToolArguments>(override val arguments: T) : CompilerArgumentsSerializer<T> {
 
     override fun serializeTo(element: Element): Element = Element(ROOT_ELEMENT_NAME).apply {
+        val newInstance = arguments::class.java.newInstance()
         val flagArgumentsByName = CompilerArgumentsContentProspector.getFlagCompilerArgumentProperties(arguments::class)
-            .mapNotNull { prop -> prop.safeAs<KProperty1<T, Boolean>>()?.get(arguments)?.let { prop.name to it } }.toMap()
+            .mapNotNull { prop ->
+                prop.safeAs<KProperty1<T, Boolean>>()
+                    ?.takeIf { it.get(arguments) != it.get(newInstance) }
+                    ?.get(arguments)
+                    ?.let { prop.name to it }
+            }.toMap()
         saveFlagArguments(this, flagArgumentsByName)
 
         val stringArgumentsByName = CompilerArgumentsContentProspector.getStringCompilerArgumentProperties(arguments::class)
-            .mapNotNull { prop -> prop.safeAs<KProperty1<T, String?>>()?.get(arguments)?.let { prop.name to it } }.toMap()
+            .mapNotNull { prop ->
+                prop.safeAs<KProperty1<T, String?>>()
+                    ?.takeIf { it.get(arguments) != it.get(newInstance) }
+                    ?.get(arguments)
+                    ?.let { prop.name to it }
+            }.toMap()
         saveStringArguments(this, stringArgumentsByName)
 
         val arrayArgumentsByName = CompilerArgumentsContentProspector.getArrayCompilerArgumentProperties(arguments::class)
-            .mapNotNull { prop -> prop.safeAs<KProperty1<T, Array<String>?>>()?.get(arguments)?.let { prop.name to it } }
-            .filterNot { it.second.isEmpty() }
+            .mapNotNull { prop ->
+                prop.safeAs<KProperty1<T, Array<String>?>>()
+                    ?.takeIf { it.get(arguments)?.contentEquals(it.get(newInstance)) != true }
+                    ?.get(arguments)
+                    ?.let { prop.name to it }
+            }.filterNot { it.second.isEmpty() }
             .toMap()
         saveArrayArguments(this, arrayArgumentsByName)
         val freeArgs = CompilerArgumentsContentProspector.freeArgsProperty.get(arguments)
@@ -62,7 +77,6 @@ class CompilerArgumentsSerializerV5<T : CommonToolArguments>(override val argume
             }
         }
 
-        //TODO write false explicitly only if it is true by default
         private fun saveFlagArguments(element: Element, argumentsByName: Map<String, Boolean>) {
             if (argumentsByName.isEmpty()) return
             saveElementConfigurable(element, FLAG_ROOT_ELEMENTS_NAME) {
