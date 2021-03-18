@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.arguments
 
 import org.jetbrains.kotlin.cli.common.arguments.CommonToolArguments
 import org.jdom.Element
+import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import kotlin.reflect.KProperty1
 
@@ -50,7 +51,11 @@ class CompilerArgumentsSerializerV4<T : CommonToolArguments> : CompilerArguments
                 argumentsByName.entries.forEach { (name, arg) ->
                     Element(STRING_ELEMENT_NAME).also {
                         it.setAttribute(NAME_ATTR_NAME, name)
-                        it.setAttribute(ARG_ATTR_NAME, arg)
+                        if (name == "classpath") {
+                            saveElementsList(it, ARGS_ATTR_NAME, ARG_ATTR_NAME, arg.split(File.pathSeparator))
+                        } else {
+                            it.setAttribute(ARG_ATTR_NAME, arg)
+                        }
                         addContent(it)
                     }
                 }

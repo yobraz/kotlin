@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.arguments
 import org.jdom.Element
 import org.jdom.Text
 import org.jetbrains.kotlin.cli.common.arguments.*
+import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import kotlin.reflect.KMutableProperty1
 
@@ -63,7 +64,9 @@ class CompilerArgumentsDeserializerV4<T : CommonToolArguments>(override val comp
             readElementConfigurable(element, STRING_ROOT_ELEMENTS_NAME) {
                 getChildren(STRING_ELEMENT_NAME).forEach { child ->
                     val name = child.getAttribute(NAME_ATTR_NAME)?.value ?: return@forEach
-                    val arg = child.getAttribute(ARG_ATTR_NAME)?.value ?: return@forEach
+                    val arg = if (name == "classpath")
+                        readElementsList(child, ARGS_ATTR_NAME, ARG_ATTR_NAME).joinToString(File.pathSeparator)
+                    else child.getAttribute(ARG_ATTR_NAME)?.value ?: return@forEach
                     it += name to arg
                 }
             }

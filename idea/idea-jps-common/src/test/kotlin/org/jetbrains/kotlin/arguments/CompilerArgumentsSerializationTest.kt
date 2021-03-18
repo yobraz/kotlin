@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.arguments
 
 import org.jdom.Element
 import org.jetbrains.kotlin.cli.common.arguments.*
+import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.junit.Test
@@ -30,6 +31,13 @@ class CompilerArgumentsSerializationTest {
     @Test
     fun testRandomStringArgumentsJVM() {
         doRandomStringArgumentsTest<K2JVMCompilerArguments>()
+    }
+
+    @Test
+    fun testLongClasspathArgumentJVM() {
+        doSerializeDeserializeAndCompareTest<K2JVMCompilerArguments> {
+            classpath = generateSequence { generateRandomString(10) }.take(10).toList().joinToString(File.pathSeparator)
+        }
     }
 
     @Test
@@ -70,6 +78,13 @@ class CompilerArgumentsSerializationTest {
     @Test
     fun testRandomStringArgumentsMetadata() {
         doRandomStringArgumentsTest<K2MetadataCompilerArguments>()
+    }
+
+    @Test
+    fun testLongClasspathArgumentMetadata() {
+        doSerializeDeserializeAndCompareTest<K2MetadataCompilerArguments> {
+            classpath = generateSequence { generateRandomString(10) }.take(10).toList().joinToString(File.pathSeparator)
+        }
     }
 
     @Test
