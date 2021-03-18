@@ -13,19 +13,19 @@ import kotlin.reflect.KMutableProperty1
 
 interface CompilerArgumentsDeserializer<T : CommonToolArguments> {
     val compilerArguments: T
-    fun parseElement(element: Element): T.() -> Unit
+    fun parseElement(element: Element)
     fun deserialize(element: Element): T = compilerArguments.apply { parseElement(element) }
 }
 
 class CompilerArgumentsDeserializerV4<T : CommonToolArguments>(override val compilerArguments: T) : CompilerArgumentsDeserializer<T> {
-    override fun parseElement(element: Element): T.() -> Unit = {
+    override fun parseElement(element: Element) {
         val rootArgumentElement = element.getChild(ROOT_ELEMENT_NAME)
-        val flagArgumentNames = readFlagArguments(rootArgumentElement)
+        val flagArgumentsByName = readFlagArguments(rootArgumentElement)
         val flagArgumentsPropertiesMap = CompilerArgumentsContentProspector.getFlagCompilerArgumentProperties(compilerArguments::class)
             .associateBy { it.name }
-        flagArgumentNames.forEach { name ->
+        flagArgumentsByName.forEach { (name, value) ->
             val mutableProp = flagArgumentsPropertiesMap[name].safeAs<KMutableProperty1<T, Boolean>>() ?: return@forEach
-            mutableProp.set(compilerArguments, true)
+            mutableProp.set(compilerArguments, value)
         }
 
         val stringArgumentsByName = readStringArguments(rootArgumentElement)
@@ -56,7 +56,7 @@ class CompilerArgumentsDeserializerV4<T : CommonToolArguments>(override val comp
 
     companion object {
         private fun readElementConfigurable(element: Element, rootElementName: String, configurable: Element.() -> Unit) {
-            element.getChild(rootElementName).apply { configurable(this) }
+            element.getChild(rootElementName)?.apply { configurable(this) }
         }
 
         private fun readStringArguments(element: Element): Map<String, String> = mutableMapOf<String, String>().also {
@@ -69,8 +69,15 @@ class CompilerArgumentsDeserializerV4<T : CommonToolArguments>(override val comp
             }
         }
 
-        private fun readFlagArguments(element: Element): List<String> =
-            readElementsList(element, FLAG_ROOT_ELEMENTS_NAME, FLAG_ELEMENT_NAME)
+        private fun readFlagArguments(element: Element): Map<String, Boolean> = mutableMapOf<String, Boolean>().also {
+            readElementConfigurable(element, FLAG_ROOT_ELEMENTS_NAME) {
+                getChildren(FLAG_ELEMENT_NAME).forEach { child ->
+                    val name = child.getAttribute(NAME_ATTR_NAME)?.value ?: return@forEach
+                    val arg = child.getAttribute(ARG_ATTR_NAME)?.booleanValue ?: return@forEach
+                    it += name to arg
+                }
+            }
+        }
 
         private fun readElementsList(element: Element, rootElementName: String, elementName: String): List<String> =
             mutableListOf<String>().also { list ->

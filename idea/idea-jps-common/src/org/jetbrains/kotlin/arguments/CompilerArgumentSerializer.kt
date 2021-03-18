@@ -12,18 +12,17 @@ import kotlin.reflect.KProperty1
 
 interface CompilerArgumentsSerializer<T : CommonToolArguments> {
     val element: Element
-    fun fillElement(arguments: T): Element.() -> Unit
+    fun fillElement(arguments: T)
     fun serialize(arguments: T): Element = element.apply { fillElement(arguments) }
 }
 
 class CompilerArgumentsSerializerV4<T : CommonToolArguments> : CompilerArgumentsSerializer<T> {
-    override val element: Element
-        get() = Element(ROOT_ELEMENT_NAME)
+    override val element: Element by lazy { Element(ROOT_ELEMENT_NAME) }
 
-    override fun fillElement(arguments: T): Element.() -> Unit = {
-        val flagArguments = CompilerArgumentsContentProspector.getFlagCompilerArgumentProperties(arguments::class)
-            .filter { it.safeAs<KProperty1<T, Boolean>>()?.get(arguments) == true }.map { it.name }
-        saveFlagArguments(element, flagArguments)
+    override fun fillElement(arguments: T) {
+        val flagArgumentsByName = CompilerArgumentsContentProspector.getFlagCompilerArgumentProperties(arguments::class)
+            .mapNotNull { prop -> prop.safeAs<KProperty1<T, Boolean>>()?.get(arguments)?.let { prop.name to it } }.toMap()
+        saveFlagArguments(element, flagArgumentsByName)
 
         val stringArgumentsByName = CompilerArgumentsContentProspector.getStringCompilerArgumentProperties(arguments::class)
             .mapNotNull { prop -> prop.safeAs<KProperty1<T, String?>>()?.get(arguments)?.let { prop.name to it } }.toMap()
@@ -58,8 +57,19 @@ class CompilerArgumentsSerializerV4<T : CommonToolArguments> : CompilerArguments
             }
         }
 
-        private fun saveFlagArguments(element: Element, argumentNames: List<String>) =
-            saveElementsList(element, FLAG_ROOT_ELEMENTS_NAME, FLAG_ELEMENT_NAME, argumentNames)
+        //TODO write false explicitly only if it is true by default
+        private fun saveFlagArguments(element: Element, argumentsByName: Map<String, Boolean>) {
+            if (argumentsByName.isEmpty()) return
+            saveElementConfigurable(element, FLAG_ROOT_ELEMENTS_NAME) {
+                argumentsByName.entries.forEach { (name, arg) ->
+                    Element(FLAG_ELEMENT_NAME).also {
+                        it.setAttribute(NAME_ATTR_NAME, name)
+                        it.setAttribute(ARG_ATTR_NAME, arg.toString())
+                        addContent(it)
+                    }
+                }
+            }
+        }
 
         private fun saveElementsList(element: Element, rootElementName: String, elementName: String, elementList: List<String>) {
             if (elementList.isEmpty()) return
