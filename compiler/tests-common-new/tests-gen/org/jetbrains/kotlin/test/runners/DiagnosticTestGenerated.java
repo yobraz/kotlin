@@ -18299,6 +18299,12 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
                 public void testExpectActualInlineClass() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/multiplatform/inlineClasses/expectActualInlineClass.kt");
                 }
+
+                @Test
+                @TestMetadata("jvmInlineExpectValueClass.kt")
+                public void testJvmInlineExpectValueClass() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/multiplatform/inlineClasses/jvmInlineExpectValueClass.kt");
+                }
             }
 
             @Nested
