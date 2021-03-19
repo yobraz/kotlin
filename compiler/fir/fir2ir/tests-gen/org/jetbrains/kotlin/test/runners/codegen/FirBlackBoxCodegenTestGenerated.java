@@ -16914,6 +16914,12 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
             }
 
             @Test
+            @TestMetadata("builderCallAsReturnTypeInLocalClass.kt")
+            public void testBuilderCallAsReturnTypeInLocalClass() throws Exception {
+                runTest("compiler/testData/codegen/box/inference/builderInference/builderCallAsReturnTypeInLocalClass.kt");
+            }
+
+            @Test
             @TestMetadata("callableReferenceAndCoercionToUnit.kt")
             public void testCallableReferenceAndCoercionToUnit() throws Exception {
                 runTest("compiler/testData/codegen/box/inference/builderInference/callableReferenceAndCoercionToUnit.kt");
@@ -16929,18 +16935,6 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
             @TestMetadata("lackOfNullCheckOnNullableInsideBuild.kt")
             public void testLackOfNullCheckOnNullableInsideBuild() throws Exception {
                 runTest("compiler/testData/codegen/box/inference/builderInference/lackOfNullCheckOnNullableInsideBuild.kt");
-            }
-
-            @Test
-            @TestMetadata("multiStepCompletionWithinThreeBuilderInferenceCalls.kt")
-            public void testMultiStepCompletionWithinThreeBuilderInferenceCalls() throws Exception {
-                runTest("compiler/testData/codegen/box/inference/builderInference/multiStepCompletionWithinThreeBuilderInferenceCalls.kt");
-            }
-
-            @Test
-            @TestMetadata("multiStepCompletionWithinTwoBuilderInferenceCalls.kt")
-            public void testMultiStepCompletionWithinTwoBuilderInferenceCalls() throws Exception {
-                runTest("compiler/testData/codegen/box/inference/builderInference/multiStepCompletionWithinTwoBuilderInferenceCalls.kt");
             }
 
             @Test
@@ -17001,6 +16995,24 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
             @TestMetadata("substitutelambdaExtensionReceiverType.kt")
             public void testSubstitutelambdaExtensionReceiverType() throws Exception {
                 runTest("compiler/testData/codegen/box/inference/builderInference/substitutelambdaExtensionReceiverType.kt");
+            }
+
+            @Test
+            @TestMetadata("topDownCompletionBreakedByNonBuilderInferenceSession.kt")
+            public void testTopDownCompletionBreakedByNonBuilderInferenceSession() throws Exception {
+                runTest("compiler/testData/codegen/box/inference/builderInference/topDownCompletionBreakedByNonBuilderInferenceSession.kt");
+            }
+
+            @Test
+            @TestMetadata("topDownCompletionWithThreeBuilderInferenceCalls.kt")
+            public void testTopDownCompletionWithThreeBuilderInferenceCalls() throws Exception {
+                runTest("compiler/testData/codegen/box/inference/builderInference/topDownCompletionWithThreeBuilderInferenceCalls.kt");
+            }
+
+            @Test
+            @TestMetadata("topDownCompletionWithTwoBuilderInferenceCalls.kt")
+            public void testTopDownCompletionWithTwoBuilderInferenceCalls() throws Exception {
+                runTest("compiler/testData/codegen/box/inference/builderInference/topDownCompletionWithTwoBuilderInferenceCalls.kt");
             }
         }
     }

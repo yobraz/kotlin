@@ -6213,16 +6213,6 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
                 runTest("compiler/testData/codegen/box/inference/builderInference/lackOfNullCheckOnNullableInsideBuild.kt");
             }
 
-            @TestMetadata("multiStepCompletionWithinThreeBuilderInferenceCalls.kt")
-            public void testMultiStepCompletionWithinThreeBuilderInferenceCalls() throws Exception {
-                runTest("compiler/testData/codegen/box/inference/builderInference/multiStepCompletionWithinThreeBuilderInferenceCalls.kt");
-            }
-
-            @TestMetadata("multiStepCompletionWithinTwoBuilderInferenceCalls.kt")
-            public void testMultiStepCompletionWithinTwoBuilderInferenceCalls() throws Exception {
-                runTest("compiler/testData/codegen/box/inference/builderInference/multiStepCompletionWithinTwoBuilderInferenceCalls.kt");
-            }
-
             @TestMetadata("propagateInferenceSessionIntoDeclarationAnalyzers.kt")
             public void testPropagateInferenceSessionIntoDeclarationAnalyzers() throws Exception {
                 runTest("compiler/testData/codegen/box/inference/builderInference/propagateInferenceSessionIntoDeclarationAnalyzers.kt");
@@ -6231,6 +6221,21 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
             @TestMetadata("substituteStubTypeIntolambdaParameterDescriptor.kt")
             public void testSubstituteStubTypeIntolambdaParameterDescriptor() throws Exception {
                 runTest("compiler/testData/codegen/box/inference/builderInference/substituteStubTypeIntolambdaParameterDescriptor.kt");
+            }
+
+            @TestMetadata("topDownCompletionBreakedByNonBuilderInferenceSession.kt")
+            public void testTopDownCompletionBreakedByNonBuilderInferenceSession() throws Exception {
+                runTest("compiler/testData/codegen/box/inference/builderInference/topDownCompletionBreakedByNonBuilderInferenceSession.kt");
+            }
+
+            @TestMetadata("topDownCompletionWithThreeBuilderInferenceCalls.kt")
+            public void testTopDownCompletionWithThreeBuilderInferenceCalls() throws Exception {
+                runTest("compiler/testData/codegen/box/inference/builderInference/topDownCompletionWithThreeBuilderInferenceCalls.kt");
+            }
+
+            @TestMetadata("topDownCompletionWithTwoBuilderInferenceCalls.kt")
+            public void testTopDownCompletionWithTwoBuilderInferenceCalls() throws Exception {
+                runTest("compiler/testData/codegen/box/inference/builderInference/topDownCompletionWithTwoBuilderInferenceCalls.kt");
             }
         }
     }
