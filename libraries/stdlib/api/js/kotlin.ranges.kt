@@ -663,7 +663,7 @@ public open class UIntProgression : kotlin.collections.Iterable<kotlin.UInt> {
 
     public open fun isEmpty(): kotlin.Boolean
 
-    public open override operator fun iterator(): kotlin.collections.UIntIterator
+    public final override operator fun iterator(): kotlin.collections.Iterator<kotlin.UInt>
 
     public open override fun toString(): kotlin.String
 
@@ -711,7 +711,7 @@ public open class ULongProgression : kotlin.collections.Iterable<kotlin.ULong> {
 
     public open fun isEmpty(): kotlin.Boolean
 
-    public open override operator fun iterator(): kotlin.collections.ULongIterator
+    public final override operator fun iterator(): kotlin.collections.Iterator<kotlin.ULong>
 
     public open override fun toString(): kotlin.String
 

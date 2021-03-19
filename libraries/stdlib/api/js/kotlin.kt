@@ -2558,7 +2558,7 @@ public final inline class UByteArray : kotlin.collections.Collection<kotlin.UByt
 
     public open override fun isEmpty(): kotlin.Boolean
 
-    public open override operator fun iterator(): kotlin.collections.UByteIterator
+    public open override operator fun iterator(): kotlin.collections.Iterator<kotlin.UByte>
 
     public final operator fun set(index: kotlin.Int, value: kotlin.UByte): kotlin.Unit
 
@@ -2759,7 +2759,7 @@ public final inline class UIntArray : kotlin.collections.Collection<kotlin.UInt>
 
     public open override fun isEmpty(): kotlin.Boolean
 
-    public open override operator fun iterator(): kotlin.collections.UIntIterator
+    public open override operator fun iterator(): kotlin.collections.Iterator<kotlin.UInt>
 
     public final operator fun set(index: kotlin.Int, value: kotlin.UInt): kotlin.Unit
 
@@ -2960,7 +2960,7 @@ public final inline class ULongArray : kotlin.collections.Collection<kotlin.ULon
 
     public open override fun isEmpty(): kotlin.Boolean
 
-    public open override operator fun iterator(): kotlin.collections.ULongIterator
+    public open override operator fun iterator(): kotlin.collections.Iterator<kotlin.ULong>
 
     public final operator fun set(index: kotlin.Int, value: kotlin.ULong): kotlin.Unit
 
@@ -3155,7 +3155,7 @@ public final inline class UShortArray : kotlin.collections.Collection<kotlin.USh
 
     public open override fun isEmpty(): kotlin.Boolean
 
-    public open override operator fun iterator(): kotlin.collections.UShortIterator
+    public open override operator fun iterator(): kotlin.collections.Iterator<kotlin.UShort>
 
     public final operator fun set(index: kotlin.Int, value: kotlin.UShort): kotlin.Unit
 

@@ -75,7 +75,7 @@ internal constructor(
      */
     public val step: Int = step
 
-    override fun iterator(): UIntIterator = UIntProgressionIterator(first, last, step)
+    final override fun iterator(): Iterator<UInt> = UIntProgressionIterator(first, last, step)
 
     /** 
      * Checks if the progression is empty.
@@ -113,6 +113,7 @@ internal constructor(
  * @property step the number by which the value is incremented on each step.
  */
 @SinceKotlin("1.3")
+@Suppress("DEPRECATION_ERROR")
 private class UIntProgressionIterator(first: UInt, last: UInt, step: Int) : UIntIterator() {
     private val finalElement = last
     private var hasNext: Boolean = if (step > 0) first <= last else first >= last

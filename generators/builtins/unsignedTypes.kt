@@ -452,10 +452,10 @@ class UnsignedIteratorsGenerator(out: PrintWriter) : BuiltInsSourceGenerator(out
         for (type in UnsignedType.values()) {
             val s = type.capitalized
             out.println("/** An iterator over a sequence of values of type `$s`. */")
-            out.println("// TODO: Remove from public API")
+            out.println("@Deprecated(\"This class is not going to be stabilized and is to be removed soon.\", level = DeprecationLevel.ERROR)")
+            out.println("@SinceKotlin(\"1.3\")")
             out.println("public abstract class ${s}Iterator : Iterator<$s> {")
-            // TODO: Sort modifiers
-            out.println("    override final fun next() = next$s()")
+            out.println("    final override fun next() = next$s()")
             out.println()
             out.println("    /** Returns the next value in the sequence without boxing. */")
             out.println("    public abstract fun next$s(): $s")
@@ -508,8 +508,9 @@ class UnsignedArrayGenerator(val type: UnsignedType, out: PrintWriter) : BuiltIn
     public override val size: Int get() = storage.size
 
     /** Creates an iterator over the elements of the array. */
-    public override operator fun iterator(): ${elementType}Iterator = Iterator(storage)
+    public override operator fun iterator(): kotlin.collections.Iterator<$elementType> = Iterator(storage)
 
+    @Suppress("DEPRECATION_ERROR")
     private class Iterator(private val array: $storageArrayType) : ${elementType}Iterator() {
         private var index = 0
         override fun hasNext() = index < array.size
@@ -639,7 +640,7 @@ internal constructor(
      */
     public val step: $stepType = step
 
-    override fun iterator(): ${elementType}Iterator = ${elementType}ProgressionIterator(first, last, step)
+    final override fun iterator(): Iterator<$elementType> = ${elementType}ProgressionIterator(first, last, step)
 
     /** 
      * Checks if the progression is empty.
@@ -677,6 +678,7 @@ internal constructor(
  * @property step the number by which the value is incremented on each step.
  */
 @SinceKotlin("1.3")
+@Suppress("DEPRECATION_ERROR")
 private class ${elementType}ProgressionIterator(first: $elementType, last: $elementType, step: $stepType) : ${elementType}Iterator() {
     private val finalElement = last
     private var hasNext: Boolean = if (step > 0) first <= last else first >= last
