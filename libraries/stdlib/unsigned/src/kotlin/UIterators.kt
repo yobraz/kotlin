@@ -8,36 +8,32 @@
 package kotlin.collections
 
 /** An iterator over a sequence of values of type `UByte`. */
-// TODO: Remove from public API
-public abstract class UByteIterator : Iterator<UByte> {
-    override final fun next() = nextUByte()
+internal abstract class UByteIterator : Iterator<UByte> {
+    final override fun next() = nextUByte()
 
     /** Returns the next value in the sequence without boxing. */
     public abstract fun nextUByte(): UByte
 }
 
 /** An iterator over a sequence of values of type `UShort`. */
-// TODO: Remove from public API
-public abstract class UShortIterator : Iterator<UShort> {
-    override final fun next() = nextUShort()
+internal abstract class UShortIterator : Iterator<UShort> {
+    final override fun next() = nextUShort()
 
     /** Returns the next value in the sequence without boxing. */
     public abstract fun nextUShort(): UShort
 }
 
 /** An iterator over a sequence of values of type `UInt`. */
-// TODO: Remove from public API
-public abstract class UIntIterator : Iterator<UInt> {
-    override final fun next() = nextUInt()
+internal abstract class UIntIterator : Iterator<UInt> {
+    final override fun next() = nextUInt()
 
     /** Returns the next value in the sequence without boxing. */
     public abstract fun nextUInt(): UInt
 }
 
 /** An iterator over a sequence of values of type `ULong`. */
-// TODO: Remove from public API
-public abstract class ULongIterator : Iterator<ULong> {
-    override final fun next() = nextULong()
+internal abstract class ULongIterator : Iterator<ULong> {
+    final override fun next() = nextULong()
 
     /** Returns the next value in the sequence without boxing. */
     public abstract fun nextULong(): ULong

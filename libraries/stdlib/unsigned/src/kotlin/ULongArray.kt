@@ -41,7 +41,7 @@ internal constructor(@PublishedApi internal val storage: LongArray) : Collection
     public override val size: Int get() = storage.size
 
     /** Creates an iterator over the elements of the array. */
-    public override operator fun iterator(): ULongIterator = Iterator(storage)
+    public override operator fun iterator(): kotlin.collections.Iterator<ULong> = Iterator(storage)
 
     private class Iterator(private val array: LongArray) : ULongIterator() {
         private var index = 0

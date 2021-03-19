@@ -75,7 +75,7 @@ internal constructor(
      */
     public val step: Int = step
 
-    override fun iterator(): UIntIterator = UIntProgressionIterator(first, last, step)
+    final override fun iterator(): Iterator<UInt> = UIntProgressionIterator(first, last, step)
 
     /** 
      * Checks if the progression is empty.

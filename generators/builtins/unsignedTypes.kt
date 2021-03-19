@@ -452,10 +452,8 @@ class UnsignedIteratorsGenerator(out: PrintWriter) : BuiltInsSourceGenerator(out
         for (type in UnsignedType.values()) {
             val s = type.capitalized
             out.println("/** An iterator over a sequence of values of type `$s`. */")
-            out.println("// TODO: Remove from public API")
-            out.println("public abstract class ${s}Iterator : Iterator<$s> {")
-            // TODO: Sort modifiers
-            out.println("    override final fun next() = next$s()")
+            out.println("internal abstract class ${s}Iterator : Iterator<$s> {")
+            out.println("    final override fun next() = next$s()")
             out.println()
             out.println("    /** Returns the next value in the sequence without boxing. */")
             out.println("    public abstract fun next$s(): $s")
@@ -508,7 +506,7 @@ class UnsignedArrayGenerator(val type: UnsignedType, out: PrintWriter) : BuiltIn
     public override val size: Int get() = storage.size
 
     /** Creates an iterator over the elements of the array. */
-    public override operator fun iterator(): ${elementType}Iterator = Iterator(storage)
+    public override operator fun iterator(): kotlin.collections.Iterator<$elementType> = Iterator(storage)
 
     private class Iterator(private val array: $storageArrayType) : ${elementType}Iterator() {
         private var index = 0
@@ -639,7 +637,7 @@ internal constructor(
      */
     public val step: $stepType = step
 
-    override fun iterator(): ${elementType}Iterator = ${elementType}ProgressionIterator(first, last, step)
+    final override fun iterator(): Iterator<$elementType> = ${elementType}ProgressionIterator(first, last, step)
 
     /** 
      * Checks if the progression is empty.

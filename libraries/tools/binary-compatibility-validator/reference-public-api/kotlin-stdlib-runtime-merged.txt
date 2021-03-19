@@ -306,9 +306,8 @@ public final class kotlin/UByteArray : java/util/Collection, kotlin/jvm/internal
 	public static fun hashCode-impl ([B)I
 	public fun isEmpty ()Z
 	public static fun isEmpty-impl ([B)Z
-	public synthetic fun iterator ()Ljava/util/Iterator;
-	public fun iterator ()Lkotlin/collections/UByteIterator;
-	public static fun iterator-impl ([B)Lkotlin/collections/UByteIterator;
+	public fun iterator ()Ljava/util/Iterator;
+	public static fun iterator-impl ([B)Ljava/util/Iterator;
 	public fun remove (Ljava/lang/Object;)Z
 	public fun removeAll (Ljava/util/Collection;)Z
 	public fun retainAll (Ljava/util/Collection;)Z
@@ -366,9 +365,8 @@ public final class kotlin/UIntArray : java/util/Collection, kotlin/jvm/internal/
 	public static fun hashCode-impl ([I)I
 	public fun isEmpty ()Z
 	public static fun isEmpty-impl ([I)Z
-	public synthetic fun iterator ()Ljava/util/Iterator;
-	public fun iterator ()Lkotlin/collections/UIntIterator;
-	public static fun iterator-impl ([I)Lkotlin/collections/UIntIterator;
+	public fun iterator ()Ljava/util/Iterator;
+	public static fun iterator-impl ([I)Ljava/util/Iterator;
 	public fun remove (Ljava/lang/Object;)Z
 	public fun removeAll (Ljava/util/Collection;)Z
 	public fun retainAll (Ljava/util/Collection;)Z
@@ -426,9 +424,8 @@ public final class kotlin/ULongArray : java/util/Collection, kotlin/jvm/internal
 	public static fun hashCode-impl ([J)I
 	public fun isEmpty ()Z
 	public static fun isEmpty-impl ([J)Z
-	public synthetic fun iterator ()Ljava/util/Iterator;
-	public fun iterator ()Lkotlin/collections/ULongIterator;
-	public static fun iterator-impl ([J)Lkotlin/collections/ULongIterator;
+	public fun iterator ()Ljava/util/Iterator;
+	public static fun iterator-impl ([J)Ljava/util/Iterator;
 	public fun remove (Ljava/lang/Object;)Z
 	public fun removeAll (Ljava/util/Collection;)Z
 	public fun retainAll (Ljava/util/Collection;)Z
@@ -486,9 +483,8 @@ public final class kotlin/UShortArray : java/util/Collection, kotlin/jvm/interna
 	public static fun hashCode-impl ([S)I
 	public fun isEmpty ()Z
 	public static fun isEmpty-impl ([S)Z
-	public synthetic fun iterator ()Ljava/util/Iterator;
-	public fun iterator ()Lkotlin/collections/UShortIterator;
-	public static fun iterator-impl ([S)Lkotlin/collections/UShortIterator;
+	public fun iterator ()Ljava/util/Iterator;
+	public static fun iterator-impl ([S)Ljava/util/Iterator;
 	public fun remove (Ljava/lang/Object;)Z
 	public fun removeAll (Ljava/util/Collection;)Z
 	public fun retainAll (Ljava/util/Collection;)Z
@@ -2569,14 +2565,6 @@ public abstract class kotlin/collections/ShortIterator : java/util/Iterator, kot
 	public fun remove ()V
 }
 
-public abstract class kotlin/collections/UByteIterator : java/util/Iterator, kotlin/jvm/internal/markers/KMappedMarker {
-	public fun <init> ()V
-	public synthetic fun next ()Ljava/lang/Object;
-	public final fun next-w2LRezQ ()B
-	public abstract fun nextUByte-w2LRezQ ()B
-	public fun remove ()V
-}
-
 public final class kotlin/collections/UCollectionsKt {
 	public static final fun sumOfUByte (Ljava/lang/Iterable;)I
 	public static final fun sumOfUInt (Ljava/lang/Iterable;)I
@@ -2586,30 +2574,6 @@ public final class kotlin/collections/UCollectionsKt {
 	public static final fun toUIntArray (Ljava/util/Collection;)[I
 	public static final fun toULongArray (Ljava/util/Collection;)[J
 	public static final fun toUShortArray (Ljava/util/Collection;)[S
-}
-
-public abstract class kotlin/collections/UIntIterator : java/util/Iterator, kotlin/jvm/internal/markers/KMappedMarker {
-	public fun <init> ()V
-	public synthetic fun next ()Ljava/lang/Object;
-	public final fun next-pVg5ArA ()I
-	public abstract fun nextUInt-pVg5ArA ()I
-	public fun remove ()V
-}
-
-public abstract class kotlin/collections/ULongIterator : java/util/Iterator, kotlin/jvm/internal/markers/KMappedMarker {
-	public fun <init> ()V
-	public synthetic fun next ()Ljava/lang/Object;
-	public final fun next-s-VKNKU ()J
-	public abstract fun nextULong-s-VKNKU ()J
-	public fun remove ()V
-}
-
-public abstract class kotlin/collections/UShortIterator : java/util/Iterator, kotlin/jvm/internal/markers/KMappedMarker {
-	public fun <init> ()V
-	public synthetic fun next ()Ljava/lang/Object;
-	public final fun next-Mh2AYeg ()S
-	public abstract fun nextUShort-Mh2AYeg ()S
-	public fun remove ()V
 }
 
 public final class kotlin/collections/unsigned/UArraysKt {
@@ -4524,8 +4488,7 @@ public class kotlin/ranges/UIntProgression : java/lang/Iterable, kotlin/jvm/inte
 	public final fun getStep ()I
 	public fun hashCode ()I
 	public fun isEmpty ()Z
-	public synthetic fun iterator ()Ljava/util/Iterator;
-	public fun iterator ()Lkotlin/collections/UIntIterator;
+	public final fun iterator ()Ljava/util/Iterator;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -4560,8 +4523,7 @@ public class kotlin/ranges/ULongProgression : java/lang/Iterable, kotlin/jvm/int
 	public final fun getStep ()J
 	public fun hashCode ()I
 	public fun isEmpty ()Z
-	public synthetic fun iterator ()Ljava/util/Iterator;
-	public fun iterator ()Lkotlin/collections/ULongIterator;
+	public final fun iterator ()Ljava/util/Iterator;
 	public fun toString ()Ljava/lang/String;
 }
 
