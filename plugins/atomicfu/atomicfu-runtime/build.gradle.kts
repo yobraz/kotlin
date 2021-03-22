@@ -1,4 +1,4 @@
-description = "Atomicfu Runtime"
+description = "Runtime library for the Atomicfu compiler plugin"
 
 plugins {
     kotlin("js")
@@ -23,6 +23,9 @@ kotlin {
     }
 }
 
+val runtimeElements by configurations.creating {}
+val apiElements by configurations.creating {}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
@@ -30,3 +33,5 @@ publishing {
         }
     }
 }
+
+publish()

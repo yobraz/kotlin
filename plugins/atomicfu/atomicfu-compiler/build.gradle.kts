@@ -1,7 +1,6 @@
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
-import org.gradle.internal.os.OperatingSystem
 
 
 description = "Atomicfu Compiler Plugin"
@@ -121,5 +120,4 @@ fun Test.setUpJsIrBoxTests() {
     systemProperty("atomicfu.classpath", atomicfuClasspath.asPath)
 }
 
-val generateTests by generator("org.jetbrains.kotlin.generators.tests.GenerateJsTestsKt")
-val testDataDir = project(":js:js.translator").projectDir.resolve("testData")
+apply(from = "$rootDir/gradle/kotlinPluginPublication.gradle.kts")
