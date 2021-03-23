@@ -62,6 +62,19 @@ class Distribution(
             }
         }
 
+        // TODO: Load only current target
+        File(konanSubdir, "targets").listFiles
+            .asSequence()
+            .filter { it.isDirectory }
+            .filter { TargetDirectory.isTargetDirectory(it) }
+            .filter { TargetDirectory.supportsHost(it, HostManager.hostName) }
+            .map { TargetDirectory(it, HostManager.hostName) }
+            .forEach {
+                loadPropertiesSafely(it.targetPropertiesFile)
+                loadPropertiesSafely(it.hostSpecificPropertiesFile)
+            }
+
+
         if (onlyDefaultProfiles) {
             result.keepOnlyDefaultProfiles()
         }
@@ -97,6 +110,35 @@ class Distribution(
     val subTargetProvider = object: SubTargetProvider {
         override fun availableSubTarget(genericName: String) =
                 additionalPropertyFiles(genericName).map { it.name }
+    }
+}
+
+private class TargetDirectory(
+    val path: File,
+    val hostName: String
+) {
+    init {
+        require(path.isDirectory)
+    }
+
+    val targetName: String = path.name
+
+    val targetPropertiesFile: File by lazy {
+        path.listFiles.first { it.name == "target.properties" }
+    }
+
+    val hostSpecificPropertiesFile: File by lazy {
+        path.listFiles.first { it.name == "${hostName}.host.properties" }
+    }
+
+    companion object {
+        fun isTargetDirectory(path: File): Boolean {
+            return "target.properties" in path.listFiles.map(File::name)
+        }
+
+        fun supportsHost(path: File, hostName: String): Boolean {
+            return path.listFiles.find { it.name == "${hostName}.host.properties" } != null
+        }
     }
 }
 
