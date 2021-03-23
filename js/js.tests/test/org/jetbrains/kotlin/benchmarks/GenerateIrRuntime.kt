@@ -14,6 +14,7 @@ import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.common.phaser.invokeToplevel
+import org.jetbrains.kotlin.backend.common.serialization.CompatibilityMode
 import org.jetbrains.kotlin.backend.common.serialization.KlibIrVersion
 import org.jetbrains.kotlin.backend.common.serialization.metadata.KlibMetadataVersion
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureDescriptor
@@ -214,7 +215,7 @@ class GenerateIrRuntime {
         val moduleDescriptor = doDeserializeModuleMetadata(moduleRef)
 
         runBenchWithWarmup("Ir Deserialization Monolithic", 40, 10, MeasureUnits.MILLISECONDS, pre = System::gc) {
-            doDeserializeIrModule(moduleDescriptor)
+            doDeserializeIrModule(moduleDescriptor, analysisResult.bindingContext)
         }
     }
 
@@ -228,7 +229,7 @@ class GenerateIrRuntime {
         val moduleDescriptor = doDeserializeModuleMetadata(moduleRef)
 
         runBenchWithWarmup("Ir Deserialization Per-File", 40, 10, MeasureUnits.MILLISECONDS, pre = System::gc) {
-            doDeserializeIrModule(moduleDescriptor)
+            doDeserializeIrModule(moduleDescriptor, analysisResult.bindingContext)
         }
     }
 
@@ -492,6 +493,7 @@ class GenerateIrRuntime {
             emptyList(),
             true,
             perFile,
+            abiVersion = KotlinAbiVersion.CURRENT,
             jsOutputName = null
         )
 
@@ -506,7 +508,7 @@ class GenerateIrRuntime {
 
 
     private fun doSerializeIrModule(module: IrModuleFragment): SerializedIrModule {
-        val serializedIr = JsIrModuleSerializer(IrMessageLogger.None, module.irBuiltins, mutableMapOf(), true).serializedIrModule(module)
+        val serializedIr = JsIrModuleSerializer(IrMessageLogger.None, module.irBuiltins, mutableMapOf(), CompatibilityMode.CURRENT, true).serializedIrModule(module)
         return serializedIr
     }
 
@@ -514,11 +516,11 @@ class GenerateIrRuntime {
         writer.writeIr(serializedIrModule)
     }
 
-    private fun doDeserializeIrModule(moduleDescriptor: ModuleDescriptorImpl): DeserializedModuleInfo {
+    private fun doDeserializeIrModule(moduleDescriptor: ModuleDescriptorImpl, bindingContext: BindingContext): DeserializedModuleInfo {
         val mangler = JsManglerDesc
         val signaturer = IdSignatureDescriptor(mangler)
         val symbolTable = SymbolTable(signaturer, PersistentIrFactory())
-        val typeTranslator = TypeTranslatorImpl(symbolTable, languageVersionSettings, moduleDescriptor)
+        val typeTranslator = TypeTranslatorImpl(symbolTable, signaturer, languageVersionSettings, moduleDescriptor)
 
         val irBuiltIns = IrBuiltIns(moduleDescriptor.builtIns, typeTranslator, symbolTable)
         val functionFactory = IrFunctionFactory(irBuiltIns, symbolTable)
@@ -545,7 +547,7 @@ class GenerateIrRuntime {
         val mangler = JsManglerDesc
         val signaturer = IdSignatureDescriptor(mangler)
         val symbolTable = SymbolTable(signaturer, PersistentIrFactory())
-        val typeTranslator = TypeTranslatorImpl(symbolTable, languageVersionSettings, moduleDescriptor)
+        val typeTranslator = TypeTranslatorImpl(symbolTable, signaturer, languageVersionSettings, moduleDescriptor)
         val irBuiltIns = IrBuiltIns(moduleDescriptor.builtIns, typeTranslator, symbolTable)
 
         val functionFactory = IrFunctionFactory(irBuiltIns, symbolTable)

@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.psi2ir
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.linkage.IrDeserializer
@@ -54,7 +55,8 @@ class Psi2IrTranslator(
         symbolTable: SymbolTable,
         extensions: GeneratorExtensions = GeneratorExtensions()
     ): GeneratorContext {
-        val typeTranslator = TypeTranslatorImpl(symbolTable, languageVersionSettings, moduleDescriptor, extensions = extensions)
+        val typeTranslator =
+            TypeTranslatorImpl(symbolTable, symbolTable.signaturer, languageVersionSettings, moduleDescriptor, extensions = extensions)
         return GeneratorContext(
             configuration,
             moduleDescriptor,
@@ -68,15 +70,23 @@ class Psi2IrTranslator(
         )
     }
 
+    fun createFiles(context: GeneratorContext, ktFiles: Collection<KtFile>): Pair<Map<KtFile, IrFile>, IrModuleFragment> {
+        val moduleGenerator = ModuleGenerator(context, null)
+        val moduleFragment = moduleGenerator.createModuleFragment()
+        return ktFiles.associateWith { moduleGenerator.createEmptyIrFile(it, moduleFragment) } to moduleFragment
+    }
+
     fun generateModuleFragment(
         context: GeneratorContext,
         ktFiles: Collection<KtFile>,
         irProviders: List<IrProvider>,
         linkerExtensions: Collection<IrDeserializer.IrLinkerExtension>,
-        expectDescriptorToSymbol: MutableMap<DeclarationDescriptor, IrSymbol>? = null
+        expectDescriptorToSymbol: MutableMap<DeclarationDescriptor, IrSymbol>? = null,
+        irFilesMap: Map<KtFile, IrFile>? = null,
+        moduleFragment: IrModuleFragment? = null
     ): IrModuleFragment {
         val moduleGenerator = ModuleGenerator(context, expectDescriptorToSymbol)
-        val irModule = moduleGenerator.generateModuleFragment(ktFiles)
+        val irModule = moduleGenerator.generateModuleFragment(ktFiles, irFilesMap, moduleFragment)
 
         val deserializers = irProviders.filterIsInstance<IrDeserializer>()
         deserializers.forEach { it.init(irModule, linkerExtensions) }

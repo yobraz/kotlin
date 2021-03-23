@@ -42,6 +42,7 @@ dependencies {
     interpreterApi(project(":compiler:ir.psi2ir"))
     protobufApi(kotlinStdlib())
     protobufCompareApi(projectTests(":kotlin-build-common"))
+    interpreterApi(project(":compiler:ir.serialization.js"))
 
     testCompile(builtinsSourceSet.output)
     testCompile(evaluateSourceSet.output)

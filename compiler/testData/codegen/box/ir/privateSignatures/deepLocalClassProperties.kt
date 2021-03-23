@@ -12,13 +12,15 @@ fun foo(b: Boolean): String {
 
         class LOuter<T1>(t1: T1) {
 
+            val ttttt: Any get() = qqq.biq().also { it.caz() }
+
             val stringOuter1: String = "A"
             val genericOuter1: T1 = t1
             private val test = object {
-                fun bar() = object {
-                    fun qux() = object {
-                        fun biq() = object {
-                            fun caz() = object {
+                fun bar(a: Any = object {}) = object {
+                    fun qux(a: Any = object {}) = object {
+                        fun biq(a: Any = object {}) = object {
+                            fun caz(a: Any = object {}) = object {
                             }.also { result += "d" }
                         }.also { result += "c" }
                     }.also { result += "b" }

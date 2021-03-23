@@ -56,6 +56,19 @@ import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.types.typeUtil.*
 import org.jetbrains.kotlin.util.OperatorNameConventions
+import kotlin.collections.Map
+import kotlin.collections.MutableMap
+import kotlin.collections.contains
+import kotlin.collections.find
+import kotlin.collections.forEach
+import kotlin.collections.forEachIndexed
+import kotlin.collections.indices
+import kotlin.collections.last
+import kotlin.collections.lastIndex
+import kotlin.collections.mapIndexed
+import kotlin.collections.mutableMapOf
+import kotlin.collections.set
+import kotlin.collections.setOf
 
 fun insertImplicitCasts(file: IrFile, context: GeneratorContext) {
     InsertImplicitCasts(
@@ -79,7 +92,7 @@ internal class InsertImplicitCasts(
     private val file: IrFile,
 ) : IrElementTransformerVoid() {
 
-    private val expectedFunctionExpressionReturnType = hashMapOf<FunctionDescriptor, IrType>()
+    private val expectedFunctionExpressionReturnType: MutableMap<FunctionDescriptor, IrType> = mutableMapOf()
 
     fun run(element: IrElement) {
         element.transformChildrenVoid(this)
@@ -123,6 +136,13 @@ internal class InsertImplicitCasts(
         return expression.transformPostfix {
             transformReceiverArguments(substitutedDescriptor)
         }
+    }
+
+    override fun visitFile(declaration: IrFile): IrFile {
+        symbolTable.signaturer.inFile(file.symbol) {
+            declaration.transformChildrenVoid()
+        }
+        return declaration
     }
 
     private fun IrMemberAccessExpression<*>.transformReceiverArguments(substitutedDescriptor: CallableDescriptor) {

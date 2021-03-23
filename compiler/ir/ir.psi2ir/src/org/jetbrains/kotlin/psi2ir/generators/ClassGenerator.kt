@@ -103,7 +103,7 @@ class ClassGenerator(
             }
 
             irClass.thisReceiver = context.symbolTable.declareValueParameter(
-                startOffset, endOffset,
+                irClass.startOffset, irClass.endOffset,
                 IrDeclarationOrigin.INSTANCE_RECEIVER,
                 classDescriptor.thisAsReceiverParameter,
                 classDescriptor.thisAsReceiverParameter.type.toIrType()

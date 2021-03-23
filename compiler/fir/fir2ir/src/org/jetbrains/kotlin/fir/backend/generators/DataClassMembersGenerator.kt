@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.util.DataClassMembersGenerator
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.util.OperatorNameConventions.EQUALS
 import org.jetbrains.kotlin.util.OperatorNameConventions.TO_STRING
 
@@ -77,7 +78,7 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
         val lookupTag: ConeClassLikeLookupTag,
         val origin: IrDeclarationOrigin
     ) {
-        private val irDataClassMembersGenerator = object : DataClassMembersGenerator(
+        private val irDataClassMembersGenerator = object : DataClassMembersGenerator<KtElement>(
             IrGeneratorContextBase(components.irBuiltIns),
             components.symbolTable,
             irClass,
