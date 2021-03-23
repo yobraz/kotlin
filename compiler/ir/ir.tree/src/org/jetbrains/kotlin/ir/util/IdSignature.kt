@@ -7,14 +7,18 @@ package org.jetbrains.kotlin.ir.util
 
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.ir.symbols.IrFileSymbol
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.types.KotlinType
 
 sealed class IdSignature {
 
     enum class Flags(val recursive: Boolean) {
         IS_EXPECT(true),
         IS_JAVA_FOR_KOTLIN_OVERRIDE_PROPERTY(false),
-        IS_NATIVE_INTEROP_LIBRARY(true);
+        IS_NATIVE_INTEROP_LIBRARY(true),
+        IS_SYNTHETIC_JAVA_PROPERTY(true);
 
         fun encode(isSet: Boolean): Long = if (isSet) 1L shl ordinal else 0L
         fun decode(flags: Long): Boolean = (flags and (1L shl ordinal) != 0L)
@@ -92,6 +96,38 @@ sealed class IdSignature {
             ((packageFqName.hashCode() * 31 + declarationFqName.hashCode()) * 31 + id.hashCode()) * 31 + mask.hashCode()
     }
 
+    class CompositeSignature(val container: IdSignature, val inner: IdSignature) : IdSignature() {
+        override val isPublic: Boolean
+            get() = container.isPublic && inner.isPublic
+
+        override fun topLevelSignature(): IdSignature {
+            return if (container is FileSignature) inner.topLevelSignature() else container.topLevelSignature()
+        }
+
+        override fun nearestPublicSig(): IdSignature {
+            return if (container is FileSignature) inner.nearestPublicSig() else container.nearestPublicSig()
+        }
+
+        override fun packageFqName(): FqName {
+            return if (container is FileSignature) inner.packageFqName() else container.packageFqName()
+        }
+
+        override fun render(): String {
+            return buildString {
+                append("[ ")
+                append(container)
+                append(" <- ")
+                append(inner)
+                append(" ]")
+            }
+        }
+
+        override fun equals(other: Any?): Boolean = other is CompositeSignature && container == other.container && inner == other.inner
+
+        override fun hashCode(): Int = container.hashCode() * 31 + inner.hashCode()
+
+    }
+
     class AccessorSignature(val propertySignature: IdSignature, val accessorSignature: PublicSignature) : IdSignature() {
         override val isPublic: Boolean get() = true
 
@@ -112,6 +148,112 @@ sealed class IdSignature {
             else accessorSignature == other
 
         override fun hashCode(): Int = accessorSignature.hashCode()
+    }
+
+    class FileSignature(private val fileSymbol: IrFileSymbol) : IdSignature() {
+        override fun equals(other: Any?): Boolean = other is FileSignature && fileSymbol == other.fileSymbol
+
+        override fun hashCode(): Int = fileSymbol.owner.hashCode()
+
+        override val isPublic: Boolean
+            get() = true
+
+        override fun isPackageSignature(): Boolean = true
+
+        override fun topLevelSignature(): IdSignature {
+            error("Should not reach here ($this)")
+        }
+
+        override fun nearestPublicSig(): IdSignature {
+            error("Should not reach here ($this)")
+        }
+
+        override fun packageFqName(): FqName = fileSymbol.owner.fqName
+
+        override fun render(): String {
+            return "File '${fileSymbol.owner.fileEntry.name}'"
+        }
+
+        override val hasTopLevel: Boolean
+            get() = false
+    }
+
+    class ContainedSignature(val container: IdSignature, val innerName: String, val innerId: Long?, val description: String?) : IdSignature() {
+        override val isPublic: Boolean
+            get() = false
+
+        override fun topLevelSignature(): IdSignature = container.topLevelSignature()
+
+        override fun nearestPublicSig(): IdSignature = container.nearestPublicSig()
+
+        override fun packageFqName(): FqName = container.packageFqName()
+
+        override fun asPublic(): PublicSignature? = container.asPublic()
+
+        override fun render(): String = buildString {
+            append("<")
+            append(container.render())
+            append(" <- [")
+            append(innerName)
+            innerId?.let {
+                append(", ")
+                append(it.toString(Character.MAX_RADIX))
+            }
+
+            description?.let {
+                append(" | ")
+                append(it)
+            }
+
+            append("]>")
+        }
+
+        override fun equals(other: Any?): Boolean {
+            return other is ContainedSignature && container == other.container && innerName == other.innerName && innerId == other.innerId
+        }
+
+        override fun hashCode(): Int = (container.hashCode() * 31 + innerName.hashCode()) * 31 + (innerId ?: 0).toInt()
+    }
+
+    class LocalSignature(val localFqn: String, val hashSig: Long?, val description: String?) : IdSignature() {
+        override val isPublic: Boolean
+            get() = false
+
+        override fun topLevelSignature(): IdSignature {
+            error("Illegal access: Local Sig does not have toplevel (${render()}")
+        }
+
+        override fun nearestPublicSig(): IdSignature {
+            error("Illegal access: Local Sig does not have information about its public part (${render()}")
+        }
+
+        override fun packageFqName(): FqName {
+            error("Illegal access: Local signature does not have package (${render()}")
+        }
+
+        override fun render(): String {
+            return buildString {
+                append("Local[")
+                append(localFqn)
+                hashSig?.let {
+                    append(",")
+                    append(it)
+                }
+                description?.let {
+                    append(" | ")
+                    append(it)
+                }
+                append("]")
+            }
+        }
+
+        override fun equals(other: Any?): Boolean {
+            return other is LocalSignature && localFqn == other.localFqn && hashSig == other.hashSig
+        }
+
+        override fun hashCode(): Int {
+            return (hashSig ?: 0L).toInt() * 31 + localFqn.hashCode()
+        }
     }
 
     // KT-42020
@@ -199,7 +341,10 @@ sealed class IdSignature {
     }
 
     // Used to reference local variable and value parameters in function
-    class ScopeLocalDeclaration(val id: Int, val description: String = "<no description>") : IdSignature() {
+    class ScopeLocalDeclaration(val id: Int, _description: String? = null) : IdSignature() {
+
+        val description: String = _description ?: "<no description>"
+
         override val isPublic: Boolean get() = false
 
         override val hasTopLevel: Boolean get() = false
@@ -220,6 +365,24 @@ sealed class IdSignature {
 }
 
 interface IdSignatureComposer {
-    fun composeSignature(descriptor: DeclarationDescriptor): IdSignature?
-    fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature?
+    fun composeSignature(descriptor: DeclarationDescriptor): IdSignature
+    fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature
+
+
+    interface Scope {
+        fun commitLambda(descriptor: FunctionDescriptor)
+        fun commitLocalFunction(descriptor: FunctionDescriptor)
+        fun commitAnonymousObject(descriptor: ClassDescriptor)
+        fun commitLocalClass(descriptor: ClassDescriptor)
+    }
+
+    interface ScopeBuilder<E> {
+        fun build(scope: Scope, element: E?)
+    }
+
+    fun setupTypeApproximation(app: (KotlinType) -> KotlinType)
+
+    fun <R> inLocalScope(builder: (Scope) -> Unit, block: () -> R): R
+
+    fun inFile(file: IrFileSymbol?, block: () -> Unit)
 }

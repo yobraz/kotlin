@@ -47,7 +47,7 @@ abstract class GlobalDeclarationTable(
         }
     }
 
-    fun isExportedDeclaration(declaration: IrDeclaration): Boolean = with(mangler) { declaration.isExported() }
+//    fun isExportedDeclaration(declaration: IrDeclaration): Boolean = with(mangler) { declaration.isExported() }
 }
 
 open class DeclarationTable(globalTable: GlobalDeclarationTable) {
@@ -60,10 +60,11 @@ open class DeclarationTable(globalTable: GlobalDeclarationTable) {
     }
 
     private fun IrDeclaration.isLocalDeclaration(): Boolean {
-        return !isExportedDeclaration(this)
+//        return !isExportedDeclaration(this)
+        return false
     }
 
-    fun isExportedDeclaration(declaration: IrDeclaration) = globalDeclarationTable.isExportedDeclaration(declaration)
+//    fun isExportedDeclaration(declaration: IrDeclaration) = globalDeclarationTable.isExportedDeclaration(declaration)
 
     protected open fun tryComputeBackendSpecificSignature(declaration: IrDeclaration): IdSignature? = null
 

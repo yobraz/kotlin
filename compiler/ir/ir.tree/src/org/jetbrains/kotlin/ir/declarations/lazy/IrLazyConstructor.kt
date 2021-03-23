@@ -14,8 +14,9 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.DeclarationStubGenerator
+import org.jetbrains.kotlin.ir.util.IdSignatureComposer
 import org.jetbrains.kotlin.ir.util.TypeTranslator
-import org.jetbrains.kotlin.ir.util.withScope
+import org.jetbrains.kotlin.ir.util.withLocalScope
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DescriptorWithContainerSource
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
@@ -58,7 +59,8 @@ class IrLazyConstructor(
 
     override var typeParameters: List<IrTypeParameter> by lazyVar(stubGenerator.lock) {
         typeTranslator.buildWithScope(this) {
-            stubGenerator.symbolTable.withScope(this) {
+
+            stubGenerator.symbolTable.withLocalScope(null, null, this) {
                 val classTypeParametersCount = descriptor.constructedClass.original.declaredTypeParameters.size
                 val allConstructorTypeParameters = descriptor.typeParameters
                 allConstructorTypeParameters.subList(classTypeParametersCount, allConstructorTypeParameters.size).mapTo(ArrayList()) {

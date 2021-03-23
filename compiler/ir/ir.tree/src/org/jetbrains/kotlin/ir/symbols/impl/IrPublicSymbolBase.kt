@@ -39,7 +39,7 @@ abstract class IrBindablePublicSymbolBase<out D : DeclarationDescriptor, B : IrS
         assert(descriptor == null || isOriginalDescriptor(descriptor)) {
             "Substituted descriptor $descriptor for ${descriptor!!.original}"
         }
-        assert(sig.isPublic)
+//        assert(sig.isPublic)
     }
 
     private fun isOriginalDescriptor(descriptor: DeclarationDescriptor): Boolean =
@@ -65,7 +65,16 @@ abstract class IrBindablePublicSymbolBase<out D : DeclarationDescriptor, B : IrS
 
 class IrClassPublicSymbolImpl(sig: IdSignature, descriptor: ClassDescriptor? = null) :
     IrBindablePublicSymbolBase<ClassDescriptor, IrClass>(sig, descriptor),
-    IrClassSymbol
+    IrClassSymbol {
+        init {
+            if (sig.toString() == "private <</box|2173511048851971368[0] <- [\$0, 18uqu4fjutw8d | local final fun <anonymous>(): (String) -> C defined in box]> <- [C\$0 | local final class C defined in box.<anonymous>]>") {
+                println("XXX")
+            }
+            if (sig.toString() == "private </box|2173511048851971368[0] <- [B\$0 | local final class B defined in box]>") {
+                println("YYY")
+            }
+        }
+    }
 
 class IrEnumEntryPublicSymbolImpl(sig: IdSignature, descriptor: ClassDescriptor? = null) :
     IrBindablePublicSymbolBase<ClassDescriptor, IrEnumEntry>(sig, descriptor),
@@ -86,3 +95,11 @@ class IrPropertyPublicSymbolImpl(sig: IdSignature, descriptor: PropertyDescripto
 class IrTypeAliasPublicSymbolImpl(sig: IdSignature, descriptor: TypeAliasDescriptor? = null) :
     IrBindablePublicSymbolBase<TypeAliasDescriptor, IrTypeAlias>(sig, descriptor),
     IrTypeAliasSymbol
+
+class IrFieldPublicSymbolImpl(sig: IdSignature, descriptor: PropertyDescriptor? = null) :
+    IrBindablePublicSymbolBase<PropertyDescriptor, IrField>(sig, descriptor),
+    IrFieldSymbol
+
+class IrTypeParameterPublicSymbolImpl(sig: IdSignature, descriptor: TypeParameterDescriptor? = null) :
+    IrBindablePublicSymbolBase<TypeParameterDescriptor, IrTypeParameter>(sig, descriptor),
+    IrTypeParameterSymbol

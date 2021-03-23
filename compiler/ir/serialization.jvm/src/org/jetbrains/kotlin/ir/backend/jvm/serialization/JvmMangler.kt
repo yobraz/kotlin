@@ -5,15 +5,12 @@
 
 package org.jetbrains.kotlin.ir.backend.jvm.serialization
 
-import org.jetbrains.kotlin.backend.common.serialization.mangle.KotlinExportChecker
 import org.jetbrains.kotlin.backend.common.serialization.mangle.KotlinMangleComputer
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleConstant
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleMode
 import org.jetbrains.kotlin.backend.common.serialization.mangle.descriptor.DescriptorBasedKotlinManglerImpl
-import org.jetbrains.kotlin.backend.common.serialization.mangle.descriptor.DescriptorExportCheckerVisitor
 import org.jetbrains.kotlin.backend.common.serialization.mangle.descriptor.DescriptorMangleComputer
 import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrBasedKotlinManglerImpl
-import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrExportCheckerVisitor
 import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrMangleComputer
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -21,24 +18,25 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.idea.MainFunctionDetector
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.load.java.lazy.descriptors.isJavaField
+import org.jetbrains.kotlin.types.KotlinType
 
 abstract class AbstractJvmManglerIr : IrBasedKotlinManglerImpl() {
 
     companion object {
-        private val exportChecker = JvmIrExportChecker()
+//        private val exportChecker = JvmIrExportChecker()
     }
 
-    private class JvmIrExportChecker : IrExportCheckerVisitor() {
-        override fun IrDeclaration.isPlatformSpecificExported() = false
-    }
+//    private class JvmIrExportChecker : IrExportCheckerVisitor() {
+//        override fun IrDeclaration.isPlatformSpecificExported() = false
+//    }
 
     private class JvmIrManglerComputer(builder: StringBuilder, mode: MangleMode) : IrMangleComputer(builder, mode) {
         override fun copy(newMode: MangleMode): IrMangleComputer = JvmIrManglerComputer(builder, newMode)
     }
 
-    override fun getExportChecker(): KotlinExportChecker<IrDeclaration> = exportChecker
+//    override fun getExportChecker(): KotlinExportChecker<IrDeclaration> = exportChecker
 
-    override fun getMangleComputer(mode: MangleMode): KotlinMangleComputer<IrDeclaration> {
+    override fun getMangleComputer(mode: MangleMode, app: (KotlinType) -> KotlinType): KotlinMangleComputer<IrDeclaration> {
         return JvmIrManglerComputer(StringBuilder(256), mode)
     }
 }
@@ -48,17 +46,16 @@ object JvmManglerIr : AbstractJvmManglerIr()
 abstract class AbstractJvmDescriptorMangler(private val mainDetector: MainFunctionDetector?) : DescriptorBasedKotlinManglerImpl() {
 
     companion object {
-        private val exportChecker = JvmDescriptorExportChecker()
+//        private val exportChecker = JvmDescriptorExportChecker()
     }
 
-    private class JvmDescriptorExportChecker : DescriptorExportCheckerVisitor() {
-        override fun DeclarationDescriptor.isPlatformSpecificExported() = false
-    }
+//    private class JvmDescriptorExportChecker : DescriptorExportCheckerVisitor() {
+//        override fun DeclarationDescriptor.isPlatformSpecificExported() = false
+//    }
 
-    private class JvmDescriptorManglerComputer(builder: StringBuilder, private val mainDetector: MainFunctionDetector?, mode: MangleMode) :
-        DescriptorMangleComputer(builder, mode) {
-        override fun copy(newMode: MangleMode): DescriptorMangleComputer =
-            JvmDescriptorManglerComputer(builder, mainDetector, newMode)
+    private class JvmDescriptorManglerComputer(builder: StringBuilder, private val mainDetector: MainFunctionDetector?, mode: MangleMode, app: (KotlinType) -> KotlinType) :
+        DescriptorMangleComputer(builder, mode, app) {
+        override fun copy(newMode: MangleMode): DescriptorMangleComputer = JvmDescriptorManglerComputer(builder, mainDetector, newMode, typeApproximation)
 
         private fun isMainFunction(descriptor: FunctionDescriptor): Boolean = mainDetector?.isMain(descriptor) ?: false
 
@@ -76,10 +73,10 @@ abstract class AbstractJvmDescriptorMangler(private val mainDetector: MainFuncti
         }
     }
 
-    override fun getExportChecker(): KotlinExportChecker<DeclarationDescriptor> = exportChecker
+//    override fun getExportChecker(): KotlinExportChecker<DeclarationDescriptor> = exportChecker
 
-    override fun getMangleComputer(mode: MangleMode): KotlinMangleComputer<DeclarationDescriptor> {
-        return JvmDescriptorManglerComputer(StringBuilder(256), mainDetector, mode)
+    override fun getMangleComputer(mode: MangleMode, app: (KotlinType) -> KotlinType): KotlinMangleComputer<DeclarationDescriptor> {
+        return JvmDescriptorManglerComputer(StringBuilder(256), mainDetector, mode, app)
     }
 }
 

@@ -62,7 +62,7 @@ class FunctionGenerator(declarationGenerator: DeclarationGenerator) : Declaratio
     fun generateFakeOverrideFunction(functionDescriptor: FunctionDescriptor, ktElement: KtPureElement): IrSimpleFunction? =
         functionDescriptor.takeIf { it.visibility != DescriptorVisibilities.INVISIBLE_FAKE }
             ?.let {
-                declareSimpleFunctionInner(it, ktElement, IrDeclarationOrigin.FAKE_OVERRIDE).buildWithScope { irFunction ->
+                declareSimpleFunctionInner(it, ktElement, IrDeclarationOrigin.FAKE_OVERRIDE).buildWithLocalScope(null) { irFunction ->
                     generateFunctionParameterDeclarationsAndReturnType(irFunction, ktElement, null)
                 }
             }
@@ -72,9 +72,9 @@ class FunctionGenerator(declarationGenerator: DeclarationGenerator) : Declaratio
         ktReceiver: KtElement?,
         origin: IrDeclarationOrigin,
         descriptor: FunctionDescriptor,
-        generateBody: BodyGenerator.() -> IrBody?
+        crossinline generateBody: BodyGenerator.() -> IrBody?
     ): IrSimpleFunction =
-        declareSimpleFunctionInner(descriptor, ktFunction, origin).buildWithScope { irFunction ->
+        declareSimpleFunctionInner(descriptor, ktFunction, origin).buildWithLocalScope(ktFunction) { irFunction ->
             generateFunctionParameterDeclarationsAndReturnType(irFunction, ktFunction, ktReceiver)
             irFunction.body = createBodyGenerator(irFunction.symbol).generateBody()
         }
@@ -110,7 +110,7 @@ class FunctionGenerator(declarationGenerator: DeclarationGenerator) : Declaratio
             descriptor,
             ktAccessor ?: ktProperty,
             if (ktAccessor != null && ktAccessor.hasBody()) IrDeclarationOrigin.DEFINED else IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
-        ).buildWithScope { irAccessor ->
+        ).buildWithLocalScope(ktAccessor) { irAccessor ->
             declarationGenerator.generateScopedTypeParameterDeclarations(irAccessor, descriptor.correspondingProperty.typeParameters)
             irAccessor.returnType = irAccessor.descriptor.returnType!!.toIrType()
             generateValueParameterDeclarations(irAccessor, ktAccessor ?: ktProperty, ktProperty.receiverTypeReference)
@@ -126,7 +126,7 @@ class FunctionGenerator(declarationGenerator: DeclarationGenerator) : Declaratio
         descriptor: PropertyAccessorDescriptor,
         ktElement: KtElement
     ): IrSimpleFunction =
-        declareSimpleFunctionInner(descriptor, ktElement, IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR).buildWithScope { irAccessor ->
+        declareSimpleFunctionInner(descriptor, ktElement, IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR).buildWithLocalScope(null) { irAccessor ->
             declarationGenerator.generateScopedTypeParameterDeclarations(irAccessor, descriptor.typeParameters)
             irAccessor.returnType = descriptor.returnType!!.toIrType()
             FunctionGenerator(declarationGenerator).generateSyntheticFunctionParameterDeclarations(irAccessor)
@@ -251,7 +251,7 @@ class FunctionGenerator(declarationGenerator: DeclarationGenerator) : Declaratio
         ktConstructorElement: KtPureElement,
         ktParametersElement: KtPureElement,
         constructorDescriptor: ClassConstructorDescriptor,
-        generateBody: BodyGenerator.() -> IrBody?
+        crossinline generateBody: BodyGenerator.() -> IrBody?
     ): IrConstructor {
         val startOffset = ktConstructorElement.getStartOffsetOfConstructorDeclarationKeywordOrNull() ?: ktConstructorElement.pureStartOffset
         val endOffset = ktConstructorElement.pureEndOffset
@@ -265,7 +265,7 @@ class FunctionGenerator(declarationGenerator: DeclarationGenerator) : Declaratio
             }.apply {
                 metadata = DescriptorMetadataSource.Function(it.descriptor)
             }
-        }.buildWithScope { irConstructor ->
+        }.buildWithLocalScope(ktConstructorElement as KtElement) { irConstructor ->
             generateValueParameterDeclarations(irConstructor, ktParametersElement, null)
             irConstructor.body = createBodyGenerator(irConstructor.symbol).generateBody()
             irConstructor.returnType = constructorDescriptor.returnType.toIrType()

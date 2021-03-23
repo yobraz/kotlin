@@ -29,7 +29,7 @@ import java.util.*
 abstract class TypeTranslator(
     private val symbolTable: ReferenceSymbolTable,
     val languageVersionSettings: LanguageVersionSettings,
-    typeParametersResolverBuilder: () -> TypeParametersResolver = { ScopedTypeParametersResolver() },
+    typeParametersResolverBuilder: () -> TypeParametersResolver,
     private val enterTableScope: Boolean = false,
     private val extensions: StubGeneratorExtensions = StubGeneratorExtensions.EMPTY
 ) {
@@ -66,7 +66,7 @@ abstract class TypeTranslator(
         }
     }
 
-    inline fun <T> buildWithScope(container: IrTypeParametersContainer, builder: () -> T): T {
+    fun <T> buildWithScope(container: IrTypeParametersContainer, builder: () -> T): T {
         enterScope(container)
         val result = builder()
         leaveScope(container)

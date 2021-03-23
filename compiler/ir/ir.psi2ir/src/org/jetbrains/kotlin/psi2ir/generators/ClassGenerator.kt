@@ -309,7 +309,7 @@ class ClassGenerator(
             SYNTHETIC_OFFSET, SYNTHETIC_OFFSET,
             IrDeclarationOrigin.DELEGATED_MEMBER,
             delegatedDescriptor
-        ).buildWithScope { irFunction ->
+        ).buildWithLocalScope(null) { irFunction ->
             FunctionGenerator(declarationGenerator).generateSyntheticFunctionParameterDeclarations(irFunction)
 
             // TODO could possibly refer to scoped type parameters for property accessors

@@ -8,8 +8,6 @@ package org.jetbrains.kotlin.backend.common.serialization.signature
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.overrides.isOverridableFunction
-import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.KotlinMangler
 import org.jetbrains.kotlin.ir.util.render
@@ -18,16 +16,12 @@ import org.jetbrains.kotlin.ir.visitors.acceptVoid
 
 open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSignatureComputer {
 
-    override fun computeSignature(declaration: IrDeclaration): IdSignature? {
-        return if (mangler.run { declaration.isExported() }) {
-            composePublicIdSignature(declaration)
-        } else null
+    override fun computeSignature(declaration: IrDeclaration): IdSignature {
+        return composePublicIdSignature(declaration)
     }
 
     fun composeSignatureForDeclaration(declaration: IrDeclaration): IdSignature {
-        return if (mangler.run { declaration.isExported() }) {
-            composePublicIdSignature(declaration)
-        } else composeFileLocalIdSignature(declaration)
+        return composePublicIdSignature(declaration)
     }
 
     private var localIndex: Long = 0
@@ -42,6 +36,9 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
     }
 
     private inner class PublicIdSigBuilder : IdSignatureBuilder<IrDeclaration>(), IrElementVisitorVoid {
+
+        override val currentFileSignature: IdSignature.FileSignature?
+            get() = TODO("Not yet implemented")
 
         override fun accept(d: IrDeclaration) {
             d.acceptVoid(this)
@@ -107,50 +104,46 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
         }
 
     fun composePublicIdSignature(declaration: IrDeclaration): IdSignature {
-        assert(mangler.run { declaration.isExported() }) {
-            "${declaration.render()} expected to be exported"
-        }
-
         return publicSignatureBuilder.buildSignature(declaration)
     }
 
     fun composeFileLocalIdSignature(declaration: IrDeclaration): IdSignature {
-        assert(!mangler.run { declaration.isExported() })
+        error("Should not reach here ${declaration.render()}")
 
-        return table.privateDeclarationSignature(declaration) {
-            when (declaration) {
-                is IrValueDeclaration -> IdSignature.ScopeLocalDeclaration(scopeIndex++, declaration.name.asString())
-                is IrField -> {
-                    val p = declaration.correspondingPropertySymbol?.let { composeSignatureForDeclaration(it.owner) }
-                        ?: composeContainerIdSignature(declaration.parent)
-                    IdSignature.FileLocalSignature(p, ++localIndex)
-                }
-                is IrSimpleFunction -> {
-                    val parent = declaration.parent
-                    val p = declaration.correspondingPropertySymbol?.let { composeSignatureForDeclaration(it.owner) }
-                        ?: composeContainerIdSignature(parent)
-                    IdSignature.FileLocalSignature(
-                        p,
-                        if (declaration.isOverridableFunction()) {
-                            mangler.run { declaration.signatureMangle }
-                        } else {
-                            ++localIndex
-                        }
-                    )
-                }
-                is IrProperty -> {
-                    val parent = declaration.parent
-                    IdSignature.FileLocalSignature(
-                        composeContainerIdSignature(parent),
-                        if (declaration.isOverridableProperty()) {
-                            mangler.run { declaration.signatureMangle }
-                        } else {
-                            ++localIndex
-                        }
-                    )
-                }
-                else -> IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent), ++localIndex)
-            }
-        }
+//        return table.privateDeclarationSignature(declaration) {
+//            when (declaration) {
+//                is IrValueDeclaration -> IdSignature.ScopeLocalDeclaration(scopeIndex++, declaration.name.asString())
+//                is IrField -> {
+//                    val p = declaration.correspondingPropertySymbol?.let { composeSignatureForDeclaration(it.owner) }
+//                        ?: composeContainerIdSignature(declaration.parent)
+//                    IdSignature.FileLocalSignature(p, ++localIndex)
+//                }
+//                is IrSimpleFunction -> {
+//                    val parent = declaration.parent
+//                    val p = declaration.correspondingPropertySymbol?.let { composeSignatureForDeclaration(it.owner) }
+//                        ?: composeContainerIdSignature(parent)
+//                    IdSignature.FileLocalSignature(
+//                        p,
+//                        if (declaration.isOverridableFunction()) {
+//                            mangler.run { declaration.signatureMangle }
+//                        } else {
+//                            ++localIndex
+//                        }
+//                    )
+//                }
+//                is IrProperty -> {
+//                    val parent = declaration.parent
+//                    IdSignature.FileLocalSignature(
+//                        composeContainerIdSignature(parent),
+//                        if (declaration.isOverridableProperty()) {
+//                            mangler.run { declaration.signatureMangle }
+//                        } else {
+//                            ++localIndex
+//                        }
+//                    )
+//                }
+//                else -> IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent), ++localIndex)
+//            }
+//        }
     }
 }

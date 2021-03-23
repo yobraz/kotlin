@@ -16,8 +16,9 @@ import org.jetbrains.kotlin.types.checker.SimpleClassicTypeSystemContext
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
-abstract class DescriptorMangleComputer(protected val builder: StringBuilder, private val mode: MangleMode) :
+abstract class DescriptorMangleComputer(protected val builder: StringBuilder, private val mode: MangleMode, protected val typeApproximation: (KotlinType) -> KotlinType) :
     DeclarationDescriptorVisitor<Unit, Boolean>, KotlinMangleComputer<DeclarationDescriptor> {
+
 
     override fun computeMangle(declaration: DeclarationDescriptor): String {
         declaration.accept(this, true)
@@ -72,7 +73,7 @@ abstract class DescriptorMangleComputer(protected val builder: StringBuilder, pr
     open fun FunctionDescriptor.platformSpecificFunctionName(): String? = null
 
     private fun reportUnexpectedDescriptor(descriptor: DeclarationDescriptor) {
-        error("unexpected descriptor $descriptor")
+        println("unexpected descriptor $descriptor")
     }
 
     open fun FunctionDescriptor.platformSpecificSuffix(): String? = null
@@ -154,8 +155,10 @@ abstract class DescriptorMangleComputer(protected val builder: StringBuilder, pr
     }
 
     private fun mangleType(tBuilder: StringBuilder, wtype: KotlinType) {
-        when (val type = wtype.unwrap()) {
+        when (val utype = wtype.unwrap()) {
             is SimpleType -> {
+
+                val type = typeApproximation(utype)
 
                 if (type is SupposititiousSimpleType) {
                     val classId = type.overwrittenClass
@@ -201,9 +204,9 @@ abstract class DescriptorMangleComputer(protected val builder: StringBuilder, pr
                 // TODO: is that correct way to mangle flexible type?
                 with(MangleConstant.FLEXIBLE_TYPE) {
                     tBuilder.appendSignature(prefix)
-                    mangleType(tBuilder, type.lowerBound)
+                    mangleType(tBuilder, utype.lowerBound)
                     tBuilder.appendSignature(separator)
-                    mangleType(tBuilder, type.upperBound)
+                    mangleType(tBuilder, utype.upperBound)
                     tBuilder.appendSignature(suffix)
                 }
             }

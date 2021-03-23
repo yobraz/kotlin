@@ -10,11 +10,11 @@ import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.util.IdSignature
 
 interface IdSignatureComputer {
-    fun computeSignature(declaration: IrDeclaration): IdSignature?
+    fun computeSignature(declaration: IrDeclaration): IdSignature
 }
 
 class DescToIrIdSignatureComputer(private val delegate: IdSignatureDescriptor) : IdSignatureComputer {
-    override fun computeSignature(declaration: IrDeclaration): IdSignature? {
+    override fun computeSignature(declaration: IrDeclaration): IdSignature {
         return if (declaration is IrEnumEntry) delegate.composeEnumEntrySignature(declaration.descriptor)
         else delegate.composeSignature(declaration.descriptor)
     }
