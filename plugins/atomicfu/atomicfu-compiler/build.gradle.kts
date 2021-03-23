@@ -88,7 +88,7 @@ sourcesJar()
 javadocJar()
 testsJar()
 
-projectTest(parallel = true) {
+projectTest {
     workingDir = rootDir
     dependsOn(atomicfuRuntimeForTests)
     doFirst {
@@ -119,5 +119,3 @@ fun Test.setUpJsIrBoxTests() {
     systemProperty("kotlin.js.test.root.out.dir", "$buildDir/")
     systemProperty("atomicfu.classpath", atomicfuClasspath.asPath)
 }
-
-apply(from = "$rootDir/gradle/kotlinPluginPublication.gradle.kts")

@@ -22,16 +22,3 @@ kotlin {
         }
     }
 }
-
-val runtimeElements by configurations.creating {}
-val apiElements by configurations.creating {}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["kotlin"])
-        }
-    }
-}
-
-publish()
