@@ -81,6 +81,56 @@ class ClassGenerator(
         }
     }
 
+    private fun IrClass.generateClassBody(ktClassOrObject: KtPureClassOrObject, classDescriptor: ClassDescriptor, isEnumClass: Boolean) {
+
+        val irClass = this
+
+        declarationGenerator.generateGlobalTypeParametersDeclarations(irClass, classDescriptor.declaredTypeParameters)
+
+        irClass.superTypes = classDescriptor.typeConstructor.supertypes.map {
+            it.toIrType()
+        }
+
+        irClass.thisReceiver = context.symbolTable.declareValueParameter(
+            startOffset, endOffset,
+            IrDeclarationOrigin.INSTANCE_RECEIVER,
+            classDescriptor.thisAsReceiverParameter,
+            classDescriptor.thisAsReceiverParameter.type.toIrType()
+        )
+
+        val irPrimaryConstructor = generatePrimaryConstructor(irClass, ktClassOrObject)
+        if (irPrimaryConstructor != null) {
+            generateDeclarationsForPrimaryConstructorParameters(irClass, irPrimaryConstructor, ktClassOrObject)
+        }
+
+        if (ktClassOrObject is KtClassOrObject) //todo: supertype list for synthetic declarations
+            generateMembersDeclaredInSupertypeList(irClass, ktClassOrObject)
+
+        generateMembersDeclaredInClassBody(irClass, ktClassOrObject)
+
+        generateFakeOverrideMemberDeclarations(irClass, ktClassOrObject)
+
+        if (irClass.isInline && ktClassOrObject is KtClassOrObject) {
+            generateAdditionalMembersForInlineClasses(irClass, ktClassOrObject)
+        }
+            if (irClass.isInline && ktClassOrObject is KtClassOrObject) {
+                val representation = classDescriptor.inlineClassRepresentation
+                    ?: error("Unknown representation for inline class: $classDescriptor")
+                irClass.inlineClassRepresentation = representation.mapUnderlyingType { type ->
+                    type.toIrType() as? IrSimpleType ?: error("Inline class underlying type is not a simple type: $classDescriptor")
+                }
+                generateAdditionalMembersForInlineClasses(irClass, ktClassOrObject)
+            }
+
+        if (irClass.isData && ktClassOrObject is KtClassOrObject) {
+            generateAdditionalMembersForDataClass(irClass, ktClassOrObject)
+        }
+
+        if (isEnumClass) {
+            generateAdditionalMembersForEnumClass(irClass)
+        }
+    }
+
     fun generateClass(ktClassOrObject: KtPureClassOrObject, visibility_: DescriptorVisibility? = null): IrClass {
         val classDescriptor = ktClassOrObject.findClassDescriptor(this.context.bindingContext)
         val startOffset = ktClassOrObject.getStartOffsetOfClassDeclarationOrNull() ?: ktClassOrObject.pureStartOffset
@@ -96,46 +146,14 @@ class ClassGenerator(
                 metadata = DescriptorMetadataSource.Class(it.descriptor)
             }
         }.buildWithScope { irClass ->
-            declarationGenerator.generateGlobalTypeParametersDeclarations(irClass, classDescriptor.declaredTypeParameters)
+            val isEnumClass = DescriptorUtils.isEnumClass(classDescriptor)
 
-            irClass.superTypes = classDescriptor.typeConstructor.supertypes.map {
-                it.toIrType()
-            }
-
-            irClass.thisReceiver = context.symbolTable.declareValueParameter(
-                startOffset, endOffset,
-                IrDeclarationOrigin.INSTANCE_RECEIVER,
-                classDescriptor.thisAsReceiverParameter,
-                classDescriptor.thisAsReceiverParameter.type.toIrType()
-            )
-
-            val irPrimaryConstructor = generatePrimaryConstructor(irClass, ktClassOrObject)
-            if (irPrimaryConstructor != null) {
-                generateDeclarationsForPrimaryConstructorParameters(irClass, irPrimaryConstructor, ktClassOrObject)
-            }
-
-            if (ktClassOrObject is KtClassOrObject) //todo: supertype list for synthetic declarations
-                generateMembersDeclaredInSupertypeList(irClass, ktClassOrObject)
-
-            generateMembersDeclaredInClassBody(irClass, ktClassOrObject)
-
-            generateFakeOverrideMemberDeclarations(irClass, ktClassOrObject)
-
-            if (irClass.isInline && ktClassOrObject is KtClassOrObject) {
-                val representation = classDescriptor.inlineClassRepresentation
-                    ?: error("Unknown representation for inline class: $classDescriptor")
-                irClass.inlineClassRepresentation = representation.mapUnderlyingType { type ->
-                    type.toIrType() as? IrSimpleType ?: error("Inline class underlying type is not a simple type: $classDescriptor")
+            if (isEnumClass) {
+                irClass.buildWithLocalScope(ktClassOrObject.body) {
+                    irClass.generateClassBody(ktClassOrObject, classDescriptor, isEnumClass = true)
                 }
-                generateAdditionalMembersForInlineClasses(irClass, ktClassOrObject)
-            }
-
-            if (irClass.isData && ktClassOrObject is KtClassOrObject) {
-                generateAdditionalMembersForDataClass(irClass, ktClassOrObject)
-            }
-
-            if (DescriptorUtils.isEnumClass(classDescriptor)) {
-                generateAdditionalMembersForEnumClass(irClass)
+            } else {
+                irClass.generateClassBody(ktClassOrObject, classDescriptor, isEnumClass = false)
             }
         }
     }
@@ -315,7 +333,7 @@ class ClassGenerator(
             SYNTHETIC_OFFSET, SYNTHETIC_OFFSET,
             IrDeclarationOrigin.DELEGATED_MEMBER,
             delegatedDescriptor
-        ).buildWithScope { irFunction ->
+        ).buildWithLocalScope(null) { irFunction ->
             FunctionGenerator(declarationGenerator).generateSyntheticFunctionParameterDeclarations(irFunction)
 
             // TODO could possibly refer to scoped type parameters for property accessors
@@ -502,7 +520,7 @@ class ClassGenerator(
             ktEnumEntry.endOffset,
             IrDeclarationOrigin.DEFINED,
             enumEntryDescriptor
-        ).buildWithScope { irEnumEntry ->
+        ).buildWithLocalScope(ktEnumEntry.body) { irEnumEntry ->
             irEnumEntry.parent = irEnumClass
 
             if (!enumEntryDescriptor.isExpect) {
