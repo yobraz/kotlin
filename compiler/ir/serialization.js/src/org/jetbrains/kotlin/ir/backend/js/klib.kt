@@ -15,10 +15,7 @@ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContextImpl
 import org.jetbrains.kotlin.backend.common.lower.ExpectDeclarationRemover
 import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideChecker
-import org.jetbrains.kotlin.backend.common.serialization.DeserializationStrategy
-import org.jetbrains.kotlin.backend.common.serialization.ICData
-import org.jetbrains.kotlin.backend.common.serialization.KlibIrVersion
-import org.jetbrains.kotlin.backend.common.serialization.knownBuiltins
+import org.jetbrains.kotlin.backend.common.serialization.*
 import org.jetbrains.kotlin.backend.common.serialization.mangle.ManglerChecker
 import org.jetbrains.kotlin.backend.common.serialization.mangle.descriptor.Ir2DescriptorManglerAdapter
 import org.jetbrains.kotlin.backend.common.serialization.metadata.DynamicTypeDeserializer
@@ -104,7 +101,9 @@ fun generateKLib(
     friendDependencies: List<KotlinLibrary>,
     irFactory: IrFactory,
     outputKlibPath: String,
-    nopack: Boolean
+    nopack: Boolean,
+    verifySignatures: Boolean = true,
+    abiVersion: KotlinAbiVersion = KotlinAbiVersion.CURRENT
 ) {
     val incrementalDataProvider = configuration.get(JSConfigurationKeys.INCREMENTAL_DATA_PROVIDER)
     val errorPolicy = configuration.get(JSConfigurationKeys.ERROR_TOLERANCE_POLICY) ?: ErrorTolerancePolicy.DEFAULT
@@ -168,7 +167,9 @@ fun generateKLib(
 
     val moduleFragment = psi2IrContext.generateModuleFragmentWithPlugins(project, files, irLinker, messageLogger, expectDescriptorToSymbol)
 
-    moduleFragment.acceptVoid(ManglerChecker(JsManglerIr, Ir2DescriptorManglerAdapter(JsManglerDesc)))
+    if (verifySignatures) {
+        moduleFragment.acceptVoid(ManglerChecker(JsManglerIr, Ir2DescriptorManglerAdapter(JsManglerDesc)))
+    }
     if (configuration.getBoolean(JSConfigurationKeys.FAKE_OVERRIDE_VALIDATOR)) {
         val fakeOverrideChecker = FakeOverrideChecker(JsManglerIr, JsManglerDesc)
         irLinker.modules.forEach { fakeOverrideChecker.check(it) }
@@ -194,7 +195,8 @@ fun generateKLib(
         icData,
         nopack,
         perFile = false,
-        hasErrors
+        hasErrors,
+        abiVersion
     )
 }
 
@@ -223,6 +225,7 @@ fun loadIr(
     allDependencies: KotlinLibraryResolveResult,
     friendDependencies: List<KotlinLibrary>,
     irFactory: IrFactory,
+    verifySignatures: Boolean
 ): IrModuleInfo {
     val depsDescriptors = ModulesStructure(project, mainModule, analyzer, configuration, allDependencies, friendDependencies)
     val errorPolicy = configuration.get(JSConfigurationKeys.ERROR_TOLERANCE_POLICY) ?: ErrorTolerancePolicy.DEFAULT
@@ -248,14 +251,18 @@ fun loadIr(
 
             // TODO: not sure whether this check should be enabled by default. Add configuration key for it.
             val mangleChecker = ManglerChecker(JsManglerIr, Ir2DescriptorManglerAdapter(JsManglerDesc))
-            moduleFragment.acceptVoid(mangleChecker)
+            if (verifySignatures) {
+                moduleFragment.acceptVoid(mangleChecker)
+            }
 
             if (configuration.getBoolean(JSConfigurationKeys.FAKE_OVERRIDE_VALIDATOR)) {
                 val fakeOverrideChecker = FakeOverrideChecker(JsManglerIr, JsManglerDesc)
                 irLinker.modules.forEach { fakeOverrideChecker.check(it) }
             }
 
-            irBuiltIns.knownBuiltins.forEach { it.acceptVoid(mangleChecker) }
+            if (verifySignatures) {
+                irBuiltIns.knownBuiltins.forEach { it.acceptVoid(mangleChecker) }
+            }
 
             return IrModuleInfo(moduleFragment, deserializedModuleFragments, irBuiltIns, symbolTable, irLinker)
         }
@@ -265,7 +272,7 @@ fun loadIr(
             val signaturer = IdSignatureDescriptor(mangler)
             val symbolTable = SymbolTable(signaturer, irFactory)
             val typeTranslator =
-                TypeTranslatorImpl(symbolTable, depsDescriptors.compilerConfiguration.languageVersionSettings, moduleDescriptor)
+                TypeTranslatorImpl(symbolTable, signaturer, depsDescriptors.compilerConfiguration.languageVersionSettings, moduleDescriptor)
             val irBuiltIns = IrBuiltIns(moduleDescriptor.builtIns, typeTranslator, symbolTable)
             val functionFactory = IrFunctionFactory(irBuiltIns, symbolTable)
             val irLinker =
@@ -475,15 +482,19 @@ fun serializeModuleIntoKlib(
     cleanFiles: List<KotlinFileSerializedData>,
     nopack: Boolean,
     perFile: Boolean,
-    containsErrorCode: Boolean = false
+    containsErrorCode: Boolean = false,
+    abiVersion: KotlinAbiVersion
 ) {
     assert(files.size == moduleFragment.files.size)
+
+    val compatibilityMode = CompatibilityMode(abiVersion)
 
     val serializedIr =
         JsIrModuleSerializer(
             messageLogger,
             moduleFragment.irBuiltins,
-            expectDescriptorToSymbol = expectDescriptorToSymbol,
+            expectDescriptorToSymbol,
+            compatibilityMode,
             skipExpects = !configuration.expectActualLinker
         ).serializedIrModule(moduleFragment)
 
@@ -538,7 +549,7 @@ fun serializeModuleIntoKlib(
     val fullSerializedIr = SerializedIrModule(compiledKotlinFiles.map { it.irData })
 
     val versions = KotlinLibraryVersioning(
-        abiVersion = KotlinAbiVersion.CURRENT,
+        abiVersion = compatibilityMode.abiVersion,
         libraryVersion = null,
         compilerVersion = KotlinCompilerVersion.VERSION,
         metadataVersion = KlibMetadataVersion.INSTANCE.toString(),

@@ -33,7 +33,7 @@ import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
  * Generating synthetic members of inline class can use this as well, in particular, members from Any: equals, hashCode, and toString.
  */
 @OptIn(ObsoleteDescriptorBasedAPI::class)
-abstract class DataClassMembersGenerator(
+abstract class DataClassMembersGenerator<T : Any>(
     val context: IrGeneratorContext,
     val symbolTable: SymbolTable,
     val irClass: IrClass,
@@ -265,7 +265,7 @@ abstract class DataClassMembersGenerator(
         function: FunctionDescriptor,
         startOffset: Int = SYNTHETIC_OFFSET,
         endOffset: Int = SYNTHETIC_OFFSET,
-        body: MemberFunctionBuilder.(IrFunction) -> Unit
+        crossinline body: MemberFunctionBuilder.(IrFunction) -> Unit
     ) {
         MemberFunctionBuilder(startOffset, endOffset, declareSimpleFunction(startOffset, endOffset, function)).addToClass { irFunction ->
             irFunction.buildWithScope {
@@ -280,7 +280,7 @@ abstract class DataClassMembersGenerator(
         irFunction: IrFunction,
         startOffset: Int = SYNTHETIC_OFFSET,
         endOffset: Int = SYNTHETIC_OFFSET,
-        body: MemberFunctionBuilder.(IrFunction) -> Unit
+        crossinline body: MemberFunctionBuilder.(IrFunction) -> Unit
     ) {
         MemberFunctionBuilder(startOffset, endOffset, irFunction).build { function ->
             function.buildWithScope {

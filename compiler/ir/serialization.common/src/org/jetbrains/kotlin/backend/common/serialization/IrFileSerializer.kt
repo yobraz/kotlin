@@ -7,7 +7,9 @@ package org.jetbrains.kotlin.backend.common.serialization
 
 import org.jetbrains.kotlin.backend.common.ir.ir2string
 import org.jetbrains.kotlin.backend.common.serialization.encodings.*
-import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.InlineClassRepresentation
+import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrFileEntry
 import org.jetbrains.kotlin.ir.declarations.*
@@ -18,7 +20,10 @@ import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
-import org.jetbrains.kotlin.library.*
+import org.jetbrains.kotlin.library.SerializedDeclaration
+import org.jetbrains.kotlin.library.SerializedIrFile
+import org.jetbrains.kotlin.library.SkippedDeclaration
+import org.jetbrains.kotlin.library.TopLevelDeclaration
 import org.jetbrains.kotlin.library.impl.IrMemoryArrayWriter
 import org.jetbrains.kotlin.library.impl.IrMemoryDeclarationWriter
 import org.jetbrains.kotlin.library.impl.IrMemoryStringWriter
@@ -26,9 +31,11 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.backend.common.serialization.proto.AccessorIdSignature as ProtoAccessorIdSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.Actual as ProtoActual
+import org.jetbrains.kotlin.backend.common.serialization.proto.CompositeSignature as ProtoCompositeSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.FieldAccessCommon as ProtoFieldAccessCommon
 import org.jetbrains.kotlin.backend.common.serialization.proto.FileEntry as ProtoFileEntry
 import org.jetbrains.kotlin.backend.common.serialization.proto.FileLocalIdSignature as ProtoFileLocalIdSignature
+import org.jetbrains.kotlin.backend.common.serialization.proto.FileSignature as ProtoFileSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.IdSignature as ProtoIdSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrAnonymousInit as ProtoAnonymousInit
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrBlock as ProtoBlock
@@ -99,6 +106,7 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.IrVarargElement a
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrVariable as ProtoVariable
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrWhen as ProtoWhen
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrWhile as ProtoWhile
+import org.jetbrains.kotlin.backend.common.serialization.proto.LocalSignature as ProtoLocalSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.Loop as ProtoLoop
 import org.jetbrains.kotlin.backend.common.serialization.proto.MemberAccessCommon as ProtoMemberAccessCommon
 import org.jetbrains.kotlin.backend.common.serialization.proto.NullableIrExpression as ProtoNullableIrExpression
@@ -108,6 +116,7 @@ open class IrFileSerializer(
     val messageLogger: IrMessageLogger,
     private val declarationTable: DeclarationTable,
     private val expectDescriptorToSymbol: MutableMap<DeclarationDescriptor, IrSymbol>,
+    private val compatibilityMode: CompatibilityMode,
     private val bodiesOnlyForInlines: Boolean = false,
     private val skipExpects: Boolean = false,
     private val skipMutableState: Boolean = false, // required for JS IC caches
@@ -224,6 +233,28 @@ open class IrFileSerializer(
 
     private fun serializeScopeLocalSignature(signature: IdSignature.ScopeLocalDeclaration): Int = signature.id
 
+    private fun serializeCompositeSignature(signature: IdSignature.CompositeSignature): ProtoCompositeSignature {
+        val proto = ProtoCompositeSignature.newBuilder()
+
+        proto.containerSig = protoIdSignature(signature.container)
+        proto.innerSig = protoIdSignature(signature.inner)
+
+        return proto.build()
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun serializeFileSignature(signature: IdSignature.FileSignature): ProtoFileSignature = ProtoFileSignature.getDefaultInstance()
+
+    private fun serializeLocalSignature(signature: IdSignature.LocalSignature): ProtoLocalSignature {
+        val proto = ProtoLocalSignature.newBuilder()
+
+        proto.addAllLocalFqName(serializeFqName(signature.localFqn))
+        signature.hashSig?.let { proto.localHash = it }
+        signature.description?.let { proto.description = serializeString(it) }
+
+        return proto.build()
+    }
+
     private fun serializeIdSignature(idSignature: IdSignature): ProtoIdSignature {
         val proto = ProtoIdSignature.newBuilder()
         when (idSignature) {
@@ -231,12 +262,17 @@ open class IrFileSerializer(
             is IdSignature.AccessorSignature -> proto.accessorSig = serializeAccessorSignature(idSignature)
             is IdSignature.FileLocalSignature -> proto.privateSig = serializePrivateSignature(idSignature)
             is IdSignature.ScopeLocalDeclaration -> proto.scopedLocalSig = serializeScopeLocalSignature(idSignature)
+            is IdSignature.CompositeSignature -> proto.compositeSig = serializeCompositeSignature(idSignature)
+            is IdSignature.LocalSignature -> proto.localSig = serializeLocalSignature(idSignature)
+            is IdSignature.FileSignature -> proto.fileSig = serializeFileSignature(idSignature)
+            else ->
+                TODO("ADD SERIALIZER: $idSignature")
         }
         return proto.build()
     }
 
     private fun protoIdSignature(declaration: IrDeclaration): Int {
-        val idSig = declarationTable.signatureByDeclaration(declaration)
+        val idSig = declarationTable.signatureByDeclaration(declaration, compatibilityMode.oldSignatures)
         return protoIdSignature(idSig)
     }
 
@@ -1030,7 +1066,9 @@ open class IrFileSerializer(
 
         if (!skipMutableState) {
             parameter.varargElementType?.let { proto.setVarargElementType(serializeIrType(it)) }
-            parameter.defaultValue?.let { proto.setDefaultValue(serializeIrExpressionBody(it.expression)) }
+            parameter.defaultValue?.let {
+                proto.setDefaultValue(serializeIrExpressionBody(it.expression))
+            }
         }
 
         return proto.build()
@@ -1128,6 +1166,7 @@ open class IrFileSerializer(
         val proto = ProtoField.newBuilder()
             .setBase(serializeIrDeclarationBase(field, FieldFlags.encode(field)))
             .setNameType(serializeNameAndType(field.name, field.type))
+
         if (!skipMutableState) {
             val initializer = field.initializer?.expression
             if (initializer != null) {
@@ -1320,7 +1359,7 @@ open class IrFileSerializer(
 
         for (declaration in declarations) {
             val byteArray = serializeDeclaration(declaration).toByteArray()
-            val idSig = declarationTable.signatureByDeclaration(declaration)
+            val idSig = declarationTable.signatureByDeclaration(declaration, compatibleMode = false)
 
             // TODO: keep order similar
             // ^ TODO what does that mean?
@@ -1347,6 +1386,16 @@ open class IrFileSerializer(
     }
 
     fun serializeIrFile(file: IrFile): SerializedIrFile {
+        var result: SerializedIrFile? = null
+
+        declarationTable.inFile(file) {
+            result = serializeIrFileImpl(file)
+        }
+
+        return result!!
+    }
+
+    private fun serializeIrFileImpl(file: IrFile): SerializedIrFile {
         val topLevelDeclarations = mutableListOf<SerializedDeclaration>()
 
         val proto = ProtoFile.newBuilder()
@@ -1361,8 +1410,8 @@ open class IrFileSerializer(
             }
 
             val byteArray = serializeDeclaration(it).toByteArray()
-            val idSig = declarationTable.signatureByDeclaration(it)
-            require(idSig === idSig.topLevelSignature()) { "IdSig: $idSig\ntopLevel: ${idSig.topLevelSignature()}" }
+            val idSig = declarationTable.signatureByDeclaration(it, compatibilityMode.oldSignatures)
+            require(idSig == idSig.topLevelSignature()) { "IdSig: $idSig\ntopLevel: ${idSig.topLevelSignature()}" }
             require(!idSig.isPackageSignature()) { "IsSig: $idSig\nDeclaration: ${it.render()}" }
 
             // TODO: keep order similar
@@ -1398,7 +1447,7 @@ open class IrFileSerializer(
         )
     }
 
-    fun serializeExpectActualSubstitutionTable(proto: ProtoFile.Builder) {
+    private fun serializeExpectActualSubstitutionTable(proto: ProtoFile.Builder) {
         if (skipExpects) return
 
         expectActualTable.table.forEach next@{ (expect, actualSymbol) ->

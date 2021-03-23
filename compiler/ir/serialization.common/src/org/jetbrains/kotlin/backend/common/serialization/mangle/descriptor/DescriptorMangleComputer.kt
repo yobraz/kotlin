@@ -10,17 +10,23 @@ import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleConstant
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleMode
 import org.jetbrains.kotlin.backend.common.serialization.mangle.collectForMangler
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.ir.descriptors.IrImplementingDelegateDescriptor
+import org.jetbrains.kotlin.ir.descriptors.IrPropertyDelegateDescriptor
 import org.jetbrains.kotlin.load.java.typeEnhancement.hasEnhancedNullability
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.SimpleClassicTypeSystemContext
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
-abstract class DescriptorMangleComputer(protected val builder: StringBuilder, private val mode: MangleMode) :
-    DeclarationDescriptorVisitor<Unit, Boolean>, KotlinMangleComputer<DeclarationDescriptor> {
+abstract class DescriptorMangleComputer(
+    protected val builder: StringBuilder,
+    private val mode: MangleMode,
+    protected val typeApproximation: (KotlinType) -> KotlinType
+) :
+    DeclarationDescriptorVisitor<Unit, Nothing?>, KotlinMangleComputer<DeclarationDescriptor> {
 
     override fun computeMangle(declaration: DeclarationDescriptor): String {
-        declaration.accept(this, true)
+        declaration.accept(this, null)
         return builder.toString()
     }
 
@@ -62,7 +68,7 @@ abstract class DescriptorMangleComputer(protected val builder: StringBuilder, pr
 
     private fun DeclarationDescriptor.mangleSimpleDeclaration(name: String) {
         val l = builder.length
-        containingDeclaration?.accept(this@DescriptorMangleComputer, false)
+        containingDeclaration?.accept(this@DescriptorMangleComputer, null)
 
         if (builder.length != l) builder.appendName(MangleConstant.FQN_SEPARATOR)
 
@@ -71,8 +77,8 @@ abstract class DescriptorMangleComputer(protected val builder: StringBuilder, pr
 
     open fun FunctionDescriptor.platformSpecificFunctionName(): String? = null
 
+    @Suppress("UNUSED_PARAMETER")
     private fun reportUnexpectedDescriptor(descriptor: DeclarationDescriptor) {
-        error("unexpected descriptor $descriptor")
     }
 
     open fun FunctionDescriptor.platformSpecificSuffix(): String? = null
@@ -92,7 +98,7 @@ abstract class DescriptorMangleComputer(protected val builder: StringBuilder, pr
         isRealExpect = isRealExpect or isExpect
 
         typeParameterContainer.add(container)
-        container.containingDeclaration.accept(this@DescriptorMangleComputer, false)
+        container.containingDeclaration.accept(this@DescriptorMangleComputer, null)
 
         builder.appendName(MangleConstant.FUNCTION_NAME_PREFIX)
 
@@ -156,8 +162,11 @@ abstract class DescriptorMangleComputer(protected val builder: StringBuilder, pr
     }
 
     private fun mangleType(tBuilder: StringBuilder, wtype: KotlinType) {
-        when (val type = wtype.unwrap()) {
+        when (val utype = wtype.unwrap()) {
             is SimpleType -> {
+
+                val type = utype
+//                val type = typeApproximation(utype)
 
                 if (type is SupposititiousSimpleType) {
                     val classId = type.overwrittenClass
@@ -170,7 +179,7 @@ abstract class DescriptorMangleComputer(protected val builder: StringBuilder, pr
                     }
                 } else {
                     when (val classifier = type.constructor.declarationDescriptor) {
-                        is ClassDescriptor -> classifier.accept(copy(MangleMode.FQNAME), false)
+                        is ClassDescriptor -> classifier.accept(copy(MangleMode.FQNAME), null)
                         is TypeParameterDescriptor -> tBuilder.mangleTypeParameterReference(classifier)
                         else -> error("Unexpected classifier: $classifier")
                     }
@@ -203,9 +212,9 @@ abstract class DescriptorMangleComputer(protected val builder: StringBuilder, pr
                 // TODO: is that correct way to mangle flexible type?
                 with(MangleConstant.FLEXIBLE_TYPE) {
                     tBuilder.appendSignature(prefix)
-                    mangleType(tBuilder, type.lowerBound)
+                    mangleType(tBuilder, utype.lowerBound)
                     tBuilder.appendSignature(separator)
-                    mangleType(tBuilder, type.upperBound)
+                    mangleType(tBuilder, utype.upperBound)
                     tBuilder.appendSignature(suffix)
                 }
             }
@@ -223,84 +232,95 @@ abstract class DescriptorMangleComputer(protected val builder: StringBuilder, pr
         appendSignature(typeParameter.index)
     }
 
-    override fun visitPackageFragmentDescriptor(descriptor: PackageFragmentDescriptor, data: Boolean) {
+    override fun visitPackageFragmentDescriptor(descriptor: PackageFragmentDescriptor, data: Nothing?) {
         descriptor.fqName.let { if (!it.isRoot) builder.appendName(it.asString()) }
     }
 
-    override fun visitPackageViewDescriptor(descriptor: PackageViewDescriptor, data: Boolean) = reportUnexpectedDescriptor(descriptor)
+    override fun visitPackageViewDescriptor(descriptor: PackageViewDescriptor, data: Nothing?) = reportUnexpectedDescriptor(descriptor)
 
-    override fun visitVariableDescriptor(descriptor: VariableDescriptor, data: Boolean) = reportUnexpectedDescriptor(descriptor)
+    override fun visitVariableDescriptor(descriptor: VariableDescriptor, data: Nothing?) = reportUnexpectedDescriptor(descriptor)
 
-    override fun visitFunctionDescriptor(descriptor: FunctionDescriptor, data: Boolean) {
+    override fun visitFunctionDescriptor(descriptor: FunctionDescriptor, data: Nothing?) {
         descriptor.mangleFunction(false, descriptor)
     }
 
-    override fun visitTypeParameterDescriptor(descriptor: TypeParameterDescriptor, data: Boolean) {
+    override fun visitTypeParameterDescriptor(descriptor: TypeParameterDescriptor, data: Nothing?) {
         descriptor.containingDeclaration.accept(this, data)
 
         builder.appendSignature(MangleConstant.TYPE_PARAM_INDEX_PREFIX)
         builder.appendSignature(descriptor.index)
     }
 
-    override fun visitClassDescriptor(descriptor: ClassDescriptor, data: Boolean) {
+    override fun visitClassDescriptor(descriptor: ClassDescriptor, data: Nothing?) {
         isRealExpect = isRealExpect or descriptor.isExpect
         typeParameterContainer.add(descriptor)
         descriptor.mangleSimpleDeclaration(descriptor.name.asString())
     }
 
-    override fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor, data: Boolean) {
+    override fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor, data: Nothing?) {
         descriptor.mangleSimpleDeclaration(descriptor.name.asString())
     }
 
-    override fun visitModuleDeclaration(descriptor: ModuleDescriptor, data: Boolean) = reportUnexpectedDescriptor(descriptor)
+    override fun visitModuleDeclaration(descriptor: ModuleDescriptor, data: Nothing?) = reportUnexpectedDescriptor(descriptor)
 
-    override fun visitConstructorDescriptor(constructorDescriptor: ConstructorDescriptor, data: Boolean) {
+    override fun visitConstructorDescriptor(constructorDescriptor: ConstructorDescriptor, data: Nothing?) {
         constructorDescriptor.mangleFunction(isCtor = true, container = constructorDescriptor)
     }
 
-    override fun visitScriptDescriptor(scriptDescriptor: ScriptDescriptor, data: Boolean) = reportUnexpectedDescriptor(scriptDescriptor)
+    override fun visitScriptDescriptor(scriptDescriptor: ScriptDescriptor, data: Nothing?) =
+        visitClassDescriptor(scriptDescriptor, data)
 
-    override fun visitPropertyDescriptor(descriptor: PropertyDescriptor, data: Boolean) {
-        val extensionReceiver = descriptor.extensionReceiverParameter
+    override fun visitPropertyDescriptor(descriptor: PropertyDescriptor, data: Nothing?) {
 
-        isRealExpect = isRealExpect or descriptor.isExpect
+        if (descriptor is IrImplementingDelegateDescriptor) {
+            descriptor.mangleSimpleDeclaration(descriptor.name.asString())
+//            mangleType(builder, descriptor.type)
+        } else {
 
-        typeParameterContainer.add(descriptor)
-        descriptor.containingDeclaration.accept(this, false)
+            val actualDescriptor = (descriptor as? IrPropertyDelegateDescriptor)?.correspondingProperty ?: descriptor
 
-        if (descriptor.isRealStatic) {
-            builder.appendSignature(MangleConstant.STATIC_MEMBER_MARK)
-        }
+            val extensionReceiver = actualDescriptor.extensionReceiverParameter
 
-        if (extensionReceiver != null) {
-            builder.appendSignature(MangleConstant.EXTENSION_RECEIVER_PREFIX)
-            mangleExtensionReceiverParameter(builder, extensionReceiver)
-        }
+            isRealExpect = isRealExpect or actualDescriptor.isExpect
 
-        descriptor.typeParameters.collectForMangler(builder, MangleConstant.TYPE_PARAMETERS) { mangleTypeParameter(this, it) }
+            typeParameterContainer.add(actualDescriptor)
+            actualDescriptor.containingDeclaration.accept(this, data)
 
-        builder.append(descriptor.name.asString())
+            if (actualDescriptor.isRealStatic) {
+                builder.appendSignature(MangleConstant.STATIC_MEMBER_MARK)
+            }
 
-        descriptor.platformSpecificSuffix()?.let {
-            builder.appendSignature(it)
+            if (extensionReceiver != null) {
+                builder.appendSignature(MangleConstant.EXTENSION_RECEIVER_PREFIX)
+                mangleExtensionReceiverParameter(builder, extensionReceiver)
+            }
+
+            actualDescriptor.typeParameters.collectForMangler(builder, MangleConstant.TYPE_PARAMETERS) { mangleTypeParameter(this, it) }
+
+            builder.append(actualDescriptor.name.asString())
+
+            actualDescriptor.platformSpecificSuffix()?.let {
+                builder.appendSignature(it)
+            }
         }
     }
 
-    override fun visitValueParameterDescriptor(descriptor: ValueParameterDescriptor, data: Boolean) = reportUnexpectedDescriptor(descriptor)
+    override fun visitValueParameterDescriptor(descriptor: ValueParameterDescriptor, data: Nothing?) =
+        reportUnexpectedDescriptor(descriptor)
 
     private fun manglePropertyAccessor(accessor: PropertyAccessorDescriptor) {
         val property = accessor.correspondingProperty
         accessor.mangleFunction(false, property)
     }
 
-    override fun visitPropertyGetterDescriptor(descriptor: PropertyGetterDescriptor, data: Boolean) {
+    override fun visitPropertyGetterDescriptor(descriptor: PropertyGetterDescriptor, data: Nothing?) {
         manglePropertyAccessor(descriptor)
     }
 
-    override fun visitPropertySetterDescriptor(descriptor: PropertySetterDescriptor, data: Boolean) {
+    override fun visitPropertySetterDescriptor(descriptor: PropertySetterDescriptor, data: Nothing?) {
         manglePropertyAccessor(descriptor)
     }
 
-    override fun visitReceiverParameterDescriptor(descriptor: ReceiverParameterDescriptor, data: Boolean) =
+    override fun visitReceiverParameterDescriptor(descriptor: ReceiverParameterDescriptor, data: Nothing?) =
         reportUnexpectedDescriptor(descriptor)
 }

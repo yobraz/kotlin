@@ -20,7 +20,7 @@ class JsUniqIdClashTracker : IdSignatureClashTracker {
     private val committedIdSignatures = mutableMapOf<IdSignature, IrDeclaration>()
 
     override fun commit(declaration: IrDeclaration, signature: IdSignature) {
-        if (!signature.isPublic) return // don't track local ids
+        if (!signature.isPubliclyVisible) return // don't track local ids
 
         if (signature in committedIdSignatures) {
             val clashedDeclaration = committedIdSignatures[signature]!!

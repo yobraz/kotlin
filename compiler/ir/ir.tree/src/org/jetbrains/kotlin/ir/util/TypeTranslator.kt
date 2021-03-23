@@ -30,7 +30,7 @@ import java.util.*
 abstract class TypeTranslator(
     private val symbolTable: ReferenceSymbolTable,
     val languageVersionSettings: LanguageVersionSettings,
-    typeParametersResolverBuilder: () -> TypeParametersResolver = { ScopedTypeParametersResolver() },
+    typeParametersResolverBuilder: () -> TypeParametersResolver,
     private val enterTableScope: Boolean = false,
     private val extensions: StubGeneratorExtensions = StubGeneratorExtensions.EMPTY
 ) {
@@ -43,6 +43,8 @@ abstract class TypeTranslator(
     private val typeParametersResolver by threadLocal { typeParametersResolverBuilder() }
 
     private val erasureStack = Stack<PropertyDescriptor>()
+
+    protected abstract fun isTypeAliasAccessibleHere(typeAliasDescriptor: TypeAliasDescriptor): Boolean
 
     fun enterScope(irElement: IrTypeParametersContainer) {
         typeParametersResolver.enterTypeParameterScope(irElement)
@@ -67,7 +69,7 @@ abstract class TypeTranslator(
         }
     }
 
-    inline fun <T> buildWithScope(container: IrTypeParametersContainer, builder: () -> T): T {
+    fun <T> buildWithScope(container: IrTypeParametersContainer, builder: () -> T): T {
         enterScope(container)
         val result = builder()
         leaveScope(container)
@@ -164,11 +166,14 @@ abstract class TypeTranslator(
         return translateType(approximate(commonSupertype.replaceArgumentsWithStarProjections()), variance)
     }
 
-    private fun SimpleType.toIrTypeAbbreviation(): IrTypeAbbreviation {
+    private fun SimpleType.toIrTypeAbbreviation(): IrTypeAbbreviation? {
         val typeAliasDescriptor = constructor.declarationDescriptor.let {
             it as? TypeAliasDescriptor
                 ?: throw AssertionError("TypeAliasDescriptor expected: $it")
         }
+
+        if (!isTypeAliasAccessibleHere(typeAliasDescriptor)) return null
+
         return IrTypeAbbreviationImpl(
             symbolTable.referenceTypeAlias(typeAliasDescriptor),
             isMarkedNullable,

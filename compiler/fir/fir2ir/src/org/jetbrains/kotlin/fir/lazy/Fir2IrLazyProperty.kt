@@ -5,8 +5,11 @@
 
 package org.jetbrains.kotlin.fir.lazy
 
+import org.jetbrains.kotlin.descriptors.DescriptorVisibility
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.fir.backend.ConversionTypeContext
+import org.jetbrains.kotlin.fir.backend.ConversionTypeOrigin
 import org.jetbrains.kotlin.fir.backend.Fir2IrComponents
 import org.jetbrains.kotlin.fir.backend.toIrConst
 import org.jetbrains.kotlin.fir.declarations.*
@@ -14,6 +17,7 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyGetter
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertySetter
 import org.jetbrains.kotlin.fir.expressions.FirConstExpression
 import org.jetbrains.kotlin.fir.symbols.Fir2IrPropertySymbol
+import org.jetbrains.kotlin.fir.symbols.Fir2IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.lazy.lazyVar
@@ -23,10 +27,6 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
-import org.jetbrains.kotlin.descriptors.DescriptorVisibility
-import org.jetbrains.kotlin.fir.backend.ConversionTypeContext
-import org.jetbrains.kotlin.fir.backend.ConversionTypeOrigin
-import org.jetbrains.kotlin.fir.symbols.Fir2IrSimpleFunctionSymbol
 
 class Fir2IrLazyProperty(
     components: Fir2IrComponents,
@@ -96,7 +96,7 @@ class Fir2IrLazyProperty(
             fir.initializer != null || fir.getter is FirDefaultPropertyGetter || fir.isVar && fir.setter is FirDefaultPropertySetter -> {
                 with(declarationStorage) {
                     createBackingField(
-                        fir, IrDeclarationOrigin.PROPERTY_BACKING_FIELD, descriptor,
+                        fir, IrDeclarationOrigin.PROPERTY_BACKING_FIELD,
                         components.visibilityConverter.convertToDescriptorVisibility(fir.visibility), fir.name, fir.isVal, fir.initializer,
                         type
                     ).also { field ->
@@ -112,7 +112,7 @@ class Fir2IrLazyProperty(
             fir.delegate != null -> {
                 with(declarationStorage) {
                     createBackingField(
-                        fir, IrDeclarationOrigin.PROPERTY_DELEGATE, descriptor,
+                        fir, IrDeclarationOrigin.PROPERTY_DELEGATE,
                         components.visibilityConverter.convertToDescriptorVisibility(fir.visibility),
                         Name.identifier("${fir.name}\$delegate"), true, fir.delegate
                     )

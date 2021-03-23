@@ -246,7 +246,6 @@ class FunctionGenerator(declarationGenerator: DeclarationGenerator) : Declaratio
         }
     }
 
-
     private inline fun declareConstructor(
         ktConstructorElement: KtPureElement,
         ktParametersElement: KtPureElement,
