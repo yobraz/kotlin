@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-org.jetbrains.kotlinx.atomicfu.gradle.AtomicfuKotlinGradleSubplugin
+org.jetbrains.kotlinx.atomicfu.gradle.AtomicfuGradleSubplugin
