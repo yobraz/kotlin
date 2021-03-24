@@ -16,6 +16,7 @@ sealed class KonanTarget(override val name: String, val family: Family, val arch
     object IOS_ARM32 : KonanTarget("ios_arm32", Family.IOS, Architecture.ARM32)
     object IOS_ARM64 : KonanTarget("ios_arm64", Family.IOS, Architecture.ARM64)
     object IOS_X64 : KonanTarget("ios_x64", Family.IOS, Architecture.X64)
+    object IOS_SIMULATOR_ARM64 : KonanTarget("ios_simulator_arm64", Family.IOS, Architecture.ARM64)
     object WATCHOS_ARM32 : KonanTarget("watchos_arm32", Family.WATCHOS, Architecture.ARM32)
     object WATCHOS_ARM64 : KonanTarget("watchos_arm64", Family.WATCHOS, Architecture.ARM64)
     object WATCHOS_X86 : KonanTarget("watchos_x86", Family.WATCHOS, Architecture.X86)
@@ -44,7 +45,7 @@ sealed class KonanTarget(override val name: String, val family: Family, val arch
         val predefinedTargets: Map<String, KonanTarget> by lazy {
             listOf(
                 ANDROID_X64, ANDROID_X86, ANDROID_ARM32, ANDROID_ARM64,
-                IOS_ARM32, IOS_ARM64, IOS_X64,
+                IOS_ARM32, IOS_ARM64, IOS_X64, IOS_SIMULATOR_ARM64,
                 WATCHOS_ARM32, WATCHOS_ARM64, WATCHOS_X86, WATCHOS_X64,
                 TVOS_ARM64, TVOS_X64,
                 LINUX_X64,
