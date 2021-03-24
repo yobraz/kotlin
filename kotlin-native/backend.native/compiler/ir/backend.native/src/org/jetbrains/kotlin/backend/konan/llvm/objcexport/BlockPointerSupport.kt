@@ -194,7 +194,11 @@ internal class BlockGenerator(private val codegen: CodeGenerator) {
     }
 
     fun org.jetbrains.kotlin.backend.konan.Context.LongInt(value: Long) =
-            if (is64BitLong()) Int64(value) else Int32(value.toInt())
+            when (val width = this.config.platform.configurables.longWidth) {
+                64 -> Int64(value)
+                32 -> Int32(value.toInt())
+                else -> error("Unexpected long width: $width")
+            }
 
     private fun generateDescriptorForBlock(blockType: BlockType): ConstValue {
         val numberOfParameters = blockType.numberOfParameters

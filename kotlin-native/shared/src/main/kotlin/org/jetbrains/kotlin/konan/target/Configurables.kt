@@ -75,6 +75,10 @@ interface Configurables : TargetableExternalStorage, RelocationModeFlags {
     val absoluteLlvmHome get() = absolute(llvmHome)
 
     val targetCpu get() = targetString("targetCpu")
+    // TODO: Consider a proper data model representation
+    //  or extract information using LLVM.
+    val longWidth get() = targetString("longWidth")!!.toIntOrNull()
+            ?: error("longWidth for $target is malformed")
     val targetCpuFeatures get() = targetString("targetCpuFeatures")
     val llvmInlineThreshold get() = targetString("llvmInlineThreshold")
 
