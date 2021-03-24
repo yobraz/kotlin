@@ -172,8 +172,7 @@ class MacOSBasedLinker(targetProperties: AppleConfigurables)
     private val dsymutil = "$absoluteTargetToolchain/usr/bin/dsymutil"
 
     private val KonanTarget.isSimulator: Boolean
-        get() = this == KonanTarget.TVOS_X64 || this == KonanTarget.IOS_X64 ||
-                this == KonanTarget.WATCHOS_X86 || this == KonanTarget.WATCHOS_X64
+        get() = kind == AppleTargetKind.Kind.SIMULATOR
 
     private val compilerRtDir: String? by lazy {
         val dir = File("$absoluteTargetToolchain/usr/lib/clang/").listFiles.firstOrNull()?.absolutePath

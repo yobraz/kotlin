@@ -37,6 +37,21 @@ interface RelocationModeFlags : TargetableExternalStorage {
     }
 }
 
+interface AppleTargetKind : TargetableExternalStorage {
+    val kind get() = targetString("kind").kind()
+
+    private fun String?.kind(): Kind = when (this?.toLowerCase()) {
+        "device" -> Kind.DEVICE
+        "simulator" -> Kind.SIMULATOR
+        else -> error("Unknown target kind: $this")
+    }
+
+    enum class Kind {
+        DEVICE,
+        SIMULATOR
+    }
+}
+
 interface ClangFlags : TargetableExternalStorage, RelocationModeFlags {
     val clangFlags get()        = targetList("clangFlags")
     val clangNooptFlags get()   = targetList("clangNooptFlags")
@@ -98,7 +113,7 @@ interface TargetableConfigurables : Configurables {
     val targetArg get() = targetString("quadruple")
 }
 
-interface AppleConfigurables : Configurables, ClangFlags {
+interface AppleConfigurables : Configurables, ClangFlags, AppleTargetKind {
     val arch get() = targetString("arch")!!
     val osVersionMin get() = targetString("osVersionMin")!!
     val osVersionMinFlagLd get() = targetString("osVersionMinFlagLd")!!

@@ -145,6 +145,8 @@ internal class ObjCExport(val context: Context, symbolTable: SymbolTable) {
     }
 
     private fun emitInfoPlist(frameworkContents: File, name: String) {
+        val configurables = context.config.platform.configurables
+        require(configurables is AppleConfigurables)
         val directory = when (target.family) {
             Family.IOS,
             Family.WATCHOS,
@@ -157,16 +159,19 @@ internal class ObjCExport(val context: Context, symbolTable: SymbolTable) {
         val pkg = guessMainPackage() // TODO: consider showing warning if it is root.
         val bundleId = pkg.child(Name.identifier(name)).asString()
 
-        val platform = when (target) {
-            KonanTarget.IOS_ARM32, KonanTarget.IOS_ARM64 -> "iPhoneOS"
-            KonanTarget.IOS_X64 -> "iPhoneSimulator"
-            KonanTarget.TVOS_ARM64 -> "AppleTVOS"
-            KonanTarget.TVOS_X64 -> "AppleTVSimulator"
-            KonanTarget.MACOS_X64, KonanTarget.MACOS_ARM64 -> "MacOSX"
-            KonanTarget.WATCHOS_ARM32, KonanTarget.WATCHOS_ARM64 -> "WatchOS"
-            KonanTarget.WATCHOS_X86, KonanTarget.WATCHOS_X64 -> "WatchSimulator"
-            else -> error(target)
+        val deviceKindSuffix = when (configurables.kind) {
+            AppleTargetKind.Kind.SIMULATOR -> "Simulator"
+            AppleTargetKind.Kind.DEVICE -> "OS"
         }
+
+        val platform = when (target.family) {
+            Family.OSX -> "MacOSX"
+            Family.IOS -> "iPhone$deviceKindSuffix"
+            Family.WATCHOS -> "Watch$deviceKindSuffix"
+            Family.TVOS -> "AppleTV$deviceKindSuffix"
+            else -> error(target.family)
+        }
+
         val properties = context.config.platform.configurables as AppleConfigurables
         val minimumOsVersion = properties.osVersionMin
 
