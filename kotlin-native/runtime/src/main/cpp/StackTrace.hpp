@@ -11,6 +11,7 @@
 #include <cstdint>
 
 #include "SourceInfo.h"
+#include "Types.h"
 #include "Utils.hpp"
 
 #if USE_GCC_UNWIND
@@ -23,14 +24,30 @@ namespace kotlin {
 
 namespace internal {
 
+#if (__MINGW32__ || __MINGW64__)
+// Skip the stack frames related to `StackTrace` ctor, `CollectStackTrace` and `_Unwind_Backtrace`.
+static constexpr size_t kSkipFrames = 2;
+#else
+// Skip the stack frame related to the `StackTrace` ctor and `CollectStackTrace`.
+static constexpr size_t kSkipFrames = 1;
+#endif
+
 // TODO: This API is asking for a span.
 void PrettyPrintSymbol(void* address, const char* name, SourceInfo sourceInfo, char* buffer, size_t bufferSize) noexcept;
 
+NO_INLINE size_t CollectStackTrace(void* buffer[], size_t capacity) noexcept;
+NO_INLINE void CollectStackTrace(KStdVector<void*>* buffer) noexcept;
+
 } // namespace internal
 
+static constexpr size_t kDynamicCapacity = std::numeric_limits<size_t>::max();
+
+template<size_t Capacity>
 class StackTrace {
 public:
-    explicit StackTrace(size_t skipFrames = 0) noexcept;
+    explicit ALWAYS_INLINE StackTrace(size_t skipFrames = 0) noexcept : skipFrames_(skipFrames + internal::kSkipFrames) {
+        size_ = internal::CollectStackTrace(buffer_.data(), buffer_.size());
+    }
 
     // TODO: This API is asking for a span.
 
@@ -41,7 +58,25 @@ public:
 private:
     size_t size_ = 0;
     size_t skipFrames_;
-    std::array<void*, 32> buffer_ = {nullptr};
+    // Increase the buffer size by kSkipFrames to make API more predictable.
+    // Otherwise creating a StackTrace<32> would result in only 30 or 31 stack entries.
+    std::array<void*, Capacity + internal::kSkipFrames> buffer_ = {nullptr};
+};
+
+template<>
+class StackTrace<kDynamicCapacity> {
+public:
+    explicit ALWAYS_INLINE StackTrace(size_t skipFrames = 0) noexcept : skipFrames_(skipFrames + internal::kSkipFrames) {
+        internal::CollectStackTrace(&buffer_);
+    }
+
+    size_t size() const noexcept { return skipFrames_ >= buffer_.size() ? 0 : buffer_.size() - skipFrames_; }
+
+    void* const* data() const noexcept { return buffer_.data() + skipFrames_; }
+
+private:
+    size_t skipFrames_;
+    KStdVector<void*> buffer_;
 };
 
 class SymbolicStackTrace : private MoveOnly {
@@ -86,7 +121,10 @@ public:
 
     // TODO: This argument should be a span.
     SymbolicStackTrace(void* const* addresses, size_t size) noexcept;
-    explicit SymbolicStackTrace(const StackTrace& stackTrace) noexcept;
+
+    template<size_t Capacity>
+    explicit SymbolicStackTrace(const StackTrace<Capacity>& stackTrace) noexcept
+        : SymbolicStackTrace(stackTrace.data(), stackTrace.size()) {}
 
     SymbolicStackTrace(SymbolicStackTrace&& rhs) noexcept;
     SymbolicStackTrace& operator=(SymbolicStackTrace&& rhs) noexcept;

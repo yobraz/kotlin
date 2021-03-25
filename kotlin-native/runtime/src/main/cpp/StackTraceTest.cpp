@@ -17,12 +17,24 @@ using namespace kotlin;
 
 namespace {
 
-NO_INLINE StackTrace GetStackTrace1(size_t skipFrames) {
-    return StackTrace(skipFrames);
+// Disable optimizations for these functions to avoid inlining and tail recursion optimization.
+template <size_t Capacity>
+[[clang::optnone]] StackTrace<Capacity> GetStackTrace1(size_t skipFrames) {
+    return StackTrace<Capacity>(skipFrames);
 }
 
-NO_INLINE StackTrace GetStackTrace2(size_t skipFrames) {
-    return GetStackTrace1(skipFrames);
+template <size_t Capacity>
+[[clang::optnone]] StackTrace<Capacity> GetStackTrace2(size_t skipFrames) {
+    return GetStackTrace1<Capacity>(skipFrames);
+}
+
+template <size_t Capacity>
+[[clang::optnone]] StackTrace<Capacity> GetDeepStackTrace(size_t depth) {
+    if (depth <= 1) {
+        return StackTrace<Capacity>(0);
+    } else {
+        return GetDeepStackTrace<Capacity>(depth - 1);
+    }
 }
 
 NO_INLINE void AbortWithStackTrace(int unused) {
@@ -42,29 +54,89 @@ std::string Collect(const SymbolicStackTrace& stackTrace) {
 std::string PrettyPrintSymbol(uintptr_t address, const char* name, const char* filename, int line, int column, size_t bufferSize) {
     std::vector<char> result(bufferSize, '\0');
 
-    internal::PrettyPrintSymbol(reinterpret_cast<void*>(address), name, SourceInfo{filename, line, column}, result.data(), result.size());
+    kotlin::internal::PrettyPrintSymbol(reinterpret_cast<void*>(address), name, SourceInfo{filename, line, column}, result.data(), result.size());
 
     return std::string(result.data());
 }
 
+template <size_t Capactiy>
+struct StaticTestCase {
+    static constexpr size_t capacity = Capactiy;
+
+    static std::string getName() {
+        return std::to_string(capacity);
+    }
+};
+
+struct DynamicTestCase {
+    static constexpr size_t capacity = kotlin::kDynamicCapacity;
+
+    static std::string getName() {
+        return "Dynamic";
+    }
+};
+
+class StackTraceCaseNames {
+public:
+    template <typename T>
+    static std::string GetName(int i) {
+        return T::getName();
+    }
+};
+
 } // namespace
 
-TEST(StackTraceTest, StackTrace) {
-    auto stackTrace = GetStackTrace2(0);
+template <typename TestCase>
+class StackTraceTest : public testing::Test {};
+using StackTraceTestCases = ::testing::Types<StaticTestCase<32>, DynamicTestCase>;
+TYPED_TEST_SUITE(StackTraceTest, StackTraceTestCases, StackTraceCaseNames);
+
+TYPED_TEST(StackTraceTest, StackTrace) {
+    auto stackTrace = GetStackTrace2<TypeParam::capacity>(0);
     SymbolicStackTrace symbolicStackTrace(stackTrace);
     ASSERT_GT(symbolicStackTrace.size(), 0ul);
     EXPECT_THAT(symbolicStackTrace[0].Name(), testing::HasSubstr("GetStackTrace1"));
 }
 
-TEST(StackTraceTest, StackTraceWithSkip) {
-    auto stackTrace = GetStackTrace2(1);
+TYPED_TEST(StackTraceTest, StackTraceWithSkip) {
+    auto stackTrace = GetStackTrace2<TypeParam::capacity>(1);
     SymbolicStackTrace symbolicStackTrace(stackTrace);
     ASSERT_GT(symbolicStackTrace.size(), 0ul);
     EXPECT_THAT(symbolicStackTrace[0].Name(), testing::HasSubstr("GetStackTrace2"));
 }
 
-TEST(StackTraceTest, Iteration) {
-    auto stackTrace = GetStackTrace1(0);
+TYPED_TEST(StackTraceTest, DeepStackTrace) {
+    constexpr size_t knownStackDepth = 100;
+    auto stackTrace = GetDeepStackTrace<TypeParam::capacity>(knownStackDepth);
+    SymbolicStackTrace symbolicStackTrace(stackTrace);
+    ASSERT_GT(symbolicStackTrace.size(), 0ul);
+    EXPECT_THAT(symbolicStackTrace[0].Name(), testing::HasSubstr("GetDeepStackTrace"));
+
+    if (TypeParam::capacity == kotlin::kDynamicCapacity) {
+        EXPECT_GT(symbolicStackTrace.size(), knownStackDepth);
+        EXPECT_THAT(symbolicStackTrace[knownStackDepth - 1].Name(), testing::HasSubstr("GetDeepStackTrace"));
+    } else {
+        EXPECT_EQ(symbolicStackTrace.size(), TypeParam::capacity);
+        EXPECT_THAT(symbolicStackTrace[TypeParam::capacity - 1].Name(), testing::HasSubstr("GetDeepStackTrace"));
+    }
+}
+
+TEST(StackTraceTest, SingleElementBuffer) {
+    auto stackTrace = GetStackTrace1<1>(0);
+    SymbolicStackTrace symbolicStackTrace(stackTrace);
+    ASSERT_GT(symbolicStackTrace.size(), 0ul);
+    EXPECT_EQ(symbolicStackTrace.size(), 1ul);
+    EXPECT_THAT(symbolicStackTrace[0].Name(), testing::HasSubstr("GetStackTrace1"));
+}
+
+TEST(StackTraceTest, EmptySingleElementBuffer) {
+    auto stackTrace = GetStackTrace1<1>(1);
+    SymbolicStackTrace symbolicStackTrace(stackTrace);
+    EXPECT_EQ(symbolicStackTrace.size(), 0ul);
+}
+
+TYPED_TEST(StackTraceTest, Iteration) {
+    auto stackTrace = GetStackTrace1<TypeParam::capacity>(0);
     SymbolicStackTrace symbolicStackTrace(stackTrace);
 
     std::string result = Collect(symbolicStackTrace);
@@ -79,8 +151,8 @@ TEST(StackTraceTest, IterationOnEmpty) {
     EXPECT_THAT(result, std::string());
 }
 
-TEST(StackTraceTest, MoveConstructSymbolicStackTrace) {
-    auto stackTrace = GetStackTrace1(0);
+TYPED_TEST(StackTraceTest, MoveConstructSymbolicStackTrace) {
+    auto stackTrace = GetStackTrace1<TypeParam::capacity>(0);
     SymbolicStackTrace symbolicStackTrace1(stackTrace);
     SymbolicStackTrace symbolicStackTrace2(std::move(symbolicStackTrace1));
 
@@ -91,9 +163,9 @@ TEST(StackTraceTest, MoveConstructSymbolicStackTrace) {
     EXPECT_THAT(result2, testing::HasSubstr("GetStackTrace1"));
 }
 
-TEST(StackTraceTest, MoveAssignSymbolicStackTrace) {
-    auto stackTrace1 = GetStackTrace1(0);
-    auto stackTrace2 = GetStackTrace2(0);
+TYPED_TEST(StackTraceTest, MoveAssignSymbolicStackTrace) {
+    auto stackTrace1 = GetStackTrace1<TypeParam::capacity>(0);
+    auto stackTrace2 = GetStackTrace2<TypeParam::capacity>(0);
     SymbolicStackTrace symbolicStackTrace1(stackTrace1);
     SymbolicStackTrace symbolicStackTrace2(stackTrace2);
     symbolicStackTrace2 = std::move(symbolicStackTrace1);

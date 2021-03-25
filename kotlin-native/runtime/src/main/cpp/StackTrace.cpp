@@ -11,9 +11,10 @@
 #include "Porting.h"
 #include "Types.h"
 
-#if USE_GCC_UNWIND
 // GCC unwinder for backtrace.
+// Use it for the !USE_LIBC_UNWIND case too, to count the stack depth.
 #include <unwind.h>
+#if USE_GCC_UNWIND
 // AddressToSymbol mapping.
 #include "ExecFormat.h"
 #elif USE_LIBC_UNWIND
@@ -25,12 +26,14 @@ using namespace kotlin;
 
 namespace {
 
+#if (USE_GCC_UNWIND)
+_Unwind_Ptr getUnwindPtr(_Unwind_Context* context) {
 #if (__MINGW32__ || __MINGW64__)
-// Skip the stack frames related to `StackTrace` ctor and `_Unwind_Backtrace`.
-static constexpr size_t kSkipFrames = 2;
+    return _Unwind_GetRegionStart(context);
 #else
-// Skip the stack frame related to the `StackTrace` ctor.
-static constexpr size_t kSkipFrames = 1;
+    return _Unwind_GetIP(context);
+#endif
+}
 #endif
 
 class StringBuilder {
@@ -113,28 +116,56 @@ void kotlin::internal::PrettyPrintSymbol(void* address, const char* name, Source
     }
 }
 
-// TODO: this implementation is just a hack, e.g. the result is inexact;
+// TODO: CollectStackTrace implementations are just a hack, e.g. the result is inexact;
 // however it is better to have an inexact stacktrace than not to have any.
-NO_INLINE StackTrace::StackTrace(size_t skipFrames) noexcept : skipFrames_(skipFrames + kSkipFrames) {
+NO_INLINE size_t kotlin::internal::CollectStackTrace(void* buffer[], size_t capacity) noexcept {
 #if USE_GCC_UNWIND
+    struct TraceHolder {
+        void** buffer;
+        size_t capacity;
+        size_t size;
+    };
+
+    TraceHolder result { .buffer = buffer, .capacity = capacity, .size = 0 };
+
     _Unwind_Trace_Fn unwindCallback = [](_Unwind_Context* context, void* arg) {
-        auto* stackTrace = static_cast<StackTrace*>(arg);
+        auto* trace = static_cast<TraceHolder*>(arg);
         // We do not allocate a dynamic storage for the stacktrace so store only first `kBufferCapacity` elements.
-        if (stackTrace->size_ >= stackTrace->buffer_.size()) {
+        if (trace->size >= trace->capacity) {
             return _URC_NO_REASON;
         }
-
-#if (__MINGW32__ || __MINGW64__)
-        _Unwind_Ptr ptr = _Unwind_GetRegionStart(context);
-#else
-        _Unwind_Ptr ptr = _Unwind_GetIP(context);
-#endif
-        stackTrace->buffer_[stackTrace->size_++] = reinterpret_cast<void*>(ptr);
+        _Unwind_Ptr ptr = getUnwindPtr(context);
+        trace->buffer[trace->size++] = reinterpret_cast<void*>(ptr);
         return _URC_NO_REASON;
     };
-    _Unwind_Backtrace(unwindCallback, this);
+    _Unwind_Backtrace(unwindCallback, &result);
+    return result.size;
 #elif USE_LIBC_UNWIND
-    size_ = backtrace(buffer_.data(), buffer_.size());
+    return backtrace(buffer, capacity);
+#endif
+}
+
+NO_INLINE void kotlin::internal::CollectStackTrace(KStdVector<void*>* buffer) noexcept {
+#if USE_GCC_UNWIND
+    _Unwind_Trace_Fn unwindCallback = [](_Unwind_Context* context, void* arg) {
+        auto* buffer = static_cast<KStdVector<void*>*>(arg);
+        _Unwind_Ptr ptr = getUnwindPtr(context);
+        buffer->push_back(reinterpret_cast<void*>(ptr));
+        return _URC_NO_REASON;
+    };
+    _Unwind_Backtrace(unwindCallback, buffer);
+#elif USE_LIBC_UNWIND
+    // Count the stack depth using the _Unwind_Backtrace API.
+    _Unwind_Trace_Fn unwindCallback = [](_Unwind_Context* context, void* arg) {
+        auto* stackDepth = static_cast<size_t*>(arg);
+        (*stackDepth)++;
+        return _URC_NO_REASON;
+    };
+
+    size_t stackDepth = 0;
+    _Unwind_Backtrace(unwindCallback, &stackDepth);
+    buffer->resize(stackDepth);
+    backtrace(buffer->data(), buffer->size());
 #endif
 }
 
@@ -180,8 +211,6 @@ SymbolicStackTrace::SymbolicStackTrace(void* const* addresses, size_t size) noex
 #endif
 }
 
-SymbolicStackTrace::SymbolicStackTrace(const StackTrace& stackTrace) noexcept : SymbolicStackTrace(stackTrace.data(), stackTrace.size()) {}
-
 SymbolicStackTrace::SymbolicStackTrace(SymbolicStackTrace&& rhs) noexcept : addresses_(rhs.addresses_), size_(rhs.size_) {
     rhs.size_ = 0;
     rhs.addresses_ = nullptr;
@@ -214,7 +243,7 @@ void SymbolicStackTrace::swap(SymbolicStackTrace& rhs) noexcept {
 
 NO_INLINE void kotlin::PrintStackTraceStderr(bool allowSourceInfo) noexcept {
     // Skip this function in the stack trace.
-    StackTrace stackTrace(1);
+    StackTrace<32> stackTrace(1);
     SymbolicStackTrace symbolicStackTrace(stackTrace);
 
     for (const auto& symbol : symbolicStackTrace) {

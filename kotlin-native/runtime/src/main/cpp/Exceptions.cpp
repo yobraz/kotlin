@@ -42,13 +42,20 @@
 #include "Utils.hpp"
 #include "ObjCExceptions.h"
 
+namespace {
+
+THREAD_LOCAL_VARIABLE bool disallowSourceInfo = false;
+
+} // namespace
+
+
 NO_INLINE OBJ_GETTER0(Kotlin_getCurrentStackTrace) {
 #if OMIT_BACKTRACE
     return AllocArrayInstance(theNativePtrArrayTypeInfo, 0, OBJ_RESULT);
 #else
     // Skips first 2 elements as irrelevant: this function and primary Throwable constructor.
     constexpr int kSkipFrames = 2;
-    kotlin::StackTrace stackTrace(kSkipFrames);
+    kotlin::StackTrace<kotlin::kDynamicCapacity> stackTrace(kSkipFrames);
     ObjHolder resultHolder;
     ObjHeader* result = AllocArrayInstance(theNativePtrArrayTypeInfo, stackTrace.size(), resultHolder.slot());
     for (size_t index = 0; index < stackTrace.size(); ++index) {
