@@ -9,14 +9,3 @@ Compiling files:
 End of files
 Exit code: OK
 ------------------------------------------
-
-================ Step #2 =================
-
-Compiling files:
-  src/B.kt
-  src/C.kt
-  src/companionUsage.kt
-  src/constantUsage.kt
-End of files
-Exit code: OK
-------------------------------------------
