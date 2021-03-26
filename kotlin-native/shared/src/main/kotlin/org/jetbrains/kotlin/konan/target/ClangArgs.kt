@@ -32,11 +32,6 @@ internal object Android {
 }
 
 class ClangArgs(private val configurables: Configurables) : Configurables by configurables {
-
-    private val targetArg = if (configurables is TargetableConfigurables)
-        configurables.targetArg
-    else null
-
     private val clangArgsSpecificForKonanSources
         get() = runtimeDefinitions.map { "-D$it" }
 
@@ -53,17 +48,14 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
         if (configurables is GccConfigurables) {
             add(listOf("--gcc-toolchain=${configurables.absoluteGccToolchain}"))
         }
-        if (configurables is TargetableConfigurables) {
-            add(listOf("-target", configurables.targetArg!!))
+        val targetArg = when (target) {
+            // TODO: LLVM 8 doesn't support arm64_32.
+            //  We can use armv7k because they are compatible at bitcode level.
+            KonanTarget.WATCHOS_ARM64 -> "armv7k-apple-watchos"
+            else -> configurables.targetArg
         }
+        add(listOf("-target", targetArg))
         if (configurables is AppleConfigurables) {
-            val arch = when (target) {
-                // TODO: LLVM 8 doesn't support arm64_32.
-                //  We can use armv7k because they are compatible at bitcode level.
-                KonanTarget.WATCHOS_ARM64 -> "armv7k"
-                else -> configurables.arch
-            }
-            add(listOf("-arch", arch))
             add(listOf("-stdlib=libc++"))
             val osVersionMin = when (target) {
                 // Here we workaround Clang 8 limitation: macOS major version should be 10.
@@ -101,7 +93,7 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
 
         KonanTarget.ANDROID_ARM32, KonanTarget.ANDROID_ARM64,
         KonanTarget.ANDROID_X86, KonanTarget.ANDROID_X64 -> {
-            val clangTarget = targetArg!!
+            val clangTarget = targetArg
             val architectureDir = Android.architectureDirForTarget(target)
             val toolchainSysroot = "$absoluteTargetToolchain/sysroot"
             listOf(

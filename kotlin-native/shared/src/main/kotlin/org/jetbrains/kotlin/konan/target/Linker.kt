@@ -136,7 +136,7 @@ class AndroidLinker(targetProperties: AndroidConfigurables)
         val toolchainSysroot = "${absoluteTargetToolchain}/sysroot"
         val architectureDir = Android.architectureDirForTarget(target)
         val apiSysroot = "$absoluteTargetSysRoot/$architectureDir"
-        val clangTarget = targetArg!!
+        val clangTarget = targetArg
         val libDirs = listOf(
                 "--sysroot=$apiSysroot",
                 if (target == KonanTarget.ANDROID_X64) "-L$apiSysroot/usr/lib64" else "-L$apiSysroot/usr/lib",
@@ -148,7 +148,7 @@ class AndroidLinker(targetProperties: AndroidConfigurables)
             +"-fPIC"
             +"-shared"
             +"-target"
-            +targetArg!!
+            +targetArg
             +libDirs
             +objectFiles
             if (optimize) +linkerOptimizationFlags

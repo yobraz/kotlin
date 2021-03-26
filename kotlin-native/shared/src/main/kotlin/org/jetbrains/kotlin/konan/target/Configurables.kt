@@ -37,13 +37,12 @@ interface RelocationModeFlags : TargetableExternalStorage {
     }
 }
 
-interface AppleTargetKind : TargetableExternalStorage {
-    val kind get() = targetString("kind").kind()
+interface AppleTargetKind : Configurables {
+    val kind get() = targetArg.kind()
 
-    private fun String?.kind(): Kind = when (this?.toLowerCase()) {
-        "device" -> Kind.DEVICE
-        "simulator" -> Kind.SIMULATOR
-        else -> error("Unknown target kind: $this")
+    private fun String?.kind(): Kind = when {
+        this?.endsWith("simulator") == true -> Kind.SIMULATOR
+        else -> Kind.DEVICE
     }
 
     enum class Kind {
@@ -66,6 +65,9 @@ interface LldFlags : TargetableExternalStorage {
 interface Configurables : TargetableExternalStorage, RelocationModeFlags {
 
     val target: KonanTarget
+    val targetArg get() = targetString("quadruple")
+            ?: error("quadruple for $target is not specified")
+    val arch get() = targetArg.split('-').first()
 
     val llvmHome get() = hostString("llvmHome")
     val llvmVersion get() = hostString("llvmVersion")
@@ -109,12 +111,7 @@ interface ConfigurablesWithEmulator : Configurables {
     val absoluteEmulatorExecutable get() = absolute(emulatorExecutable)
 }
 
-interface TargetableConfigurables : Configurables {
-    val targetArg get() = targetString("quadruple")
-}
-
 interface AppleConfigurables : Configurables, ClangFlags, AppleTargetKind {
-    val arch get() = targetString("arch")!!
     val osVersionMin get() = targetString("osVersionMin")!!
     val osVersionMinFlagLd get() = targetString("osVersionMinFlagLd")!!
     val osVersionMinFlagClang get() = targetString("osVersionMinFlagClang")!!
@@ -123,9 +120,9 @@ interface AppleConfigurables : Configurables, ClangFlags, AppleTargetKind {
     val absoluteAdditionalToolsDir get() = absolute(additionalToolsDir)
 }
 
-interface MingwConfigurables : TargetableConfigurables, ClangFlags
+interface MingwConfigurables : Configurables, ClangFlags
 
-interface GccConfigurables : TargetableConfigurables, ClangFlags {
+interface GccConfigurables : Configurables, ClangFlags {
     val gccToolchain get() = targetString("gccToolchain")
     val absoluteGccToolchain get() = absolute(gccToolchain)
 
@@ -141,11 +138,11 @@ interface GccConfigurables : TargetableConfigurables, ClangFlags {
     val linkerGccFlags get() = targetList("linkerGccFlags")
 }
 
-interface AndroidConfigurables : TargetableConfigurables, ClangFlags
+interface AndroidConfigurables : Configurables, ClangFlags
 
-interface WasmConfigurables : TargetableConfigurables, ClangFlags, LldFlags
+interface WasmConfigurables : Configurables, ClangFlags, LldFlags
 
-interface ZephyrConfigurables : TargetableConfigurables, ClangFlags {
+interface ZephyrConfigurables : Configurables, ClangFlags {
     val boardSpecificClangFlags get() = targetList("boardSpecificClangFlags")
     val targetAbi get() = targetString("targetAbi")
 }
