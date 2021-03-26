@@ -19311,6 +19311,24 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
         @TestDataPath("$PROJECT_ROOT")
         public class OperatorsOverloading {
             @Test
+            @TestMetadata("45503_1.kt")
+            public void test45503_1() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/operatorsOverloading/45503_1.kt");
+            }
+
+            @Test
+            @TestMetadata("45503_2.kt")
+            public void test45503_2() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/operatorsOverloading/45503_2.kt");
+            }
+
+            @Test
+            @TestMetadata("45503_3.kt")
+            public void test45503_3() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/operatorsOverloading/45503_3.kt");
+            }
+
+            @Test
             public void testAllFilesPresentInOperatorsOverloading() throws Exception {
                 KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/tests/operatorsOverloading"), Pattern.compile("^(.*)\\.kts?$"), Pattern.compile("^(.+)\\.fir\\.kts?$"), true);
             }
