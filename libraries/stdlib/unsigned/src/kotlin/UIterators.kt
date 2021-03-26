@@ -8,7 +8,9 @@
 package kotlin.collections
 
 /** An iterator over a sequence of values of type `UByte`. */
-internal abstract class UByteIterator : Iterator<UByte> {
+@Deprecated("This class is not going to be stabilized and is to be removed soon.", level = DeprecationLevel.ERROR)
+@SinceKotlin("1.3")
+public abstract class UByteIterator : Iterator<UByte> {
     final override fun next() = nextUByte()
 
     /** Returns the next value in the sequence without boxing. */
@@ -16,7 +18,9 @@ internal abstract class UByteIterator : Iterator<UByte> {
 }
 
 /** An iterator over a sequence of values of type `UShort`. */
-internal abstract class UShortIterator : Iterator<UShort> {
+@Deprecated("This class is not going to be stabilized and is to be removed soon.", level = DeprecationLevel.ERROR)
+@SinceKotlin("1.3")
+public abstract class UShortIterator : Iterator<UShort> {
     final override fun next() = nextUShort()
 
     /** Returns the next value in the sequence without boxing. */
@@ -24,7 +28,9 @@ internal abstract class UShortIterator : Iterator<UShort> {
 }
 
 /** An iterator over a sequence of values of type `UInt`. */
-internal abstract class UIntIterator : Iterator<UInt> {
+@Deprecated("This class is not going to be stabilized and is to be removed soon.", level = DeprecationLevel.ERROR)
+@SinceKotlin("1.3")
+public abstract class UIntIterator : Iterator<UInt> {
     final override fun next() = nextUInt()
 
     /** Returns the next value in the sequence without boxing. */
@@ -32,7 +38,9 @@ internal abstract class UIntIterator : Iterator<UInt> {
 }
 
 /** An iterator over a sequence of values of type `ULong`. */
-internal abstract class ULongIterator : Iterator<ULong> {
+@Deprecated("This class is not going to be stabilized and is to be removed soon.", level = DeprecationLevel.ERROR)
+@SinceKotlin("1.3")
+public abstract class ULongIterator : Iterator<ULong> {
     final override fun next() = nextULong()
 
     /** Returns the next value in the sequence without boxing. */

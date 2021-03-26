@@ -113,6 +113,7 @@ internal constructor(
  * @property step the number by which the value is incremented on each step.
  */
 @SinceKotlin("1.3")
+@Suppress("DEPRECATION_ERROR")
 private class ULongProgressionIterator(first: ULong, last: ULong, step: Long) : ULongIterator() {
     private val finalElement = last
     private var hasNext: Boolean = if (step > 0) first <= last else first >= last

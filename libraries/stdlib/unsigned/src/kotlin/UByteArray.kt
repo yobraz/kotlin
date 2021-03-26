@@ -43,6 +43,7 @@ internal constructor(@PublishedApi internal val storage: ByteArray) : Collection
     /** Creates an iterator over the elements of the array. */
     public override operator fun iterator(): kotlin.collections.Iterator<UByte> = Iterator(storage)
 
+    @Suppress("DEPRECATION_ERROR")
     private class Iterator(private val array: ByteArray) : UByteIterator() {
         private var index = 0
         override fun hasNext() = index < array.size

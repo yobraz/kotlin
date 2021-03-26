@@ -452,7 +452,9 @@ class UnsignedIteratorsGenerator(out: PrintWriter) : BuiltInsSourceGenerator(out
         for (type in UnsignedType.values()) {
             val s = type.capitalized
             out.println("/** An iterator over a sequence of values of type `$s`. */")
-            out.println("internal abstract class ${s}Iterator : Iterator<$s> {")
+            out.println("@Deprecated(\"This class is not going to be stabilized and is to be removed soon.\", level = DeprecationLevel.ERROR)")
+            out.println("@SinceKotlin(\"1.3\")")
+            out.println("public abstract class ${s}Iterator : Iterator<$s> {")
             out.println("    final override fun next() = next$s()")
             out.println()
             out.println("    /** Returns the next value in the sequence without boxing. */")
@@ -508,6 +510,7 @@ class UnsignedArrayGenerator(val type: UnsignedType, out: PrintWriter) : BuiltIn
     /** Creates an iterator over the elements of the array. */
     public override operator fun iterator(): kotlin.collections.Iterator<$elementType> = Iterator(storage)
 
+    @Suppress("DEPRECATION_ERROR")
     private class Iterator(private val array: $storageArrayType) : ${elementType}Iterator() {
         private var index = 0
         override fun hasNext() = index < array.size
@@ -675,6 +678,7 @@ internal constructor(
  * @property step the number by which the value is incremented on each step.
  */
 @SinceKotlin("1.3")
+@Suppress("DEPRECATION_ERROR")
 private class ${elementType}ProgressionIterator(first: $elementType, last: $elementType, step: $stepType) : ${elementType}Iterator() {
     private val finalElement = last
     private var hasNext: Boolean = if (step > 0) first <= last else first >= last
