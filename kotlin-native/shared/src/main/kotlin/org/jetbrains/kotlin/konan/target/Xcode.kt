@@ -35,6 +35,23 @@ interface Xcode {
     val additionalTools: String
     val simulatorRuntimes: String
 
+    fun findSdkForTarget(family: Family, kind: AppleTargetKind.Kind): String = when (family) {
+        Family.OSX -> macosxSdk
+        Family.IOS -> when (kind) {
+            AppleTargetKind.Kind.DEVICE -> iphoneosSdk
+            AppleTargetKind.Kind.SIMULATOR -> iphonesimulatorSdk
+        }
+        Family.TVOS -> when (kind) {
+            AppleTargetKind.Kind.DEVICE -> appletvosSdk
+            AppleTargetKind.Kind.SIMULATOR -> appletvsimulatorSdk
+        }
+        Family.WATCHOS -> when (kind) {
+            AppleTargetKind.Kind.DEVICE -> watchosSdk
+            AppleTargetKind.Kind.SIMULATOR -> watchsimulatorSdk
+        }
+        else -> error("Cannot find Apple SDK for $family, $kind")
+    }
+
     companion object {
         val current: Xcode by lazy {
             CurrentXcode

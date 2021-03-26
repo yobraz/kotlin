@@ -32,22 +32,7 @@ class AppleConfigurablesImpl(
     private val xcodeAddonDependency = this.additionalToolsDir!!
 
     override val absoluteTargetSysRoot: String get() = when (val provider = xcodePartsProvider) {
-        is XcodePartsProvider.Local -> when (target.family) {
-            Family.OSX -> provider.xcode.macosxSdk
-            Family.IOS -> when (kind) {
-                AppleTargetKind.Kind.DEVICE -> provider.xcode.iphoneosSdk
-                AppleTargetKind.Kind.SIMULATOR -> provider.xcode.iphonesimulatorSdk
-            }
-            Family.TVOS -> when (kind) {
-                AppleTargetKind.Kind.DEVICE -> provider.xcode.appletvosSdk
-                AppleTargetKind.Kind.SIMULATOR -> provider.xcode.appletvsimulatorSdk
-            }
-            Family.WATCHOS -> when (kind) {
-                AppleTargetKind.Kind.DEVICE -> provider.xcode.watchosSdk
-                AppleTargetKind.Kind.SIMULATOR -> provider.xcode.watchsimulatorSdk
-            }
-            else -> error(target)
-        }
+        is XcodePartsProvider.Local -> provider.xcode.findSdkForTarget(target.family, kind)
         XcodePartsProvider.InternalServer -> absolute(sdkDependency)
     }
 

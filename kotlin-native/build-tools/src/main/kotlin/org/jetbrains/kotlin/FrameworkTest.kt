@@ -250,20 +250,7 @@ open class FrameworkTest : DefaultTask(), KonanTestExecutable {
 
         val bitcodeBuildTool = "${configurables.absoluteAdditionalToolsDir}/bin/bitcode-build-tool"
         val toolPath = "${configurables.absoluteTargetToolchain}/usr/bin/"
-        val sdk = when (testTarget) {
-            KonanTarget.IOS_X64,
-            KonanTarget.TVOS_X64,
-            KonanTarget.WATCHOS_X86,
-            KonanTarget.WATCHOS_X64 -> return // bitcode-build-tool doesn't support simulators.
-            KonanTarget.IOS_ARM64,
-            KonanTarget.IOS_ARM32 -> Xcode.current.iphoneosSdk
-            KonanTarget.MACOS_X64,
-            KonanTarget.MACOS_ARM64 -> Xcode.current.macosxSdk
-            KonanTarget.TVOS_ARM64 -> Xcode.current.appletvosSdk
-            KonanTarget.WATCHOS_ARM32,
-            KonanTarget.WATCHOS_ARM64 -> Xcode.current.watchosSdk
-            else -> error("Cannot validate bitcode for test target $testTarget")
-        }
+        val sdk = Xcode.current.findSdkForTarget(testTarget.family, configurables.kind)
 
         val python3 = listOf("/usr/bin/python3", "/usr/local/bin/python3")
                 .map { Paths.get(it) }.firstOrNull { Files.exists(it) }
