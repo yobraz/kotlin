@@ -50,11 +50,12 @@ fun create(project: Project): ExecutorService {
     val testTarget = project.testTarget
     val platform = platformManager.platform(testTarget)
     val absoluteTargetToolchain = platform.absoluteTargetToolchain
+    val configurables = platform.configurables
 
     return if (project.hasProperty("remote")) {
         sshExecutor(project)
-    } else when (testTarget) {
-        KonanTarget.WASM32 -> object : ExecutorService {
+    } else when {
+        testTarget == KonanTarget.WASM32 -> object : ExecutorService {
             override fun execute(action: Action<in ExecSpec>): ExecResult? = project.exec {
                 action.execute(this)
                 val exe = executable
@@ -64,20 +65,13 @@ fun create(project: Project): ExecutorService {
                 this.args = listOf("--expose-wasm", launcherJs, "--", exe) + args
             }
         }
-
-        KonanTarget.LINUX_MIPS32,
-        KonanTarget.LINUX_MIPSEL32,
-        KonanTarget.LINUX_ARM32_HFP,
-        KonanTarget.LINUX_ARM64 -> emulatorExecutor(project, testTarget)
-
-        KonanTarget.IOS_X64,
-        KonanTarget.TVOS_X64,
-        KonanTarget.WATCHOS_X86,
-        KonanTarget.WATCHOS_X64 -> simulator(project)
-
-        KonanTarget.IOS_ARM32,
-        KonanTarget.IOS_ARM64 -> deviceLauncher(project)
-
+        testTarget.family == Family.LINUX && testTarget.architecture != HostManager.host.architecture -> {
+            emulatorExecutor(project, testTarget)
+        }
+        configurables is AppleConfigurables -> when (configurables.kind) {
+            AppleTargetKind.Kind.DEVICE -> deviceLauncher(project)
+            AppleTargetKind.Kind.SIMULATOR -> simulator(project)
+        }
         else -> localExecutorService(project)
     }
 }
@@ -234,13 +228,20 @@ private fun emulatorExecutor(project: Project, target: KonanTarget) = object : E
 private fun simulator(project: Project): ExecutorService = object : ExecutorService {
 
     private val target = project.testTarget
+    private val configurables = platformManager.platform(target).configurables as? AppleConfigurables
+            ?: error("Unexpected target: $target")
+
+    init {
+        require(configurables.kind == AppleTargetKind.Kind.SIMULATOR) {
+            error("Target is not a simulator: $target")
+        }
+    }
 
     private val simctl by lazy {
-        val sdk = when (target) {
-            KonanTarget.TVOS_X64 -> Xcode.current.appletvsimulatorSdk
-            KonanTarget.IOS_X64 -> Xcode.current.iphonesimulatorSdk
-            KonanTarget.WATCHOS_X64,
-            KonanTarget.WATCHOS_X86 -> Xcode.current.watchsimulatorSdk
+        val sdk = when (target.family) {
+            Family.TVOS -> Xcode.current.appletvsimulatorSdk
+            Family.IOS -> Xcode.current.iphonesimulatorSdk
+            Family.WATCHOS -> Xcode.current.watchsimulatorSdk
             else -> error("Unexpected simulation target: $target")
         }
         val out = ByteArrayOutputStream()
@@ -355,6 +356,9 @@ internal data class DeviceTarget(
 )
 
 private fun deviceLauncher(project: Project) = object : ExecutorService {
+    init {
+
+    }
     private val xcProject = Paths.get(project.testOutputRoot, "launcher")
 
     private val idb = project.findProperty("idb_path") as? String ?: "idb"

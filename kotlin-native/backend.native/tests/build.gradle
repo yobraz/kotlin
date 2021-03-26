@@ -5254,7 +5254,7 @@ project.tasks.register("debugger_test", Test.class) {
 }
 
 // Configure build for iOS device targets.
-if (target.family == Family.IOS && (target.architecture == ARM32 || target.architecture == ARM64)) {
+if (target.family == Family.IOS && (target instanceof KonanTarget.IOS_ARM32 || target instanceof KonanTarget.IOS_ARM64)) {
     project.tasks
             .withType(KonanTestExecutable.class)
             .configureEach {
