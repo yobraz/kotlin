@@ -8,17 +8,22 @@ package org.jetbrains.kotlin.test.runners.ir.interpreter
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
-import org.jetbrains.kotlin.ir.declarations.IrFile
-import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
-import org.jetbrains.kotlin.ir.expressions.IrBody
-import org.jetbrains.kotlin.ir.expressions.IrConst
-import org.jetbrains.kotlin.ir.expressions.IrErrorExpression
+import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.interpreter.IrInterpreter
+import org.jetbrains.kotlin.ir.interpreter.builtins.compileTimeAnnotation
+import org.jetbrains.kotlin.ir.interpreter.builtins.contractsDslAnnotation
+import org.jetbrains.kotlin.ir.interpreter.builtins.evaluateIntrinsicAnnotation
+import org.jetbrains.kotlin.ir.interpreter.hasAnnotation
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.util.IdSignature
+import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
+import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.resolve.AnalyzingUtils
 import org.jetbrains.kotlin.test.Constructor
@@ -106,6 +111,7 @@ open class IrInterpreterBoxHandler(testServices: TestServices) : AbstractIrHandl
         Assumptions.assumeFalse(modules.flatMap { it.files }.any { it.name.endsWith(".java") }) { "Can't interpret java files" }
         Assumptions.assumeFalse(modules.flatMap { it.files }.singleOrNull()?.name == "sync.kt") { "Ignore `await` method call interpretation" }
         Assumptions.assumeFalse(AdditionalFilesDirectives.WITH_COROUTINES in testServices.moduleStructure.allDirectives) { "Ignore coroutines" }
+        //Assumptions.assumeFalse(TargetBackend.JVM_IR in testServices.moduleStructure.allDirectives[CodegenTestDirectives.IGNORE_BACKEND]) { "Ignore test because of jvm ir ignore" }
         additionalIgnores(modules)
 
         val configuration = testServices.compilerConfigurationProvider.getCompilerConfiguration(modules.last())
@@ -117,6 +123,82 @@ open class IrInterpreterBoxHandler(testServices: TestServices) : AbstractIrHandl
         val boxIrCall = IrCallImpl(
             UNDEFINED_OFFSET, UNDEFINED_OFFSET, irBuiltins.stringType, boxFunction.symbol as IrSimpleFunctionSymbol, 0, 0
         )
+
+        val delegationChecker = object : IrElementVisitorVoid {
+            var canBeEvaluated = true
+
+            override fun visitElement(element: IrElement) {
+                element.acceptChildren(this, null)
+            }
+
+            override fun visitFunction(declaration: IrFunction) {
+                canBeEvaluated = canBeEvaluated && declaration.origin != IrDeclarationOrigin.DELEGATED_MEMBER
+                canBeEvaluated = canBeEvaluated && declaration.origin != IrDeclarationOrigin.DELEGATED_PROPERTY_ACCESSOR
+                super.visitFunction(declaration)
+            }
+
+            override fun visitProperty(declaration: IrProperty) {
+                canBeEvaluated = canBeEvaluated && declaration.origin != IrDeclarationOrigin.DELEGATE
+                super.visitProperty(declaration)
+            }
+
+            override fun visitField(declaration: IrField) {
+                canBeEvaluated = canBeEvaluated && declaration.origin != IrDeclarationOrigin.DELEGATE
+                super.visitField(declaration)
+            }
+
+            override fun visitLocalDelegatedProperty(declaration: IrLocalDelegatedProperty) {
+                canBeEvaluated = false
+            }
+        }
+        Assumptions.assumeTrue(irFiles.all { delegationChecker.apply { visitElement(it) }.canBeEvaluated }) { "Can't evaluate delegation" }
+
+        val checker = object : IrElementVisitorVoid {
+            var canBeEvaluated = true
+            val visited = mutableListOf<IrElement>()
+
+            fun IrDeclaration.isMarkedAsCompileTime() = isMarkedWith(compileTimeAnnotation)
+            private fun IrDeclaration.isContract() = isMarkedWith(contractsDslAnnotation)
+            private fun IrDeclaration.isMarkedAsEvaluateIntrinsic() = isMarkedWith(evaluateIntrinsicAnnotation)
+
+            protected fun IrDeclaration.isMarkedWith(annotation: FqName): Boolean {
+                if (this is IrClass && this.isCompanion) return false
+                if (this.hasAnnotation(annotation)) return true
+                return (this.parent as? IrClass)?.isMarkedWith(annotation) ?: false
+            }
+
+            override fun visitElement(element: IrElement) {
+                element.acceptChildren(this, null)
+            }
+
+            override fun visitCall(expression: IrCall) {
+                if (visited.contains(expression)) return else visited += expression
+
+                if (expression.extensionReceiver is IrClassReference && expression.symbol.owner.name.asString() == "<get-java>") {
+                    canBeEvaluated = false
+                }
+
+                val owner = expression.symbol.owner
+                val name = owner.fqNameWhenAvailable?.asString() ?: ""
+                canBeEvaluated = canBeEvaluated && !name.startsWith("java")
+                canBeEvaluated = canBeEvaluated && !name.contains(".JvmClassMappingKt.")
+                canBeEvaluated = canBeEvaluated && !(name.startsWith("kotlin") && name.endsWith(".clone"))
+                if (!owner.isMarkedAsCompileTime() && !owner.isMarkedAsEvaluateIntrinsic()) owner.body?.accept(this, null)
+                super.visitCall(expression)
+            }
+
+            override fun visitTypeOperator(expression: IrTypeOperatorCall) {
+                canBeEvaluated = canBeEvaluated && expression.operator != IrTypeOperator.SAM_CONVERSION
+                canBeEvaluated = canBeEvaluated && expression.operator != IrTypeOperator.IMPLICIT_DYNAMIC_CAST
+                super.visitTypeOperator(expression)
+            }
+
+            override fun visitDynamicOperatorExpression(expression: IrDynamicOperatorExpression) {
+                canBeEvaluated = false
+            }
+        }
+
+        Assumptions.assumeTrue(checker.apply { visitCall(boxIrCall, null) }.canBeEvaluated) { "" }
 
         val interpreterResult = try {
             @Suppress("UNCHECKED_CAST")
