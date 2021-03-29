@@ -94,7 +94,7 @@ open class KJvmReplCompilerBase<AnalyzerT : ReplCodeAnalyzerBase> protected cons
                     snippet,
                     messageCollector,
                     compilationState,
-                    checkSyntaxErrors = true
+                    failOnSyntaxErrors = true
                 ).valueOr { return@withMessageCollector it }
 
                 val (sourceFiles, sourceDependencies) = collectRefinedSourcesAndUpdateEnvironment(
@@ -244,7 +244,7 @@ open class KJvmReplCompilerBase<AnalyzerT : ReplCodeAnalyzerBase> protected cons
         snippet: SourceCode,
         parentMessageCollector: MessageCollector,
         compilationState: JvmReplCompilerState.Compilation,
-        checkSyntaxErrors: Boolean
+        failOnSyntaxErrors: Boolean
     ): ResultWithDiagnostics<AnalyzePreparationResult> =
         withMessageCollector(
             snippet,
@@ -271,15 +271,11 @@ open class KJvmReplCompilerBase<AnalyzerT : ReplCodeAnalyzerBase> protected cons
                 )
                     .valueOr { return it }
 
-            if (checkSyntaxErrors) {
-                val syntaxErrorReport = AnalyzerWithCompilerReport.reportSyntaxErrors(snippetKtFile, errorHolder)
-                if (syntaxErrorReport.isHasErrors && syntaxErrorReport.isAllErrorsAtEof) return failure(
-                    messageCollector, ScriptDiagnostic(ScriptDiagnostic.incompleteCode, "Incomplete code")
-                )
-                if (syntaxErrorReport.isHasErrors) return failure(
-                    messageCollector
-                )
+            val syntaxErrorReport = AnalyzerWithCompilerReport.reportSyntaxErrors(snippetKtFile, errorHolder)
+            if (syntaxErrorReport.isHasErrors && syntaxErrorReport.isAllErrorsAtEof) {
+                messageCollector.report(ScriptDiagnostic(ScriptDiagnostic.incompleteCode, "Incomplete code"))
             }
+            if (failOnSyntaxErrors && syntaxErrorReport.isHasErrors) return failure(messageCollector)
 
             return AnalyzePreparationResult(
                 context,
