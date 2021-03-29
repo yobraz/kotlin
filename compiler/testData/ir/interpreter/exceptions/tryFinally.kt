@@ -23,6 +23,24 @@ fun tryFinally2(): String {
 }
 
 @CompileTimeCalculation
+fun outerReturnTryFinally(n: Int): Int {
+    return try {
+        n
+    } finally {
+        -1
+    }
+}
+
+@CompileTimeCalculation
+fun exceptionInFinally(divideBy: Int): Int {
+    return try {
+        0
+    } finally {
+        1 / divideBy
+    }
+}
+
+@CompileTimeCalculation
 fun tryCatchFinally(): Int {
     try {
         throw IllegalArgumentException("In try")
@@ -39,8 +57,136 @@ fun returnTryFinally(): String {
     return try { "OK" } finally { "NOT OK" } // result from finally is never used
 }
 
+@CompileTimeCalculation
+fun tryCatchReturnFinally(divideBy: Int): Int {
+    var y = 0
+    try {
+        1 / divideBy
+    } catch (e: ArithmeticException) {
+        return y
+    } finally {
+        y++
+    }
+
+    return y
+}
+
+@CompileTimeCalculation
+fun tryFinallyContinue(): Int {
+    var y = 0
+    while (y < 10) {
+        try {
+            continue
+        } finally {
+            y++
+        }
+    }
+
+    return y
+}
+
+@CompileTimeCalculation
+fun tryCatchFinallyContinue(divideBy: Int): Int {
+    var y = 0
+    while (y < 10) {
+        try {
+            1 / divideBy
+        } catch (e: ArithmeticException) {
+            continue
+        } finally {
+            y++
+        }
+    }
+
+    return y
+}
+
+@CompileTimeCalculation
+fun innerTryFinally(n: Int): Int {
+    try {
+        try {
+            return 1
+        } finally {
+            n + 1
+        }
+        return 2
+    } finally {
+        n + 10
+    }
+    return 3
+}
+
+@CompileTimeCalculation
+fun innerTryFinallyReturn(n: Int): Int {
+    //return n / 0
+    try {
+        try {
+            return 1
+        } finally {
+            n + 1
+        }
+        return 2
+    } finally {
+        return n + 10
+    }
+    return 3
+}
+
+@CompileTimeCalculation
+fun tryCatch(n: Int): Int {
+    return try {
+        delete(n)
+    } catch (e: ArithmeticException) {
+        -1
+    } finally {
+        -2
+    }
+}
+
+@CompileTimeCalculation
+fun delete(n: Int): Int {
+    return try {
+        1 / n
+    } catch (e: NullPointerException) {
+        -1
+    } finally {
+        -2
+    }
+}
+
+@CompileTimeCalculation
+fun tryTryFinally(): Int {
+    val zero = 0
+    val nullable: Int? = null
+    try {
+        try {
+            1 / zero
+        } finally {
+            nullable!!
+        }
+    } catch (e: NullPointerException) {
+        return -1
+    } finally {
+
+    }
+
+    return 0
+}
+
 const val a1 = tryFinally(0)
 const val a2 = tryFinally(10)
+const val a3 = outerReturnTryFinally(10)
 const val b1 = tryFinally2()
 const val c1 = tryCatchFinally()
+const val c2 = exceptionInFinally(10)
+const val c3 = exceptionInFinally(0)
 const val d1 = returnTryFinally()
+const val d2 = tryCatchReturnFinally(10)
+const val d3 = tryCatchReturnFinally(0)
+const val e1 = tryFinallyContinue()
+const val e2 = tryCatchFinallyContinue(0)
+const val f1 = innerTryFinally(10)
+const val f2 = innerTryFinallyReturn(10)
+const val g1 = tryCatch(10)
+const val g2 = tryCatch(0)
+const val h1 = tryTryFinally()

@@ -31,6 +31,15 @@ fun withInnerContinue(): Int {
 }
 
 @CompileTimeCalculation
+fun withBreak(limit: Int): Int {
+    var x = 0
+    while(true) {
+        if(x < limit) x++ else break
+    }
+    return x
+}
+
+@CompileTimeCalculation
 fun earlyExit(end: Int, stop: Int): Int {
     for (i in 1..end) {
         if (i == stop) return i
@@ -39,6 +48,7 @@ fun earlyExit(end: Int, stop: Int): Int {
 }
 
 const val a = loop(0, 1, 10)
-const val b = withInnerContinue()
+const val b1 = withInnerContinue()
+const val b2 = withBreak(10)
 const val c1 = earlyExit(10, 5)
 const val c2 = earlyExit(10, 15)

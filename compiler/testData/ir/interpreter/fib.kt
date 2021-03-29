@@ -8,4 +8,4 @@ fun fib(n: Int) : Int {
 
 const val n2 = fib(2)
 const val n10 = fib(10)
-const val n20 = fib(20)
+const val n18 = fib(18)
