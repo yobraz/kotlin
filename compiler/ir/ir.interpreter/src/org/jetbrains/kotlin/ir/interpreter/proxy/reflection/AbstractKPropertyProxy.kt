@@ -7,13 +7,13 @@ package org.jetbrains.kotlin.ir.interpreter.proxy.reflection
 
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.interpreter.IrInterpreter
+import org.jetbrains.kotlin.ir.interpreter.CallInterceptor
 import org.jetbrains.kotlin.ir.interpreter.state.reflection.KPropertyState
 import org.jetbrains.kotlin.ir.types.IrType
 import kotlin.reflect.*
 
 internal abstract class AbstractKPropertyProxy(
-    override val state: KPropertyState, override val interpreter: IrInterpreter
+    override val state: KPropertyState, override val callInterceptor: CallInterceptor
 ) : ReflectionProxy, KProperty<Any?> {
     protected val propertyType: IrType
         get() = state.property.getter!!.returnType
@@ -36,9 +36,9 @@ internal abstract class AbstractKPropertyProxy(
     override val annotations: List<Annotation>
         get() = TODO("not implemented")
     override val parameters: List<KParameter>
-        get() = state.getParameters(interpreter)
+        get() = state.getParameters(callInterceptor)
     override val returnType: KType
-        get() = state.getReturnType(interpreter)
+        get() = state.getReturnType(callInterceptor)
     override val typeParameters: List<KTypeParameter>
         get() = listOf()
     override val visibility: KVisibility?

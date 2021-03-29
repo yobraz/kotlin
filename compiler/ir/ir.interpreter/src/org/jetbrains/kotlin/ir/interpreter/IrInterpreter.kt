@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.ir.interpreter.exceptions.InterpreterError
 import org.jetbrains.kotlin.ir.interpreter.exceptions.InterpreterTimeOutError
 import org.jetbrains.kotlin.ir.interpreter.proxy.CommonProxy.Companion.asProxy
 import org.jetbrains.kotlin.ir.interpreter.proxy.Proxy
-import org.jetbrains.kotlin.ir.interpreter.proxy.wrap
 import org.jetbrains.kotlin.ir.interpreter.stack.CallStack
 import org.jetbrains.kotlin.ir.interpreter.stack.Variable
 import org.jetbrains.kotlin.ir.interpreter.state.*
@@ -80,16 +79,10 @@ class IrInterpreter private constructor(
         return callStack.popState().toIrExpression(expression).apply { callStack.dropFrame() }
     }
 
-    private fun withNewCallStack(block: IrInterpreter.() -> Any?): Any? {
+    internal fun withNewCallStack(frameOwner: IrFunction, init: IrInterpreter.() -> Any?): State {
         return with(IrInterpreter(environment.copyWithNewCallStack(), bodyMap)) {
-            block()
-        }
-    }
-
-    internal fun IrFunction.proxyInterpret(valueArguments: List<Variable>, expectedResultClass: Class<*> = Any::class.java): Any? {
-        return withNewCallStack {
-            callStack.newFrame(this@proxyInterpret, listOf(CompoundInstruction(this@proxyInterpret)))
-            valueArguments.forEach { callStack.addVariable(it) }
+            callStack.newFrame(frameOwner, listOf())
+            init()
 
             while (!callStack.hasNoInstructions()) {
                 callStack.popInstruction().handle()
@@ -97,7 +90,7 @@ class IrInterpreter private constructor(
             }
 
             if (callStack.peekState() == null) callStack.pushState(getUnitState()) // TODO maybe move this logic to body/block
-            callStack.popState().wrap(this@IrInterpreter, expectedResultClass).apply { callStack.dropFrame() }
+            callStack.popState().apply { callStack.dropFrame() }
         }
     }
 
@@ -461,7 +454,7 @@ class IrInterpreter private constructor(
                 }
                 is Common -> when {
                     result.irClass.defaultType.isUnsignedArray() -> arrayToList((result.fields.single().state as Primitive<*>).value)
-                    else -> listOf(result.asProxy(this))
+                    else -> listOf(result.asProxy(callInterceptor))
                 }
                 else -> listOf(result)
             }
