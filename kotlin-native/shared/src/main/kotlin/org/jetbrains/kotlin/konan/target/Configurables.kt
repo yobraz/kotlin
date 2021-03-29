@@ -40,14 +40,42 @@ interface RelocationModeFlags : TargetableExternalStorage {
 interface AppleTargetKind : Configurables {
     val kind get() = targetArg.kind()
 
-    private fun String?.kind(): Kind = when {
-        this?.endsWith("simulator") == true -> Kind.SIMULATOR
+    private fun TargetTriple.kind(): Kind = when (environment) {
+        "simulator" -> Kind.SIMULATOR
         else -> Kind.DEVICE
     }
 
     enum class Kind {
         DEVICE,
         SIMULATOR
+    }
+}
+
+data class TargetTriple(
+        val architecture: String,
+        val vendor: String,
+        val os: String,
+        val environment: String?
+) {
+    companion object {
+        fun fromString(tripleString: String): TargetTriple {
+            val components = tripleString.split('-')
+            require(components.size == 3 || components.size == 4) {
+                "Malformed target triple: $tripleString"
+            }
+            return TargetTriple(
+                    architecture = components[0],
+                    vendor = components[1],
+                    os = components[2],
+                    environment = components.getOrNull(4)
+            )
+        }
+    }
+
+    override fun toString(): String {
+        val envSuffix = environment?.let { "-$environment" }
+                ?: ""
+        return "$architecture-$vendor-$os$envSuffix"
     }
 }
 
@@ -65,9 +93,9 @@ interface LldFlags : TargetableExternalStorage {
 interface Configurables : TargetableExternalStorage, RelocationModeFlags {
 
     val target: KonanTarget
-    val targetArg get() = targetString("quadruple")
+    val targetArg get() = targetString("quadruple")?.let(TargetTriple.Companion::fromString)
             ?: error("quadruple for $target is not specified")
-    val arch get() = targetArg.split('-').first()
+    val arch get() = targetArg.architecture
 
     val llvmHome get() = hostString("llvmHome")
     val llvmVersion get() = hostString("llvmVersion")

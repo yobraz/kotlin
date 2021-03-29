@@ -108,9 +108,9 @@ abstract class LinkerFlags(val configurables: Configurables) {
 class AndroidLinker(targetProperties: AndroidConfigurables)
     : LinkerFlags(targetProperties), AndroidConfigurables by targetProperties {
 
-    private val clangQuad = when (targetProperties.targetArg) {
+    private val clangQuad = when (val targetString = targetArg.toString()) {
         "arm-linux-androideabi" -> "armv7a-linux-androideabi"
-        else -> targetProperties.targetArg
+        else -> targetString
     }
     private val prefix = "$absoluteTargetToolchain/bin/${clangQuad}${Android.API}"
     private val clang = if (HostManager.hostIsMingw) "$prefix-clang.cmd" else "$prefix-clang"
@@ -136,7 +136,7 @@ class AndroidLinker(targetProperties: AndroidConfigurables)
         val toolchainSysroot = "${absoluteTargetToolchain}/sysroot"
         val architectureDir = Android.architectureDirForTarget(target)
         val apiSysroot = "$absoluteTargetSysRoot/$architectureDir"
-        val clangTarget = targetArg
+        val clangTarget = targetArg.toString()
         val libDirs = listOf(
                 "--sysroot=$apiSysroot",
                 if (target == KonanTarget.ANDROID_X64) "-L$apiSysroot/usr/lib64" else "-L$apiSysroot/usr/lib",
@@ -148,7 +148,7 @@ class AndroidLinker(targetProperties: AndroidConfigurables)
             +"-fPIC"
             +"-shared"
             +"-target"
-            +targetArg
+            +clangTarget
             +libDirs
             +objectFiles
             if (optimize) +linkerOptimizationFlags
