@@ -228,7 +228,7 @@ private fun emulatorExecutor(project: Project, target: KonanTarget) = object : E
 private fun simulator(project: Project): ExecutorService = object : ExecutorService {
 
     private val target = project.testTarget
-    private val configurables = platformManager.platform(target).configurables as? AppleConfigurables
+    private val configurables = project.platformManager.platform(target).configurables as? AppleConfigurables
             ?: error("Unexpected target: $target")
 
     init {
@@ -284,6 +284,7 @@ private fun simulator(project: Project): ExecutorService = object : ExecutorServ
     private val archSpecification = when (target.architecture) {
         Architecture.X86 -> listOf("-a", "i386")
         Architecture.X64 -> listOf() // x86-64 is used by default.
+        Architecture.ARM64 -> listOf()
         else -> error("${target.architecture} can't be used in simulator.")
     }.toTypedArray()
 
