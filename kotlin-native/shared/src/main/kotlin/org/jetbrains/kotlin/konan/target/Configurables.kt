@@ -67,7 +67,7 @@ data class TargetTriple(
                     architecture = components[0],
                     vendor = components[1],
                     os = components[2],
-                    environment = components.getOrNull(4)
+                    environment = components.getOrNull(3)
             )
         }
     }
