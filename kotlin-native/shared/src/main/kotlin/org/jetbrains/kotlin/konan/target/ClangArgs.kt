@@ -57,17 +57,15 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
                 KonanTarget.MACOS_ARM64 -> "10.16"
                 else -> configurables.osVersionMin
             }
-            val targetArg = when (target) {
-                // TODO: LLVM 8 doesn't support arm64_32.
-                //  We can use armv7k because they are compatible at bitcode level.
-                KonanTarget.WATCHOS_ARM64 -> configurables.targetArg.copy(
-                        architecture = "armv7k",
-                        os = "${configurables.targetArg}$osVersionMin"
-                )
-                else -> configurables.targetArg.copy(
-                        os = "${configurables.targetArg}$osVersionMin"
-                )
-            }
+            val targetArg = configurables.targetArg.copy(
+                    architecture = when (target) {
+                        // TODO: LLVM 8 doesn't support arm64_32.
+                        //  We can use armv7k because they are compatible at bitcode level.
+                        KonanTarget.WATCHOS_ARM64 -> "armv7k"
+                        else -> configurables.targetArg.architecture
+                    },
+                    os = "${configurables.targetArg.os}$osVersionMin"
+            )
             add(listOf("-target", targetArg.toString()))
         } else {
             add(listOf("-target", configurables.targetArg.toString()))
