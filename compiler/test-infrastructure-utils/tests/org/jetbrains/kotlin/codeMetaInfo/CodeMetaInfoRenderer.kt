@@ -96,10 +96,4 @@ object CodeMetaInfoRenderer {
     }
 }
 
-fun clearFileFromDiagnosticMarkup(file: File) {
-    val text = file.readText()
-    val cleanText = clearTextFromDiagnosticMarkup(text)
-    file.writeText(cleanText)
-}
-
-fun clearTextFromDiagnosticMarkup(text: String): String = text.replace(CodeMetaInfoParser.openingOrClosingRegex, "")
+fun clearTextFromDiagnosticMarkup(text: String): String = CodeMetaInfoParser.clearTextFromDiagnosticMarkup(text)
