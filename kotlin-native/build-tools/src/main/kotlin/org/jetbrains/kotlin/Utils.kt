@@ -379,7 +379,7 @@ fun Project.buildStaticLibrary(cSources: Collection<File>, output: File, objDir:
 
     objDir.mkdirs()
     ExecClang(this).execToolchainClang(testTarget) {
-        it.args += listOf("-c", *cSources.map { it.absolutePath }.toTypedArray())
+        args = listOf("-c", *cSources.map { it.absolutePath }.toTypedArray())
     }
 
     output.parentFile.mkdirs()
