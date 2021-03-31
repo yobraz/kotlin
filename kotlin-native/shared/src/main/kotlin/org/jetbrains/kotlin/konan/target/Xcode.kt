@@ -23,19 +23,21 @@ import org.jetbrains.kotlin.konan.file.File
 
 interface Xcode {
     val toolchain: String
-    val macosxSdk: String
-    val iphoneosSdk: String
-    val iphonesimulatorSdk: String
+    val macosxSdk: Sdk
+    val iphoneosSdk: Sdk
+    val iphonesimulatorSdk: Sdk
     val version: String
-    val appletvosSdk: String
-    val appletvsimulatorSdk: String
-    val watchosSdk: String
-    val watchsimulatorSdk: String
+    val appletvosSdk: Sdk
+    val appletvsimulatorSdk: Sdk
+    val watchosSdk: Sdk
+    val watchsimulatorSdk: Sdk
     // Xcode.app/Contents/Developer/usr
     val additionalTools: String
     val simulatorRuntimes: String
 
-    fun findSdkForTarget(family: Family, kind: AppleTargetKind.Kind): String = when (family) {
+    class Sdk(val name: String, val path: String)
+
+    fun findSdkForTarget(family: Family, kind: AppleTargetKind.Kind): Sdk = when (family) {
         Family.OSX -> macosxSdk
         Family.IOS -> when (kind) {
             AppleTargetKind.Kind.DEVICE -> iphoneosSdk
@@ -74,13 +76,13 @@ private object CurrentXcode : Xcode {
     override val simulatorRuntimes: String by lazy {
         Command("/usr/bin/xcrun", "simctl", "list", "runtimes", "-j").getOutputLines().joinToString(separator = "\n")
     }
-    override val macosxSdk by lazy { getSdkPath("macosx") }
-    override val iphoneosSdk by lazy { getSdkPath("iphoneos") }
-    override val iphonesimulatorSdk by lazy { getSdkPath("iphonesimulator") }
-    override val appletvosSdk by lazy { getSdkPath("appletvos") }
-    override val appletvsimulatorSdk by lazy { getSdkPath("appletvsimulator") }
-    override val watchosSdk: String by lazy { getSdkPath("watchos") }
-    override val watchsimulatorSdk: String by lazy { getSdkPath("watchsimulator") }
+    override val macosxSdk by lazy { getSdk("macosx") }
+    override val iphoneosSdk by lazy { getSdk("iphoneos") }
+    override val iphonesimulatorSdk by lazy { getSdk("iphonesimulator") }
+    override val appletvosSdk by lazy { getSdk("appletvos") }
+    override val appletvsimulatorSdk by lazy { getSdk("appletvsimulator") }
+    override val watchosSdk by lazy { getSdk("watchos") }
+    override val watchsimulatorSdk by lazy { getSdk("watchsimulator") }
 
 
     override val version by lazy {
@@ -94,5 +96,5 @@ private object CurrentXcode : Xcode {
             throw MissingXcodeException("An error occurred during an xcrun execution. Make sure that Xcode and its command line tools are properly installed.", e)
         }
 
-    private fun getSdkPath(sdk: String) = xcrun("--sdk",  sdk, "--show-sdk-path")
+    private fun getSdk(sdk: String) = Xcode.Sdk(sdk, xcrun("--sdk", sdk, "--show-sdk-path"))
 }

@@ -238,12 +238,7 @@ private fun simulator(project: Project): ExecutorService = object : ExecutorServ
     }
 
     private val simctl by lazy {
-        val sdk = when (target.family) {
-            Family.TVOS -> Xcode.current.appletvsimulatorSdk
-            Family.IOS -> Xcode.current.iphonesimulatorSdk
-            Family.WATCHOS -> Xcode.current.watchsimulatorSdk
-            else -> error("Unexpected simulation target: $target")
-        }
+        val sdk = Xcode.current.findSdkForTarget(target.family, configurables.kind).path
         val out = ByteArrayOutputStream()
         val result = project.exec {
             commandLine("/usr/bin/xcrun", "--find", "simctl", "--sdk", sdk)
@@ -581,7 +576,7 @@ fun KonanTestExecutable.configureXcodeBuild() {
         val sdk = when (project.testTarget) {
             KonanTarget.IOS_ARM32, KonanTarget.IOS_ARM64 -> Xcode.current.iphoneosSdk
             else -> error("Unsupported target: ${project.testTarget}")
-        }
+        }.path
 
         fun xcodebuild(vararg elements: String) {
             val xcode = listOf("/usr/bin/xcrun", "-sdk", sdk, "xcodebuild")

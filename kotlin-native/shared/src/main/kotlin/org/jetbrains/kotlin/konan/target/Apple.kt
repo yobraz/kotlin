@@ -32,7 +32,7 @@ class AppleConfigurablesImpl(
     private val xcodeAddonDependency = this.additionalToolsDir!!
 
     override val absoluteTargetSysRoot: String get() = when (val provider = xcodePartsProvider) {
-        is XcodePartsProvider.Local -> provider.xcode.findSdkForTarget(target.family, kind)
+        is XcodePartsProvider.Local -> provider.xcode.findSdkForTarget(target.family, kind).path
         XcodePartsProvider.InternalServer -> absolute(sdkDependency)
     }
 

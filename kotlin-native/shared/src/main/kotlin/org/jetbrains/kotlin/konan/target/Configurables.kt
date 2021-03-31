@@ -45,6 +45,7 @@ interface AppleTargetKind : Configurables {
         else -> Kind.DEVICE
     }
 
+    // TODO: Add Catalyst.
     enum class Kind {
         DEVICE,
         SIMULATOR
@@ -60,6 +61,8 @@ data class TargetTriple(
     companion object {
         fun fromString(tripleString: String): TargetTriple {
             val components = tripleString.split('-')
+            // TODO: There might be other cases (e.g. of size 2 or 5),
+            //  but let's support only these for now.
             require(components.size == 3 || components.size == 4) {
                 "Malformed target triple: $tripleString"
             }
@@ -93,8 +96,10 @@ interface LldFlags : TargetableExternalStorage {
 interface Configurables : TargetableExternalStorage, RelocationModeFlags {
 
     val target: KonanTarget
-    val targetArg get() = targetString("quadruple")?.let(TargetTriple.Companion::fromString)
-            ?: error("quadruple for $target is not specified")
+    val targetArg: TargetTriple
+        get() = targetString("quadruple")
+                ?.let(TargetTriple.Companion::fromString)
+                ?: error("quadruple for $target is not specified")
     val arch get() = targetArg.architecture
 
     val llvmHome get() = hostString("llvmHome")

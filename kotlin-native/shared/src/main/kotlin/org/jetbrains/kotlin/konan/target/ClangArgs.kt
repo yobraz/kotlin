@@ -35,6 +35,8 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
     private val clangArgsSpecificForKonanSources
         get() = runtimeDefinitions.map { "-D$it" }
 
+    private val targetTriple = configurables.targetArg
+
     private val binDir = when (HostManager.host) {
         KonanTarget.LINUX_X64 -> "$absoluteTargetToolchain/bin"
         KonanTarget.MINGW_X64 -> "$absoluteTargetToolchain/bin"
@@ -57,18 +59,18 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
                 KonanTarget.MACOS_ARM64 -> "10.16"
                 else -> configurables.osVersionMin
             }
-            val targetArg = configurables.targetArg.copy(
-                    architecture = when (target) {
+            val targetArg = targetTriple.copy(
+                    architecture = when (targetTriple.architecture) {
                         // TODO: LLVM 8 doesn't support arm64_32.
                         //  We can use armv7k because they are compatible at bitcode level.
-                        KonanTarget.WATCHOS_ARM64 -> "armv7k"
-                        else -> configurables.targetArg.architecture
+                        "arm64_32" -> "armv7k"
+                        else -> targetTriple.architecture
                     },
-                    os = "${configurables.targetArg.os}$osVersionMin"
+                    os = "${targetTriple.os}$osVersionMin"
             )
             add(listOf("-target", targetArg.toString()))
         } else {
-            add(listOf("-target", configurables.targetArg.toString()))
+            add(listOf("-target", targetTriple.toString()))
         }
         val hasCustomSysroot = configurables is ZephyrConfigurables
                 || configurables is WasmConfigurables
