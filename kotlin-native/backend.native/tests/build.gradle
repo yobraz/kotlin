@@ -4223,7 +4223,7 @@ if (PlatformInfo.isAppleTarget(project)) {
 
         doBeforeBuild {
             mkdir(buildDir)
-            execKonanClang(project.target) {
+            execToolchainClang(project.target) {
                 args "$projectDir/interop/objc/smoke.m"
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjcsmoke.dylib"
@@ -4249,7 +4249,7 @@ if (PlatformInfo.isAppleTarget(project)) {
 
         doBeforeBuild {
             mkdir(buildDir)
-            execKonanClang(project.target) {
+            execToolchainClang(project.target) {
                 args fileTree("$projectDir/interop/objc/tests/") { include '**/*.m' }
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjctests.dylib"
@@ -4269,7 +4269,7 @@ if (PlatformInfo.isAppleTarget(project)) {
 
         doBeforeBuild {
             mkdir(buildDir)
-            execKonanClang(project.target) {
+            execToolchainClang(project.target) {
                 args "$projectDir/interop/objc_with_initializer/objc_misc.m"
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjcmisc.dylib"
@@ -4286,7 +4286,7 @@ if (PlatformInfo.isAppleTarget(project)) {
 
         doBeforeBuild {
             mkdir(buildDir)
-            execKonanClang(project.target) {
+            execToolchainClang(project.target) {
                 args "$projectDir/interop/objc/msg_send/messaging.m"
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjcmessaging.dylib"
@@ -4304,7 +4304,7 @@ if (PlatformInfo.isAppleTarget(project)) {
 
         doBeforeBuild {
             mkdir(buildDir)
-            execKonanClang(project.target) {
+            execToolchainClang(project.target) {
                 args "$projectDir/interop/objc/foreignException/objc_wrap.m"
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjcexception.dylib"
@@ -4323,7 +4323,7 @@ if (PlatformInfo.isAppleTarget(project)) {
 
         doBeforeBuild {
             mkdir(buildDir)
-            execKonanClang(project.target) {
+            execToolchainClang(project.target) {
                 args "$projectDir/interop/objc/foreignException/objc_wrap.m"
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjcexception.dylib"
@@ -4342,7 +4342,7 @@ if (PlatformInfo.isAppleTarget(project)) {
 
         doBeforeBuild {
             mkdir(buildDir)
-            execKonanClang(project.target) {
+            execToolchainClang(project.target) {
                 args "$projectDir/interop/objc/foreignException/objc_wrap.m"
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjcexception.dylib"
@@ -4381,7 +4381,7 @@ if (PlatformInfo.isAppleTarget(project)) {
 
         doBeforeBuild {
             mkdir(buildDir)
-            execKonanClang(project.target) {
+            execToolchainClang(project.target) {
                 args "$projectDir/interop/objc/kt42172/objclib.m"
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjc_kt42172.dylib"

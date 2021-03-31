@@ -378,12 +378,8 @@ fun Project.buildStaticLibrary(cSources: Collection<File>, output: File, objDir:
     val platform = platformManager.platform(testTarget)
 
     objDir.mkdirs()
-    exec {
-        commandLine(platform.clang.clangC(
-                "-c",
-                *cSources.map { it.absolutePath }.toTypedArray()
-        ))
-        workingDir(objDir)
+    ExecClang(this).execToolchainClang(testTarget) {
+        it.args += listOf("-c", *cSources.map { it.absolutePath }.toTypedArray())
     }
 
     output.parentFile.mkdirs()
