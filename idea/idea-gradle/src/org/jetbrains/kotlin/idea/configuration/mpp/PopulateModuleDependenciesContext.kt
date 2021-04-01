@@ -49,6 +49,7 @@ internal fun KotlinMPPGradleProjectResolver.Companion.createPopulateModuleDepend
     val artifactsMap = ideProject.getUserData(GradleProjectResolver.CONFIGURATION_ARTIFACTS) ?: return null
     val dependenciesPreprocessor = KotlinNativeLibrariesDependencySubstitutor(mppModel, gradleModule, resolverCtx)
         .plus(DistinctIdKotlinDependenciesPreprocessor)
+        .plus(ConflictingVersionKotlinDependenciesPreprocessor)
 
     return PopulateModuleDependenciesContext(
         resolverCtx = resolverCtx,
