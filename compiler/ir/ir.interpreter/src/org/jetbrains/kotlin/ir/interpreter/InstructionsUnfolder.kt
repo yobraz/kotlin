@@ -243,7 +243,7 @@ private fun unfoldGetObjectValue(expression: IrGetObjectValue, environment: IrIn
             environment.mapOfObjects[objectClass.symbol] = state  // must set object's state here to avoid cyclic evaluation
             callStack.addVariable(Variable(objectClass.thisReceiver!!.symbol, state))
 
-            val constructor = objectClass.constructors.first()
+            val constructor = objectClass.constructors.firstOrNull() ?: return callStack.pushState(state)
             val constructorCall = IrConstructorCallImpl.fromSymbolOwner(constructor.returnType, constructor.symbol)
             callStack.addInstruction(CompoundInstruction(constructorCall))
         }

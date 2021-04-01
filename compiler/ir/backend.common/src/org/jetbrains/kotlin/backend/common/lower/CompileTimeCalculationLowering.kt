@@ -21,10 +21,8 @@ import org.jetbrains.kotlin.ir.util.copyTypeAndValueArgumentsFrom
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
 class CompileTimeCalculationLowering(val context: CommonBackendContext) : FileLoweringPass {
-    @Suppress("UNCHECKED_CAST")
-    private val bodyMap = context.configuration[CommonConfigurationKeys.IR_BODY_MAP] as? Map<IdSignature, IrBody> ?: emptyMap()
     private val isTest = context.configuration[CommonConfigurationKeys.MODULE_NAME] == "<test-module>"
-    private val interpreter = IrInterpreter(context.ir.irModule.irBuiltins, bodyMap)
+    private val interpreter = IrInterpreter(context.ir.irModule)
 
     override fun lower(irFile: IrFile) {
         if (!context.configuration.languageVersionSettings.supportsFeature(LanguageFeature.CompileTimeCalculations)) return

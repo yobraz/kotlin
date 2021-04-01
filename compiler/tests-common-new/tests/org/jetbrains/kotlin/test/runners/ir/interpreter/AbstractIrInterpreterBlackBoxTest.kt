@@ -202,7 +202,7 @@ open class IrInterpreterBoxHandler(testServices: TestServices) : AbstractIrHandl
 
         val interpreterResult = try {
             @Suppress("UNCHECKED_CAST")
-            val irInterpreter = IrInterpreter(irBuiltins, configuration[CommonConfigurationKeys.IR_BODY_MAP] as Map<IdSignature, IrBody>)
+            val irInterpreter = IrInterpreter(irBuiltins)
             irInterpreter.interpret(boxIrCall, irFiles.last())
         } catch (e: Throwable) {
             val message = e.message

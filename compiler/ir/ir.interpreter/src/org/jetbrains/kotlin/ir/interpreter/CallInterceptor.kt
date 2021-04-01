@@ -48,7 +48,7 @@ internal class DefaultCallInterceptor(override val interpreter: IrInterpreter) :
     override val environment: IrInterpreterEnvironment = interpreter.environment
     private val callStack: CallStack = environment.callStack
     override val irBuiltIns: IrBuiltIns = environment.irBuiltIns
-    private val bodyMap: Map<IdSignature, IrBody> = interpreter.bodyMap
+    private val bodyMap: Map<IdSignature, IrBody> = emptyMap()//interpreter.bodyMap
 
     override fun interceptProxy(irFunction: IrFunction, valueArguments: List<Variable>, expectedResultClass: Class<*>): Any? {
         return interpreter.withNewCallStack(irFunction) {

@@ -32,9 +32,7 @@ internal inline class CustomInstruction(val evaluate: () -> Unit) : Instruction 
         get() = null
 }
 
-class IrInterpreter private constructor(
-    internal val bodyMap: Map<IdSignature, IrBody>, internal val environment: IrInterpreterEnvironment
-) {
+class IrInterpreter private constructor(internal val environment: IrInterpreterEnvironment) {
     val irBuiltIns: IrBuiltIns
         get() = environment.irBuiltIns
     private val callStack: CallStack
@@ -42,13 +40,9 @@ class IrInterpreter private constructor(
     private val callInterceptor: CallInterceptor = DefaultCallInterceptor(this)
     private var commandCount = 0
 
-    constructor(irBuiltIns: IrBuiltIns, bodyMap: Map<IdSignature, IrBody> = emptyMap()) :
-            this(bodyMap, IrInterpreterEnvironment(irBuiltIns, CallStack()))
+    constructor(irBuiltIns: IrBuiltIns) : this(IrInterpreterEnvironment(irBuiltIns, CallStack()))
 
-    private constructor(environment: IrInterpreterEnvironment, bodyMap: Map<IdSignature, IrBody> = emptyMap()) :
-            this(bodyMap, environment)
-
-    constructor(irModule: IrModuleFragment) : this(emptyMap(), IrInterpreterEnvironment(irModule))
+    constructor(irModule: IrModuleFragment) : this(IrInterpreterEnvironment(irModule))
 
     private fun incrementAndCheckCommands() {
         commandCount++
@@ -80,7 +74,7 @@ class IrInterpreter private constructor(
     }
 
     internal fun withNewCallStack(frameOwner: IrFunction, init: IrInterpreter.() -> Any?): State {
-        return with(IrInterpreter(environment.copyWithNewCallStack(), bodyMap)) {
+        return with(IrInterpreter(environment.copyWithNewCallStack())) {
             callStack.newFrame(frameOwner, listOf())
             init()
 
@@ -132,13 +126,7 @@ class IrInterpreter private constructor(
         }
     }
 
-    private fun IrFunction.tryResetFunctionBody() {
-        val signature = this.symbol.signature ?: return
-        if (bodyMap[signature] != null) this.body = null
-    }
-
     private fun interpretFunction(function: IrSimpleFunction) {
-        function.tryResetFunctionBody()
         if (function.checkCast(environment)) {
             callStack.dropFrameAndCopyResult()
         }
@@ -307,7 +295,6 @@ class IrInterpreter private constructor(
 
     private fun interpretReturn(expression: IrReturn) {
         val function = expression.returnTargetSymbol.owner as? IrFunction
-        function?.tryResetFunctionBody()
         if (function.checkCast(environment)) {
             callStack.returnFromFrameWithResult(expression)
         }
