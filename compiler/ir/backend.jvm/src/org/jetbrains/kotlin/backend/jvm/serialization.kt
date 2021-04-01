@@ -25,4 +25,5 @@ private fun makeSerializer(context: JvmBackendContext) =
         context.declarationTable,
         mutableMapOf(),
         context.psiSourceManager,
+        externallyVisibleOnly = false
     )

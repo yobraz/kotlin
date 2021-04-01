@@ -75,7 +75,7 @@ open class AbstractIrInterpreterBlackBoxTest : AbstractKotlinCompilerWithTargetB
         useConfigurators(
             ::CommonEnvironmentConfigurator,
             ::JvmEnvironmentConfigurator,
-            ::IrInterpreterEnvironmentConfigurator
+            ::SerializeSetter
         )
 
         useAdditionalSourceProviders(
@@ -88,6 +88,12 @@ open class AbstractIrInterpreterBlackBoxTest : AbstractKotlinCompilerWithTargetB
         useFrontendHandlers(::IrInterpreterNoCompilationErrorsHandler)
         useFrontend2BackendConverters(::ClassicFrontend2IrConverter)
         useBackendHandlers(handler)
+    }
+
+    private class SerializeSetter(testServices: TestServices) : EnvironmentConfigurator(testServices) {
+        override fun configureCompilerConfiguration(configuration: CompilerConfiguration, module: TestModule) {
+            configuration.put(JVMConfigurationKeys.SERIALIZE_IR, true)
+        }
     }
 }
 
@@ -114,7 +120,6 @@ open class IrInterpreterBoxHandler(testServices: TestServices) : AbstractIrHandl
         //Assumptions.assumeFalse(TargetBackend.JVM_IR in testServices.moduleStructure.allDirectives[CodegenTestDirectives.IGNORE_BACKEND]) { "Ignore test because of jvm ir ignore" }
         additionalIgnores(modules)
 
-        val configuration = testServices.compilerConfigurationProvider.getCompilerConfiguration(modules.last())
         val boxFunction = irFiles
             .flatMap { it.declarations }
             .filterIsInstance<IrFunction>()
@@ -216,14 +221,6 @@ open class IrInterpreterBoxHandler(testServices: TestServices) : AbstractIrHandl
         if (interpreterResult is IrErrorExpression) assertions.fail { interpreterResult.description }
         if (interpreterResult !is IrConst<*>) assertions.fail { "Expect const, but returned ${interpreterResult::class.java}" }
         assertions.assertEquals("OK", interpreterResult.value)
-    }
-}
-
-class IrInterpreterEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfigurator(testServices) {
-    private val fullRuntimeKlib = "build/js-ir-runtime/klib"
-
-    override fun configureCompilerConfiguration(configuration: CompilerConfiguration, module: TestModule) {
-        configuration.put(JVMConfigurationKeys.KLIB_PATH_FOR_COMPILE_TIME, fullRuntimeKlib)
     }
 }
 

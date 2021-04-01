@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.cli.js.messageCollectorLogger
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.ir.backend.js.MainModule
 import org.jetbrains.kotlin.ir.backend.js.compile
 import org.jetbrains.kotlin.ir.backend.js.jsPhases
@@ -27,7 +28,7 @@ import java.io.File
 
 abstract class AbstractJsInterpreterTestCase : AbstractIrJsTextTestCase() {
 
-    private val fullRuntimeKlib = "build/js-ir-runtime/klib"
+    private val fullRuntimeKlib = "libraries/stdlib/js-ir/build/classes/kotlin/js/main"
     private val messageCollector = TestMessageCollector()
 
     class TestMessageCollector : MessageCollector {

@@ -123,6 +123,8 @@ compileKotlin {
                 "-Xinline-classes",
                 "-Xuse-14-inline-classes-mangling-scheme",
                 "-Xsuppress-deprecated-jvm-target-warning",
+                "-Xuse-ir",
+                "-Xserialize-ir",
         ]
         moduleName = "kotlin-stdlib"
     }

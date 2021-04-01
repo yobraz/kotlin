@@ -193,11 +193,19 @@ class JvmIrCodegenFactory(private val phaseConfig: PhaseConfig) : CodegenFactory
         ExternalDependenciesGenerator(symbolTable, irProviders).generateUnboundSymbolsAsDependencies()
 
         if (state.configuration.getBoolean(JVMConfigurationKeys.SERIALIZE_IR)) {
+            val logger = state.configuration[IrMessageLogger.IR_MESSAGE_LOGGER]
+            fun log(str: String) = logger?.report(IrMessageLogger.Severity.WARNING, str, location = null)
+
+            log("in serialize")
+            log(irModuleFragment.files.size.toString())
             for (irFile in irModuleFragment.files) {
                 (irFile.metadata as? MetadataSource.File)?.serializedIr = serializeIrFile(context, irFile)
+                log("ifFile ${irFile.fileEntry.name} is serialized ${(irFile.metadata as? MetadataSource.File)?.serializedIr != null}")
+
 
                 for (irClass in irFile.declarations.filterIsInstance<IrClass>()) {
                     (irClass.metadata as? MetadataSource.Class)?.serializedIr = serializeTopLevelIrClass(context, irClass)
+                    log("irClass ${irClass.name} is serialized ${(irClass.metadata as? MetadataSource.Class)?.serializedIr != null}")
                 }
             }
         }

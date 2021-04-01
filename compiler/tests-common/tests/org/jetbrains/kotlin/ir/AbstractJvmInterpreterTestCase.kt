@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.ir
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
+import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 import org.jetbrains.kotlin.codegen.CodegenTestCase
 import org.jetbrains.kotlin.codegen.GenerationUtils
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
@@ -20,8 +21,6 @@ import org.jetbrains.kotlin.test.TestJdkKind
 import java.io.File
 
 abstract class AbstractJvmInterpreterTestCase : CodegenTestCase() {
-
-    private val fullRuntimeKlib = "build/js-ir-runtime/klib"
     private val messageCollector = AbstractJsInterpreterTestCase.TestMessageCollector()
 
     override val backend: TargetBackend = TargetBackend.JVM_IR
@@ -40,12 +39,14 @@ abstract class AbstractJvmInterpreterTestCase : CodegenTestCase() {
 
     private fun setupEnvironment(testFiles: List<TestFile>) {
         val configuration = createConfiguration(
-            ConfigurationKind.ALL, TestJdkKind.FULL_JDK, TargetBackend.JVM_IR, listOf(), listOfNotNull(writeJavaFiles(testFiles)), testFiles
+            ConfigurationKind.JDK_NO_RUNTIME, TestJdkKind.FULL_JDK, TargetBackend.JVM_IR, listOf(), listOfNotNull(writeJavaFiles(testFiles)), testFiles
         )
 
         configuration.put(CommonConfigurationKeys.MODULE_NAME, "<test-module>")
         configuration.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
-        configuration.put(JVMConfigurationKeys.KLIB_PATH_FOR_COMPILE_TIME, fullRuntimeKlib)
+        configuration.put(JVMConfigurationKeys.SERIALIZE_IR, true)
+
+        configuration.addJvmClasspathRoot(File("libraries/stdlib/jvm/build/libs/kotlin-stdlib-1.5.255-SNAPSHOT.jar"))
 
         myEnvironment = KotlinCoreEnvironment.createForTests(testRootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
     }
