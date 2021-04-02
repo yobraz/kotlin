@@ -14,19 +14,22 @@ fun generateTestGroupSuite(
     args: Array<String>,
     init: TestGroupSuite.() -> Unit
 ) {
-    generateTestGroupSuite(InconsistencyChecker.hasDryRunArg(args), init)
+    InconsistencyChecker.withAssertAllGenerated(args) { dryRun ->
+        generateTestGroupSuite(dryRun, init)
+    }
 }
 
 fun generateTestGroupSuite(
     dryRun: Boolean = false,
     init: TestGroupSuite.() -> Unit
 ) {
+    val inconsistencyChecker = inconsistencyChecker(dryRun)
     val suite = testGroupSuite(init)
     for (testGroup in suite.testGroups) {
         for (testClass in testGroup.testClasses) {
             val (changed, testSourceFilePath) = TestGeneratorImpl.generateAndSave(testClass, dryRun)
             if (changed) {
-                inconsistencyChecker(dryRun).add(testSourceFilePath)
+                inconsistencyChecker.add(testSourceFilePath)
             }
         }
     }

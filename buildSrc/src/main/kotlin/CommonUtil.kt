@@ -58,6 +58,9 @@ fun Project.generator(fqName: String, sourceSet: SourceSet? = null, configure: J
     classpath = (sourceSet ?: testSourceSet).runtimeClasspath
     mainClass.set(fqName)
     workingDir = rootDir
+    args = listOfNotNull(
+        "dryRun".takeIf { project.kotlinBuildProperties.isTeamcityBuild }
+    )
     systemProperty("line.separator", "\n")
     configure()
 }

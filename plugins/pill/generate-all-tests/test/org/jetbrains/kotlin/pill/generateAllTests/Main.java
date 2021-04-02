@@ -5,26 +5,22 @@
 
 package org.jetbrains.kotlin.pill.generateAllTests;
 
-import org.jetbrains.kotlin.generators.tests.*;
-import org.jetbrains.kotlin.generators.InconsistencyChecker;
+import org.jetbrains.kotlin.generators.tests.GenerateJava8TestsKt;
+import org.jetbrains.kotlin.generators.tests.GenerateJsTestsKt;
+import org.jetbrains.kotlin.generators.tests.GenerateRuntimeDescriptorTestsKt;
+import org.jetbrains.kotlin.generators.tests.GenerateTestsKt;
 import org.jetbrains.kotlin.test.generators.GenerateCompilerTestsKt;
 
-import java.util.List;
+import static org.jetbrains.kotlin.generators.InconsistencyChecker.Companion;
 
 public class Main {
     public static void main(String[] args) {
-        GenerateCompilerTestsKt.main(args);
-        GenerateTestsKt.main(args);
-        GenerateJsTestsKt.main(args);
-        GenerateJava8TestsKt.main(args);
-        GenerateRuntimeDescriptorTestsKt.main(args);
-
-        boolean dryRun = InconsistencyChecker.Companion.hasDryRunArg(args);
-        List<String> affectedFiles = InconsistencyChecker.Companion.inconsistencyChecker(dryRun).getAffectedFiles();
-        int size = affectedFiles.size();
-        if (size > 0) {
-            throw new IllegalStateException("There " + (size == 1 ? "is a test" : "are " + size + " tests") + " to be regenerated:\n"
-                                            + String.join("\n", affectedFiles));
-        }
+        Companion.withAssertAllGenerated(args, dryRun -> {
+            GenerateCompilerTestsKt.main(args);
+            GenerateTestsKt.main(args);
+            GenerateJsTestsKt.main(args);
+            GenerateJava8TestsKt.main(args);
+            GenerateRuntimeDescriptorTestsKt.main(args);
+        });
     }
 }

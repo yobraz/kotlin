@@ -7,25 +7,27 @@ package org.jetbrains.kotlin.test.generators
 
 import org.jetbrains.kotlin.generators.InconsistencyChecker
 import org.jetbrains.kotlin.generators.TestGroupSuite
-import org.jetbrains.kotlin.generators.testGroupSuite
 
 fun generateTestGroupSuiteWithJUnit5(
     args: Array<String>,
     init: TestGroupSuite.() -> Unit
 ) {
-    generateTestGroupSuiteWithJUnit5(InconsistencyChecker.hasDryRunArg(args), init)
+    InconsistencyChecker.withAssertAllGenerated(args) { dryRun ->
+        generateTestGroupSuiteWithJUnit5(dryRun, init)
+    }
 }
 
 fun generateTestGroupSuiteWithJUnit5(
     dryRun: Boolean = false,
     init: TestGroupSuite.() -> Unit
 ) {
+    val inconsistencyChecker = InconsistencyChecker.inconsistencyChecker(dryRun)
     val suite = TestGroupSuite(ReflectionBasedTargetBackendComputer).apply(init)
     for (testGroup in suite.testGroups) {
         for (testClass in testGroup.testClasses) {
             val (changed, testSourceFilePath) = NewTestGeneratorImpl.generateAndSave(testClass, dryRun)
             if (changed) {
-                InconsistencyChecker.inconsistencyChecker(dryRun).add(testSourceFilePath)
+                inconsistencyChecker.add(testSourceFilePath)
             }
         }
     }
