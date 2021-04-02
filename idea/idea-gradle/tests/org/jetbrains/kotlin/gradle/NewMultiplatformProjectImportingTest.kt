@@ -9,6 +9,7 @@ import com.intellij.openapi.roots.DependencyScope
 import com.intellij.util.text.VersionComparatorUtil
 import org.jetbrains.jps.model.java.JavaResourceRootType
 import org.jetbrains.jps.model.java.JavaSourceRootType
+import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.ResourceKotlinRootType
 import org.jetbrains.kotlin.config.SourceKotlinRootType
 import org.jetbrains.kotlin.config.TestResourceKotlinRootType
@@ -52,8 +53,8 @@ class NewMultiplatformProjectImportingTest : MultiplePluginVersionGradleImportin
 
         checkProjectStructure() {
             allModules {
-                languageVersion("1.3")
-                apiVersion("1.3")
+                languageVersion(LanguageVersion.fromFullVersionString(gradleKotlinPluginVersion)!!.versionString)
+                apiVersion(LanguageVersion.fromFullVersionString(gradleKotlinPluginVersion)!!.versionString)
                 when (module.name) {
                     "project", "app", "lib" -> additionalArguments(null)
                     "app_jvmMain", "app_jvmTest", "lib_jvmMain", "lib_jvmTest" ->
