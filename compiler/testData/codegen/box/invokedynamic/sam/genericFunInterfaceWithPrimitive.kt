@@ -2,6 +2,10 @@
 // JVM_TARGET: 1.8
 // SAM_CONVERSIONS: INDY
 
+// CHECK_BYTECODE_TEXT
+// JVM_IR_TEMPLATES
+// 2 INVOKEDYNAMIC
+
 fun interface IFoo<T> {
     fun foo(x: T): T
 }

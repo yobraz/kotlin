@@ -3,6 +3,10 @@
 // SAM_CONVERSIONS: INDY
 // WITH_RUNTIME
 
+// CHECK_BYTECODE_TEXT
+// JVM_IR_TEMPLATES
+// 2 INVOKEDYNAMIC
+
 fun interface IFooT<T> {
     fun foo(x: Array<T>): T
 }
