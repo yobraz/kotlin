@@ -44,12 +44,12 @@ class JavaModuleInfo(
             psiJavaModule.name,
             psiJavaModule.requires.mapNotNull { statement ->
                 statement.moduleName?.let { moduleName ->
-                    JavaModuleInfo.Requires(moduleName, statement.hasModifierProperty(PsiModifier.TRANSITIVE))
+                    Requires(moduleName, statement.hasModifierProperty(PsiModifier.TRANSITIVE))
                 }
             },
             psiJavaModule.exports.mapNotNull { statement ->
                 statement.packageName?.let { packageName ->
-                    JavaModuleInfo.Exports(FqName(packageName), statement.moduleNames)
+                    Exports(FqName(packageName), statement.moduleNames)
                 }
             }
         )
