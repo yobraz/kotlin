@@ -4222,7 +4222,7 @@ if (PlatformInfo.isAppleTarget(project)) {
                 // Enable ARC optimizations to prevent some objects from leaking in Obj-C code due to exceptions:
                 args '-O2'
             }
-            if (project.target instanceof KonanTarget.IOS_X64) {
+            if (UtilsKt.isSimulatorTarget(project, project.target)) {
                 UtilsKt.codesign(project, "$buildDir/libobjcsmoke.dylib")
             }
 
@@ -4248,7 +4248,7 @@ if (PlatformInfo.isAppleTarget(project)) {
                 // Enable ARC optimizations to prevent some objects from leaking in Obj-C code due to exceptions:
                 args '-O2'
             }
-            if (project.target instanceof KonanTarget.IOS_X64) {
+            if (UtilsKt.isSimulatorTarget(project, project.target)) {
                 UtilsKt.codesign(project, "$buildDir/libobjctests.dylib")
             }
         }
@@ -4266,7 +4266,7 @@ if (PlatformInfo.isAppleTarget(project)) {
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjcmisc.dylib"
             }
-            if (project.target instanceof KonanTarget.IOS_X64) {
+            if (UtilsKt.isSimulatorTarget(project, project.target)) {
                 UtilsKt.codesign(project, "$buildDir/libobjcmisc.dylib")
             }
         }
@@ -4283,7 +4283,7 @@ if (PlatformInfo.isAppleTarget(project)) {
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjcmessaging.dylib"
             }
-            if (project.target instanceof KonanTarget.IOS_X64) {
+            if (UtilsKt.isSimulatorTarget(project, project.target)) {
                 UtilsKt.codesign(project, "$buildDir/libobjcmessaging.dylib")
             }
         }
@@ -4301,7 +4301,7 @@ if (PlatformInfo.isAppleTarget(project)) {
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjcexception.dylib"
             }
-            if (project.target instanceof KonanTarget.IOS_X64) {
+            if (UtilsKt.isSimulatorTarget(project, project.target)) {
                 UtilsKt.codesign(project, "$buildDir/libobjcexception.dylib")
             }
         }
@@ -4320,7 +4320,7 @@ if (PlatformInfo.isAppleTarget(project)) {
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjcexception.dylib"
             }
-            if (project.target instanceof KonanTarget.IOS_X64) {
+            if (UtilsKt.isSimulatorTarget(project, project.target)) {
                 UtilsKt.codesign(project, "$buildDir/libobjcexception.dylib")
             }
         }
@@ -4339,7 +4339,7 @@ if (PlatformInfo.isAppleTarget(project)) {
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjcexception.dylib"
             }
-            if (project.target instanceof KonanTarget.IOS_X64) {
+            if (UtilsKt.isSimulatorTarget(project, project.target)) {
                 UtilsKt.codesign(project, "$buildDir/libobjcexception.dylib")
             }
         }
@@ -4378,7 +4378,7 @@ if (PlatformInfo.isAppleTarget(project)) {
                 args "-lobjc", '-fobjc-arc'
                 args '-fPIC', '-shared', '-o', "$buildDir/libobjc_kt42172.dylib"
             }
-            if (project.target instanceof KonanTarget.IOS_X64) {
+            if (UtilsKt.isSimulatorTarget(project, project.target)) {
                 UtilsKt.codesign(project, "$buildDir/libobjc_kt42172.dylib")
             }
         }
