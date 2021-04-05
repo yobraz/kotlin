@@ -66,16 +66,6 @@ class ExecClang(private val project: Project) {
         }
     }
 
-    // The bare ones invoke clang with system default sysroot.
-
-    fun execBareClang(action: Action<in ExecSpec>): ExecResult {
-        return this.execClang(emptyList<String>(), action)
-    }
-
-    fun execBareClang(closure: Closure<in ExecSpec>): ExecResult {
-        return this.execClang(emptyList<String>(), closure)
-    }
-
     // The konan ones invoke clang with konan provided sysroots.
     // So they require a target or assume it to be the host.
     // The target can be specified as KonanTarget or as a

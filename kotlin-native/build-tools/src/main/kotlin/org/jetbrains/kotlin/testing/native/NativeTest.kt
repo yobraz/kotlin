@@ -40,16 +40,9 @@ open class CompileNativeTest @Inject constructor(
     fun compile() {
         val plugin = project.convention.getPlugin(ExecClang::class.java)
         val args = clangArgs + sanitizerFlags + listOf(inputFile.absolutePath, "-o", outputFile.absolutePath)
-        if (target.family.isAppleFamily) {
-            plugin.execToolchainClang(target) {
-                executable = "clang++"
-                this.args = args
-            }
-        } else {
-            plugin.execBareClang {
-                executable = "clang++"
-                this.args = args
-            }
+        plugin.execToolchainClang(target) {
+            executable = "clang++"
+            this.args = args
         }
     }
 }
