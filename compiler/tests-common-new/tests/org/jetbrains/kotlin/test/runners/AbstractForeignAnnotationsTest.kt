@@ -70,6 +70,10 @@ abstract class AbstractForeignAnnotationsTestBase : AbstractKotlinCompilerTest()
                 ANNOTATIONS_PATH with JdkForeignAnnotationType.Jdk8Annotations
             }
         }
+
+        forTestsMatching("compiler/testData/diagnostics/foreignAnnotationsTests/java8Tests/jspecify/*") {
+            useSourcePreprocessor(::JspecifyTestsPreprocessor, isPrepend = true)
+        }
     }
 }
 
