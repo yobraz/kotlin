@@ -59,13 +59,13 @@ abstract class AbstractForeignAnnotationsTestBase : AbstractKotlinCompilerTest()
             ::ClassicDiagnosticsHandler,
         )
 
-        forTestsMatching("compiler/testData/foreignAnnotations/tests/*") {
+        forTestsMatching("compiler/testData/diagnostics/foreignAnnotationsTests/tests/*") {
             defaultDirectives {
                 ANNOTATIONS_PATH with JdkForeignAnnotationType.Annotations
             }
         }
 
-        forTestsMatching("compiler/testData/foreignAnnotations/java8Tests/*") {
+        forTestsMatching("compiler/testData/diagnostics/foreignAnnotationsTests/java8Tests/*") {
             defaultDirectives {
                 ANNOTATIONS_PATH with JdkForeignAnnotationType.Jdk8Annotations
             }
