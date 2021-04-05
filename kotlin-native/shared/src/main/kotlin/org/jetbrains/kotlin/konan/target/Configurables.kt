@@ -83,6 +83,13 @@ interface Configurables : TargetableExternalStorage, RelocationModeFlags {
     val llvmInlineThreshold get() = targetString("llvmInlineThreshold")
 
     val runtimeDefinitions get() = targetList("runtimeDefinitions")
+
+    /**
+     * Width of C long type in bits.
+     */
+    val longWidth: Int
+        get() = targetString("longWidth")?.toInt()
+                ?: error("longWidth for $target is not set")
 }
 
 interface ConfigurablesWithEmulator : Configurables {
