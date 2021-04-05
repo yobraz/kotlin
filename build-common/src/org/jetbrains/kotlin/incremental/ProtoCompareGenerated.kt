@@ -265,6 +265,11 @@ open class ProtoCompareGenerated(
             }
         }
 
+        if (old.hasExtension(KlibMetadataProtoBuf.classKdoc) != new.hasExtension(KlibMetadataProtoBuf.classKdoc)) return false
+        if (old.hasExtension(KlibMetadataProtoBuf.classKdoc)) {
+            if (old.getExtension(KlibMetadataProtoBuf.classKdoc) != new.getExtension(KlibMetadataProtoBuf.classKdoc)) return false
+        }
+
         return true
     }
     enum class ProtoBufClassKind {
@@ -294,7 +299,8 @@ open class ProtoCompareGenerated(
         JS_EXT_CLASS_CONTAINING_FILE_ID,
         JAVA_EXT_IS_PACKAGE_PRIVATE_CLASS,
         BUILT_INS_EXT_CLASS_ANNOTATION_LIST,
-        KLIB_EXT_CLASS_ANNOTATION_LIST
+        KLIB_EXT_CLASS_ANNOTATION_LIST,
+        KLIB_EXT_CLASS_KDOC
     }
 
     fun difference(old: ProtoBuf.Class, new: ProtoBuf.Class): EnumSet<ProtoBufClassKind> {
@@ -415,6 +421,11 @@ open class ProtoCompareGenerated(
             }
         }
 
+        if (old.hasExtension(KlibMetadataProtoBuf.classKdoc) != new.hasExtension(KlibMetadataProtoBuf.classKdoc)) result.add(ProtoBufClassKind.KLIB_EXT_CLASS_KDOC)
+        if (old.hasExtension(KlibMetadataProtoBuf.classKdoc)) {
+            if (old.getExtension(KlibMetadataProtoBuf.classKdoc) != new.getExtension(KlibMetadataProtoBuf.classKdoc)) result.add(ProtoBufClassKind.KLIB_EXT_CLASS_KDOC)
+        }
+
         return result
     }
 
@@ -512,6 +523,11 @@ open class ProtoCompareGenerated(
             for(i in 0..old.getExtensionCount(KlibMetadataProtoBuf.functionAnnotation) - 1) {
                 if (!checkEquals(old.getExtension(KlibMetadataProtoBuf.functionAnnotation, i), new.getExtension(KlibMetadataProtoBuf.functionAnnotation, i))) return false
             }
+        }
+
+        if (old.hasExtension(KlibMetadataProtoBuf.functionKdoc) != new.hasExtension(KlibMetadataProtoBuf.functionKdoc)) return false
+        if (old.hasExtension(KlibMetadataProtoBuf.functionKdoc)) {
+            if (old.getExtension(KlibMetadataProtoBuf.functionKdoc) != new.getExtension(KlibMetadataProtoBuf.functionKdoc)) return false
         }
 
         return true
@@ -688,6 +704,11 @@ open class ProtoCompareGenerated(
         if (old.hasExtension(KlibMetadataProtoBuf.compileTimeValue) != new.hasExtension(KlibMetadataProtoBuf.compileTimeValue)) return false
         if (old.hasExtension(KlibMetadataProtoBuf.compileTimeValue)) {
             if (!checkEquals(old.getExtension(KlibMetadataProtoBuf.compileTimeValue), new.getExtension(KlibMetadataProtoBuf.compileTimeValue))) return false
+        }
+
+        if (old.hasExtension(KlibMetadataProtoBuf.propertyKdoc) != new.hasExtension(KlibMetadataProtoBuf.propertyKdoc)) return false
+        if (old.hasExtension(KlibMetadataProtoBuf.propertyKdoc)) {
+            if (old.getExtension(KlibMetadataProtoBuf.propertyKdoc) != new.getExtension(KlibMetadataProtoBuf.propertyKdoc)) return false
         }
 
         return true
@@ -951,6 +972,11 @@ open class ProtoCompareGenerated(
             for(i in 0..old.getExtensionCount(KlibMetadataProtoBuf.constructorAnnotation) - 1) {
                 if (!checkEquals(old.getExtension(KlibMetadataProtoBuf.constructorAnnotation, i), new.getExtension(KlibMetadataProtoBuf.constructorAnnotation, i))) return false
             }
+        }
+
+        if (old.hasExtension(KlibMetadataProtoBuf.constructorKdoc) != new.hasExtension(KlibMetadataProtoBuf.constructorKdoc)) return false
+        if (old.hasExtension(KlibMetadataProtoBuf.constructorKdoc)) {
+            if (old.getExtension(KlibMetadataProtoBuf.constructorKdoc) != new.getExtension(KlibMetadataProtoBuf.constructorKdoc)) return false
         }
 
         return true
@@ -1817,6 +1843,10 @@ fun ProtoBuf.Class.hashCode(stringIndexes: (Int) -> Int, fqNameIndexes: (Int) ->
         hashCode = 31 * hashCode + getExtension(KlibMetadataProtoBuf.classAnnotation, i).hashCode(stringIndexes, fqNameIndexes, typeById)
     }
 
+    if (hasExtension(KlibMetadataProtoBuf.classKdoc)) {
+        hashCode = 31 * hashCode + getExtension(KlibMetadataProtoBuf.classKdoc).hashCode()
+    }
+
     return hashCode
 }
 
@@ -1895,6 +1925,10 @@ fun ProtoBuf.Function.hashCode(stringIndexes: (Int) -> Int, fqNameIndexes: (Int)
 
     for(i in 0..getExtensionCount(KlibMetadataProtoBuf.functionAnnotation) - 1) {
         hashCode = 31 * hashCode + getExtension(KlibMetadataProtoBuf.functionAnnotation, i).hashCode(stringIndexes, fqNameIndexes, typeById)
+    }
+
+    if (hasExtension(KlibMetadataProtoBuf.functionKdoc)) {
+        hashCode = 31 * hashCode + getExtension(KlibMetadataProtoBuf.functionKdoc).hashCode()
     }
 
     return hashCode
@@ -2015,6 +2049,10 @@ fun ProtoBuf.Property.hashCode(stringIndexes: (Int) -> Int, fqNameIndexes: (Int)
 
     if (hasExtension(KlibMetadataProtoBuf.compileTimeValue)) {
         hashCode = 31 * hashCode + getExtension(KlibMetadataProtoBuf.compileTimeValue).hashCode(stringIndexes, fqNameIndexes, typeById)
+    }
+
+    if (hasExtension(KlibMetadataProtoBuf.propertyKdoc)) {
+        hashCode = 31 * hashCode + getExtension(KlibMetadataProtoBuf.propertyKdoc).hashCode()
     }
 
     return hashCode
@@ -2227,6 +2265,10 @@ fun ProtoBuf.Constructor.hashCode(stringIndexes: (Int) -> Int, fqNameIndexes: (I
 
     for(i in 0..getExtensionCount(KlibMetadataProtoBuf.constructorAnnotation) - 1) {
         hashCode = 31 * hashCode + getExtension(KlibMetadataProtoBuf.constructorAnnotation, i).hashCode(stringIndexes, fqNameIndexes, typeById)
+    }
+
+    if (hasExtension(KlibMetadataProtoBuf.constructorKdoc)) {
+        hashCode = 31 * hashCode + getExtension(KlibMetadataProtoBuf.constructorKdoc).hashCode()
     }
 
     return hashCode
