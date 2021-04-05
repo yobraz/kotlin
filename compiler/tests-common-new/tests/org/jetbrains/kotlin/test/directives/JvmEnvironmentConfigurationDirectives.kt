@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.test.directives
 
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.test.TestJdkKind
+import org.jetbrains.kotlin.test.directives.model.DirectiveApplicability
 import org.jetbrains.kotlin.test.directives.model.SimpleDirectivesContainer
 
 object JvmEnvironmentConfigurationDirectives : SimpleDirectivesContainer() {
@@ -30,9 +31,22 @@ object JvmEnvironmentConfigurationDirectives : SimpleDirectivesContainer() {
     val WITH_REFLECT by directive("Add Kotlin reflect to classpath")
     val NO_RUNTIME by directive("Don't add any runtime libs to classpath")
 
+    val WITH_FOREIGN_ANNOTATIONS by directive("Add foreign nullability annotations to classpath")
+
+    val WITH_JSR305_TEST_ANNOTATIONS by directive(
+        description = """
+            Add test nullability annotations based on JSR-305 annotations
+            See directory ./compiler/testData/diagnostics/helpers/jsr305_test_annotations
+        """.trimIndent()
+    )
+
     val USE_PSI_CLASS_FILES_READING by directive("Use a slower (PSI-based) class files reading implementation")
     val USE_JAVAC by directive("Enable javac integration")
     val SKIP_JAVA_SOURCES by directive("Don't add java sources to compile classpath")
+    val INCLUDE_JAVA_AS_BINARY by directive(
+        "Compile this java file into jar and add it to classpath instead of compiling Kotlin with Java sources",
+        applicability = DirectiveApplicability.File
+    )
 
     @Suppress("RemoveExplicitTypeArguments")
     val STRING_CONCAT by enumDirective<JvmStringConcat>(
