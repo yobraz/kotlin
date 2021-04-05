@@ -14,9 +14,7 @@ Marked as dirty by Kotlin:
   src/companionUsage.kt
   src/constantUsage.kt
 Exit code: ADDITIONAL_PASS_REQUIRED
-
-================ Step #2 =================
-
+------------------------------------------
 Cleaning output files:
   out/production/module/META-INF/module.kotlin_module
   out/production/module/foo/B$Companion.class
