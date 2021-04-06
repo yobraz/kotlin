@@ -12,6 +12,8 @@ public class WildcardsWithDefault {
 }
 
 // FILE: A.java
+import org.jspecify.nullness.*;
+
 public class A <T extends Object, E extends @Nullable Object, F extends @NullnessUnspecified Object> {}
 
 // FILE: main.kt
