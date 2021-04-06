@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.test.TestJavacVersion
 import org.jetbrains.kotlin.test.TestJdkKind
 import org.jetbrains.kotlin.test.directives.ForeignAnnotationsDirectives
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives
+import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.ALL_JAVA_AS_BINARY
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.ASSERTIONS_MODE
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.COMPILE_JAVA_USING
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.CONSTRUCTOR_CALL_NORMALIZATION_MODE
@@ -125,7 +126,9 @@ class JvmEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfig
         }
 
         val javaVersionToCompile = registeredDirectives[COMPILE_JAVA_USING].singleOrNull()
-        val javaBinaryFiles = module.javaFiles.filter { INCLUDE_JAVA_AS_BINARY in it.directives }
+        val javaBinaryFiles = if (ALL_JAVA_AS_BINARY !in registeredDirectives) {
+            module.javaFiles.filter { INCLUDE_JAVA_AS_BINARY in it.directives }
+        } else module.javaFiles
         val withForeignAnnotations = JvmEnvironmentConfigurationDirectives.WITH_FOREIGN_ANNOTATIONS in registeredDirectives
 
         assertTrue(javaVersionToCompile == null || javaBinaryFiles.isNotEmpty() || withForeignAnnotations) {
@@ -194,7 +197,7 @@ class JvmEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfig
         val isIr = module.targetBackend?.isIR == true
         configuration.put(JVMConfigurationKeys.IR, isIr)
 
-        if (JvmEnvironmentConfigurationDirectives.SKIP_JAVA_SOURCES !in module.directives) {
+        if (JvmEnvironmentConfigurationDirectives.SKIP_JAVA_SOURCES !in module.directives && ALL_JAVA_AS_BINARY !in registeredDirectives) {
             val javaSourceFiles = module.javaFiles.filter { INCLUDE_JAVA_AS_BINARY !in it.directives }
             javaSourceFiles.takeIf { it.isNotEmpty() }?.let { javaFiles ->
                 javaFiles.forEach { testServices.sourceFileProvider.getRealFileForSourceFile(it) }
