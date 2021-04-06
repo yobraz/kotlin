@@ -112,6 +112,12 @@ class ExecClang(private val project: Project) {
     fun execClangForCompilerTests(target: KonanTarget, closure: Closure<in ExecSpec>): ExecResult =
             execClangForCompilerTests(target, ConfigureUtil.configureUsing(closure))
 
+    /**
+     * @see execClangForCompilerTests
+     */
+    fun execClangForCompilerTests(target: KonanTarget, closure: Closure<in ExecSpec>): ExecResult =
+            execClangForCompilerTests(target, ConfigureUtil.configureUsing(closure))
+
     // The toolchain ones execute clang from the toolchain.
 
     fun execToolchainClang(target: String?, action: Action<in ExecSpec>): ExecResult {
