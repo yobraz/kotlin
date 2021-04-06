@@ -2,10 +2,12 @@
 // FULL_JDK_9
 
 // FILE: module-info.java
+// INCLUDE_JAVA_AS_BINARY
 import org.jspecify.nullness.NullMarked;
 
 @NullMarked
 module sandbox {
+    requires org.jspecify;
     requires kotlin.stdlib;
 }
 
