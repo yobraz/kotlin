@@ -20,28 +20,21 @@ import org.jetbrains.kotlin.test.directives.ForeignAnnotationsDirectives.JSR305_
 import org.jetbrains.kotlin.test.directives.model.DirectivesContainer
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 import org.jetbrains.kotlin.test.directives.model.singleOrZeroValue
-import org.jetbrains.kotlin.test.model.TestModule
 import org.jetbrains.kotlin.test.services.*
 import org.jetbrains.kotlin.utils.JavaTypeEnhancementState
 import org.jetbrains.kotlin.utils.ReportLevel
-import java.io.File
 
 enum class JdkForeignAnnotationType(val path: String) {
     Annotations("third-party/annotations"),
-    Jdk8Annotations("third-party/jdk8-annotations");
+    Jdk8Annotations("third-party/jdk8-annotations"),
+    Java9Annotations("third-party/java9-annotations");
 
     companion object {
-        val FOREIGN_ANNOTATIONS_SOURCES_PATH = Annotations.path
-        val FOREIGN_JDK8_ANNOTATIONS_SOURCES_PATH = Jdk8Annotations.path
-        val JSR_305_TEST_ANNOTATIONS_PATH = "compiler/testData/diagnostics/helpers/jsr305_test_annotations"
+        const val JSR_305_TEST_ANNOTATIONS_PATH = "compiler/testData/diagnostics/helpers/jsr305_test_annotations"
     }
 }
 
 open class JvmForeignAnnotationsConfigurator(testServices: TestServices) : EnvironmentConfigurator(testServices) {
-    companion object {
-        private const val TEST_ANNOTATIONS_SOURCE_PATH = "compiler/testData/foreignAnnotations/testAnnotations"
-    }
-
     override val directivesContainers: List<DirectivesContainer>
         get() = listOf(ForeignAnnotationsDirectives)
 
@@ -62,35 +55,5 @@ open class JvmForeignAnnotationsConfigurator(testServices: TestServices) : Envir
                 jspecifyReportLevel = jSpecifyReportLevel
             )
         )
-    }
-}
-
-class JvmForeignAnnotationsAgainstCompiledJavaConfigurator(testServices: TestServices) : JvmForeignAnnotationsConfigurator(testServices) {
-    @OptIn(ExperimentalStdlibApi::class)
-    override fun configureCompilerConfiguration(configuration: CompilerConfiguration, module: TestModule) {
-        val compiledJavaPath = testServices.createTempDirectory("java-compiled-files")
-
-        val foreignAnnotations = createJarWithForeignAnnotations(module)
-        val testAnnotations = compileTestAnnotations(foreignAnnotations)
-        val additionalClasspath = buildList {
-            addAll(foreignAnnotations)
-            addAll(testAnnotations)
-        }.map { it.path }
-
-        module.javaFiles.forEach { testServices.sourceFileProvider.getRealFileForSourceFile(it) }
-        CodegenTestUtil.compileJava(
-            CodegenTestUtil.findJavaSourcesInDirectory(testServices.sourceFileProvider.javaSourceDirectory),
-            additionalClasspath,
-            emptyList(),
-            compiledJavaPath,
-            JUnit5Assertions
-        )
-
-        val extraClassPath = buildList {
-            add(compiledJavaPath)
-            addAll(testAnnotations)
-        }
-
-        configuration.addJvmClasspathRoots(extraClassPath)
     }
 }
