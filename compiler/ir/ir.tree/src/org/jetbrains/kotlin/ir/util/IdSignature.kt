@@ -178,43 +178,6 @@ sealed class IdSignature {
             get() = false
     }
 
-    class ContainedSignature(val container: IdSignature, val innerName: String, val innerId: Long?, val description: String?) : IdSignature() {
-        override val isPublic: Boolean
-            get() = false
-
-        override fun topLevelSignature(): IdSignature = container.topLevelSignature()
-
-        override fun nearestPublicSig(): IdSignature = container.nearestPublicSig()
-
-        override fun packageFqName(): FqName = container.packageFqName()
-
-        override fun asPublic(): PublicSignature? = container.asPublic()
-
-        override fun render(): String = buildString {
-            append("<")
-            append(container.render())
-            append(" <- [")
-            append(innerName)
-            innerId?.let {
-                append(", ")
-                append(it.toString(Character.MAX_RADIX))
-            }
-
-            description?.let {
-                append(" | ")
-                append(it)
-            }
-
-            append("]>")
-        }
-
-        override fun equals(other: Any?): Boolean {
-            return other is ContainedSignature && container == other.container && innerName == other.innerName && innerId == other.innerId
-        }
-
-        override fun hashCode(): Int = (container.hashCode() * 31 + innerName.hashCode()) * 31 + (innerId ?: 0).toInt()
-    }
-
     class LocalSignature(val localFqn: String, val hashSig: Long?, val description: String?) : IdSignature() {
         override val isPublic: Boolean
             get() = false
