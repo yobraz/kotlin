@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.resolve.jvm.modules.JavaModuleResolver
 class IdeJavaModuleResolver(private val project: Project) : JavaModuleResolver {
     private val virtualFileFinder by lazy { VirtualFileFinder.getInstance(project) }
 
-    override fun getCurrentModuleAnnotations(classId: ClassId): List<JavaAnnotation>? {
+    override fun getModuleAnnotations(classId: ClassId): List<JavaAnnotation>? {
         val virtualFile = virtualFileFinder.findVirtualFileWithHeader(classId) ?: return null
 
         return findJavaModule(virtualFile)?.annotations?.convert(::JavaAnnotationImpl)
