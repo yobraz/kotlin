@@ -90,4 +90,9 @@ object JvmEnvironmentConfigurationDirectives : SimpleDirectivesContainer() {
     val USE_OLD_INLINE_CLASSES_MANGLING_SCHEME by directive(
         description = "Enable old mangling scheme for inline classes"
     )
+
+    val MODULE_NAME by stringDirective(
+        description = "Specify java 9 module name",
+        applicability = DirectiveApplicability.File
+    )
 }

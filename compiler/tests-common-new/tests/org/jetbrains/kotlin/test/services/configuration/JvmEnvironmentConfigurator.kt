@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.test.services.configuration
 
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.psi.PsiJavaModule.MODULE_INFO_FILE
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.jvm.addModularRootIfNotNull
@@ -27,6 +28,7 @@ import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirective
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.INCLUDE_JAVA_AS_BINARY
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.JVM_TARGET
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.LAMBDAS
+import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.MODULE_NAME
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.SAM_CONVERSIONS
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.STRING_CONCAT
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.USE_OLD_INLINE_CLASSES_MANGLING_SCHEME
@@ -207,6 +209,10 @@ class JvmEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfig
 
         javaBinaryFiles.takeIf { it.isNotEmpty() }?.let { javaFiles ->
             javaFiles.forEach { testServices.sourceFileProvider.getRealFileForBinaryFile(it) }
+
+            // TODO: support several module-info files within one test file
+            val moduleInfoFile = javaFiles.findLast { it.name == MODULE_INFO_FILE }
+            val moduleName = if (moduleInfoFile != null) moduleInfoFile.directives[MODULE_NAME].single() else ""
             val modulePath = buildList {
                 if (useJava9ToCompileIncludedJavaFiles) {
                     addAll(configuration.jvmModularRoots.map { it.absolutePath })
@@ -215,7 +221,9 @@ class JvmEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfig
                     }
                 }
             }
-            configuration.addJvmClasspathRoot(
+            configuration.addModularRootIfNotNull(
+                useJava9ToCompileIncludedJavaFiles,
+                moduleName,
                 compileJavaFilesLibraryToJar(
                     testServices.sourceFileProvider.javaBinaryDirectory.path,
                     "java-binaries",

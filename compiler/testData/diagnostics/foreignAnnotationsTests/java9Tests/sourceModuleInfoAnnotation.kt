@@ -1,19 +1,25 @@
 // ALLOW_KOTLIN_PACKAGE
 
 // FILE: module-info.java
+// MODULE_NAME: sandbox
 import org.jspecify.nullness.NullMarked;
 
 @NullMarked
 module sandbox {
     requires java9_annotations;
+    exports test;
 }
 
-// FILE: Test.java
+// FILE: test/Test.java
+package test;
+
 public class Test {
-    void foo(Integer x) {}
+    public void foo(Integer x) {}
 }
 
 // FILE: main.kt
+import test.Test
+
 fun main(x: Test) {
-    x.foo(1)
+    x.foo(<!NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS!>null<!>)
 }
