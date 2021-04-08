@@ -54,6 +54,14 @@ object JvmEnvironmentConfigurationDirectives : SimpleDirectivesContainer() {
         "Compile all java files into jar and add it to classpath instead of compiling Kotlin with Java sources",
         applicability = DirectiveApplicability.Global
     )
+    val SKIP_TEST_AGAINST_JAVA_SOURCE by directive(
+        "Skip test if provided java files are going to be compiled as sources",
+        applicability = DirectiveApplicability.Global
+    )
+    val SKIP_TEST_AGAINST_JAVA_BINARY by directive(
+        "Skip test if provided java files are going to be compiled as binaries",
+        applicability = DirectiveApplicability.Global
+    )
     val COMPILE_JAVA_USING by enumDirective<TestJavacVersion>(
         "Compile all including java files using javac of specific version",
         applicability = DirectiveApplicability.Global

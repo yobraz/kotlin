@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.test.directives.model.DirectivesContainer
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 import org.jetbrains.kotlin.test.model.DependencyDescription
 import org.jetbrains.kotlin.test.model.DependencyKind
+import org.jetbrains.kotlin.test.model.TestFile
 import org.jetbrains.kotlin.test.model.TestModule
 import org.jetbrains.kotlin.test.services.*
 import org.jetbrains.kotlin.test.services.JUnit5Assertions.assertTrue
@@ -201,38 +202,49 @@ class JvmEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfig
 
         if (JvmEnvironmentConfigurationDirectives.SKIP_JAVA_SOURCES !in module.directives && ALL_JAVA_AS_BINARY !in registeredDirectives) {
             val javaSourceFiles = module.javaFiles.filter { INCLUDE_JAVA_AS_BINARY !in it.directives }
-            javaSourceFiles.takeIf { it.isNotEmpty() }?.let { javaFiles ->
-                javaFiles.forEach { testServices.sourceFileProvider.getRealFileForSourceFile(it) }
-                configuration.addJavaSourceRoot(testServices.sourceFileProvider.javaSourceDirectory)
+            val moduleInfoFiles = javaSourceFiles.filter { it.name == MODULE_INFO_FILE }
+            val javaSourceDirectory = testServices.sourceFileProvider.javaSourceDirectory
+
+            if (javaSourceFiles.isNotEmpty()) {
+                for (moduleInfoFile in moduleInfoFiles) {
+                    val moduleName = moduleInfoFile.directives[MODULE_NAME].single()
+                    val moduleDir = File("${javaSourceDirectory.path}/$moduleName").also { it.mkdir() }
+
+                    javaSourceFiles.forEach { testServices.sourceFileProvider.getRealFileForSourceFile(it) }
+                    configuration.addJavaSourceRoot(moduleDir)
+                }
             }
         }
 
         javaBinaryFiles.takeIf { it.isNotEmpty() }?.let { javaFiles ->
             javaFiles.forEach { testServices.sourceFileProvider.getRealFileForBinaryFile(it) }
 
-            // TODO: support several module-info files within one test file
-            val moduleInfoFile = javaFiles.findLast { it.name == MODULE_INFO_FILE }
-            val moduleName = if (moduleInfoFile != null) moduleInfoFile.directives[MODULE_NAME].single() else ""
-            val modulePath = buildList {
-                if (useJava9ToCompileIncludedJavaFiles) {
+            val moduleInfoFiles = javaFiles.filter { it.name == MODULE_INFO_FILE }
+            val javaBinaryDirectory = testServices.sourceFileProvider.javaBinaryDirectory
+
+            // TODO: Use module graph to build proper modulepath for each module according cross-module dependencies
+            for (moduleInfoFile in moduleInfoFiles) {
+                val moduleName = moduleInfoFile.directives[MODULE_NAME].single()
+                val modulePath = buildList {
                     addAll(configuration.jvmModularRoots.map { it.absolutePath })
                     if (configurationKind.withRuntime) {
                         add(ForTestCompileRuntime.runtimeJarForTests().path)
                     }
                 }
-            }
-            configuration.addModularRootIfNotNull(
-                useJava9ToCompileIncludedJavaFiles,
-                moduleName,
-                compileJavaFilesLibraryToJar(
-                    testServices.sourceFileProvider.javaBinaryDirectory.path,
-                    "java-binaries",
-                    extraClasspath = configuration.jvmClasspathRoots.map { it.absolutePath },
-                    extraModulepath = modulePath,
-                    assertions = JUnit5Assertions,
-                    useJava9 = useJava9ToCompileIncludedJavaFiles
+                val moduleDir = File("${javaBinaryDirectory.path}/$moduleName").also { it.mkdir() }
+                configuration.addModularRootIfNotNull(
+                    true,
+                    moduleName,
+                    compileJavaFilesLibraryToJar(
+                        moduleDir.path,
+                        "java-binaries",
+                        extraClasspath = configuration.jvmClasspathRoots.map { it.absolutePath },
+                        extraModulepath = modulePath,
+                        assertions = JUnit5Assertions,
+                        useJava9 = useJava9ToCompileIncludedJavaFiles
+                    )
                 )
-            )
+            }
         }
 
         configuration.registerModuleDependencies(module)
@@ -246,6 +258,12 @@ class JvmEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfig
         }
 
         initBinaryDependencies(module, configuration)
+    }
+
+    private fun getJavaFileFoldersByModules(javaFiles: List<TestFile>) {
+        val moduleInfoFiles = javaFiles.filter { it.name == MODULE_INFO_FILE }
+
+        moduleInfoFiles.map { it.originalFile.parentFile }
     }
 
     private fun configureDefaultJvmTarget(configuration: CompilerConfiguration) {

@@ -72,7 +72,8 @@ fun compileJavaFilesExternally(files: Collection<File>, options: List<String?>, 
 
     process.waitFor()
 
-    if (process.exitValue() != 0) throw IllegalStateException(errors)
+    if (process.exitValue() != 0)
+        throw IllegalStateException(errors)
 
     return true
 }
