@@ -279,6 +279,26 @@ abstract class CompileServiceImplBase(
         }
     }
 
+    protected inline fun compareSnapshotsImpl(
+        compilationOptions: CompilationOptions,
+        servicesFacade: CompilerServicesFacadeBase,
+        compilationResults: CompilationResults,
+        previousSnapshot: File
+    ): CompileService.CallResult<DirtyData> =
+            kotlin.run {
+                val incrementalCompilationOptions = compilationOptions as IncrementalCompilationOptions
+                val allKotlinExtensions = (DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS +
+                        (incrementalCompilationOptions.kotlinScriptExtensions ?: emptyArray())).distinct()
+                val compiler = initCompiler(incrementalCompilationOptions, allKotlinExtensions,
+                                            getBuildReporter(servicesFacade, compilationResults, incrementalCompilationOptions))
+
+                val projectDir = incrementalCompilationOptions.modulesInfo.projectRoot
+
+                compiler.calculateDiffWithCurrentCache(previousSnapshot, K2JVMCompiler().createArguments(), projectDir)?.let {CompileService.CallResult.Good(it)}
+                    ?: CompileService.CallResult.Error("Can't compare diff")
+            }
+
+
     protected inline fun <ServicesFacadeT, JpsServicesFacadeT, CompilationResultsT> compileImpl(
         sessionId: Int,
         compilerArguments: Array<out String>,
@@ -553,6 +573,31 @@ abstract class CompileServiceImplBase(
         }
     }
 
+    protected fun initCompiler(
+        incrementalCompilationOptions: IncrementalCompilationOptions,
+        allKotlinExtensions: List<String>,
+        reporter: RemoteBuildReporter
+    ): IncrementalJvmCompilerRunner {
+        val modulesApiHistory = incrementalCompilationOptions.run {
+            reporter.report { "Use module detection: ${multiModuleICSettings.useModuleDetection}" }
+
+            if (!multiModuleICSettings.useModuleDetection) {
+                ModulesApiHistoryJvm(modulesInfo)
+            } else {
+                ModulesApiHistoryAndroid(modulesInfo)
+            }
+        }
+        return IncrementalJvmCompilerRunner(
+            incrementalCompilationOptions.workingDir,
+            reporter,
+            buildHistoryFile = incrementalCompilationOptions.multiModuleICSettings.buildHistoryFile,
+            outputFiles = incrementalCompilationOptions.outputFiles,
+            usePreciseJavaTracking = incrementalCompilationOptions.usePreciseJavaTracking,
+            modulesApiHistory = modulesApiHistory,
+            kotlinSourceFilesExtensions = allKotlinExtensions
+        )
+    }
+
     protected fun execIncrementalCompiler(
         k2jvmArgs: K2JVMCompilerArguments,
         incrementalCompilationOptions: IncrementalCompilationOptions,
@@ -580,29 +625,10 @@ abstract class CompileServiceImplBase(
             ChangedFiles.Unknown()
         }
 
-        val workingDir = incrementalCompilationOptions.workingDir
-
-        val modulesApiHistory = incrementalCompilationOptions.run {
-            reporter.report { "Use module detection: ${multiModuleICSettings.useModuleDetection}" }
-
-            if (!multiModuleICSettings.useModuleDetection) {
-                ModulesApiHistoryJvm(modulesInfo)
-            } else {
-                ModulesApiHistoryAndroid(modulesInfo)
-            }
-        }
-
         val projectRoot = incrementalCompilationOptions.modulesInfo.projectRoot
 
-        val compiler = IncrementalJvmCompilerRunner(
-            workingDir,
-            reporter,
-            buildHistoryFile = incrementalCompilationOptions.multiModuleICSettings.buildHistoryFile,
-            outputFiles = incrementalCompilationOptions.outputFiles,
-            usePreciseJavaTracking = incrementalCompilationOptions.usePreciseJavaTracking,
-            modulesApiHistory = modulesApiHistory,
-            kotlinSourceFilesExtensions = allKotlinExtensions
-        )
+        val compiler = initCompiler(incrementalCompilationOptions, allKotlinExtensions, reporter)
+
         return try {
             compiler.compile(allKotlinFiles, k2jvmArgs, compilerMessageCollector, changedFiles, projectRoot)
         } finally {
@@ -937,6 +963,40 @@ class CompileServiceImpl(
                     compile(state, codeLine)
                 }
             }
+        }
+
+    override fun buildSnapshot(
+        sessionId: Int,
+        compilationOptions: CompilationOptions,
+        jar: File
+    ): CompileService.CallResult<File> = ifAlive(minAliveness = Aliveness.Alive) {
+
+        val targetPlatform = (compilationOptions as IncrementalCompilationOptions).targetPlatform
+        when (targetPlatform) {
+            CompileService.TargetPlatform.JVM ->
+                kotlin.run {
+                    val modulesApiHistory = compilationOptions.run {
+                        ModulesApiHistoryAndroid(modulesInfo)
+                    }
+                    modulesApiHistory.jarSnapshot(jar)?.let { CompileService.CallResult.Good(it) }
+                    //TODO call compilation to calculate proto?
+                        ?: CompileService.CallResult.Error("Module should be recompiled")
+                }
+
+            else -> CompileService.CallResult.Error("Jar snapshot is not supported for target platform: $targetPlatform")
+
+        }
+    }
+
+    override fun compareSnapshots(
+        sessionId: Int,
+        compilationOptions: CompilationOptions,
+        servicesFacade: CompilerServicesFacadeBase,
+        compilationResults: CompilationResults,
+        previousSnapshot: File
+    ): CompileService.CallResult<DirtyData> =
+        ifAlive(minAliveness = Aliveness.Alive) {
+            compareSnapshotsImpl(compilationOptions, servicesFacade, compilationResults, previousSnapshot)
         }
 
     override fun periodicAndAfterSessionCheck() {

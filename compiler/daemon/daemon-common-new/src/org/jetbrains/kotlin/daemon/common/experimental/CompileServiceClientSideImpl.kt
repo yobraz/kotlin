@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.daemon.common.*
 import org.jetbrains.kotlin.daemon.common.experimental.socketInfrastructure.*
 import org.jetbrains.kotlin.daemon.common.CompileService
 import org.jetbrains.kotlin.daemon.common.CompilerServicesFacadeBase
+import org.jetbrains.kotlin.incremental.DirtyData
 import java.io.File
 import java.util.logging.Logger
 
@@ -74,6 +75,36 @@ class CompileServiceClientSideImpl(
     } {
     override suspend fun classesFqNamesByFiles(sessionId: Int, sourceFiles: Set<File>): CompileService.CallResult<Set<String>> {
         val id = sendMessage(ClassesFqNamesByFilesMessage(sessionId, sourceFiles))
+        return readMessage(id)
+    }
+
+    override suspend fun buildSnapshot(sessionId: Int, compilationOptions: CompilationOptions, jar: File): CompileService.CallResult<File> {
+        val id = sendMessage(
+            BuildSnapshotMessage(
+                sessionId,
+                compilationOptions,
+                jar
+            )
+        )
+        return readMessage(id)
+    }
+
+    override suspend fun compareSnapshots(
+        sessionId: Int,
+        compilationOptions: CompilationOptions,
+        servicesFacade: CompilerServicesFacadeBase,
+        compilationResults: CompilationResults,
+        previousSnapshot: File
+    ): CompileService.CallResult<DirtyData> {
+        val id = sendMessage(
+            CompareSnapshotsMessage(
+                sessionId,
+                compilationOptions,
+                servicesFacade,
+                compilationResults,
+                previousSnapshot
+            )
+        )
         return readMessage(id)
     }
 
@@ -391,6 +422,24 @@ class CompileServiceClientSideImpl(
     ) : Server.Message<CompileServiceServerSide>() {
         override suspend fun processImpl(server: CompileServiceServerSide, sendReply: (Any?) -> Unit) =
             sendReply(server.replCompile(sessionId, replStateId, codeLine))
+    }
+
+    class CompareSnapshotsMessage(
+        val sessionId: Int,
+        val compilationOptions: CompilationOptions,
+        val servicesFacade: CompilerServicesFacadeBase,
+        val compilationResults: CompilationResults,
+        val previousSnapshot: File
+    ) : Server.Message<CompileServiceServerSide>() {
+        override suspend fun processImpl(server: CompileServiceServerSide, sendReply: (Any?) -> Unit) =
+            sendReply(server.compareSnapshots(sessionId, compilationOptions, servicesFacade, compilationResults, previousSnapshot))
+    }
+
+    class BuildSnapshotMessage(val sessionId: Int,
+                               val compilationOptions: CompilationOptions,
+                               val jar: File) : Server.Message<CompileServiceServerSide>() {
+        override suspend fun processImpl(server: CompileServiceServerSide, sendReply: (Any?) -> Unit) =
+            sendReply(server.buildSnapshot(sessionId, compilationOptions, jar))
     }
 
 }

@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.daemon.common
 
 import org.jetbrains.kotlin.cli.common.repl.ReplCodeLine
+import org.jetbrains.kotlin.incremental.DirtyData
 import java.io.File
 
 class CompileServiceAsyncWrapper(
@@ -14,6 +15,18 @@ class CompileServiceAsyncWrapper(
 
     override suspend fun classesFqNamesByFiles(sessionId: Int, sourceFiles: Set<File>) =
         rmiCompileService.classesFqNamesByFiles(sessionId, sourceFiles)
+
+    override suspend fun buildSnapshot(sessionId: Int, compilationOptions: CompilationOptions, jar: File): CompileService.CallResult<File> =
+        rmiCompileService.buildSnapshot(sessionId, compilationOptions, jar)
+
+    override suspend fun compareSnapshots(
+        sessionId: Int,
+        compilationOptions: CompilationOptions,
+        servicesFacade: CompilerServicesFacadeBase,
+        compilationResults: CompilationResults,
+        previousSnapshot: File
+    ): CompileService.CallResult<DirtyData> =
+        rmiCompileService.compareSnapshots(sessionId, compilationOptions, servicesFacade, compilationResults, previousSnapshot)
 
     override suspend fun compile(
         sessionId: Int,

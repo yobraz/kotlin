@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.cli.common.repl.ReplCheckResult
 import org.jetbrains.kotlin.cli.common.repl.ReplCodeLine
 import org.jetbrains.kotlin.cli.common.repl.ReplCompileResult
 import org.jetbrains.kotlin.cli.common.repl.ReplEvalResult
+import org.jetbrains.kotlin.incremental.DirtyData
 import java.io.File
 
 class CompileServiceClientRMIWrapper(
@@ -197,6 +198,21 @@ class CompileServiceClientRMIWrapper(
         codeLine: ReplCodeLine
     ) = runBlocking {
         asyncCompileService.replCompile(sessionId, replStateId, codeLine)
+    }
+
+    override fun buildSnapshot(sessionId: Int, compilationOptions: CompilationOptions, jar: File): CompileService.CallResult<File> =
+        runBlocking {
+            asyncCompileService.buildSnapshot(sessionId, compilationOptions, jar)
+        }
+
+    override fun compareSnapshots(
+        sessionId: Int,
+        compilationOptions: CompilationOptions,
+        servicesFacade: CompilerServicesFacadeBase,
+        compilationResults: CompilationResults,
+        previousSnapshot: File
+    ): CompileService.CallResult<DirtyData> = runBlocking {
+        asyncCompileService.compareSnapshots(sessionId, compilationOptions, servicesFacade, compilationResults, previousSnapshot)
     }
 
     override fun checkCompilerId(expectedCompilerId: CompilerId) = runBlocking {

@@ -36,7 +36,9 @@ import org.jetbrains.kotlin.daemon.nowSeconds
 import org.jetbrains.kotlin.daemon.report.experimental.CompileServicesFacadeMessageCollector
 import org.jetbrains.kotlin.daemon.report.experimental.DaemonMessageReporterAsync
 import org.jetbrains.kotlin.daemon.report.experimental.getICReporterAsync
+import org.jetbrains.kotlin.incremental.DirtyData
 import org.jetbrains.kotlin.incremental.components.LookupTracker
+import org.jetbrains.kotlin.incremental.multiproject.ModulesApiHistoryAndroid
 import org.jetbrains.kotlin.incremental.parsing.classesFqNames
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCompilationComponents
 import org.jetbrains.kotlin.progress.experimental.CompilationCanceledStatus
@@ -253,6 +255,29 @@ class CompileServiceServerSideImpl(
                 CompileService.CallResult.Good(classesFqNames(sourceFiles))
             }
         }
+
+    override suspend fun buildSnapshot(sessionId: Int, compilationOptions: CompilationOptions, jar: File): CompileService.CallResult<File> =
+        ifAlive {
+            withValidClientOrSessionProxy(sessionId) {
+                val incrementalCompilationOptions = compilationOptions as IncrementalCompilationOptions
+                    val modulesApiHistory = incrementalCompilationOptions.run {
+                        ModulesApiHistoryAndroid(modulesInfo)
+                    }
+                    modulesApiHistory.jarSnapshot(jar)?.let { CompileService.CallResult.Good(it) }
+                    //TODO call compilation to calculate proto?
+                        ?: CompileService.CallResult.Error("Module should be recompiled")
+            }
+        }
+
+    override suspend fun compareSnapshots(
+        sessionId: Int,
+        compilationOptions: CompilationOptions,
+        servicesFacade: CompilerServicesFacadeBase,
+        compilationResults: CompilationResults,
+        previousSnapshot: File
+    ): CompileService.CallResult<DirtyData> {
+        TODO("Not yet implemented")
+    }
 
     private fun registerClientImpl(aliveFlagPath: String?): CompileService.CallResult<Nothing> {
         state.addClient(aliveFlagPath)

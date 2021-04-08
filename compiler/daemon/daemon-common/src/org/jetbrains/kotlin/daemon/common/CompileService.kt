@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.daemon.common
 
 import org.jetbrains.kotlin.cli.common.repl.*
+import org.jetbrains.kotlin.incremental.DirtyData
 import java.io.File
 import java.io.Serializable
 import java.rmi.Remote
@@ -221,4 +222,20 @@ interface CompileService : Remote {
             replStateId: Int,
             codeLine: ReplCodeLine
     ): CallResult<ReplCompileResult>
+
+    @Throws(RemoteException::class)
+    fun buildSnapshot(
+        sessionId: Int,
+        compilationOptions: CompilationOptions,
+        jar: File
+    ): CallResult<File>
+
+    @Throws(RemoteException::class)
+    fun compareSnapshots(
+        sessionId: Int,
+        compilationOptions: CompilationOptions,
+        servicesFacade: CompilerServicesFacadeBase,
+        compilationResults: CompilationResults,
+        previousSnapshot: File
+    ): CallResult<DirtyData>
 }

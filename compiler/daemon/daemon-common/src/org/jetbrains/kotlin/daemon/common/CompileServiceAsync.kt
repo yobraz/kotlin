@@ -7,7 +7,9 @@ package org.jetbrains.kotlin.daemon.common
 import org.jetbrains.kotlin.cli.common.repl.ReplCheckResult
 import org.jetbrains.kotlin.cli.common.repl.ReplCodeLine
 import org.jetbrains.kotlin.cli.common.repl.ReplCompileResult
+import org.jetbrains.kotlin.incremental.DirtyData
 import java.io.File
+import java.rmi.RemoteException
 
 
 interface CompileServiceAsync {
@@ -72,6 +74,20 @@ interface CompileServiceAsync {
     ): CompileService.CallResult<ReplCompileResult>
 
     suspend fun classesFqNamesByFiles(sessionId: Int, sourceFiles: Set<File>): CompileService.CallResult<Set<String>>
+
+    suspend fun buildSnapshot(
+        sessionId: Int,
+        compilationOptions: CompilationOptions,
+        jar: File
+    ): CompileService.CallResult<File>
+
+    suspend fun compareSnapshots(
+        sessionId: Int,
+        compilationOptions: CompilationOptions,
+        servicesFacade: CompilerServicesFacadeBase,
+        compilationResults: CompilationResults,
+        previousSnapshot: File
+    ): CompileService.CallResult<DirtyData>
 
     val serverPort: Int
         get() = 0

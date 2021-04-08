@@ -81,6 +81,20 @@ abstract class IncrementalCompilerRunner<
         compileImpl(allSourceFiles, args, messageCollector, providedChangedFiles, projectDir)
     }
 
+    public fun calculateDiffWithCurrentCache(
+        jar: File,
+        args: Args,
+        projectDir: File? = null
+    ): DirtyData? {
+        val caches = createCacheManager(args, projectDir)
+        val jarSnapshot = JarSnapshotImpl.read(jar, reporter)
+        val currentJarSnapshot = JarSnapshotImpl.read(jarSnapshotFile, reporter)
+        if (jarSnapshot == null || currentJarSnapshot == null) {
+            return null
+        }
+        return JarSnapshotDiffService.doCompute(jarSnapshot, currentJarSnapshot, caches.platformCache)
+    }
+
     private fun compileImpl(
         allSourceFiles: List<File>,
         args: Args,

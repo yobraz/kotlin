@@ -26,13 +26,13 @@ class JarSnapshotDiffService() {
 
         fun inScope(fqName: FqName, scopes: Collection<String>) = scopes.any { scope -> fqName.toString().startsWith(scope) }
 
-        fun doCompute(snapshot: JarSnapshot, actual: JarSnapshot, caches: IncrementalCacheCommon, scopes: Collection<String>): DirtyData {
+        fun doCompute(snapshot: JarSnapshot, actual: JarSnapshot, caches: IncrementalCacheCommon, scopes: Collection<String>? = null) : DirtyData {
 
             val dirtyFqNames = mutableListOf<FqName>()
             val dirtyLookupSymbols = mutableListOf<LookupSymbol>()
 
             for ((fqName, protoData) in snapshot.protos) {
-                if (!inScope(fqName, scopes)) continue
+                if (scopes?.let {inScope(fqName, scopes)} == false) continue
                 val newProtoData = actual.protos[fqName]
                 if (newProtoData == null) {
                     val (fqNames, symbols) = addProtoInfo(protoData, fqName)

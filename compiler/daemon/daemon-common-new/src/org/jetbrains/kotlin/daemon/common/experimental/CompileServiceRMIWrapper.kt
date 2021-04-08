@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.cli.common.repl.ReplCodeLine
 import org.jetbrains.kotlin.daemon.common.*
 import org.jetbrains.kotlin.daemon.common.experimental.socketInfrastructure.Client
 import org.jetbrains.kotlin.daemon.common.experimental.socketInfrastructure.DefaultClientRMIWrapper
+import org.jetbrains.kotlin.incremental.DirtyData
 import java.io.File
 import java.io.Serializable
 import java.rmi.NoSuchObjectException
@@ -185,6 +186,21 @@ class CompileServiceRMIWrapper(val server: CompileServiceServerSide, daemonOptio
 
     override fun replCompile(sessionId: Int, replStateId: Int, codeLine: ReplCodeLine) = runBlocking {
         server.replCompile(sessionId, replStateId, codeLine)
+    }
+
+    override fun buildSnapshot(sessionId: Int, compilationOptions: CompilationOptions, jar: File): CompileService.CallResult<File> =
+        runBlocking {
+            server.buildSnapshot(sessionId, compilationOptions, jar)
+        }
+
+    override fun compareSnapshots(
+        sessionId: Int,
+        compilationOptions: CompilationOptions,
+        servicesFacade: CompilerServicesFacadeBase,
+        compilationResults: CompilationResults,
+        previousSnapshot: File
+    ): CompileService.CallResult<DirtyData> = runBlocking {
+        server.compareSnapshots(sessionId, compilationOptions, servicesFacade, compilationResults, previousSnapshot)
     }
 
     init {
