@@ -134,7 +134,7 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
         }
 
         override fun visitScriptDescriptor(scriptDescriptor: ScriptDescriptor, data: Nothing?) =
-            reportUnexpectedDescriptor(scriptDescriptor)
+            visitClassDescriptor(scriptDescriptor, data)
 
         override fun visitPropertyDescriptor(descriptor: PropertyDescriptor, data: Nothing?) {
             collectParents(descriptor, descriptor.isLocal)
