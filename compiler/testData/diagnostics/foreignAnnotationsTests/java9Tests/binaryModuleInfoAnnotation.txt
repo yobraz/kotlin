@@ -1,4 +1,0 @@
-package
-
-public fun main(/*0*/ x: test.Test): kotlin.Unit
-

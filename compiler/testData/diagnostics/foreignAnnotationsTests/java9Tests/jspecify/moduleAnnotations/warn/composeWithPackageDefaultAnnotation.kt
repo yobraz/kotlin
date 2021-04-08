@@ -1,7 +1,6 @@
 // ALLOW_KOTLIN_PACKAGE
-// ALL_JAVA_AS_BINARY
 
-// FILE: module-info.java
+// FILE: sandbox/module-info.java
 // MODULE_NAME: sandbox
 import org.jspecify.nullness.NullMarked;
 
@@ -11,7 +10,13 @@ module sandbox {
     exports test;
 }
 
-// FILE: test/Test.java
+// FILE: sandbox/test/package-info.java
+@NullMarked
+package test;
+
+import org.jspecify.nullness.NullMarked;
+
+// FILE: sandbox/test/Test.java
 package test;
 
 public class Test {

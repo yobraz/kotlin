@@ -91,16 +91,16 @@ class JavaModuleInfo(
                     override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor? {
                         if (descriptor == null) return null
 
-                        annotations.add(
-                            BinaryJavaAnnotation.createAnnotationAndVisitor(
-                                descriptor,
-                                ClassifierResolutionContext(javaFileManager::findClass),
-                                BinaryClassSignatureParser(),
-                                isFreshlySupportedTypeUseAnnotation = true
-                            ).first
+                        val (annotation, visitor) = BinaryJavaAnnotation.createAnnotationAndVisitor(
+                            descriptor,
+                            ClassifierResolutionContext(javaFileManager::findClass),
+                            BinaryClassSignatureParser(),
+                            isFreshlySupportedTypeUseAnnotation = true
                         )
 
-                        return super.visitAnnotation(descriptor, visible)
+                        annotations.add(annotation)
+
+                        return visitor
                     }
                 }, ClassReader.SKIP_DEBUG or ClassReader.SKIP_CODE or ClassReader.SKIP_FRAMES)
             } catch (e: Exception) {
