@@ -14,7 +14,7 @@ value class BinaryCoordinates(private val decoded: BinaryLattice) {
 
     companion object {
         fun encode(startOffset: Int, endOffset: Int): Long {
-            assert(startOffset <= endOffset)
+//            assert(startOffset <= endOffset)
             return BinaryLattice.encode(startOffset, endOffset - startOffset)
         }
 

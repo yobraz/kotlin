@@ -48,11 +48,13 @@ abstract class BasicIrBoxTest(
 
     private fun getBoolean(s: String, default: Boolean) = System.getProperty(s)?.let { parseBoolean(it) } ?: default
 
+    val runIcMode: Boolean = getBoolean("kotlin.js.ir.icMode")
+
     override val skipRegularMode: Boolean = getBoolean("kotlin.js.ir.skipRegularMode")
 
-    override val runIrDce: Boolean = getBoolean("kotlin.js.ir.dce", true)
+    override val runIrDce: Boolean = !runIcMode && getBoolean("kotlin.js.ir.dce", true)
 
-    override val runIrPir: Boolean = getBoolean("kotlin.js.ir.pir", true)
+    override val runIrPir: Boolean = !runIcMode && getBoolean("kotlin.js.ir.pir", true)
 
     val runEs6Mode: Boolean = getBoolean("kotlin.js.ir.es6", false)
 
@@ -95,7 +97,7 @@ abstract class BasicIrBoxTest(
     ) {
         val filesToCompile = units.map { (it as TranslationUnit.SourceFile).file }
 
-        val runtimeKlibs = if (needsFullIrRuntime) listOf(fullRuntimeKlib, kotlinTestKLib) else listOf(defaultRuntimeKlib)
+        val runtimeKlibs = if (needsFullIrRuntime || runIcMode) listOf(fullRuntimeKlib, kotlinTestKLib) else listOf(defaultRuntimeKlib)
 
         val transitiveLibraries = config.configuration[JSConfigurationKeys.TRANSITIVE_LIBRARIES]!!.map { File(it).name }
 
@@ -145,6 +147,7 @@ abstract class BasicIrBoxTest(
                     es6mode = runEs6Mode,
                     multiModule = splitPerModule || perModule,
                     propertyLazyInitialization = propertyLazyInitialization,
+                    useStdlibCache = runIcMode,
                 )
 
                 compiledModule.jsCode!!.writeTo(outputFile, config)

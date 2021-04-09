@@ -63,6 +63,11 @@ public final class FileLocalIdSignature extends
             localId_ = input.readInt64();
             break;
           }
+          case 24: {
+            bitField0_ |= 0x00000004;
+            file_ = input.readInt32();
+            break;
+          }
         }
       }
     } catch (org.jetbrains.kotlin.protobuf.InvalidProtocolBufferException e) {
@@ -81,6 +86,9 @@ public final class FileLocalIdSignature extends
       makeExtensionsImmutable();
     }
   }
+  public static final int CONTAINER_FIELD_NUMBER = 1;
+  public static final int LOCAL_ID_FIELD_NUMBER = 2;
+  public static final int FILE_FIELD_NUMBER = 3;
   public static org.jetbrains.kotlin.protobuf.Parser<FileLocalIdSignature> PARSER =
       new org.jetbrains.kotlin.protobuf.AbstractParser<FileLocalIdSignature>() {
     public FileLocalIdSignature parsePartialFrom(
@@ -90,21 +98,23 @@ public final class FileLocalIdSignature extends
       return new FileLocalIdSignature(input, extensionRegistry);
     }
   };
+  private int bitField0_;
+  private int container_;
+  private long localId_;
+  private int file_;
 
   @java.lang.Override
   public org.jetbrains.kotlin.protobuf.Parser<FileLocalIdSignature> getParserForType() {
     return PARSER;
   }
 
-  private int bitField0_;
-  public static final int CONTAINER_FIELD_NUMBER = 1;
-  private int container_;
   /**
    * <code>required int32 container = 1;</code>
    */
   public boolean hasContainer() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
+
   /**
    * <code>required int32 container = 1;</code>
    */
@@ -112,24 +122,36 @@ public final class FileLocalIdSignature extends
     return container_;
   }
 
-  public static final int LOCAL_ID_FIELD_NUMBER = 2;
-  private long localId_;
   /**
    * <code>required int64 local_id = 2;</code>
    */
   public boolean hasLocalId() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
+
   /**
    * <code>required int64 local_id = 2;</code>
    */
   public long getLocalId() {
     return localId_;
   }
+  /**
+   * <code>optional int32 file = 3;</code>
+   */
+  public boolean hasFile() {
+    return ((bitField0_ & 0x00000004) == 0x00000004);
+  }
+  /**
+   * <code>optional int32 file = 3;</code>
+   */
+  public int getFile() {
+    return file_;
+  }
 
   private void initFields() {
     container_ = 0;
     localId_ = 0L;
+    file_ = 0;
   }
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
@@ -158,6 +180,9 @@ public final class FileLocalIdSignature extends
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       output.writeInt64(2, localId_);
     }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      output.writeInt32(3, file_);
+    }
     output.writeRawBytes(unknownFields);
   }
 
@@ -174,6 +199,10 @@ public final class FileLocalIdSignature extends
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += org.jetbrains.kotlin.protobuf.CodedOutputStream
         .computeInt64Size(2, localId_);
+    }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      size += org.jetbrains.kotlin.protobuf.CodedOutputStream
+        .computeInt32Size(3, file_);
     }
     size += unknownFields.size();
     memoizedSerializedSize = size;
@@ -267,14 +296,7 @@ public final class FileLocalIdSignature extends
       return new Builder();
     }
 
-    public Builder clear() {
-      super.clear();
-      container_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000001);
-      localId_ = 0L;
-      bitField0_ = (bitField0_ & ~0x00000002);
-      return this;
-    }
+    private int file_ ;
 
     public Builder clone() {
       return create().mergeFrom(buildPartial());
@@ -304,20 +326,22 @@ public final class FileLocalIdSignature extends
         to_bitField0_ |= 0x00000002;
       }
       result.localId_ = localId_;
+      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        to_bitField0_ |= 0x00000004;
+      }
+      result.file_ = file_;
       result.bitField0_ = to_bitField0_;
       return result;
     }
 
-    public Builder mergeFrom(org.jetbrains.kotlin.backend.common.serialization.proto.FileLocalIdSignature other) {
-      if (other == org.jetbrains.kotlin.backend.common.serialization.proto.FileLocalIdSignature.getDefaultInstance()) return this;
-      if (other.hasContainer()) {
-        setContainer(other.getContainer());
-      }
-      if (other.hasLocalId()) {
-        setLocalId(other.getLocalId());
-      }
-      setUnknownFields(
-          getUnknownFields().concat(other.unknownFields));
+    public Builder clear() {
+      super.clear();
+      container_ = 0;
+      bitField0_ = (bitField0_ & ~0x00000001);
+      localId_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000002);
+      file_ = 0;
+      bitField0_ = (bitField0_ & ~0x00000004);
       return this;
     }
 
@@ -406,12 +430,59 @@ public final class FileLocalIdSignature extends
       
       return this;
     }
+
+    public Builder mergeFrom(org.jetbrains.kotlin.backend.common.serialization.proto.FileLocalIdSignature other) {
+      if (other == org.jetbrains.kotlin.backend.common.serialization.proto.FileLocalIdSignature.getDefaultInstance()) return this;
+      if (other.hasContainer()) {
+        setContainer(other.getContainer());
+      }
+      if (other.hasLocalId()) {
+        setLocalId(other.getLocalId());
+      }
+      if (other.hasFile()) {
+        setFile(other.getFile());
+      }
+      setUnknownFields(
+          getUnknownFields().concat(other.unknownFields));
+      return this;
+    }
+
     /**
      * <code>required int64 local_id = 2;</code>
      */
     public Builder clearLocalId() {
       bitField0_ = (bitField0_ & ~0x00000002);
       localId_ = 0L;
+
+      return this;
+    }
+    /**
+     * <code>optional int32 file = 3;</code>
+     */
+    public boolean hasFile() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int32 file = 3;</code>
+     */
+    public int getFile() {
+      return file_;
+    }
+    /**
+     * <code>optional int32 file = 3;</code>
+     */
+    public Builder setFile(int value) {
+      bitField0_ |= 0x00000004;
+      file_ = value;
+      
+      return this;
+    }
+    /**
+     * <code>optional int32 file = 3;</code>
+     */
+    public Builder clearFile() {
+      bitField0_ = (bitField0_ & ~0x00000004);
+      file_ = 0;
       
       return this;
     }

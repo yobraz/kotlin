@@ -31,7 +31,8 @@ class IrModuleToJsTransformer(
     private val fullJs: Boolean = true,
     private val dceJs: Boolean = false,
     private val multiModule: Boolean = false,
-    private val relativeRequirePath: Boolean = false
+    private val relativeRequirePath: Boolean = false,
+    private val skipStaticMembersLowering: Boolean = false,
 ) {
     private val generateRegionComments = backendContext.configuration.getBoolean(JSConfigurationKeys.GENERATE_REGION_COMMENTS)
 
@@ -46,8 +47,10 @@ class IrModuleToJsTransformer(
         val exportedModule = ExportModelGenerator(backendContext).generateExport(modules)
         val dts = exportedModule.toTypeScript()
 
-        modules.forEach { module ->
-            module.files.forEach { StaticMembersLowering(backendContext).lower(it) }
+        if (!skipStaticMembersLowering) {
+            modules.forEach { module ->
+                module.files.forEach { StaticMembersLowering(backendContext).lower(it) }
+            }
         }
 
         if (multiModule) {

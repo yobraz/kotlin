@@ -172,7 +172,7 @@ sealed class IdSignature {
         }
     }
 
-    class FileLocalSignature(val container: IdSignature, val id: Long) : IdSignature() {
+    class FileLocalSignature(val container: IdSignature, val id: Long, val filePath: String) : IdSignature() {
         override val isPublic: Boolean get() = false
 
         override fun packageFqName(): FqName = container.packageFqName()
@@ -190,16 +190,16 @@ sealed class IdSignature {
 
         override fun nearestPublicSig(): IdSignature = container.nearestPublicSig()
 
-        override fun render(): String = "${container.render()}:$id"
+        override fun render(): String = "${container.render()}:$id from ${filePath.split('/').last()}"
 
         override fun equals(other: Any?): Boolean =
-            other is FileLocalSignature && id == other.id && container == other.container
+            other is FileLocalSignature && id == other.id && container == other.container && filePath == other.filePath
 
-        override fun hashCode(): Int = container.hashCode() * 31 + id.hashCode()
+        override fun hashCode(): Int = (container.hashCode() * 31 + id.hashCode()) * 31 + filePath.hashCode()
     }
 
     // Used to reference local variable and value parameters in function
-    class ScopeLocalDeclaration(val id: Int, val description: String = "<no description>") : IdSignature() {
+    class ScopeLocalDeclaration(val id: Int, val description: String = "<no description>", val filePath: String) : IdSignature() {
         override val isPublic: Boolean get() = false
 
         override val hasTopLevel: Boolean get() = false
@@ -213,9 +213,65 @@ sealed class IdSignature {
         override fun render(): String = "#$id"
 
         override fun equals(other: Any?): Boolean =
-            other is ScopeLocalDeclaration && id == other.id
+            other is ScopeLocalDeclaration && id == other.id && filePath == other.filePath
 
-        override fun hashCode(): Int = id
+        override fun hashCode(): Int = id * 31 + filePath.hashCode()
+    }
+
+    class LoweredDeclarationSignature(val original: IdSignature, val stage: Int, val index: Int): IdSignature() {
+        override val isPublic: Boolean get() = true
+
+        override val hasTopLevel: Boolean get() = false
+
+        override fun topLevelSignature(): IdSignature = this
+
+        override fun nearestPublicSig(): IdSignature = this
+
+        override fun packageFqName(): FqName = original.packageFqName()
+
+        override fun render(): String = "ic#$stage:${original.render()}-$index"
+
+        override fun equals(other: Any?): Boolean {
+            return other is LoweredDeclarationSignature && original == other.original && stage == other.stage && index == other.index
+        }
+
+        override fun hashCode(): Int {
+            return (index * 31 + stage) * 31 + original.hashCode()
+        }
+    }
+
+    // Used to reference
+    class ReturnableBlockSignature(val upCnt: Int) : IdSignature() {
+        override val isPublic: Boolean get() = false
+
+        override val hasTopLevel: Boolean get() = false
+
+        override fun topLevelSignature(): IdSignature = error("Is not supported for returnable blocks")
+
+        override fun nearestPublicSig(): IdSignature = error("Is not supported for returnable blocks")
+
+        override fun packageFqName(): FqName = error("Is not supported for returnable blocks")
+
+        override fun render(): String = "#$upCnt"
+    }
+
+    class FileSignature(val path: String): IdSignature() {
+        override val isPublic: Boolean get() = false
+
+        override val hasTopLevel: Boolean get() = false
+
+        override fun topLevelSignature(): IdSignature = error("Is not supported for files")
+
+        override fun nearestPublicSig(): IdSignature = error("Is not supported for files")
+
+        override fun packageFqName(): FqName = error("Is not supported for files")
+
+        override fun render(): String = "#$path"
+
+        override fun equals(other: Any?): Boolean =
+            other is FileSignature && path == other.path
+
+        override fun hashCode(): Int = path.hashCode()
     }
 }
 

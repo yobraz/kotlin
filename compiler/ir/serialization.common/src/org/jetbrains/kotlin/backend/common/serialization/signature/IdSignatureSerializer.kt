@@ -10,9 +10,7 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.overrides.isOverridableFunction
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
-import org.jetbrains.kotlin.ir.util.IdSignature
-import org.jetbrains.kotlin.ir.util.KotlinMangler
-import org.jetbrains.kotlin.ir.util.render
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 
@@ -36,9 +34,9 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
     // TODO: we need to disentangle signature construction with declaration tables.
     lateinit var table: DeclarationTable
 
-    fun reset() {
-        localIndex = 0
-        scopeIndex = 0
+    fun reset(newLocalIndex: Long = 0L, newScopeIndex: Int = 0) {
+        localIndex = newLocalIndex
+        scopeIndex = newScopeIndex
     }
 
     private inner class PublicIdSigBuilder : IdSignatureBuilder<IrDeclaration>(), IrElementVisitorVoid {
@@ -117,13 +115,15 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
     fun composeFileLocalIdSignature(declaration: IrDeclaration): IdSignature {
         assert(!mangler.run { declaration.isExported() })
 
+        val filePath = declaration.fileOrNull?.path ?: ""
+
         return table.privateDeclarationSignature(declaration) {
             when (declaration) {
-                is IrValueDeclaration -> IdSignature.ScopeLocalDeclaration(scopeIndex++, declaration.name.asString())
+                is IrValueDeclaration -> IdSignature.ScopeLocalDeclaration(scopeIndex++, declaration.name.asString(), filePath)
                 is IrField -> {
                     val p = declaration.correspondingPropertySymbol?.let { composeSignatureForDeclaration(it.owner) }
                         ?: composeContainerIdSignature(declaration.parent)
-                    IdSignature.FileLocalSignature(p, ++localIndex)
+                    IdSignature.FileLocalSignature(p, ++localIndex, filePath)
                 }
                 is IrSimpleFunction -> {
                     val parent = declaration.parent
@@ -135,7 +135,8 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
                             mangler.run { declaration.signatureMangle }
                         } else {
                             ++localIndex
-                        }
+                        },
+                        filePath
                     )
                 }
                 is IrProperty -> {
@@ -146,10 +147,12 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
                             mangler.run { declaration.signatureMangle }
                         } else {
                             ++localIndex
-                        }
+                        },
+                        filePath
                     )
                 }
-                else -> IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent), ++localIndex)
+                is IrTypeParameter -> IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent), 1000_000_000_000L + declaration.index, filePath)
+                else -> IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent), ++localIndex, filePath)
             }
         }
     }

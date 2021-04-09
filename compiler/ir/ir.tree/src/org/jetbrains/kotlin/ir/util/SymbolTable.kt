@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.symbols.impl.*
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.isEffectivelyExternal
 import org.jetbrains.kotlin.utils.threadLocal
 
@@ -342,6 +343,14 @@ class SymbolTable(
     private val propertySymbolTable = FlatSymbolTable<PropertyDescriptor, IrProperty, IrPropertySymbol>()
     private val typeAliasSymbolTable = FlatSymbolTable<TypeAliasDescriptor, IrTypeAlias, IrTypeAliasSymbol>()
 
+    fun typeParameterSymbols(): Collection<IrTypeParameterSymbol> {
+        return globalTypeParameterSymbolTable.descriptorToSymbol.values
+    }
+
+    fun saveTypeParameterSignature(idSig: IdSignature, symbol: IrTypeParameterSymbol) {
+        globalTypeParameterSymbolTable.idSigToSymbol[idSig] = symbol
+    }
+
     private val globalTypeParameterSymbolTable = FlatSymbolTable<TypeParameterDescriptor, IrTypeParameter, IrTypeParameterSymbol>()
     private val scopedTypeParameterSymbolTable by threadLocal {
         ScopedSymbolTable<TypeParameterDescriptor, IrTypeParameter, IrTypeParameterSymbol>()
@@ -646,8 +655,9 @@ class SymbolTable(
 
     override fun referenceFieldFromLinker(sig: IdSignature) =
         fieldSymbolTable.run {
-            require(sig.isLocal)
-            IrFieldSymbolImpl()
+//            require(sig.isLocal)
+//            IrFieldSymbolImpl()
+            fieldSymbolTable.referenced(sig) { IrFieldPublicSymbolImpl(sig) }
         }
 
     val unboundFields: Set<IrFieldSymbol> get() = fieldSymbolTable.unboundSymbols
@@ -874,7 +884,7 @@ class SymbolTable(
         symbolFactory: () -> IrTypeParameterSymbol,
         typeParameterFactory: (IrTypeParameterSymbol) -> IrTypeParameter
     ): IrTypeParameter {
-        require(sig.isLocal)
+//        require(sig.isLocal)
         return globalTypeParameterSymbolTable.declare(sig, symbolFactory, typeParameterFactory)
     }
 
@@ -965,8 +975,10 @@ class SymbolTable(
         }
 
     override fun referenceTypeParameterFromLinker(sig: IdSignature): IrTypeParameterSymbol {
-        require(sig.isLocal)
-        return IrTypeParameterSymbolImpl()
+//        require(sig.isLocal)
+        return scopedTypeParameterSymbolTable.get(sig) ?: globalTypeParameterSymbolTable.referenced(sig) {
+            IrTypeParameterPublicSymbolImpl(sig)
+        }
     }
 
     fun declareVariable(

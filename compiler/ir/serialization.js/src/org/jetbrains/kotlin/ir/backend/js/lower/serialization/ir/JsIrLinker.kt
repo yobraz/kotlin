@@ -10,10 +10,12 @@ import org.jetbrains.kotlin.backend.common.serialization.*
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.ir.builders.TranslationPluginContext
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.descriptors.IrAbstractFunctionFactory
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.util.IrMessageLogger
+import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.util.TypeTranslator
@@ -56,6 +58,11 @@ class JsIrLinker(
         get() = deserializersForModules.values
             .map { it.moduleFragment }
             .filter { it.descriptor !== currentModule }
+
+
+    fun moduleDeserializer(moduleDescriptor: ModuleDescriptor): IrModuleDeserializer {
+        return deserializersForModules[moduleDescriptor]!!
+    }
 
     class JsFePluginContext(
         override val moduleDescriptor: ModuleDescriptor,
