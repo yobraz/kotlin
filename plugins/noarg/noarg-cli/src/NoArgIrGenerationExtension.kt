@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.noarg
 
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.backend.common.lower.SYNTHESIZED_INIT_BLOCK
+import org.jetbrains.kotlin.backend.common.lower.LoweredStatementOrigins
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.extensions.AnnotationBasedExtension
 import org.jetbrains.kotlin.ir.IrElement
@@ -118,7 +118,7 @@ private class NoArgInitializersLowering(private val builtIns: IrBuiltIns) {
             when (declaration) {
                 is IrAnonymousInitializer -> if (!declaration.isStatic) {
                     result.add(with(declaration) {
-                        IrBlockImpl(startOffset, endOffset, builtIns.unitType, SYNTHESIZED_INIT_BLOCK, body.statements)
+                        IrBlockImpl(startOffset, endOffset, builtIns.unitType, LoweredStatementOrigins.SYNTHESIZED_INIT_BLOCK, body.statements)
                     })
                 }
                 is IrProperty -> declaration.backingField.let { field ->
