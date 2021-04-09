@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.backend.common.serialization.signature
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.symbols.IrFileSymbol
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.KotlinMangler
 import org.jetbrains.kotlin.ir.util.render
@@ -24,6 +25,16 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
         return composePublicIdSignature(declaration)
     }
 
+    private var currentFileSignatureX: IdSignature.FileSignature? = null
+
+    override fun inFile(file: IrFileSymbol?, block: () -> Unit) {
+        currentFileSignatureX = file?.let { IdSignature.FileSignature(it) }
+
+        block()
+
+        currentFileSignatureX = null
+    }
+
     private var localIndex: Long = 0
     private var scopeIndex: Int = 0
 
@@ -38,7 +49,7 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
     private inner class PublicIdSigBuilder : IdSignatureBuilder<IrDeclaration>(), IrElementVisitorVoid {
 
         override val currentFileSignature: IdSignature.FileSignature?
-            get() = TODO("Not yet implemented")
+            get() = currentFileSignatureX
 
         override fun accept(d: IrDeclaration) {
             d.acceptVoid(this)

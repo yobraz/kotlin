@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.backend.common.serialization
 
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrSymbolOwner
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.util.IdSignature
@@ -55,8 +56,14 @@ open class DeclarationTable(globalTable: GlobalDeclarationTable) {
     protected open val globalDeclarationTable: GlobalDeclarationTable = globalTable
     // TODO: we need to disentangle signature construction with declaration tables.
     private val signaturer: IdSignatureSerializer = globalTable.signaturer.also {
-        it.reset()
+//        it.reset()
         it.table = this
+    }
+
+    fun inFile(file: IrFile, block: () -> Unit) {
+        signaturer.reset()
+        signaturer.table = this
+        signaturer.inFile(file.symbol, block)
     }
 
     private fun IrDeclaration.isLocalDeclaration(): Boolean {

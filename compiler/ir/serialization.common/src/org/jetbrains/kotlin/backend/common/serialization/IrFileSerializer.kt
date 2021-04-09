@@ -7,9 +7,10 @@ package org.jetbrains.kotlin.backend.common.serialization
 
 import org.jetbrains.kotlin.backend.common.ir.ir2string
 import org.jetbrains.kotlin.backend.common.serialization.encodings.*
-import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.ir.IrFileEntry
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrFileEntry
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.symbols.*
@@ -18,7 +19,10 @@ import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
-import org.jetbrains.kotlin.library.*
+import org.jetbrains.kotlin.library.SerializedDeclaration
+import org.jetbrains.kotlin.library.SerializedIrFile
+import org.jetbrains.kotlin.library.SkippedDeclaration
+import org.jetbrains.kotlin.library.TopLevelDeclaration
 import org.jetbrains.kotlin.library.impl.IrMemoryArrayWriter
 import org.jetbrains.kotlin.library.impl.IrMemoryDeclarationWriter
 import org.jetbrains.kotlin.name.Name
@@ -1279,6 +1283,16 @@ open class IrFileSerializer(
     }
 
     fun serializeIrFile(file: IrFile): SerializedIrFile {
+        var result: SerializedIrFile? = null
+
+        declarationTable.inFile(file) {
+            result = serializeIrFileImpl(file)
+        }
+
+        return result!!
+    }
+
+    private fun serializeIrFileImpl(file: IrFile): SerializedIrFile {
         val topLevelDeclarations = mutableListOf<SerializedDeclaration>()
 
         val proto = ProtoFile.newBuilder()
@@ -1330,7 +1344,7 @@ open class IrFileSerializer(
         )
     }
 
-    fun serializeExpectActualSubstitutionTable(proto: ProtoFile.Builder) {
+    private fun serializeExpectActualSubstitutionTable(proto: ProtoFile.Builder) {
         if (skipExpects) return
 
         expectActualTable.table.forEach next@{ (expect, actualSymbol) ->
