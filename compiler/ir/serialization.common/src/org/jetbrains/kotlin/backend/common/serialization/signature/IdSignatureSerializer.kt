@@ -6,12 +6,14 @@
 package org.jetbrains.kotlin.backend.common.serialization.signature
 
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
+import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleConstant
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.overrides.isOverridableFunction
+import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
 import org.jetbrains.kotlin.ir.symbols.IrFileSymbol
-import org.jetbrains.kotlin.ir.util.IdSignature
-import org.jetbrains.kotlin.ir.util.KotlinMangler
-import org.jetbrains.kotlin.ir.util.render
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 
@@ -21,8 +23,10 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
         return composePublicIdSignature(declaration)
     }
 
-    fun composeSignatureForDeclaration(declaration: IrDeclaration): IdSignature {
-        return composePublicIdSignature(declaration)
+    fun composeSignatureForDeclaration(declaration: IrDeclaration, compatibleMode: Boolean): IdSignature {
+        return if (mangler.run { declaration.isExported(compatibleMode) }) {
+            composePublicIdSignature(declaration)
+        } else composeFileLocalIdSignature(declaration)
     }
 
     private var currentFileSignatureX: IdSignature.FileSignature? = null
@@ -34,6 +38,58 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
 
         currentFileSignatureX = null
     }
+
+
+    private class LocalScope(val parent: LocalScope?) : SignatureScope<IrDeclaration> {
+
+        private var classIndex = 0
+        private var functionIndex = 0
+        private var anonymousFunIndex = 0
+        private var anonymousClassIndex = 0
+
+        override fun commitLambda(descriptor: IrDeclaration) {
+            assert(descriptor is IrSimpleFunction)
+            scopeDeclarationsIndexMap[descriptor] = anonymousFunIndex++
+        }
+
+        override fun commitLocalFunction(descriptor: IrDeclaration) {
+            assert(descriptor is IrSimpleFunction)
+            scopeDeclarationsIndexMap[descriptor] = functionIndex++
+        }
+
+        override fun commitAnonymousObject(descriptor: IrDeclaration) {
+            assert(descriptor is IrClass)
+            scopeDeclarationsIndexMap[descriptor] = anonymousClassIndex++
+        }
+
+        override fun commitLocalClass(descriptor: IrDeclaration) {
+            assert(descriptor is IrClass)
+            scopeDeclarationsIndexMap[descriptor] = classIndex++
+        }
+
+        val scopeDeclarationsIndexMap: MutableMap<IrDeclaration, Int> = mutableMapOf()
+
+        fun declarationIndex(declaration: IrDeclaration): Int? {
+            assert(declaration.isLocal)
+            return scopeDeclarationsIndexMap[declaration] ?: parent?.declarationIndex(declaration)
+        }
+
+    }
+
+    override fun <R> inLocalScope(builder: (SignatureScope<IrDeclaration>) -> Unit, block: () -> R): R {
+        val newScope = LocalScope(localScope)
+        localScope = newScope
+
+        builder(newScope)
+
+        val result = block()
+
+        localScope = newScope.parent
+
+        return result
+    }
+
+    private var localScope: LocalScope? = null
 
     private var localIndex: Long = 0
     private var scopeIndex: Int = 0
@@ -55,9 +111,37 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
             d.acceptVoid(this)
         }
 
-        private fun collectFqNames(declaration: IrDeclarationWithName) {
+        private fun createContainer() {
+            container = container?.let {
+                buildContainerSignature(it)
+            } ?: build()
+
+            reset(false)
+        }
+
+        private fun collectParents(declaration: IrDeclarationWithName, isLocal: Boolean) {
             declaration.parent.acceptVoid(this)
-            classFqnSegments.add(declaration.name.asString())
+
+            val name = declaration.name
+
+            if (isLocal) {
+                createContainer()
+                val localName = buildString {
+                    if (!name.isAnonymous) append(name)
+                    append(MangleConstant.LOCAL_DECLARATION_INDEX_PREFIX)
+                    append(localScope?.declarationIndex(declaration) ?: "0")
+                }
+                classFqnSegments.add(localName)
+            } else {
+                classFqnSegments.add(name.asString())
+            }
+
+        }
+
+        private fun setDescription(declaration: IrDeclaration) {
+            if (container != null) {
+                description = declaration.render()
+            }
         }
 
         override fun visitElement(element: IrElement) = error("Unexpected element ${element.render()}")
@@ -66,8 +150,16 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
             packageFqn = declaration.fqName
         }
 
+        private val IrDeclarationWithVisibility.isLocal: Boolean
+            get() = visibility == DescriptorVisibilities.LOCAL
+
+        private val IrDeclarationWithVisibility.isTopLevelPrivate: Boolean
+            get() = visibility == DescriptorVisibilities.PRIVATE && parent is IrPackageFragment
+
         override fun visitClass(declaration: IrClass) {
-            collectFqNames(declaration)
+            collectParents(declaration, declaration.isLocal)
+            isTopLevelPrivate = declaration.isTopLevelPrivate
+            setDescription(declaration)
             setExpected(declaration.isExpect)
         }
 
@@ -78,30 +170,43 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
                 property.owner.acceptVoid(this)
                 classFqnSegments.add(declaration.name.asString())
             } else {
+                collectParents(declaration, declaration.isLocal)
+                isTopLevelPrivate = declaration.isTopLevelPrivate
                 hashId = mangler.run { declaration.signatureMangle }
-                collectFqNames(declaration)
+                setDescription(declaration)
             }
             setExpected(declaration.isExpect)
         }
 
         override fun visitConstructor(declaration: IrConstructor) {
+            collectParents(declaration, isLocal = false)
             hashId = mangler.run { declaration.signatureMangle }
-            collectFqNames(declaration)
             setExpected(declaration.isExpect)
         }
 
         override fun visitProperty(declaration: IrProperty) {
+            collectParents(declaration, declaration.isLocal)
+            isTopLevelPrivate = declaration.isTopLevelPrivate
             hashId = mangler.run { declaration.signatureMangle }
-            collectFqNames(declaration)
             setExpected(declaration.isExpect)
         }
 
         override fun visitTypeAlias(declaration: IrTypeAlias) {
-            collectFqNames(declaration)
+            collectParents(declaration, declaration.isLocal)
+            isTopLevelPrivate = declaration.isTopLevelPrivate
         }
 
         override fun visitEnumEntry(declaration: IrEnumEntry) {
-            collectFqNames(declaration)
+            collectParents(declaration, isLocal = false)
+        }
+
+        override fun visitTypeParameter(declaration: IrTypeParameter) {
+            declaration.parent.accept(this, null)
+            createContainer()
+
+            classFqnSegments.add(MangleConstant.TYPE_PARAMETER_MARKER_NAME)
+            hashId = declaration.index.toLong()
+            description = declaration.render()
         }
     }
 
@@ -119,42 +224,42 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
     }
 
     fun composeFileLocalIdSignature(declaration: IrDeclaration): IdSignature {
-        error("Should not reach here ${declaration.render()}")
+//        error("Should not reach here ${declaration.render()}")
 
-//        return table.privateDeclarationSignature(declaration) {
-//            when (declaration) {
-//                is IrValueDeclaration -> IdSignature.ScopeLocalDeclaration(scopeIndex++, declaration.name.asString())
-//                is IrField -> {
-//                    val p = declaration.correspondingPropertySymbol?.let { composeSignatureForDeclaration(it.owner) }
-//                        ?: composeContainerIdSignature(declaration.parent)
-//                    IdSignature.FileLocalSignature(p, ++localIndex)
-//                }
-//                is IrSimpleFunction -> {
-//                    val parent = declaration.parent
-//                    val p = declaration.correspondingPropertySymbol?.let { composeSignatureForDeclaration(it.owner) }
-//                        ?: composeContainerIdSignature(parent)
-//                    IdSignature.FileLocalSignature(
-//                        p,
-//                        if (declaration.isOverridableFunction()) {
-//                            mangler.run { declaration.signatureMangle }
-//                        } else {
-//                            ++localIndex
-//                        }
-//                    )
-//                }
-//                is IrProperty -> {
-//                    val parent = declaration.parent
-//                    IdSignature.FileLocalSignature(
-//                        composeContainerIdSignature(parent),
-//                        if (declaration.isOverridableProperty()) {
-//                            mangler.run { declaration.signatureMangle }
-//                        } else {
-//                            ++localIndex
-//                        }
-//                    )
-//                }
-//                else -> IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent), ++localIndex)
-//            }
-//        }
+        return table.privateDeclarationSignature(declaration) {
+            when (declaration) {
+                is IrValueDeclaration -> IdSignature.ScopeLocalDeclaration(scopeIndex++, declaration.name.asString())
+                is IrField -> {
+                    val p = declaration.correspondingPropertySymbol?.let { composeSignatureForDeclaration(it.owner, true) }
+                        ?: composeContainerIdSignature(declaration.parent)
+                    IdSignature.FileLocalSignature(p, ++localIndex)
+                }
+                is IrSimpleFunction -> {
+                    val parent = declaration.parent
+                    val p = declaration.correspondingPropertySymbol?.let { composeSignatureForDeclaration(it.owner, true) }
+                        ?: composeContainerIdSignature(parent)
+                    IdSignature.FileLocalSignature(
+                        p,
+                        if (declaration.isOverridableFunction()) {
+                            mangler.run { declaration.signatureMangle }
+                        } else {
+                            ++localIndex
+                        }
+                    )
+                }
+                is IrProperty -> {
+                    val parent = declaration.parent
+                    IdSignature.FileLocalSignature(
+                        composeContainerIdSignature(parent),
+                        if (declaration.isOverridableProperty()) {
+                            mangler.run { declaration.signatureMangle }
+                        } else {
+                            ++localIndex
+                        }
+                    )
+                }
+                else -> IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent), ++localIndex)
+            }
+        }
     }
 }

@@ -36,7 +36,7 @@ import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.types.toKotlinType
-import org.jetbrains.kotlin.ir.util.IdSignatureComposer
+import org.jetbrains.kotlin.ir.util.SignatureScope
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.render
@@ -46,7 +46,6 @@ import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi2ir.containsNull
 import org.jetbrains.kotlin.psi2ir.findSingleFunction
 import org.jetbrains.kotlin.psi2ir.generators.*
@@ -237,13 +236,18 @@ internal class InsertImplicitCasts(
         }
     }
 
-    private fun localScopeBuilder(declaration: IrFunction, scope: IdSignatureComposer.Scope) {
+    private fun localScopeBuilder(declaration: IrFunction, scope: SignatureScope<DeclarationDescriptor>) {
         IrElementScopeBuilder().build(scope, declaration)
     }
 
     override fun visitFunction(declaration: IrFunction): IrStatement =
         typeTranslator.buildWithScope(declaration) {
-            symbolTable.signaturer.inLocalScope({ localScopeBuilder(declaration, it) }) {
+
+            val scopeBridge: (SignatureScope<DeclarationDescriptor>) -> Unit = {
+                localScopeBuilder(declaration, it)
+            }
+
+            symbolTable.signaturer.inLocalScope(scopeBridge) {
                 declaration.transformPostfix {
                     valueParameters.forEach {
                         it.defaultValue?.coerceInnerExpression(it.descriptor.type)

@@ -48,10 +48,10 @@ abstract class GlobalDeclarationTable(
         }
     }
 
-//    fun isExportedDeclaration(declaration: IrDeclaration): Boolean = with(mangler) { declaration.isExported() }
+    fun isExportedDeclaration(declaration: IrDeclaration, compatibleMode: Boolean): Boolean = with(mangler) { declaration.isExported(compatibleMode) }
 }
 
-open class DeclarationTable(globalTable: GlobalDeclarationTable) {
+open class DeclarationTable(globalTable: GlobalDeclarationTable, private val compatibleMode: Boolean = false) {
     protected val table = mutableMapOf<IrDeclaration, IdSignature>()
     protected open val globalDeclarationTable: GlobalDeclarationTable = globalTable
     // TODO: we need to disentangle signature construction with declaration tables.
@@ -67,18 +67,22 @@ open class DeclarationTable(globalTable: GlobalDeclarationTable) {
     }
 
     private fun IrDeclaration.isLocalDeclaration(): Boolean {
-//        return !isExportedDeclaration(this)
-        return false
+        return !isExportedDeclaration(this, compatibleMode)
+//        return false
     }
 
-//    fun isExportedDeclaration(declaration: IrDeclaration) = globalDeclarationTable.isExportedDeclaration(declaration)
+    fun isExportedDeclaration(declaration: IrDeclaration, compatibleMode: Boolean) = globalDeclarationTable.isExportedDeclaration(declaration, compatibleMode)
 
     protected open fun tryComputeBackendSpecificSignature(declaration: IrDeclaration): IdSignature? = null
+
+    private fun allocateIndexedSignature(declaration: IrDeclaration): IdSignature {
+        return table.getOrPut(declaration) { signaturer.composeFileLocalIdSignature(declaration) }
+    }
 
     private fun computeSignatureByDeclaration(declaration: IrDeclaration): IdSignature {
         tryComputeBackendSpecificSignature(declaration)?.let { return it }
         return if (declaration.isLocalDeclaration()) {
-            table.getOrPut(declaration) { signaturer.composeFileLocalIdSignature(declaration) }
+            allocateIndexedSignature(declaration)
         } else globalDeclarationTable.computeSignatureByDeclaration(declaration)
     }
 

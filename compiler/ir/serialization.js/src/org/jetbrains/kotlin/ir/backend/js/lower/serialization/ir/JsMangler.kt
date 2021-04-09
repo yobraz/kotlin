@@ -5,11 +5,13 @@
 
 package org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir
 
+import org.jetbrains.kotlin.backend.common.serialization.mangle.KotlinExportChecker
 import org.jetbrains.kotlin.backend.common.serialization.mangle.KotlinMangleComputer
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleMode
 import org.jetbrains.kotlin.backend.common.serialization.mangle.descriptor.DescriptorBasedKotlinManglerImpl
 import org.jetbrains.kotlin.backend.common.serialization.mangle.descriptor.DescriptorMangleComputer
 import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrBasedKotlinManglerImpl
+import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrExportCheckerVisitor
 import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrMangleComputer
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
@@ -21,15 +23,15 @@ abstract class AbstractJsManglerIr : IrBasedKotlinManglerImpl() {
 //        private val exportChecker = JsIrExportChecker()
     }
 
-//    private class JsIrExportChecker : IrExportCheckerVisitor() {
-//        override fun IrDeclaration.isPlatformSpecificExported() = false
-//    }
+    private class JsIrExportChecker(compatibleMode: Boolean) : IrExportCheckerVisitor(compatibleMode) {
+        override fun IrDeclaration.isPlatformSpecificExported() = false
+    }
 
     private class JsIrManglerComputer(builder: StringBuilder, mode: MangleMode) : IrMangleComputer(builder, mode) {
         override fun copy(newMode: MangleMode): IrMangleComputer = JsIrManglerComputer(builder, newMode)
     }
 
-//    override fun getExportChecker(): KotlinExportChecker<IrDeclaration> = exportChecker
+    override fun getExportChecker(compatibleMode: Boolean): KotlinExportChecker<IrDeclaration> = JsIrExportChecker(compatibleMode)
 
     override fun getMangleComputer(mode: MangleMode, app: (KotlinType) -> KotlinType): KotlinMangleComputer<IrDeclaration> {
         return JsIrManglerComputer(StringBuilder(256), mode)
@@ -52,7 +54,7 @@ abstract class AbstractJsDescriptorMangler : DescriptorBasedKotlinManglerImpl() 
         override fun copy(newMode: MangleMode): DescriptorMangleComputer = JsDescriptorManglerComputer(builder, newMode, typeApproximation)
     }
 
-//    override fun getExportChecker(): KotlinExportChecker<DeclarationDescriptor> = exportChecker
+    override fun getExportChecker(compatibleMode: Boolean): KotlinExportChecker<DeclarationDescriptor> = error("Should not be reached")
 
     override fun getMangleComputer(mode: MangleMode, app: (KotlinType) -> KotlinType): KotlinMangleComputer<DeclarationDescriptor> {
         return JsDescriptorManglerComputer(StringBuilder(256), mode, app)

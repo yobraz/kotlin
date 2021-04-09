@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.backend.common.serialization.mangle.descriptor
 
 import org.jetbrains.kotlin.backend.common.serialization.mangle.AbstractKotlinMangler
+import org.jetbrains.kotlin.backend.common.serialization.mangle.KotlinExportChecker
 import org.jetbrains.kotlin.backend.common.serialization.mangle.KotlinMangleComputer
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleMode
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -39,12 +40,16 @@ abstract class DescriptorBasedKotlinManglerImpl : AbstractKotlinMangler<Declarat
 
     override val DeclarationDescriptor.fqnString: String
         get() = withMode(MangleMode.FQNAME, this)
+
+    override fun DeclarationDescriptor.isExported(compatibleMode: Boolean): Boolean = true
 }
 
 class Ir2DescriptorManglerAdapter(private val delegate: DescriptorBasedKotlinManglerImpl) : AbstractKotlinMangler<IrDeclaration>(),
     KotlinMangler.IrMangler {
     override val manglerName: String
         get() = delegate.manglerName
+
+    override fun IrDeclaration.isExported(compatibleMode: Boolean): Boolean = true
 
     override val IrDeclaration.mangleString: String
         get() {
@@ -61,5 +66,10 @@ class Ir2DescriptorManglerAdapter(private val delegate: DescriptorBasedKotlinMan
     override val IrDeclaration.fqnString: String
         get() = delegate.run { descriptor.fqnString }
 
-    override fun getMangleComputer(mode: MangleMode, app: (KotlinType) -> KotlinType): KotlinMangleComputer<IrDeclaration> = error("Should not have been reached")
+    override fun getMangleComputer(mode: MangleMode, app: (KotlinType) -> KotlinType): KotlinMangleComputer<IrDeclaration> =
+        error("Should not have been reached")
+
+    override fun getExportChecker(compatibleMode: Boolean): KotlinExportChecker<IrDeclaration> {
+        error("Should not be called")
+    }
 }

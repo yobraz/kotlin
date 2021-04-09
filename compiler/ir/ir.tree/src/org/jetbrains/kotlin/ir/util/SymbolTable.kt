@@ -191,21 +191,51 @@ class SymbolTable(
         }
     }
 
+//    private open inner class FlatSymbolTable<D : DeclarationDescriptor, B : IrSymbolOwner, S : IrBindableSymbol<D, B>> :
+//        SymbolTableBase<D, B, S>(lock) {
+//        val idSigToSymbol = linkedMapOf<IdSignature, S>()
+//
+//        protected open fun signature(descriptor: D): IdSignature = signaturer.composeSignature(descriptor)
+//
+//        override fun get(d: D): S? {
+//            val sig = signature(d)
+//            return idSigToSymbol[sig]
+//        }
+//
+//        @OptIn(ObsoleteDescriptorBasedAPI::class)
+//        override fun set(s: S) {
+//            val signature = s.signature ?:
+//            error("llll")
+//            idSigToSymbol[signature] = s
+//        }
+//
+//        override fun get(sig: IdSignature): S? = idSigToSymbol[sig]
+//    }
+
     private open inner class FlatSymbolTable<D : DeclarationDescriptor, B : IrSymbolOwner, S : IrBindableSymbol<D, B>> :
         SymbolTableBase<D, B, S>(lock) {
+        val descriptorToSymbol = linkedMapOf<D, S>()
         val idSigToSymbol = linkedMapOf<IdSignature, S>()
 
-        protected open fun signature(descriptor: D): IdSignature = signaturer.composeSignature(descriptor)
+        protected open fun signature(descriptor: D): IdSignature? = signaturer.composeSignature(descriptor)
 
         override fun get(d: D): S? {
             val sig = signature(d)
-            return idSigToSymbol[sig]
+            return if (sig != null) {
+                idSigToSymbol[sig]
+            } else {
+                descriptorToSymbol[d]
+            }
         }
 
         @OptIn(ObsoleteDescriptorBasedAPI::class)
         override fun set(s: S) {
-            val signature = s.signature ?: error("llll")
-            idSigToSymbol[signature] = s
+            val signature = s.signature
+            if (signature != null) {
+                idSigToSymbol[signature] = s
+            } else if (s.hasDescriptor) {
+                descriptorToSymbol[s.descriptor] = s
+            }
         }
 
         override fun get(sig: IdSignature): S? = idSigToSymbol[sig]
@@ -515,6 +545,7 @@ class SymbolTable(
 
     override fun referenceClassFromLinker(sig: IdSignature): IrClassSymbol =
         classSymbolTable.run {
+//            referenced(sig) { IrClassPublicSymbolImpl(sig) }
             if (sig.isPublic) referenced(sig) { IrClassPublicSymbolImpl(sig) }
             else IrClassSymbolImpl()
         }
@@ -576,6 +607,7 @@ class SymbolTable(
 
     override fun referenceConstructorFromLinker(sig: IdSignature): IrConstructorSymbol =
         constructorSymbolTable.run {
+//            referenced(sig) { IrConstructorPublicSymbolImpl(sig) }
             if (sig.isPublic) referenced(sig) { IrConstructorPublicSymbolImpl(sig) }
             else IrConstructorSymbolImpl()
         }
@@ -709,6 +741,7 @@ class SymbolTable(
 
     override fun referenceFieldFromLinker(sig: IdSignature) =
         fieldSymbolTable.run {
+//            referenced(sig) { IrFieldPublicSymbolImpl(sig) }
             if (sig.isPublic) referenced(sig) { IrFieldPublicSymbolImpl(sig) }
             else IrFieldSymbolImpl()
         }
@@ -789,6 +822,7 @@ class SymbolTable(
 
     override fun referencePropertyFromLinker(sig: IdSignature): IrPropertySymbol =
         propertySymbolTable.run {
+//            referenced(sig) { IrPropertyPublicSymbolImpl(sig) }
             if (sig.isPublic) referenced(sig) { IrPropertyPublicSymbolImpl(sig) }
             else IrPropertySymbolImpl()
         }
@@ -894,6 +928,7 @@ class SymbolTable(
 
     override fun referenceSimpleFunctionFromLinker(sig: IdSignature): IrSimpleFunctionSymbol {
         return simpleFunctionSymbolTable.run {
+//            referenced(sig) { IrSimpleFunctionPublicSymbolImpl(sig) }
             if (sig.isPublic) referenced(sig) { IrSimpleFunctionPublicSymbolImpl(sig) }
             else IrSimpleFunctionSymbolImpl()
         }
@@ -1162,9 +1197,10 @@ inline fun <T> SymbolTable.withScope(owner: IrDeclaration, block: SymbolTable.()
 }
 
 @Suppress("UNUSED_PARAMETER")
-inline fun <E : Any, T> SymbolTable.withLocalScope(element: E?, scopeBuilder: IdSignatureComposer.ScopeBuilder<E>?, owner: IrDeclaration, crossinline block: SymbolTable.() -> T): T {
+inline fun <D, E : Any, T> SymbolTable.withLocalScope(element: E?, scopeBuilder: ScopeBuilder<D, E>?, owner: IrDeclaration, crossinline block: SymbolTable.() -> T): T {
 //    return signaturer.inLocalScope(element) {
-    return signaturer.inLocalScope({ scopeBuilder?.build(it, element) }) {
+    val scopeBuilderBridge: (SignatureScope<D>) -> Unit = { scopeBuilder?.build(it, element) }
+    return signaturer.inLocalScope(scopeBuilderBridge) {
         withScope(owner, block)
     }
 }

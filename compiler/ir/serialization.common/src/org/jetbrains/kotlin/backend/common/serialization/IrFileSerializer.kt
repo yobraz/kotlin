@@ -1308,7 +1308,7 @@ open class IrFileSerializer(
 
             val byteArray = serializeDeclaration(it).toByteArray()
             val idSig = declarationTable.signatureByDeclaration(it)
-            require(idSig === idSig.topLevelSignature()) { "IdSig: $idSig\ntopLevel: ${idSig.topLevelSignature()}" }
+            require(idSig == idSig.topLevelSignature()) { "IdSig: $idSig\ntopLevel: ${idSig.topLevelSignature()}" }
             require(!idSig.isPackageSignature()) { "IsSig: $idSig\nDeclaration: ${it.render()}" }
 
             // TODO: keep order similar

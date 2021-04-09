@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.ir.declarations.lazy
 
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.DescriptorVisibility
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBody
@@ -14,7 +15,7 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.DeclarationStubGenerator
-import org.jetbrains.kotlin.ir.util.IdSignatureComposer
+import org.jetbrains.kotlin.ir.util.ScopeBuilder
 import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.withLocalScope
 import org.jetbrains.kotlin.name.Name
@@ -60,7 +61,7 @@ class IrLazyConstructor(
     override var typeParameters: List<IrTypeParameter> by lazyVar(stubGenerator.lock) {
         typeTranslator.buildWithScope(this) {
 
-            stubGenerator.symbolTable.withLocalScope(null, null, this) {
+            stubGenerator.symbolTable.withLocalScope(null as IrElement?, null as ScopeBuilder<IrDeclaration, IrElement>?, this) {
                 val classTypeParametersCount = descriptor.constructedClass.original.declaredTypeParameters.size
                 val allConstructorTypeParameters = descriptor.typeParameters
                 allConstructorTypeParameters.subList(classTypeParametersCount, allConstructorTypeParameters.size).mapTo(ArrayList()) {

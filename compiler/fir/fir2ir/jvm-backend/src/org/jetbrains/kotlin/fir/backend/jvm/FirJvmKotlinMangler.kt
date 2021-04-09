@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.backend.jvm
 
 import org.jetbrains.kotlin.backend.common.serialization.mangle.AbstractKotlinMangler
+import org.jetbrains.kotlin.backend.common.serialization.mangle.KotlinExportChecker
 import org.jetbrains.kotlin.backend.common.serialization.mangle.KotlinMangleComputer
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleMode
 import org.jetbrains.kotlin.fir.FirSession
@@ -25,6 +26,10 @@ class FirJvmKotlinMangler(private val session: FirSession) : AbstractKotlinMangl
 
     override val FirDeclaration.fqnString: String
         get() = getMangleComputer(MangleMode.FQNAME, { it }).computeMangle(this)
+
+    override fun FirDeclaration.isExported(compatibleMode: Boolean): Boolean = true
+
+    override fun getExportChecker(compatibleMode: Boolean): KotlinExportChecker<FirDeclaration> = error("ll")
 
     override fun getMangleComputer(mode: MangleMode, app: (KotlinType) -> KotlinType): KotlinMangleComputer<FirDeclaration> {
         return FirJvmMangleComputer(StringBuilder(256), mode, session)

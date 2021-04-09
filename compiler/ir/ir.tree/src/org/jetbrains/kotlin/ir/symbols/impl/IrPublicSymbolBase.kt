@@ -49,7 +49,8 @@ abstract class IrBindablePublicSymbolBase<out D : DeclarationDescriptor, B : IrS
 
     private var _owner: B? = null
     override val owner: B
-        get() = _owner ?: throw IllegalStateException("Symbol for $signature is unbound")
+        get() = _owner ?:
+        throw IllegalStateException("Symbol for $signature is unbound")
 
     override fun bind(owner: B) {
         if (_owner == null) {
@@ -82,7 +83,16 @@ class IrEnumEntryPublicSymbolImpl(sig: IdSignature, descriptor: ClassDescriptor?
 
 class IrSimpleFunctionPublicSymbolImpl(sig: IdSignature, descriptor: FunctionDescriptor? = null) :
     IrBindablePublicSymbolBase<FunctionDescriptor, IrSimpleFunction>(sig, descriptor),
-    IrSimpleFunctionSymbol
+    IrSimpleFunctionSymbol {
+        init {
+            if (sig.toString() == "private kotlin.js/|null[0]:1:8310451807829678750:-4905333781038051537") {
+                println("KKKKKK")
+            }
+            if (sig.toString() == "public kotlin.collections/AbstractMap.values.<get-values>.<no name provided>.toArray|2932041455850412365[0]") {
+                println("EEE")
+            }
+        }
+    }
 
 class IrConstructorPublicSymbolImpl(sig: IdSignature, descriptor: ClassConstructorDescriptor? = null) :
     IrBindablePublicSymbolBase<ClassConstructorDescriptor, IrConstructor>(sig, descriptor),

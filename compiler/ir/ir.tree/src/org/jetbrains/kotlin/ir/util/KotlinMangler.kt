@@ -15,6 +15,7 @@ interface KotlinMangler<D : Any> {
 
     val String.hashMangle: Long
 
+    fun D.isExported(compatibleMode: Boolean): Boolean
 //    fun D.isExported(): Boolean
     val D.mangleString: String
     val D.signatureString: String

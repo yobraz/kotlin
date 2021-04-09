@@ -7,9 +7,10 @@ package org.jetbrains.kotlin.ir.util
 
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.ir.symbols.IrFileSymbol
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.types.KotlinType
 
 sealed class IdSignature {
@@ -101,7 +102,9 @@ sealed class IdSignature {
             get() = container.isPublic && inner.isPublic
 
         override fun topLevelSignature(): IdSignature {
-            return if (container is FileSignature) inner.topLevelSignature() else container.topLevelSignature()
+            return if (container is FileSignature)
+                CompositeSignature(container, inner.topLevelSignature())
+            else container.topLevelSignature()
         }
 
         override fun nearestPublicSig(): IdSignature {
@@ -327,25 +330,27 @@ sealed class IdSignature {
     }
 }
 
+interface SignatureScope<D> {
+    fun commitLambda(descriptor: D)
+    fun commitLocalFunction(descriptor: D)
+    fun commitAnonymousObject(descriptor: D)
+    fun commitLocalClass(descriptor: D)
+}
+
+interface ScopeBuilder<D, E> {
+    fun build(scope: SignatureScope<D>, element: E?)
+}
+
 interface IdSignatureComposer {
     fun composeSignature(descriptor: DeclarationDescriptor): IdSignature
     fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature
 
-
-    interface Scope {
-        fun commitLambda(descriptor: FunctionDescriptor)
-        fun commitLocalFunction(descriptor: FunctionDescriptor)
-        fun commitAnonymousObject(descriptor: ClassDescriptor)
-        fun commitLocalClass(descriptor: ClassDescriptor)
-    }
-
-    interface ScopeBuilder<E> {
-        fun build(scope: Scope, element: E?)
-    }
-
     fun setupTypeApproximation(app: (KotlinType) -> KotlinType)
 
-    fun <R> inLocalScope(builder: (Scope) -> Unit, block: () -> R): R
+    fun <E, R> inLocalScope(builder: (SignatureScope<E>) -> Unit, block: () -> R): R
 
     fun inFile(file: IrFileSymbol?, block: () -> Unit)
 }
+
+val Name.isAnonymous: Boolean
+    get() = isSpecial && (this == SpecialNames.ANONYMOUS_FUNCTION || this == SpecialNames.NO_NAME_PROVIDED)

@@ -25,7 +25,8 @@ import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
-import org.jetbrains.kotlin.ir.util.IdSignatureComposer
+import org.jetbrains.kotlin.ir.util.ScopeBuilder
+import org.jetbrains.kotlin.ir.util.SignatureScope
 import org.jetbrains.kotlin.ir.util.withLocalScope
 import org.jetbrains.kotlin.ir.util.withScope
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
@@ -194,9 +195,9 @@ class DeclarationGenerator(override val context: GeneratorContext) : Generator {
         FunctionGenerator(this).generateFakeOverrideFunction(functionDescriptor, ktElement)
 }
 
-class IrElementScopeBuilder : IdSignatureComposer.ScopeBuilder<IrElement> {
+class IrElementScopeBuilder : ScopeBuilder<DeclarationDescriptor, IrElement> {
 
-    private class LocalIndexCollector(private val scope: IdSignatureComposer.Scope) : IrElementVisitorVoid {
+    private class LocalIndexCollector(private val scope: SignatureScope<DeclarationDescriptor>) : IrElementVisitorVoid {
         override fun visitElement(element: IrElement) {
             element.acceptChildrenVoid(this)
         }
@@ -220,14 +221,14 @@ class IrElementScopeBuilder : IdSignatureComposer.ScopeBuilder<IrElement> {
 
     }
 
-    override fun build(scope: IdSignatureComposer.Scope, element: IrElement?) {
+    override fun build(scope: SignatureScope<DeclarationDescriptor>, element: IrElement?) {
         element?.acceptChildrenVoid(LocalIndexCollector(scope))
     }
 }
 
-class KtElementScopeBuilder(private val bindingContext: BindingContext) : IdSignatureComposer.ScopeBuilder<KtElement> {
+class KtElementScopeBuilder(private val bindingContext: BindingContext) : ScopeBuilder<DeclarationDescriptor, KtElement> {
 
-    private inner class LocalIndexCollector(private val scope: IdSignatureComposer.Scope) : KtVisitorVoid() {
+    private inner class LocalIndexCollector(private val scope: SignatureScope<DeclarationDescriptor>) : KtVisitorVoid() {
 
         private val KtPureClassOrObject.classDescriptor: ClassDescriptor
             get() = findClassDescriptor(bindingContext)
@@ -256,13 +257,13 @@ class KtElementScopeBuilder(private val bindingContext: BindingContext) : IdSign
         }
     }
 
-    override fun build(scope: IdSignatureComposer.Scope, element: KtElement?) {
+    override fun build(scope: SignatureScope<DeclarationDescriptor>, element: KtElement?) {
         element?.acceptChildren(LocalIndexCollector(scope))
     }
 }
 
-object EmptyScopeBuilder : IdSignatureComposer.ScopeBuilder<KtElement> {
-    override fun build(scope: IdSignatureComposer.Scope, element: KtElement?) {}
+object EmptyScopeBuilder : ScopeBuilder<DeclarationDescriptor, KtElement> {
+    override fun build(scope: SignatureScope<DeclarationDescriptor>, element: KtElement?) {}
 }
 
 abstract class DeclarationGeneratorExtension(val declarationGenerator: DeclarationGenerator) : Generator {

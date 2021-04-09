@@ -44,8 +44,8 @@ abstract class DataClassMembersGenerator<T : Any>(
 
     inline fun <TT : IrFunction> TT.buildWithScope(crossinline builder: (TT) -> Unit): TT =
         also { irDeclaration ->
-            val empty = object : IdSignatureComposer.ScopeBuilder<T> {
-                override fun build(scope: IdSignatureComposer.Scope, element: T?) {}
+            val empty = object : ScopeBuilder<IrDeclaration, T> {
+                override fun build(scope: SignatureScope<IrDeclaration>, element: T?) {}
             }
             symbolTable.withLocalScope(null, empty, irDeclaration) { builder(irDeclaration) }
         }

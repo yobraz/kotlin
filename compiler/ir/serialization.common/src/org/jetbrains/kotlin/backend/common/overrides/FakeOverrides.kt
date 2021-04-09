@@ -39,8 +39,9 @@ class FakeOverrideGlobalDeclarationTable(
 
 class FakeOverrideDeclarationTable(
     signatureSerializer: IdSignatureSerializer,
-    globalTable: FakeOverrideGlobalDeclarationTable = FakeOverrideGlobalDeclarationTable(signatureSerializer)
-) : DeclarationTable(globalTable) {
+    globalTable: FakeOverrideGlobalDeclarationTable = FakeOverrideGlobalDeclarationTable(signatureSerializer),
+    compatibleMode: Boolean
+) : DeclarationTable(globalTable, compatibleMode) {
     override val globalDeclarationTable: FakeOverrideGlobalDeclarationTable = globalTable
     fun clear() {
         this.table.clear()
@@ -73,7 +74,7 @@ class FakeOverrideBuilder(
     private val irOverridingUtil = IrOverridingUtil(irBuiltIns, this)
 
     // TODO: The declaration table is needed for the signaturer.
-    private val fakeOverrideDeclarationTable = FakeOverrideDeclarationTable(signaturer)
+    private val fakeOverrideDeclarationTable = FakeOverrideDeclarationTable(signaturer, compatibleMode = true)
 
     private val fakeOverrideClassQueue = mutableListOf<IrClass>()
     fun enqueueClass(clazz: IrClass, signature: IdSignature) {
@@ -135,7 +136,7 @@ class FakeOverrideBuilder(
     }
 
     private fun composeSignature(declaration: IrDeclaration) =
-        signaturer.composeSignatureForDeclaration(declaration)
+        signaturer.composeSignatureForDeclaration(declaration, true)
 
     private fun declareFunctionFakeOverride(declaration: IrFakeOverrideFunction, signature: IdSignature) {
         val parent = declaration.parentAsClass

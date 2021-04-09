@@ -9,11 +9,7 @@ import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleConstant
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.descriptors.IrPropertyDelegateDescriptor
 import org.jetbrains.kotlin.ir.symbols.IrFileSymbol
-import org.jetbrains.kotlin.ir.util.IdSignature
-import org.jetbrains.kotlin.ir.util.IdSignatureComposer
-import org.jetbrains.kotlin.ir.util.KotlinMangler
-import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.name.SpecialNames
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.types.KotlinType
@@ -47,9 +43,6 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
                 description = DescriptorRenderer.SHORT_NAMES_IN_TYPES.render(descriptor)
             }
         }
-
-        private val Name.isAnonymous: Boolean
-            get() = isSpecial && (this == SpecialNames.ANONYMOUS_FUNCTION || this == SpecialNames.NO_NAME_PROVIDED)
 
         private fun collectParents(descriptor: DeclarationDescriptorNonRoot, isLocal: Boolean) {
             descriptor.containingDeclaration.accept(this, null)
@@ -191,7 +184,7 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
     }
 
 
-    private class LocalScope(val parent: LocalScope?) : IdSignatureComposer.Scope {
+    private class LocalScope(val parent: LocalScope?) : SignatureScope<DeclarationDescriptor> {
 
         private var classIndex = 0
         private var functionIndex = 0
@@ -199,19 +192,23 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
         private var anonymousClassIndex = 0
 
 
-        override fun commitLambda(descriptor: FunctionDescriptor) {
+        override fun commitLambda(descriptor: DeclarationDescriptor) {
+            assert(descriptor is FunctionDescriptor)
             scopeDeclarationsIndexMap[descriptor] = anonymousFunIndex++
         }
 
-        override fun commitLocalFunction(descriptor: FunctionDescriptor) {
+        override fun commitLocalFunction(descriptor: DeclarationDescriptor) {
+            assert(descriptor is FunctionDescriptor)
             scopeDeclarationsIndexMap[descriptor] = functionIndex++
         }
 
-        override fun commitAnonymousObject(descriptor: ClassDescriptor) {
+        override fun commitAnonymousObject(descriptor: DeclarationDescriptor) {
+            assert(descriptor is ClassDescriptor)
             scopeDeclarationsIndexMap[descriptor] = anonymousClassIndex++
         }
 
-        override fun commitLocalClass(descriptor: ClassDescriptor) {
+        override fun commitLocalClass(descriptor: DeclarationDescriptor) {
+            assert(descriptor is ClassDescriptor)
             scopeDeclarationsIndexMap[descriptor] = classIndex++
         }
 
@@ -231,11 +228,15 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
         mangler.setupTypeApproximation(app)
     }
 
-    override fun <R> inLocalScope(builder: (IdSignatureComposer.Scope) -> Unit, block: () -> R): R {
+
+    override fun <E, R> inLocalScope(builder: (SignatureScope<E>) -> Unit, block: () -> R): R {
         val newScope = LocalScope(localScope)
         localScope = newScope
 
-        builder(newScope)
+        @Suppress("UNCHECKED_CAST")
+        val casted = builder as ((SignatureScope<DeclarationDescriptor>) -> Unit)
+
+        casted(newScope)
 
         val result = block()
 

@@ -19,7 +19,6 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 abstract class DescriptorMangleComputer(protected val builder: StringBuilder, private val mode: MangleMode, protected val typeApproximation: (KotlinType) -> KotlinType) :
     DeclarationDescriptorVisitor<Unit, Boolean>, KotlinMangleComputer<DeclarationDescriptor> {
 
-
     override fun computeMangle(declaration: DeclarationDescriptor): String {
         declaration.accept(this, true)
         return builder.toString()

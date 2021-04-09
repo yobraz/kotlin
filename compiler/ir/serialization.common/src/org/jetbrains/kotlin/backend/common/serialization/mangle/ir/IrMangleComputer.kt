@@ -5,7 +5,9 @@
 
 package org.jetbrains.kotlin.backend.common.serialization.mangle.ir
 
-import org.jetbrains.kotlin.backend.common.serialization.mangle.*
+import org.jetbrains.kotlin.backend.common.serialization.mangle.KotlinMangleComputer
+import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleConstant
+import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleMode
 import org.jetbrains.kotlin.backend.common.serialization.mangle.collectForMangler
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
@@ -191,7 +193,8 @@ abstract class IrMangleComputer(protected val builder: StringBuilder, private va
         }
     }
 
-    override fun visitElement(element: IrElement, data: Boolean) = error("unexpected element ${element.render()}")
+    override fun visitElement(element: IrElement, data: Boolean) =
+        error("unexpected element ${element.render()}")
 
     override fun visitScript(declaration: IrScript, data: Boolean) {
         declaration.parent.accept(this, data)
