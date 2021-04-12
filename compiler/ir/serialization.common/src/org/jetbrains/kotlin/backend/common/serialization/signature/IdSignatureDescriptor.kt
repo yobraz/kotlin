@@ -187,6 +187,10 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
         return composer.buildSignature(descriptor) { setIsField() }
     }
 
+    override fun composeAnonInitSignature(descriptor: ClassDescriptor): IdSignature {
+        return composer.buildSignature(descriptor) { setIsAnonInit() }
+    }
+
     private class LocalScope(val parent: LocalScope?) : SignatureScope<DeclarationDescriptor> {
 
         private var classIndex = 0

@@ -144,7 +144,8 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
             }
         }
 
-        override fun visitElement(element: IrElement) = error("Unexpected element ${element.render()}")
+        override fun visitElement(element: IrElement) =
+            error("Unexpected element ${element.render()}")
 
         override fun visitPackageFragment(declaration: IrPackageFragment) {
             packageFqn = declaration.fqName
@@ -161,6 +162,10 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
             isTopLevelPrivate = declaration.isTopLevelPrivate
             setDescription(declaration)
             setExpected(declaration.isExpect)
+        }
+
+        override fun visitAnonymousInitializer(declaration: IrAnonymousInitializer) {
+            visitClass(declaration.parentAsClass).also { setIsAnonInit() }
         }
 
         override fun visitSimpleFunction(declaration: IrSimpleFunction) {

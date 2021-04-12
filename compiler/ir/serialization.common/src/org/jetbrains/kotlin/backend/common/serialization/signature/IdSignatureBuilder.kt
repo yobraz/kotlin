@@ -96,8 +96,14 @@ abstract class IdSignatureBuilder<D> {
         mask = mask or IdSignature.Flags.IS_EXPECT.encode(f)
     }
 
+    // TODO: should those flag are really needed?
+
     fun setIsField() {
         mask = mask or IdSignature.Flags.IS_FIELD.encode(true)
+    }
+
+    fun setIsAnonInit() {
+        mask = mask or IdSignature.Flags.IS_ANON_INIT.encode(true)
     }
 
     protected fun setSpecialJavaProperty(f: Boolean) {

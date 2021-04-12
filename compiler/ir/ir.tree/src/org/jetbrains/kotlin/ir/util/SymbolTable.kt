@@ -450,6 +450,10 @@ class SymbolTable(
         )
     }
 
+    private fun createAnonymousInitializerSymbol(descriptor: ClassDescriptor): IrAnonymousInitializerSymbol {
+        return IrAnonymousInitializerPublicSymbolImpl(signaturer.composeAnonInitSignature(descriptor), descriptor)
+    }
+
     fun declareAnonymousInitializer(
         startOffset: Int,
         endOffset: Int,
@@ -458,7 +462,7 @@ class SymbolTable(
     ): IrAnonymousInitializer =
         irFactory.createAnonymousInitializer(
             startOffset, endOffset, origin,
-            IrAnonymousInitializerSymbolImpl(descriptor)
+            createAnonymousInitializerSymbol(descriptor)
         )
 
     fun listExistedScripts(): Collection<IrScriptSymbol> = TODO() // scriptSymbolTable.descriptorToSymbol.map { it.value }

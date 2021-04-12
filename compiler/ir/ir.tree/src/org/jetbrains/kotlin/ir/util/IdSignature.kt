@@ -20,8 +20,9 @@ sealed class IdSignature {
         IS_EXPECT(true),
         IS_JAVA_FOR_KOTLIN_OVERRIDE_PROPERTY(false),
         IS_NATIVE_INTEROP_LIBRARY(true),
-        IS_SYNTHETIC_JAVA_PROPERTY(true),
-        IS_FIELD(true);
+        IS_SYNTHETIC_JAVA_PROPERTY(false),
+        IS_FIELD(false),
+        IS_ANON_INIT(false);
 
         fun encode(isSet: Boolean): Long = if (isSet) 1L shl ordinal else 0L
         fun decode(flags: Long): Boolean = (flags and (1L shl ordinal) != 0L)
@@ -347,6 +348,7 @@ interface IdSignatureComposer {
     fun composeSignature(descriptor: DeclarationDescriptor): IdSignature
     fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature
     fun composeFieldSignature(descriptor: PropertyDescriptor): IdSignature
+    fun composeAnonInitSignature(descriptor: ClassDescriptor): IdSignature
 
     fun setupTypeApproximation(app: (KotlinType) -> KotlinType)
 
