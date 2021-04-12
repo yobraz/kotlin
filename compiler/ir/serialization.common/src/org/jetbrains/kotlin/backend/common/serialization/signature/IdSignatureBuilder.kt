@@ -18,6 +18,7 @@ abstract class IdSignatureBuilder<D> {
     protected var mask = 0L
     protected var container: IdSignature? = null
     protected var description: String? = null
+    protected var errorIndex: Int? = null
 
     protected var isTopLevelPrivate: Boolean = false
 
@@ -72,6 +73,11 @@ abstract class IdSignatureBuilder<D> {
                 error("File expected to be not null")
                 isTopLevelPrivate = false
                 IdSignature.CompositeSignature(fileSig, build())
+            }
+            errorIndex != null -> {
+                val fileSig = currentFileSignature ?:
+                error("File expected to be not null")
+                IdSignature.CompositeSignature(fileSig, IdSignature.ScopeLocalDeclaration(errorIndex!!, description))
             }
             container != null -> {
                 val preservedContainer = container!!

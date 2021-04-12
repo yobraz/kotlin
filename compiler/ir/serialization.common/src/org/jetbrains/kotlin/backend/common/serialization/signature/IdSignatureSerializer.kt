@@ -91,15 +91,17 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
 
     private var localScope: LocalScope? = null
 
-    private var localIndex: Long = 0
-    private var scopeIndex: Int = 0
+    private var localCounter: Long = 0
+    private var scopeCounter: Int = 0
+    private var errorCounter: Int = 0
 
     // TODO: we need to disentangle signature construction with declaration tables.
     lateinit var table: DeclarationTable
 
     fun reset() {
-        localIndex = 0
-        scopeIndex = 0
+        localCounter = 0
+        scopeCounter = 0
+        errorCounter = 0
     }
 
     private inner class PublicIdSigBuilder : IdSignatureBuilder<IrDeclaration>(), IrElementVisitorVoid {
@@ -146,6 +148,11 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
 
         override fun visitElement(element: IrElement) =
             error("Unexpected element ${element.render()}")
+
+        override fun visitErrorDeclaration(declaration: IrErrorDeclaration) {
+            description = declaration.render()
+            errorIndex = errorCounter++
+        }
 
         override fun visitPackageFragment(declaration: IrPackageFragment) {
             packageFqn = declaration.fqName
@@ -239,11 +246,11 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
 
         return table.privateDeclarationSignature(declaration) {
             when (declaration) {
-                is IrValueDeclaration -> IdSignature.ScopeLocalDeclaration(scopeIndex++, declaration.name.asString())
+                is IrValueDeclaration -> IdSignature.ScopeLocalDeclaration(scopeCounter++, declaration.name.asString())
                 is IrField -> {
                     val p = declaration.correspondingPropertySymbol?.let { composeSignatureForDeclaration(it.owner, true) }
                         ?: composeContainerIdSignature(declaration.parent)
-                    IdSignature.FileLocalSignature(p, ++localIndex)
+                    IdSignature.FileLocalSignature(p, ++localCounter)
                 }
                 is IrSimpleFunction -> {
                     val parent = declaration.parent
@@ -254,7 +261,7 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
                         if (declaration.isOverridableFunction()) {
                             mangler.run { declaration.signatureMangle }
                         } else {
-                            ++localIndex
+                            ++localCounter
                         }
                     )
                 }
@@ -265,11 +272,11 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
                         if (declaration.isOverridableProperty()) {
                             mangler.run { declaration.signatureMangle }
                         } else {
-                            ++localIndex
+                            ++localCounter
                         }
                     )
                 }
-                else -> IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent), ++localIndex)
+                else -> IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent), ++localCounter)
             }
         }
     }

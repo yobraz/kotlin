@@ -318,7 +318,7 @@ sealed class IdSignature {
 
         override val hasTopLevel: Boolean get() = false
 
-        override fun topLevelSignature(): IdSignature = error("Is not supported for Local ID")
+        override fun topLevelSignature(): IdSignature = this
 
         override fun nearestPublicSig(): IdSignature = error("Is not supported for Local ID")
 
