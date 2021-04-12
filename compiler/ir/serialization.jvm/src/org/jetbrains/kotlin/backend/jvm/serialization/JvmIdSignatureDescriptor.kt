@@ -118,8 +118,14 @@ class JvmIdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMang
     }
 
     override fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature {
-//        return if (mangler.run { descriptor.isExportEnumEntry() }) {
-            return createSignatureBuilder().buildSignature(descriptor)
-//        } else null
+        return createSignatureBuilder().run { buildSignature(descriptor).also { resetIsEnumEntryClass() } }
+    }
+
+    override fun composeAnonInitSignature(descriptor: ClassDescriptor): IdSignature {
+        return createSignatureBuilder().run { buildSignature(descriptor).also { setIsAnonInit() } }
+    }
+
+    override fun composeFieldSignature(descriptor: PropertyDescriptor): IdSignature {
+        return createSignatureBuilder().run { buildSignature(descriptor).also { setIsField() } }
     }
 }

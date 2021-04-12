@@ -22,7 +22,8 @@ sealed class IdSignature {
         IS_NATIVE_INTEROP_LIBRARY(true),
         IS_SYNTHETIC_JAVA_PROPERTY(false),
         IS_FIELD(false),
-        IS_ANON_INIT(false);
+        IS_ANON_INIT(false),
+        IS_ENUM_ENTRY_CLASS(false);
 
         fun encode(isSet: Boolean): Long = if (isSet) 1L shl ordinal else 0L
         fun decode(flags: Long): Boolean = (flags and (1L shl ordinal) != 0L)

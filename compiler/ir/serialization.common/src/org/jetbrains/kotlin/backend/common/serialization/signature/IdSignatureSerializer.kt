@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.backend.common.serialization.signature
 
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleConstant
+import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
@@ -167,6 +168,9 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
         override fun visitClass(declaration: IrClass) {
             collectParents(declaration, declaration.isLocal)
             isTopLevelPrivate = declaration.isTopLevelPrivate
+            if (declaration.kind == ClassKind.ENUM_ENTRY) {
+                setIsEnumEntryClass()
+            }
             setDescription(declaration)
             setExpected(declaration.isExpect)
         }
@@ -210,6 +214,7 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
 
         override fun visitEnumEntry(declaration: IrEnumEntry) {
             collectParents(declaration, isLocal = false)
+            resetIsEnumEntryClass()
         }
 
         override fun visitTypeParameter(declaration: IrTypeParameter) {

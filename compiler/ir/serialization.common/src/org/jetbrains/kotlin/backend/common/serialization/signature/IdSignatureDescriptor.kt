@@ -106,6 +106,9 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
             isTopLevelPrivate = descriptor.isTopLevelPrivate
             setDescription(descriptor)
             setExpected(descriptor.isExpect)
+            if (descriptor.kind == ClassKind.ENUM_ENTRY) {
+                setIsEnumEntryClass()
+            }
             platformSpecificClass(descriptor)
         }
 
@@ -180,7 +183,7 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
     }
 
     override fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature {
-        return composer.buildSignature(descriptor)
+        return composer.buildSignature(descriptor) { resetIsEnumEntryClass() }
     }
 
     override fun composeFieldSignature(descriptor: PropertyDescriptor): IdSignature {

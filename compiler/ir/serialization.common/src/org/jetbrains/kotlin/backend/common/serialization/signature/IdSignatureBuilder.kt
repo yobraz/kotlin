@@ -112,6 +112,14 @@ abstract class IdSignatureBuilder<D> {
         mask = mask or IdSignature.Flags.IS_ANON_INIT.encode(true)
     }
 
+    fun setIsEnumEntryClass() {
+        mask = mask or IdSignature.Flags.IS_ENUM_ENTRY_CLASS.encode(true)
+    }
+
+    fun resetIsEnumEntryClass() {
+        mask = mask and IdSignature.Flags.IS_ENUM_ENTRY_CLASS.encode(true).inv()
+    }
+
     protected fun setSpecialJavaProperty(f: Boolean) {
         mask = mask or IdSignature.Flags.IS_JAVA_FOR_KOTLIN_OVERRIDE_PROPERTY.encode(f)
     }
@@ -138,8 +146,8 @@ abstract class IdSignatureBuilder<D> {
     fun buildSignature(declaration: D, extra: IdSignatureBuilder<D>.() -> Unit = { }): IdSignature {
         reset()
 
-        extra()
         accept(declaration)
+        extra()
 
         return build()
     }
