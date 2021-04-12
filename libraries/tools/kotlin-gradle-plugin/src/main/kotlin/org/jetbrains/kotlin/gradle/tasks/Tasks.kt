@@ -344,49 +344,51 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
 
     @TaskAction
     fun execute(inputs: IncrementalTaskInputs) {
-        CompilerSystemProperties.systemPropertyGetter = {
-            if (it in kotlinDaemonProperties) kotlinDaemonProperties[it] else System.getProperty(it)
-        }
-        CompilerSystemProperties.systemPropertySetter = setter@{ key, value ->
-            val oldValue = kotlinDaemonProperties[key]
-            if (oldValue == value) return@setter oldValue
-            kotlinDaemonProperties[key] = value
-            System.setProperty(key, value)
-            oldValue
-        }
-        CompilerSystemProperties.systemPropertyCleaner = {
-            val oldValue = kotlinDaemonProperties[it]
-            kotlinDaemonProperties.remove(it)
-            System.clearProperty(it)
-            oldValue
-        }
-        CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.value = "true"
-
-        // If task throws exception, but its outputs are changed during execution,
-        // then Gradle forces next build to be non-incremental (see Gradle's DefaultTaskArtifactStateRepository#persistNewOutputs)
-        // To prevent this, we backup outputs before incremental build and restore when exception is thrown
-        val outputsBackup: TaskOutputsBackup? =
-            if (isIncrementalCompilationEnabled() && inputs.isIncremental)
-                metrics.measure(BuildTime.BACKUP_OUTPUT) {
-                    TaskOutputsBackup(allOutputFiles())
-                }
-            else null
-
-        if (!isIncrementalCompilationEnabled()) {
-            clearLocalState("IC is disabled")
-        } else if (!inputs.isIncremental) {
-            clearLocalState("Task cannot run incrementally")
-        }
-
-        try {
-            executeImpl(inputs)
-        } catch (t: Throwable) {
-            if (outputsBackup != null) {
-                metrics.measure(BuildTime.RESTORE_OUTPUT_FROM_BACKUP) {
-                    outputsBackup.restoreOutputs()
-                }
+        metrics.measure(BuildTime.BACKUP_OUTPUT) {
+            CompilerSystemProperties.systemPropertyGetter = {
+                if (it in kotlinDaemonProperties) kotlinDaemonProperties[it] else System.getProperty(it)
             }
-            throw t
+            CompilerSystemProperties.systemPropertySetter = setter@{ key, value ->
+                val oldValue = kotlinDaemonProperties[key]
+                if (oldValue == value) return@setter oldValue
+                kotlinDaemonProperties[key] = value
+                System.setProperty(key, value)
+                oldValue
+            }
+            CompilerSystemProperties.systemPropertyCleaner = {
+                val oldValue = kotlinDaemonProperties[it]
+                kotlinDaemonProperties.remove(it)
+                System.clearProperty(it)
+                oldValue
+            }
+            CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.value = "true"
+
+            // If task throws exception, but its outputs are changed during execution,
+            // then Gradle forces next build to be non-incremental (see Gradle's DefaultTaskArtifactStateRepository#persistNewOutputs)
+            // To prevent this, we backup outputs before incremental build and restore when exception is thrown
+            val outputsBackup: TaskOutputsBackup? =
+                if (isIncrementalCompilationEnabled() && inputs.isIncremental)
+                    metrics.measure(BuildTime.BACKUP_OUTPUT) {
+                        TaskOutputsBackup(allOutputFiles())
+                    }
+                else null
+
+            if (!isIncrementalCompilationEnabled()) {
+                clearLocalState("IC is disabled")
+            } else if (!inputs.isIncremental) {
+                clearLocalState("Task cannot run incrementally")
+            }
+
+            try {
+                executeImpl(inputs)
+            } catch (t: Throwable) {
+                if (outputsBackup != null) {
+                    metrics.measure(BuildTime.RESTORE_OUTPUT_FROM_BACKUP) {
+                        outputsBackup.restoreOutputs()
+                    }
+                }
+                throw t
+            }
         }
     }
 

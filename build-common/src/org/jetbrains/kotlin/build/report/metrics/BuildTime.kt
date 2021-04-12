@@ -9,6 +9,7 @@ import java.io.Serializable
 
 @Suppress("Reformat")
 enum class BuildTime(val parent: BuildTime? = null) : Serializable {
+    GRADLE_TASK_ACTION,
     GRADLE_TASK,
         CLEAR_OUTPUT(GRADLE_TASK),
         BACKUP_OUTPUT(GRADLE_TASK),
