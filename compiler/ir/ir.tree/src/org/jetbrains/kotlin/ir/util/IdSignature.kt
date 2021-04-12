@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.ir.util
 
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.ir.symbols.IrFileSymbol
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -19,7 +20,8 @@ sealed class IdSignature {
         IS_EXPECT(true),
         IS_JAVA_FOR_KOTLIN_OVERRIDE_PROPERTY(false),
         IS_NATIVE_INTEROP_LIBRARY(true),
-        IS_SYNTHETIC_JAVA_PROPERTY(true);
+        IS_SYNTHETIC_JAVA_PROPERTY(true),
+        IS_FIELD(true);
 
         fun encode(isSet: Boolean): Long = if (isSet) 1L shl ordinal else 0L
         fun decode(flags: Long): Boolean = (flags and (1L shl ordinal) != 0L)
@@ -344,6 +346,7 @@ interface ScopeBuilder<D, E> {
 interface IdSignatureComposer {
     fun composeSignature(descriptor: DeclarationDescriptor): IdSignature
     fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature
+    fun composeFieldSignature(descriptor: PropertyDescriptor): IdSignature
 
     fun setupTypeApproximation(app: (KotlinType) -> KotlinType)
 

@@ -262,7 +262,7 @@ class SymbolTable(
     }
 
     private inner class FieldSymbolTable : FlatSymbolTable<PropertyDescriptor, IrField, IrFieldSymbol>() {
-        override fun signature(descriptor: PropertyDescriptor): IdSignature = signaturer.composeSignature(descriptor)
+        override fun signature(descriptor: PropertyDescriptor): IdSignature = signaturer.composeFieldSignature(descriptor)
     }
 
     protected abstract class Scope<D : DeclarationDescriptor, B : IrSymbolOwner, S : IrBindableSymbol<D, B>>(val owner: IrSymbol) {
@@ -666,7 +666,7 @@ class SymbolTable(
     val unboundEnumEntries: Set<IrEnumEntrySymbol> get() = enumEntrySymbolTable.unboundSymbols
 
     private fun createFieldSymbol(descriptor: PropertyDescriptor): IrFieldSymbol {
-        return IrFieldPublicSymbolImpl(signaturer.composeSignature(descriptor), descriptor)
+        return IrFieldPublicSymbolImpl(signaturer.composeFieldSignature(descriptor), descriptor)
     }
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)

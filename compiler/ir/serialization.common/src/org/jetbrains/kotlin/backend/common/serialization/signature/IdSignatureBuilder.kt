@@ -96,6 +96,10 @@ abstract class IdSignatureBuilder<D> {
         mask = mask or IdSignature.Flags.IS_EXPECT.encode(f)
     }
 
+    fun setIsField() {
+        mask = mask or IdSignature.Flags.IS_FIELD.encode(true)
+    }
+
     protected fun setSpecialJavaProperty(f: Boolean) {
         mask = mask or IdSignature.Flags.IS_JAVA_FOR_KOTLIN_OVERRIDE_PROPERTY.encode(f)
     }
@@ -119,9 +123,10 @@ abstract class IdSignatureBuilder<D> {
 
     protected open fun isKotlinPackage(descriptor: PackageFragmentDescriptor): Boolean = true
 
-    fun buildSignature(declaration: D): IdSignature {
+    fun buildSignature(declaration: D, extra: IdSignatureBuilder<D>.() -> Unit = { }): IdSignature {
         reset()
 
+        extra()
         accept(declaration)
 
         return build()

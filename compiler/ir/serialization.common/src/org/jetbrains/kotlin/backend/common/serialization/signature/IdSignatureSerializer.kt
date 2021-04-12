@@ -208,6 +208,12 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
             hashId = declaration.index.toLong()
             description = declaration.render()
         }
+
+        override fun visitField(declaration: IrField) {
+            collectParents(declaration, declaration.isLocal)
+            hashId = mangler.run { declaration.signatureMangle }
+            setIsField()
+        }
     }
 
     private val publicSignatureBuilder = PublicIdSigBuilder()
