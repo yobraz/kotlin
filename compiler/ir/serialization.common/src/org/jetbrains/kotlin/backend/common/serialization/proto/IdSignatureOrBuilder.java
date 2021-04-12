@@ -44,38 +44,38 @@ public interface IdSignatureOrBuilder extends
   int getScopedLocalSig();
 
   /**
-   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature ic_sig = 5;</code>
+   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature ic_sig = 105;</code>
    */
   boolean hasIcSig();
   /**
-   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature ic_sig = 5;</code>
+   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature ic_sig = 105;</code>
    */
   org.jetbrains.kotlin.backend.common.serialization.proto.LoweredIdSignature getIcSig();
 
   /**
-   * <code>optional int32 returnable_block_sig = 6;</code>
+   * <code>optional int32 returnable_block_sig = 106;</code>
    */
   boolean hasReturnableBlockSig();
   /**
-   * <code>optional int32 returnable_block_sig = 6;</code>
+   * <code>optional int32 returnable_block_sig = 106;</code>
    */
   int getReturnableBlockSig();
 
   /**
-   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.FileSignature file_sig = 7;</code>
+   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.FileSignature file_sig = 107;</code>
    */
   boolean hasFileSig();
   /**
-   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.FileSignature file_sig = 7;</code>
+   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.FileSignature file_sig = 107;</code>
    */
   org.jetbrains.kotlin.backend.common.serialization.proto.FileSignature getFileSig();
 
   /**
-   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.ScopeLocalIdSignature external_scoped_local_sig = 8;</code>
+   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.ScopeLocalIdSignature external_scoped_local_sig = 108;</code>
    */
   boolean hasExternalScopedLocalSig();
   /**
-   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.ScopeLocalIdSignature external_scoped_local_sig = 8;</code>
+   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.ScopeLocalIdSignature external_scoped_local_sig = 108;</code>
    */
   org.jetbrains.kotlin.backend.common.serialization.proto.ScopeLocalIdSignature getExternalScopedLocalSig();
 }
