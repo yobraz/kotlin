@@ -699,5 +699,4 @@ fun IrExpression?.isPure(
 }
 
 fun IrDeclaration.isFromJava(): Boolean =
-    origin == IrDeclarationOrigin.IR_EXTERNAL_JAVA_DECLARATION_STUB ||
-            parent is IrDeclaration && (parent as IrDeclaration).isFromJava()
+    origin == IrDeclarationOrigin.IR_EXTERNAL_JAVA_DECLARATION_STUB
