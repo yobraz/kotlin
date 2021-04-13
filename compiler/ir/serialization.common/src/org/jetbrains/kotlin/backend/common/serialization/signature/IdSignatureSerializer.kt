@@ -182,8 +182,14 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
         override fun visitSimpleFunction(declaration: IrSimpleFunction) {
             val property = declaration.correspondingPropertySymbol
             if (property != null) {
-                hashIdAcc = mangler.run { declaration.signatureMangle }
                 property.owner.acceptVoid(this)
+                val preservedId = mangler.run { declaration.signatureMangle }
+                if (container != null) {
+                    createContainer()
+                    hashId = preservedId
+                } else {
+                    hashIdAcc = preservedId
+                }
                 classFqnSegments.add(declaration.name.asString())
             } else {
                 collectParents(declaration, declaration.isLocal)
@@ -247,8 +253,6 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
     }
 
     fun composeFileLocalIdSignature(declaration: IrDeclaration, compatibleMode: Boolean): IdSignature {
-//        assert(compatibleMode) { "Private signatures allowed only in compatible mode" }
-
         return table.privateDeclarationSignature(declaration, compatibleMode) {
             when (declaration) {
                 is IrValueDeclaration -> IdSignature.ScopeLocalDeclaration(scopeCounter++, declaration.name.asString())
