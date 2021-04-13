@@ -237,7 +237,7 @@ open class IrFileSerializer(
     }
 
     private fun protoIdSignature(declaration: IrDeclaration): Int {
-        val idSig = declarationTable.signatureByDeclaration(declaration)
+        val idSig = declarationTable.signatureByDeclaration(declaration, compatibleMode = false)
         return protoIdSignature(idSig)
     }
 
@@ -1307,7 +1307,7 @@ open class IrFileSerializer(
             }
 
             val byteArray = serializeDeclaration(it).toByteArray()
-            val idSig = declarationTable.signatureByDeclaration(it)
+            val idSig = declarationTable.signatureByDeclaration(it, compatibleMode = false)
             require(idSig == idSig.topLevelSignature()) { "IdSig: $idSig\ntopLevel: ${idSig.topLevelSignature()}" }
             require(!idSig.isPackageSignature()) { "IsSig: $idSig\nDeclaration: ${it.render()}" }
 

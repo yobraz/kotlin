@@ -29,21 +29,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.protobuf.CodedInputStream
 import org.jetbrains.kotlin.protobuf.ExtensionRegistryLite
 import org.jetbrains.kotlin.types.Variance
-import kotlin.collections.ArrayList
-import kotlin.collections.List
-import kotlin.collections.any
-import kotlin.collections.associateBy
-import kotlin.collections.emptyList
-import kotlin.collections.filterNot
-import kotlin.collections.getOrPut
-import kotlin.collections.indices
-import kotlin.collections.listOf
-import kotlin.collections.map
-import kotlin.collections.mapTo
-import kotlin.collections.mutableMapOf
-import kotlin.collections.plus
 import kotlin.collections.set
-import kotlin.collections.toList
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrAnonymousInit as ProtoAnonymousInit
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrClass as ProtoClass
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrConstructor as ProtoConstructor
@@ -82,6 +68,7 @@ class IrDeclarationDeserializer(
     private val symbolDeserializer: IrSymbolDeserializer,
     private val platformFakeOverrideClassFilter: FakeOverrideClassFilter,
     private val fakeOverrideBuilder: FakeOverrideBuilder,
+    private val compatibilityMode: CompatibilityMode
 ) {
 
     private val bodyDeserializer = IrBodyDeserializer(builtIns, allowErrorNodes, irFactory, fileReader, this)
@@ -334,7 +321,7 @@ class IrDeclarationDeserializer(
 
                 thisReceiver = deserializeIrValueParameter(proto.thisReceiver, -1)
 
-                fakeOverrideBuilder.enqueueClass(this, signature)
+                fakeOverrideBuilder.enqueueClass(this, signature, compatibilityMode)
             }
         }
 

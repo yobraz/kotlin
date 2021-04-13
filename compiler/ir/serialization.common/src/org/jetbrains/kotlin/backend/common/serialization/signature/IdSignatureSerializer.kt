@@ -27,7 +27,7 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
     fun composeSignatureForDeclaration(declaration: IrDeclaration, compatibleMode: Boolean): IdSignature {
         return if (mangler.run { declaration.isExported(compatibleMode) }) {
             composePublicIdSignature(declaration)
-        } else composeFileLocalIdSignature(declaration)
+        } else composeFileLocalIdSignature(declaration, compatibleMode)
     }
 
     private var currentFileSignatureX: IdSignature.FileSignature? = null
@@ -235,10 +235,10 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
 
     private val publicSignatureBuilder = PublicIdSigBuilder()
 
-    private fun composeContainerIdSignature(container: IrDeclarationParent): IdSignature =
+    private fun composeContainerIdSignature(container: IrDeclarationParent, compatibleMode: Boolean): IdSignature =
         when (container) {
             is IrPackageFragment -> IdSignature.PublicSignature(container.fqName.asString(), "", null, 0)
-            is IrDeclaration -> table.signatureByDeclaration(container)
+            is IrDeclaration -> table.signatureByDeclaration(container, compatibleMode)
             else -> error("Unexpected container ${container.render()}")
         }
 
@@ -246,21 +246,23 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
         return publicSignatureBuilder.buildSignature(declaration)
     }
 
-    fun composeFileLocalIdSignature(declaration: IrDeclaration): IdSignature {
-//        error("Should not reach here ${declaration.render()}")
+    fun composeFileLocalIdSignature(declaration: IrDeclaration, compatibleMode: Boolean): IdSignature {
+//        assert(compatibleMode) { "Private signatures allowed only in compatible mode" }
 
-        return table.privateDeclarationSignature(declaration) {
+        return table.privateDeclarationSignature(declaration, compatibleMode) {
             when (declaration) {
                 is IrValueDeclaration -> IdSignature.ScopeLocalDeclaration(scopeCounter++, declaration.name.asString())
                 is IrField -> {
+                    assert(compatibleMode) { "Field private signatures allowed only in compatible mode" }
                     val p = declaration.correspondingPropertySymbol?.let { composeSignatureForDeclaration(it.owner, true) }
-                        ?: composeContainerIdSignature(declaration.parent)
+                        ?: composeContainerIdSignature(declaration.parent, compatibleMode)
                     IdSignature.FileLocalSignature(p, ++localCounter)
                 }
                 is IrSimpleFunction -> {
+                    assert(compatibleMode) { "Function private signatures allowed only in compatible mode" }
                     val parent = declaration.parent
                     val p = declaration.correspondingPropertySymbol?.let { composeSignatureForDeclaration(it.owner, true) }
-                        ?: composeContainerIdSignature(parent)
+                        ?: composeContainerIdSignature(parent, compatibleMode)
                     IdSignature.FileLocalSignature(
                         p,
                         if (declaration.isOverridableFunction()) {
@@ -271,9 +273,10 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
                     )
                 }
                 is IrProperty -> {
+                    assert(compatibleMode) { "Property private signatures allowed only in compatible mode" }
                     val parent = declaration.parent
                     IdSignature.FileLocalSignature(
-                        composeContainerIdSignature(parent),
+                        composeContainerIdSignature(parent, compatibleMode),
                         if (declaration.isOverridableProperty()) {
                             mangler.run { declaration.signatureMangle }
                         } else {
@@ -281,7 +284,10 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
                         }
                     )
                 }
-                else -> IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent), ++localCounter)
+                else -> {
+                    assert(compatibleMode) { "Private signatures allowed only in compatible mode" }
+                    IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent, compatibleMode), ++localCounter)
+                }
             }
         }
     }

@@ -51,7 +51,7 @@ abstract class GlobalDeclarationTable(
     fun isExportedDeclaration(declaration: IrDeclaration, compatibleMode: Boolean): Boolean = with(mangler) { declaration.isExported(compatibleMode) }
 }
 
-open class DeclarationTable(globalTable: GlobalDeclarationTable, private val compatibleMode: Boolean = false) {
+open class DeclarationTable(globalTable: GlobalDeclarationTable) {
     protected val table = mutableMapOf<IrDeclaration, IdSignature>()
     protected open val globalDeclarationTable: GlobalDeclarationTable = globalTable
     // TODO: we need to disentangle signature construction with declaration tables.
@@ -66,33 +66,33 @@ open class DeclarationTable(globalTable: GlobalDeclarationTable, private val com
         signaturer.inFile(file.symbol, block)
     }
 
-    private fun IrDeclaration.isLocalDeclaration(): Boolean {
+    private fun IrDeclaration.isLocalDeclaration(compatibleMode: Boolean): Boolean {
         return !isExportedDeclaration(this, compatibleMode)
-//        return false
     }
 
-    fun isExportedDeclaration(declaration: IrDeclaration, compatibleMode: Boolean) = globalDeclarationTable.isExportedDeclaration(declaration, compatibleMode)
+    fun isExportedDeclaration(declaration: IrDeclaration, compatibleMode: Boolean) =
+        globalDeclarationTable.isExportedDeclaration(declaration, compatibleMode)
 
     protected open fun tryComputeBackendSpecificSignature(declaration: IrDeclaration): IdSignature? = null
 
-    private fun allocateIndexedSignature(declaration: IrDeclaration): IdSignature {
-        return table.getOrPut(declaration) { signaturer.composeFileLocalIdSignature(declaration) }
+    private fun allocateIndexedSignature(declaration: IrDeclaration, compatibleMode: Boolean): IdSignature {
+        return table.getOrPut(declaration) { signaturer.composeFileLocalIdSignature(declaration, compatibleMode) }
     }
 
-    private fun computeSignatureByDeclaration(declaration: IrDeclaration): IdSignature {
+    private fun computeSignatureByDeclaration(declaration: IrDeclaration, compatibleMode: Boolean): IdSignature {
         tryComputeBackendSpecificSignature(declaration)?.let { return it }
-        return if (declaration.isLocalDeclaration()) {
-            allocateIndexedSignature(declaration)
+        return if (declaration.isLocalDeclaration(compatibleMode)) {
+            allocateIndexedSignature(declaration, compatibleMode)
         } else globalDeclarationTable.computeSignatureByDeclaration(declaration)
     }
 
-    fun privateDeclarationSignature(declaration: IrDeclaration, builder: () -> IdSignature): IdSignature {
-        assert(declaration.isLocalDeclaration())
+    fun privateDeclarationSignature(declaration: IrDeclaration, compatibleMode: Boolean, builder: () -> IdSignature): IdSignature {
+        assert(declaration.isLocalDeclaration(compatibleMode))
         return table.getOrPut(declaration) { builder() }
     }
 
-    fun signatureByDeclaration(declaration: IrDeclaration): IdSignature {
-        return computeSignatureByDeclaration(declaration)
+    fun signatureByDeclaration(declaration: IrDeclaration, compatibleMode: Boolean): IdSignature {
+        return computeSignatureByDeclaration(declaration, compatibleMode)
     }
 
     fun assumeDeclarationSignature(declaration: IrDeclaration, signature: IdSignature) {
