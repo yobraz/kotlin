@@ -305,6 +305,9 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
         taskData.compilation.moduleName
     }
 
+    @get:Internal
+    internal var incrementalStatus: String = "Unknown"
+
     init {
         if (taskData.compilation is AbstractKotlinCompilation<*> &&
             (taskData.compilation as AbstractKotlinCompilation<*>).friendArtifactsTask != null) {

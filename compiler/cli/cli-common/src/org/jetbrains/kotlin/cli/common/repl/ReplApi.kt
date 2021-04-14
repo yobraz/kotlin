@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.cli.common.repl
 
+import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import java.io.File
 import java.io.Serializable
@@ -45,6 +46,18 @@ data class CompiledClassData(val path: String, val bytes: ByteArray) : Serializa
 
     companion object {
         private val serialVersionUID: Long = 8228357578L
+    }
+}
+
+
+data class KotlinCompileResult(
+    val code: ExitCode,
+    //Used for build scan custom values
+    val compileStatus: String
+) : Serializable {
+    companion object {
+        //TODO
+        private val serialVersionUID: Long = 1L
     }
 }
 

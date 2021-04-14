@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.isTrue
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.compilerRunner.MessageCollectorToOutputItemsCollectorAdapter
 import org.jetbrains.kotlin.compilerRunner.OutputItemsCollectorImpl
 import org.jetbrains.kotlin.compilerRunner.SimpleOutputItem
@@ -56,6 +57,7 @@ abstract class IncrementalCompilerRunner<
     private val outputFiles: Collection<File> = emptyList()
 ) {
 
+    protected val INCREMENTAL_STATUS = "Incremental"
     protected val cacheDirectory = File(workingDir, cacheDirName)
     private val dirtySourcesSinceLastTimeFile = File(workingDir, DIRTY_SOURCES_FILE_NAME)
     protected val lastBuildInfoFile = File(workingDir, LAST_BUILD_INFO_FILE_NAME)
@@ -77,7 +79,7 @@ abstract class IncrementalCompilerRunner<
         // otherwise we track source files changes ourselves.
         providedChangedFiles: ChangedFiles?,
         projectDir: File? = null
-    ): ExitCode = reporter.measure(BuildTime.INCREMENTAL_COMPILATION) {
+    ): KotlinCompileResult = reporter.measure(BuildTime.INCREMENTAL_COMPILATION) {
         compileImpl(allSourceFiles, args, messageCollector, providedChangedFiles, projectDir)
     }
 
@@ -87,7 +89,7 @@ abstract class IncrementalCompilerRunner<
         messageCollector: MessageCollector,
         providedChangedFiles: ChangedFiles?,
         projectDir: File? = null
-    ): ExitCode {
+    ): KotlinCompileResult {
         assert(isICEnabled()) { "Incremental compilation is not enabled" }
         var caches = createCacheManager(args, projectDir)
 
@@ -104,7 +106,7 @@ abstract class IncrementalCompilerRunner<
                 emptyMap()
             }
 
-        fun rebuild(reason: BuildAttribute): ExitCode {
+        fun rebuild(reason: BuildAttribute): KotlinCompileResult {
             reporter.report { "Non-incremental compilation will be performed: $reason" }
             caches.close(false)
             // todo: we can recompile all files incrementally (not cleaning caches), so rebuild won't propagate
@@ -264,7 +266,6 @@ abstract class IncrementalCompilerRunner<
 
     protected open fun additionalDirtyLookupSymbols(): Iterable<LookupSymbol> =
         emptyList()
-
     protected open fun makeServices(
         args: Args,
         lookupTracker: LookupTracker,
@@ -285,7 +286,7 @@ abstract class IncrementalCompilerRunner<
         caches: CacheManager,
         services: Services,
         messageCollector: MessageCollector
-    ): ExitCode
+    ): KotlinCompileResult
 
     private fun compileIncrementally(
         args: Args,
@@ -296,7 +297,7 @@ abstract class IncrementalCompilerRunner<
         withSnapshot: Boolean,
         jarSnapshot: JarSnapshot = JarSnapshotImpl(mutableMapOf()),
         classpathJarSnapshot: Map<String, JarSnapshot> = HashMap()
-    ): ExitCode {
+    ): KotlinCompileResult {
         preBuildHook(args, compilationMode)
 
         val buildTimeMode: BuildTime
@@ -317,7 +318,12 @@ abstract class IncrementalCompilerRunner<
         val buildDirtyFqNames = HashSet<FqName>()
         val allDirtySources = HashSet<File>()
 
-        var exitCode = ExitCode.OK
+        val status = if (compilationMode is CompilationMode.Rebuild) {
+            compilationMode.reason.name
+        } else {
+            INCREMENTAL_STATUS
+        }
+        var exitCode = KotlinCompileResult(ExitCode.OK, status)
 
         while (dirtySources.any() || runWithNoDirtyKotlinSources(caches)) {
             val complementaryFiles = caches.platformCache.getComplementaryFilesRecursive(dirtySources)
@@ -360,10 +366,10 @@ abstract class IncrementalCompilerRunner<
                 }
             }
 
-            reporter.reportCompileIteration(compilationMode is CompilationMode.Incremental, sourcesToCompile, exitCode)
+            reporter.reportCompileIteration(compilationMode is CompilationMode.Incremental, sourcesToCompile, exitCode.code)
             bufferingMessageCollector.flush(originalMessageCollector)
 
-            if (exitCode != ExitCode.OK) break
+            if (exitCode.code != ExitCode.OK) break
 
             dirtySourcesSinceLastTimeFile.delete()
 
@@ -414,7 +420,7 @@ abstract class IncrementalCompilerRunner<
             }
         }
 
-        if (exitCode == ExitCode.OK) {
+        if (exitCode.code == ExitCode.OK) {
             reporter.measure(BuildTime.STORE_BUILD_INFO) {
                 BuildInfo.write(currentBuildInfo, lastBuildInfoFile)
 
@@ -426,7 +432,7 @@ abstract class IncrementalCompilerRunner<
                 }
             }
         }
-        if (exitCode == ExitCode.OK && compilationMode is CompilationMode.Incremental) {
+        if (exitCode.code == ExitCode.OK && compilationMode is CompilationMode.Incremental) {
             buildDirtyLookupSymbols.addAll(additionalDirtyLookupSymbols())
         }
 
