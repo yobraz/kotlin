@@ -57,6 +57,7 @@ class KotlinLikeDumpOptions(
     // TODO support
     val labelPrintingStrategy: LabelPrintingStrategy = LabelPrintingStrategy.NEVER,
     val printFakeOverridesStrategy: FakeOverridesStrategy = FakeOverridesStrategy.ALL,
+    val printElseAsTrue: Boolean = false,
     /*
     TODO add more options:
      always print visibility?
@@ -1242,7 +1243,7 @@ private class KotlinLikeDumper(val p: Printer, val options: KotlinLikeDumpOption
     override fun visitElseBranch(branch: IrElseBranch, data: IrDeclaration?) {
         p.printIndent()
         if ((branch.condition as? IrConst<*>)?.value == true) {
-            p.printWithNoIndent("else")
+            p.printWithNoIndent(if (options.printElseAsTrue) "true" else "else")
         } else {
             p.printWithNoIndent("/* else */ ")
             branch.condition.accept(this, data)
