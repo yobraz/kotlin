@@ -78,7 +78,7 @@ sealed class IdSignature {
             }
 
             val nameSegments = nameSegments
-            if (nameSegments.size == 1) return this
+            if (nameSegments.size == 1 && mask == 0L) return this
 
             return PublicSignature(packageFqName, nameSegments.first(), null, adaptMask(mask))
         }

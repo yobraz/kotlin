@@ -167,7 +167,7 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
 
         override fun visitClass(declaration: IrClass) {
             collectParents(declaration, declaration.isLocal)
-            isTopLevelPrivate = declaration.isTopLevelPrivate
+            isTopLevelPrivate = isTopLevelPrivate || declaration.isTopLevelPrivate
             if (declaration.kind == ClassKind.ENUM_ENTRY) {
                 setIsEnumEntryClass()
             }
@@ -193,7 +193,7 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
                 classFqnSegments.add(declaration.name.asString())
             } else {
                 collectParents(declaration, declaration.isLocal)
-                isTopLevelPrivate = declaration.isTopLevelPrivate
+                isTopLevelPrivate = isTopLevelPrivate || declaration.isTopLevelPrivate
                 hashId = mangler.run { declaration.signatureMangle }
                 setDescription(declaration)
             }
@@ -208,14 +208,14 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
 
         override fun visitProperty(declaration: IrProperty) {
             collectParents(declaration, declaration.isLocal)
-            isTopLevelPrivate = declaration.isTopLevelPrivate
+            isTopLevelPrivate = isTopLevelPrivate || declaration.isTopLevelPrivate
             hashId = mangler.run { declaration.signatureMangle }
             setExpected(declaration.isExpect)
         }
 
         override fun visitTypeAlias(declaration: IrTypeAlias) {
             collectParents(declaration, declaration.isLocal)
-            isTopLevelPrivate = declaration.isTopLevelPrivate
+            isTopLevelPrivate = isTopLevelPrivate || declaration.isTopLevelPrivate
         }
 
         override fun visitEnumEntry(declaration: IrEnumEntry) {
@@ -233,9 +233,30 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
         }
 
         override fun visitField(declaration: IrField) {
-            collectParents(declaration, declaration.isLocal)
-            hashId = mangler.run { declaration.signatureMangle }
-            setIsField()
+            val prop = declaration.correspondingPropertySymbol?.owner
+
+            if (prop != null) {
+                // backing field
+                prop.acceptVoid(this)
+                createContainer()
+                classFqnSegments.add(MangleConstant.BACKING_FIELD_NAME)
+                description = declaration.render()
+            } else {
+                collectParents(declaration, declaration.isLocal)
+                hashId = mangler.run { declaration.signatureMangle }
+            }
+
+
+
+
+//            hashId = mangler.run { declaration.signatureMangle }
+//            val fieldString = mangler.run { declaration.signatureString }
+//            val propertyId = mangler.run { declaration.correspondingPropertySymbol?.owner?.signatureMangle } ?: 0
+//            val propertyString = mangler.run { declaration.correspondingPropertySymbol?.owner?.signatureString } ?: ""
+//            println(fieldString)
+//            println(propertyId)
+//            println(propertyString)
+//            setIsField()
         }
     }
 

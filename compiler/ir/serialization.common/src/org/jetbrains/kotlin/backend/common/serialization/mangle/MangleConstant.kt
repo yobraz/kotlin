@@ -28,6 +28,7 @@ enum class MangleConstant(val prefix: Char, val separator: Char, val suffix: Cha
         const val EXTENSION_RECEIVER_PARAMETER_MARKER_NAME = "<ER>"
         const val THIS_RECEIVER_PARAMETER_MARKER_NAME = "<TR>"
         const val PRIMARY_CONSTRUCTOR_PARAMETER_NAME = "<PCVP>"
+        const val BACKING_FIELD_NAME = "<BF>"
 
         const val VARIANCE_SEPARATOR = '|'
         const val UPPER_BOUND_SEPARATOR = '§'

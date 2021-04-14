@@ -239,8 +239,15 @@ abstract class IrMangleComputer(protected val builder: StringBuilder, private va
         builder.append(declaration.name.asString())
     }
 
-    override fun visitField(declaration: IrField, data: Boolean) =
-        declaration.mangleSimpleDeclaration(declaration.name.asString())
+    override fun visitField(declaration: IrField, data: Boolean) {
+        val prop = declaration.correspondingPropertySymbol
+        if (prop != null) {
+            copy(MangleMode.FULL).visitProperty(prop.owner, data)
+        } else {
+            declaration.mangleSimpleDeclaration(declaration.name.asString())
+            mangleType(builder, declaration.type)
+        }
+    }
 
     override fun visitEnumEntry(declaration: IrEnumEntry, data: Boolean) {
         declaration.mangleSimpleDeclaration(declaration.name.asString())
