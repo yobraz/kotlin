@@ -203,7 +203,6 @@ fun icCompile(
         dceJs = generateDceJs,
         multiModule = multiModule,
         relativeRequirePath = relativeRequirePath,
-        skipStaticMembersLowering = true,
     )
 
     return transformer.generateModule(allModules)
