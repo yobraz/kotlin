@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.daemon.client
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.daemon.common.*
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCompilationComponents
@@ -196,7 +197,7 @@ object KotlinCompilerClient {
                 reportSeverity: ReportSeverity = ReportSeverity.INFO,
                 port: Int = SOCKET_ANY_FREE_PORT,
                 profiler: Profiler = DummyProfiler()
-    ): Int = profiler.withMeasure(this) {
+    ): KotlinCompileResult = profiler.withMeasure(this) {
         val services = BasicCompilerServicesWithResultsFacadeServer(messageCollector, outputsCollector, port)
         compilerService.compile(
                 sessionId,

@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.cli.common.arguments.validateArguments
 import org.jetbrains.kotlin.cli.common.messages.*
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.INFO
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.STRONG_WARNING
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.cli.jvm.compiler.CompileEnvironmentException
 import org.jetbrains.kotlin.cli.jvm.compiler.setupIdeaStandaloneExecution
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
@@ -73,7 +74,7 @@ abstract class CLITool<A : CommonToolArguments> {
                 return ExitCode.OK
             }
 
-            return exec(collector, services, arguments)
+            return exec(collector, services, arguments).code
         } finally {
             errStream.print(messageRenderer.renderConclusion())
 
@@ -83,7 +84,7 @@ abstract class CLITool<A : CommonToolArguments> {
         }
     }
 
-    fun exec(messageCollector: MessageCollector, services: Services, arguments: A): ExitCode {
+    fun exec(messageCollector: MessageCollector, services: Services, arguments: A): KotlinCompileResult {
         disableURLConnectionCaches()
 
         printVersionIfNeeded(messageCollector, arguments)
@@ -95,7 +96,7 @@ abstract class CLITool<A : CommonToolArguments> {
         }
 
         fixedMessageCollector.reportArgumentParseProblems(arguments)
-        return execImpl(fixedMessageCollector, services, arguments)
+        return KotlinCompileResult(execImpl(fixedMessageCollector, services, arguments), "Non incremental compiler")
     }
 
     private fun disableURLConnectionCaches() {

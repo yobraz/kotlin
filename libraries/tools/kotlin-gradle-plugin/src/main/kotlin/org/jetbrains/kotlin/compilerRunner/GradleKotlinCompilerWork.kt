@@ -5,12 +5,11 @@
 
 package org.jetbrains.kotlin.compilerRunner
 
-import org.gradle.api.Project
 import org.gradle.api.logging.Logger
-import org.jetbrains.kotlin.build.ExecutionStrategy
 import org.jetbrains.kotlin.build.report.metrics.*
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.daemon.common.*
 import org.jetbrains.kotlin.gradle.logging.*
@@ -125,6 +124,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         get() = incrementalCompilationEnvironment != null
 
     override fun run() {
+        var compilationStatus = "UNKNOWN"
         try {
             val messageCollector = GradlePrintingMessageCollector(log, allWarningsAsErrors)
             val exitCode = compileWithDaemonOrFallbackImpl(messageCollector)
@@ -133,13 +133,14 @@ internal class GradleKotlinCompilerWork @Inject constructor(
             }
 
             throwGradleExceptionIfError(exitCode)
+            compilationStatus = exitCode.compileStatus
         } finally {
-            val result = TaskExecutionResult(buildMetrics = metrics.getMetrics(), icLogLines = icLogLines)
+            val result = TaskExecutionResult(buildMetrics = metrics.getMetrics(), icLogLines = icLogLines, incrementalStatus = compilationStatus)
             TaskExecutionResults[taskPath] = result
         }
     }
 
-    private fun compileWithDaemonOrFallbackImpl(messageCollector: MessageCollector): ExitCode {
+    private fun compileWithDaemonOrFallbackImpl(messageCollector: MessageCollector): KotlinCompileResult {
         with(log) {
             kotlinDebug { "Kotlin compiler class: ${compilerClassName}" }
             kotlinDebug { "Kotlin compiler classpath: ${compilerFullClasspath.joinToString { it.canonicalPath }}" }
@@ -165,7 +166,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         }
     }
 
-    private fun compileWithDaemon(messageCollector: MessageCollector): ExitCode? {
+    private fun compileWithDaemon(messageCollector: MessageCollector): KotlinCompileResult? {
         val isDebugEnabled = log.isDebugEnabled || System.getProperty("kotlin.daemon.debug.log")?.toBoolean() ?: true
         val daemonMessageCollector =
             if (isDebugEnabled) messageCollector else MessageCollector.NONE
@@ -241,7 +242,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         sessionId: Int,
         targetPlatform: CompileService.TargetPlatform,
         bufferingMessageCollector: GradleBufferingMessageCollector
-    ): CompileService.CallResult<Int> {
+    ): CompileService.CallResult<KotlinCompileResult> {
         metrics.addAttribute(BuildAttribute.IC_IS_NOT_ENABLED)
         val compilationOptions = CompilationOptions(
             compilerMode = CompilerMode.NON_INCREMENTAL_COMPILER,
@@ -262,7 +263,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         sessionId: Int,
         targetPlatform: CompileService.TargetPlatform,
         bufferingMessageCollector: GradleBufferingMessageCollector
-    ): CompileService.CallResult<Int> {
+    ): CompileService.CallResult<KotlinCompileResult> {
         val icEnv = incrementalCompilationEnvironment ?: error("incrementalCompilationEnvironment is null!")
         val knownChangedFiles = icEnv.changedFiles as? ChangedFiles.Known
         val requestedCompilationResults = requestedCompilationResults()
@@ -294,7 +295,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         }
     }
 
-    private fun compileOutOfProcess(): ExitCode {
+    private fun compileOutOfProcess(): KotlinCompileResult {
         metrics.addAttribute(BuildAttribute.OUT_OF_PROCESS_EXECUTION)
         clearLocalState(outputFiles, log, metrics, reason = "out-of-process execution strategy is non-incremental")
 
@@ -303,7 +304,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         }
     }
 
-    private fun compileInProcess(messageCollector: MessageCollector): ExitCode {
+    private fun compileInProcess(messageCollector: MessageCollector): KotlinCompileResult {
         metrics.addAttribute(BuildAttribute.IN_PROCESS_EXECUTION)
         clearLocalState(outputFiles, log, metrics, reason = "in-process execution strategy is non-incremental")
 
@@ -325,7 +326,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         }
     }
 
-    private fun compileInProcessImpl(messageCollector: MessageCollector): ExitCode {
+    private fun compileInProcessImpl(messageCollector: MessageCollector): KotlinCompileResult {
         val stream = ByteArrayOutputStream()
         val out = PrintStream(stream)
         // todo: cache classloader?
@@ -350,7 +351,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
             exitCode
         )
         log.logFinish(IN_PROCESS_EXECUTION_STRATEGY)
-        return exitCode
+        return KotlinCompileResult(exitCode, IN_PROCESS_EXECUTION_STRATEGY)
     }
 
     private fun requestedCompilationResults(): EnumSet<CompilationResultCategory> {
@@ -380,3 +381,4 @@ internal class GradleKotlinCompilerWork @Inject constructor(
             ReportSeverity.DEBUG.code
         }
 }
+

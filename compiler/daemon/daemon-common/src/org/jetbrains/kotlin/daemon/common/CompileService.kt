@@ -140,7 +140,7 @@ interface CompileService : Remote {
             compilationOptions: CompilationOptions,
             servicesFacade: CompilerServicesFacadeBase,
             compilationResults: CompilationResults?
-    ): CallResult<Int>
+    ): CallResult<KotlinCompileResult>
 
     @Throws(RemoteException::class)
     fun classesFqNamesByFiles(

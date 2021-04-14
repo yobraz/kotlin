@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.daemon.common.experimental
 
 import kotlinx.coroutines.*
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.cli.common.repl.ReplCheckResult
 import org.jetbrains.kotlin.cli.common.repl.ReplCodeLine
 import org.jetbrains.kotlin.cli.common.repl.ReplCompileResult
@@ -83,7 +84,7 @@ class CompileServiceClientSideImpl(
         compilationOptions: CompilationOptions,
         servicesFacade: CompilerServicesFacadeBaseAsync,
         compilationResults: CompilationResultsAsync?
-    ): CompileService.CallResult<Int> {
+    ): CompileService.CallResult<KotlinCompileResult> {
         val id = sendMessage(CompileMessage(
             sessionId,
             compilerArguments,

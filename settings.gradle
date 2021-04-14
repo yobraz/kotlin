@@ -1,3 +1,5 @@
+//import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
+
 pluginManagement {
     repositories {
         def pluginRepo = System.getProperty("bootstrap.kotlin.repo")
@@ -35,6 +37,12 @@ plugins {
     id "com.gradle.enterprise" version "3.5"
 }
 
+//gradle.taskGraph.afterTask { Task task, TaskState state ->
+//    if (task instanceof AbstractKotlinCompile) {
+//        task.project.buildScan.value task.name, "msg"
+//    }
+//}
+
 def buildProperties = BuildPropertiesKt.getKotlinBuildPropertiesForSettings(settings)
 def projectVersions = file("./gradle/versions.properties").text
 
@@ -57,6 +65,7 @@ gradleEnterprise {
             hostname { host -> "concealed" }
             username { name -> isTeamCity ? "TeamCity" : "concealed" }
         }
+        value "test", "test"
     }
 }
 

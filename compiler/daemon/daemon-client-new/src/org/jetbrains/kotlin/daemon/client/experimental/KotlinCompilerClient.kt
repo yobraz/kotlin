@@ -13,6 +13,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.daemon.client.CompileServiceSessionAsync
 import org.jetbrains.kotlin.daemon.client.DaemonReportMessage
 import org.jetbrains.kotlin.daemon.client.DaemonReportingTargets
@@ -182,7 +183,7 @@ class KotlinCompilerClient : KotlinCompilerDaemonClient {
         reportSeverity: ReportSeverity,
         port: Int,
         profiler: Profiler
-    ): Int = profiler.withMeasure(this) {
+    ): KotlinCompileResult = profiler.withMeasure(this) {
         val services = BasicCompilerServicesWithResultsFacadeServerServerSide(
             messageCollector,
             outputsCollector,

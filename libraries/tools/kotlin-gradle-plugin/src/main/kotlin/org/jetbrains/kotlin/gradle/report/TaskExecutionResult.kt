@@ -9,5 +9,6 @@ import org.jetbrains.kotlin.build.report.metrics.BuildMetrics
 
 internal class TaskExecutionResult(
     val buildMetrics: BuildMetrics,
+    val incrementalStatus: String,
     val icLogLines: List<String> = emptyList()
 )
