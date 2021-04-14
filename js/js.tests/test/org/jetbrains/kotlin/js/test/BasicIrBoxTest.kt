@@ -50,7 +50,7 @@ abstract class BasicIrBoxTest(
 
     private val runIcMode: Boolean = getBoolean("kotlin.js.ir.icMode")
 
-    private val runPerModuleMode: Boolean = getBoolean("kotlin.js.ir.perModuleMode")
+    private val runPerModuleMode: Boolean = runIcMode || getBoolean("kotlin.js.ir.perModuleMode")
 
     override val skipRegularMode: Boolean = getBoolean("kotlin.js.ir.skipRegularMode")
 
@@ -149,7 +149,7 @@ abstract class BasicIrBoxTest(
                     es6mode = runEs6Mode,
                     multiModule = splitPerModule || perModule,
                     propertyLazyInitialization = propertyLazyInitialization,
-                    perModuleMode = runPerModuleMode || runIcMode,
+                    perModuleMode = runPerModuleMode,
                     useStdlibCache = runIcMode,
                 )
 
