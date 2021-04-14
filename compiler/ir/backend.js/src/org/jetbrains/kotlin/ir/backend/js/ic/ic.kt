@@ -154,6 +154,7 @@ fun icCompile(
     multiModule: Boolean = false,
     relativeRequirePath: Boolean = false,
     propertyLazyInitialization: Boolean,
+    useStdlibCache: Boolean,
 ): CompilerResult {
     val irFactory = PersistentIrFactory()
     val controller = WholeWorldStageController()
@@ -173,13 +174,15 @@ fun icCompile(
         irFactory
     )
 
-    // Lower and save stdlib IC data if needed
-    prepareIcCaches(project, analyzer, configuration, allDependencies)
+    val modulesToLower = if (useStdlibCache) {
+        // Lower and save stdlib IC data if needed
+        prepareIcCaches(project, analyzer, configuration, allDependencies)
 
-    // Inject carriers, new declarations and mappings into the stdlib IrModule
-    loadIrForIc(deserializer, allModules.first(), context)
+        // Inject carriers, new declarations and mappings into the stdlib IrModule
+        loadIrForIc(deserializer, allModules.first(), context)
 
-    val modulesToLower = allModules.drop(1)
+        allModules.drop(1)
+    } else allModules
 
     // This won't work incrementally
     modulesToLower.forEach { module ->

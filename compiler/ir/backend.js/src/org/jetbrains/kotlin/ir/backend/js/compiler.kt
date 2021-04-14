@@ -50,10 +50,11 @@ fun compile(
     multiModule: Boolean = false,
     relativeRequirePath: Boolean = false,
     propertyLazyInitialization: Boolean,
+    perModuleMode: Boolean = false,
     useStdlibCache: Boolean = false,
 ): CompilerResult {
 
-    if (useStdlibCache) {
+    if (perModuleMode) {
         return icCompile(
             project,
             mainModule,
@@ -70,6 +71,7 @@ fun compile(
             multiModule,
             relativeRequirePath,
             propertyLazyInitialization,
+            useStdlibCache,
         )
     }
 
