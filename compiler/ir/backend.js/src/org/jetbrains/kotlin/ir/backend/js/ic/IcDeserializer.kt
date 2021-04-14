@@ -298,7 +298,7 @@ class IcDeserializer(
             linker.symbolTable.irFactory,
             fileReader,
             fileDeserializer.file,
-            fileDeserializer.declarationDeserializer.allowErrorNodes,
+            allowErrorNodes = true,
             deserializeInlineFunctions = true,
             deserializeBodies = true,
             symbolDeserializer,

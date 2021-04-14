@@ -379,9 +379,9 @@ class IrBodyDeserializer(
         proto: ProtoErrorExpression,
         start: Int, end: Int, type: IrType
     ): IrErrorExpression {
-//        require(allowErrorNodes) {
-//            "IrErrorExpression($start, $end, \"${fileReader.deserializeString(proto.description)}\") found but error code is not allowed"
-//        }
+        require(allowErrorNodes) {
+            "IrErrorExpression($start, $end, \"${fileReader.deserializeString(proto.description)}\") found but error code is not allowed"
+        }
         return IrErrorExpressionImpl(start, end, type, fileReader.deserializeString(proto.description))
     }
 
