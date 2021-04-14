@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.ir.symbols.impl.IrPropertySymbolImpl
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.SymbolTable
+import org.jetbrains.kotlin.ir.util.file
 import org.jetbrains.kotlin.ir.util.parentAsClass
 
 class FakeOverrideGlobalDeclarationTable(
@@ -101,7 +102,9 @@ class FakeOverrideBuilder(
             }
         }
 
-        irOverridingUtil.buildFakeOverridesForClass(clazz, compatibilityMode.oldSignatures)
+        signaturer.inFile(clazz.file.symbol) {
+            irOverridingUtil.buildFakeOverridesForClass(clazz, compatibilityMode.oldSignatures)
+        }
     }
 
     override fun linkFunctionFakeOverride(declaration: IrFakeOverrideFunction, compatibilityMode: Boolean) {
