@@ -347,4 +347,13 @@ public interface IrOperationOrBuilder extends
    * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.IrReturnableBlock returnable_block = 37;</code>
    */
   org.jetbrains.kotlin.backend.common.serialization.proto.IrReturnableBlock getReturnableBlock();
+
+  /**
+   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.IrReturnableBlockReturn returnable_block_return = 38;</code>
+   */
+  boolean hasReturnableBlockReturn();
+  /**
+   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.IrReturnableBlockReturn returnable_block_return = 38;</code>
+   */
+  org.jetbrains.kotlin.backend.common.serialization.proto.IrReturnableBlockReturn getReturnableBlockReturn();
 }

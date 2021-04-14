@@ -240,21 +240,6 @@ sealed class IdSignature {
         }
     }
 
-    // Used to reference
-    class ReturnableBlockSignature(val upCnt: Int) : IdSignature() {
-        override val isPublic: Boolean get() = false
-
-        override val hasTopLevel: Boolean get() = false
-
-        override fun topLevelSignature(): IdSignature = error("Is not supported for returnable blocks")
-
-        override fun nearestPublicSig(): IdSignature = error("Is not supported for returnable blocks")
-
-        override fun packageFqName(): FqName = error("Is not supported for returnable blocks")
-
-        override fun render(): String = "#$upCnt"
-    }
-
     class FileSignature(val path: String): IdSignature() {
         override val isPublic: Boolean get() = false
 

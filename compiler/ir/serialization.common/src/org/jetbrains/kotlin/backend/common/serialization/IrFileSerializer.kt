@@ -81,6 +81,7 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.IrOperation as Pr
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrProperty as ProtoProperty
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrPropertyReference as ProtoPropertyReference
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrReturn as ProtoReturn
+import org.jetbrains.kotlin.backend.common.serialization.proto.IrReturnableBlockReturn as ProtoReturnableBlockReturn
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrSetField as ProtoSetField
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrSetValue as ProtoSetValue
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrSimpleType as ProtoSimpleType
@@ -265,7 +266,6 @@ open class IrFileSerializer(
             is IdSignature.FileLocalSignature -> proto.privateSig = serializePrivateSignature(idSignature)
             is IdSignature.ScopeLocalDeclaration -> proto.externalScopedLocalSig = serializeScopeLocalSignature(idSignature)
             is IdSignature.LoweredDeclarationSignature -> proto.icSig = serializeLoweredDeclarationSignature(idSignature)
-            is IdSignature.ReturnableBlockSignature -> proto.returnableBlockSig = idSignature.upCnt
             is IdSignature.FileSignature -> proto.fileSig = serializeFileSignature(idSignature)
         }
         return proto.build()
@@ -331,15 +331,8 @@ open class IrFileSerializer(
 
         val signatureId = when {
             symbol is IrFileSymbol -> protoIdSignature(IdSignature.FileSignature(symbol.owner.path)) // TODO: special signature for files?
-            symbol is IrReturnableBlockSymbol -> {
-                var t = blockStack.size - 1
-                while (t >= 0 && blockStack[t] != symbol.owner) --t
-
-                protoIdSignature(IdSignature.ReturnableBlockSignature(blockStack.size - t))
-            }
             else -> {
-                val declaration = symbol.owner as? IrDeclaration ?:
-                    error("Expected IrDeclaration: ${symbol.owner.render()}")
+                val declaration = symbol.owner as? IrDeclaration ?: error("Expected IrDeclaration: ${symbol.owner.render()}")
                 protoIdSignature(declaration)
             }
         }
@@ -490,14 +483,14 @@ open class IrFileSerializer(
         return proto.build()
     }
 
-    private val blockStack = mutableListOf<IrBlock>()
+    private val returnableBlockStack = mutableListOf<IrBlock>()
 
     private fun <T> withBlock(block: IrReturnableBlock, fn: () -> T): T {
-        blockStack.push(block)
+        returnableBlockStack.push(block)
         try {
             return fn()
         } finally {
-            blockStack.pop()
+            returnableBlockStack.pop()
         }
     }
 
@@ -749,11 +742,23 @@ open class IrFileSerializer(
         return proto.build()
     }
 
-    private fun serializeReturn(expression: IrReturn): ProtoReturn {
-        val proto = ProtoReturn.newBuilder()
-            .setReturnTarget(serializeIrSymbol(expression.returnTargetSymbol))
-            .setValue(serializeExpression(expression.value))
-        return proto.build()
+    private fun serializeReturn(operation: ProtoOperation.Builder, expression: IrReturn) {
+        if (expression.returnTargetSymbol is IrReturnableBlockSymbol) {
+            val targetBlock = expression.returnTargetSymbol.owner
+
+            var t = returnableBlockStack.size - 1
+            while (t >= 0 && returnableBlockStack[t] != targetBlock) --t
+
+            val proto = ProtoReturnableBlockReturn.newBuilder()
+                .setUpCnt(returnableBlockStack.size - t)
+                .setValue(serializeExpression(expression.value))
+            operation.returnableBlockReturn = proto.build()
+        } else {
+            val proto = ProtoReturn.newBuilder()
+                .setReturnTarget(serializeIrSymbol(expression.returnTargetSymbol))
+                .setValue(serializeExpression(expression.value))
+            operation.`return` = proto.build()
+        }
     }
 
     private fun serializeSetField(expression: IrSetField): ProtoSetField =
@@ -1038,7 +1043,7 @@ open class IrFileSerializer(
             is IrInstanceInitializerCall -> operationProto.instanceInitializerCall = serializeInstanceInitializerCall(expression)
             is IrLocalDelegatedPropertyReference -> operationProto.localDelegatedPropertyReference = serializeIrLocalDelegatedPropertyReference(expression)
             is IrPropertyReference -> operationProto.propertyReference = serializePropertyReference(expression)
-            is IrReturn -> operationProto.`return` = serializeReturn(expression)
+            is IrReturn -> serializeReturn(operationProto, expression)
             is IrSetField -> operationProto.setField = serializeSetField(expression)
             is IrSetValue -> operationProto.setValue = serializeSetValue(expression)
             is IrStringConcatenation -> operationProto.stringConcat = serializeStringConcat(expression)

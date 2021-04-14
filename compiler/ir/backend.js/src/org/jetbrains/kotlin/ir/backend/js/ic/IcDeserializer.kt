@@ -274,10 +274,6 @@ class IcDeserializer(
 
         private val fileReader = FileReaderFromSerializedIrFile(icFileData.file)
 
-        private fun cntToReturnableBlockSymbol(upCnt: Int): IrReturnableBlockSymbol {
-            return declarationDeserializer.bodyDeserializer.cntToReturnableBlockSymbol(upCnt)
-        }
-
         val signatureToDeclaration = mutableMapOf<IdSignature, IrDeclaration>()
 
         val symbolDeserializer = IrSymbolDeserializer(
@@ -288,7 +284,6 @@ class IcDeserializer(
             { idSig, kind -> enqueueLocalTopLevelDeclaration(idSig, kind) },
             { _, s -> s },
             pathToFileSymbol,
-            ::cntToReturnableBlockSymbol,
             enqueueAllDeclarations = true,
             deserializePublicSymbol,
         ).also {

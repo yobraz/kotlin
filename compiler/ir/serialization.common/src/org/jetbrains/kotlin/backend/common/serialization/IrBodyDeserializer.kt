@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.backend.common.push
 import org.jetbrains.kotlin.backend.common.serialization.encodings.*
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrConst.ValueCase.*
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrOperation.OperationCase.*
+import org.jetbrains.kotlin.backend.common.serialization.proto.IrReturnableBlockReturn
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrStatement.StatementCase
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrVarargElement.VarargElementCase
 import org.jetbrains.kotlin.ir.IrElement
@@ -173,7 +174,7 @@ class IrBodyDeserializer(
         }
     }
 
-    public fun cntToReturnableBlockSymbol(upCnt: Int) = returnableBlockStack[returnableBlockStack.size - upCnt]
+    private fun cntToReturnableBlockSymbol(upCnt: Int) = returnableBlockStack[returnableBlockStack.size - upCnt]
 
     private fun deserializeReturnableBlock(proto: ProtoReturnableBlock, start: Int, end: Int, type: IrType): IrReturnableBlock {
 
@@ -541,6 +542,12 @@ class IrBodyDeserializer(
         return IrReturnImpl(start, end, builtIns.nothingType, symbol, value)
     }
 
+    private fun deserializeReturnableBlockReturn(proto: IrReturnableBlockReturn, start: Int, end: Int): IrReturn {
+        val symbol = cntToReturnableBlockSymbol(proto.upCnt)
+        val value = deserializeExpression(proto.value)
+        return IrReturnImpl(start, end, builtIns.nothingType, symbol, value)
+    }
+
     private fun deserializeSetField(proto: ProtoSetField, start: Int, end: Int): IrSetField {
         val access = proto.fieldAccess
         val symbol = declarationDeserializer.deserializeIrSymbolAndRemap(access.symbol) as IrFieldSymbol
@@ -852,6 +859,7 @@ class IrBodyDeserializer(
             OPERATION_NOT_SET -> error("Expression deserialization not implemented: ${proto.operationCase}")
             RAW_FUNCTION_REFERENCE -> deserializeRawFunctionReference(proto.rawFunctionReference, start, end, type)
             RETURNABLE_BLOCK -> deserializeReturnableBlock(proto.returnableBlock, start, end, type)
+            RETURNABLE_BLOCK_RETURN -> deserializeReturnableBlockReturn(proto.returnableBlockReturn, start, end)
         }
 
     fun deserializeExpression(proto: ProtoExpression): IrExpression {
