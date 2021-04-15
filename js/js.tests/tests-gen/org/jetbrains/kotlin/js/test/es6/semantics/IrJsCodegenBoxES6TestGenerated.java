@@ -16683,16 +16683,6 @@ public class IrJsCodegenBoxES6TestGenerated extends AbstractIrJsCodegenBoxES6Tes
         public void testAllFilesPresentInMulticatch() throws Exception {
             KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/multicatch"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JS_IR_ES6, true);
         }
-
-        @TestMetadata("multicatchWithFinally.kt")
-        public void testMulticatchWithFinally() throws Exception {
-            runTest("compiler/testData/codegen/box/multicatch/multicatchWithFinally.kt");
-        }
-
-        @TestMetadata("simpleMulticatch.kt")
-        public void testSimpleMulticatch() throws Exception {
-            runTest("compiler/testData/codegen/box/multicatch/simpleMulticatch.kt");
-        }
     }
 
     @TestMetadata("compiler/testData/codegen/box/multifileClasses")

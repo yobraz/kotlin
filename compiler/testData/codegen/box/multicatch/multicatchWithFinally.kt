@@ -1,3 +1,8 @@
+// TARGET_BACKEND: JVM_IR
+// IGNORE_BACKEND: JVM_IR
+
+// Note: JVM_FIR only
+
 fun box(): String {
     var result = ""
     try {

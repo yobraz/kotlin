@@ -1,4 +1,7 @@
-// JVM_FIR
+// TARGET_BACKEND: JVM_IR
+// IGNORE_BACKEND: JVM_IR
+
+// Note: JVM_FIR only
 
 fun test() {
     try {

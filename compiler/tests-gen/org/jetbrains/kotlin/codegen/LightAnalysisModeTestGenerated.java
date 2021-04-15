@@ -21129,16 +21129,6 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
         public void testAllFilesPresentInMulticatch() throws Exception {
             KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/multicatch"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
         }
-
-        @TestMetadata("multicatchWithFinally.kt")
-        public void testMulticatchWithFinally() throws Exception {
-            runTest("compiler/testData/codegen/box/multicatch/multicatchWithFinally.kt");
-        }
-
-        @TestMetadata("simpleMulticatch.kt")
-        public void testSimpleMulticatch() throws Exception {
-            runTest("compiler/testData/codegen/box/multicatch/simpleMulticatch.kt");
-        }
     }
 
     @TestMetadata("compiler/testData/codegen/box/multifileClasses")
