@@ -347,7 +347,7 @@ class JvmIdeServicesTest : TestCase() {
                 K2JVMCompilerArguments().apply {
                     K2JVMCompiler().parseArguments(compilerArgs, this)
                 }
-            )
+            ).code
 
             return CliCompilationResult(exitCode, jarPath)
         }

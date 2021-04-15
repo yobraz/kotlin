@@ -16,9 +16,11 @@
 
 package org.jetbrains.kotlin.compiler.client
 
+import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.daemon.client.DaemonReportMessage
 import org.jetbrains.kotlin.daemon.client.DaemonReportingTargets
 import org.jetbrains.kotlin.daemon.client.KotlinCompilerClient
@@ -90,7 +92,7 @@ class CompilerClientIT {
         myMessageCollector.clear()
         val out = captureOutAndErr {
             code = KotlinCompilerClient.compile(compilerService, CompileService.NO_SESSION, CompileService.TargetPlatform.JVM, args, myMessageCollector,
-                    reportSeverity = ReportSeverity.DEBUG)
+                    reportSeverity = ReportSeverity.DEBUG).code.code
         }
         return myMessageCollector.messages.joinToString("\n") { it.message } + "\n" + out to code
     }

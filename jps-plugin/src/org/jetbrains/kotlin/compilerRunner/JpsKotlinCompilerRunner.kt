@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.cli.common.messages.MessageCollectorUtil
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.config.CompilerSettings
 import org.jetbrains.kotlin.config.IncrementalCompilation
 import org.jetbrains.kotlin.config.additionalArgumentsAsList
@@ -197,7 +198,7 @@ class JpsKotlinCompilerRunner {
         compilerClassName: String,
         compilerArgs: CommonCompilerArguments,
         environment: JpsCompilerEnvironment
-    ): Int? {
+    ): KotlinCompileResult? {
         val targetPlatform = when (compilerClassName) {
             KotlinCompilerClass.JVM -> CompileService.TargetPlatform.JVM
             KotlinCompilerClass.JS -> CompileService.TargetPlatform.JS
