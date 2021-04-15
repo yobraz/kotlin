@@ -1074,23 +1074,26 @@ open class IrFileSerializer(
     }
 
     private fun serializeIrFunctionBase(function: IrFunction, flags: Long): ProtoFunctionBase {
-        val proto = ProtoFunctionBase.newBuilder()
-            .setBase(serializeIrDeclarationBase(function, flags))
-            .setNameType(serializeNameAndType(function.name, function.returnType))
+        return declarationTable.inLocalScope(function) {
+            val proto = ProtoFunctionBase.newBuilder()
+                .setBase(serializeIrDeclarationBase(function, flags))
+                .setNameType(serializeNameAndType(function.name, function.returnType))
 
-        function.typeParameters.forEach {
-            proto.addTypeParameter(serializeIrTypeParameter(it))
-        }
+            function.typeParameters.forEach {
+                proto.addTypeParameter(serializeIrTypeParameter(it))
+            }
 
-        function.dispatchReceiverParameter?.let { proto.setDispatchReceiver(serializeIrValueParameter(it)) }
-        function.extensionReceiverParameter?.let { proto.setExtensionReceiver(serializeIrValueParameter(it)) }
-        function.valueParameters.forEach {
-            proto.addValueParameter(serializeIrValueParameter(it))
+            function.dispatchReceiverParameter?.let { proto.setDispatchReceiver(serializeIrValueParameter(it)) }
+            function.extensionReceiverParameter?.let { proto.setExtensionReceiver(serializeIrValueParameter(it)) }
+            function.valueParameters.forEach {
+                proto.addValueParameter(serializeIrValueParameter(it))
+            }
+            if (!bodiesOnlyForInlines || function.isInline) {
+                function.body?.let { proto.body = serializeIrStatementBody(it) }
+            }
+
+            proto.build()
         }
-        if (!bodiesOnlyForInlines || function.isInline) {
-            function.body?.let { proto.body = serializeIrStatementBody(it) }
-        }
-        return proto.build()
     }
 
     private fun serializeIrConstructor(declaration: IrConstructor): ProtoConstructor =
@@ -1109,11 +1112,14 @@ open class IrFileSerializer(
         return proto.build()
     }
 
-    private fun serializeIrAnonymousInit(declaration: IrAnonymousInitializer) =
-        ProtoAnonymousInit.newBuilder()
-            .setBase(serializeIrDeclarationBase(declaration, null))
-            .setBody(serializeIrStatementBody(declaration.body))
-            .build()
+    private fun serializeIrAnonymousInit(declaration: IrAnonymousInitializer): ProtoAnonymousInit {
+        return declarationTable.inLocalScope(declaration) {
+            ProtoAnonymousInit.newBuilder()
+                .setBase(serializeIrDeclarationBase(declaration, null))
+                .setBody(serializeIrStatementBody(declaration.body))
+                .build()
+        }
+    }
 
     private fun serializeIrLocalDelegatedProperty(variable: IrLocalDelegatedProperty): ProtoLocalDelegatedProperty {
         val proto = ProtoLocalDelegatedProperty.newBuilder()
@@ -1128,21 +1134,23 @@ open class IrFileSerializer(
     }
 
     private fun serializeIrProperty(property: IrProperty): ProtoProperty {
-        val proto = ProtoProperty.newBuilder()
-            .setBase(serializeIrDeclarationBase(property, PropertyFlags.encode(property)))
-            .setName(serializeName(property.name))
+        return declarationTable.inLocalScope(property) {
+            val proto = ProtoProperty.newBuilder()
+                .setBase(serializeIrDeclarationBase(property, PropertyFlags.encode(property)))
+                .setName(serializeName(property.name))
 
-        val backingField = property.backingField
-        val getter = property.getter
-        val setter = property.setter
-        if (backingField != null)
-            proto.backingField = serializeIrField(backingField)
-        if (getter != null)
-            proto.getter = serializeIrFunction(getter)
-        if (setter != null)
-            proto.setter = serializeIrFunction(setter)
+            val backingField = property.backingField
+            val getter = property.getter
+            val setter = property.setter
+            if (backingField != null)
+                proto.backingField = serializeIrField(backingField)
+            if (getter != null)
+                proto.getter = serializeIrFunction(getter)
+            if (setter != null)
+                proto.setter = serializeIrFunction(setter)
 
-        return proto.build()
+            proto.build()
+        }
     }
 
     private fun serializeIrField(field: IrField): ProtoField {

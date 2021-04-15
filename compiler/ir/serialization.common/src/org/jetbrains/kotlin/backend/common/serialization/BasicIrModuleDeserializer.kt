@@ -86,7 +86,7 @@ abstract class BasicIrModuleDeserializer(
     override fun contains(idSig: IdSignature): Boolean = idSig in moduleReversedFileIndex
 
     override fun deserializeIrSymbol(idSig: IdSignature, symbolKind: BinarySymbolData.SymbolKind): IrSymbol {
-        assert(idSig.isPublic)
+//        assert(idSig.isPublic)
 
         val topLevelSignature = idSig.topLevelSignature()
         val fileLocalDeserializationState = moduleReversedFileIndex[topLevelSignature]

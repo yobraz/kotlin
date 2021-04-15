@@ -6,13 +6,14 @@
 package org.jetbrains.kotlin.backend.common.serialization
 
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrFile
-import org.jetbrains.kotlin.ir.declarations.IrSymbolOwner
+import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
-import org.jetbrains.kotlin.ir.util.IdSignature
-import org.jetbrains.kotlin.ir.util.KotlinMangler
-import org.jetbrains.kotlin.ir.util.render
+import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
+import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
+import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 
 
 interface IdSignatureClashTracker {
@@ -64,6 +65,41 @@ open class DeclarationTable(globalTable: GlobalDeclarationTable) {
         signaturer.reset()
         signaturer.table = this
         signaturer.inFile(file.symbol, block)
+    }
+
+
+    private class LocalScopeBuilder : ScopeBuilder<IrDeclaration, IrElement> {
+        private class LocalIndexCollector(private val scope: SignatureScope<IrDeclaration>) : IrElementVisitorVoid {
+            override fun visitElement(element: IrElement) {
+                element.acceptChildrenVoid(this)
+            }
+
+            override fun visitClass(declaration: IrClass) {
+                if (declaration.kind == ClassKind.OBJECT) {
+                    // TODO: is that correct?
+                    scope.commitAnonymousObject(declaration)
+                } else {
+                    scope.commitLocalClass(declaration)
+                }
+            }
+
+            override fun visitFunction(declaration: IrFunction) {
+                scope.commitLocalFunction(declaration)
+            }
+
+            override fun visitFunctionExpression(expression: IrFunctionExpression) {
+                scope.commitLambda(expression.function)
+            }
+
+        }
+
+        override fun build(scope: SignatureScope<IrDeclaration>, element: IrElement?) {
+            element?.acceptChildrenVoid(LocalIndexCollector(scope))
+        }
+    }
+
+    fun <R> inLocalScope(scopeOwner: IrElement, block: () -> R): R {
+        return signaturer.inLocalScope({ LocalScopeBuilder().build(it, scopeOwner) }, block)
     }
 
     private fun IrDeclaration.isLocalDeclaration(compatibleMode: Boolean): Boolean {

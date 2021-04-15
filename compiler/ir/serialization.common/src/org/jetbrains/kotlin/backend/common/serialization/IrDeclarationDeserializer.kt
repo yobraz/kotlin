@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrErrorExpressionImpl
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.symbols.impl.IrPublicSymbolBase
+import org.jetbrains.kotlin.ir.symbols.impl.IrTypeParameterPublicSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrTypeParameterSymbolImpl
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.*
@@ -253,10 +254,10 @@ class IrDeclarationDeserializer(
                 sig = p.second
                 declareGlobalTypeParameter(sig, { symbol }, factory)
             } else {
-                val symbolData = BinarySymbolData
-                    .decode(proto.base.symbol)
+                val symbolData = BinarySymbolData.decode(proto.base.symbol)
                 sig = symbolDeserializer.deserializeIdSignature(symbolData.signatureId)
-                declareScopedTypeParameter(sig, { IrTypeParameterSymbolImpl() }, factory)
+                declareScopedTypeParameter(sig, {
+                    if (it.isPublic) IrTypeParameterPublicSymbolImpl(it) else IrTypeParameterSymbolImpl() }, factory)
             }
         }
 

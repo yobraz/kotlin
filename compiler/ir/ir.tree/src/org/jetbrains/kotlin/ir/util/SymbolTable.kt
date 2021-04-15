@@ -971,7 +971,7 @@ class SymbolTable(
         symbolFactory: () -> IrTypeParameterSymbol,
         typeParameterFactory: (IrTypeParameterSymbol) -> IrTypeParameter
     ): IrTypeParameter {
-        require(sig.isLocal)
+//        require(sig.isLocal)
         return globalTypeParameterSymbolTable.declare(sig, symbolFactory, typeParameterFactory)
     }
 
@@ -980,8 +980,9 @@ class SymbolTable(
         sig: IdSignature,
         typeParameterFactory: (IrTypeParameterSymbol) -> IrTypeParameter
     ): IrTypeParameter {
-        require(sig.isLocal)
-        return globalTypeParameterSymbolTable.declare(descriptor, { IrTypeParameterSymbolImpl(descriptor) }, typeParameterFactory)
+//        require(sig.isLocal)
+        return globalTypeParameterSymbolTable.declare(descriptor, {
+            if (sig.isPublic) IrTypeParameterPublicSymbolImpl(sig, descriptor) else IrTypeParameterSymbolImpl(descriptor) }, typeParameterFactory)
     }
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
@@ -1005,11 +1006,11 @@ class SymbolTable(
 
     fun declareScopedTypeParameter(
         sig: IdSignature,
-        symbolFactory: () -> IrTypeParameterSymbol,
+        symbolFactory: (IdSignature) -> IrTypeParameterSymbol,
         typeParameterFactory: (IrTypeParameterSymbol) -> IrTypeParameter
     ): IrTypeParameter {
-        require(sig.isLocal)
-        return typeParameterFactory(symbolFactory())
+//        require(sig.isLocal)
+        return typeParameterFactory(symbolFactory(sig))
     }
 
     fun declareScopedTypeParameterFromLinker(
@@ -1070,8 +1071,8 @@ class SymbolTable(
         }
 
     override fun referenceTypeParameterFromLinker(sig: IdSignature): IrTypeParameterSymbol {
-        require(sig.isLocal)
-        return IrTypeParameterPublicSymbolImpl(sig)
+//        require(sig.isLocal)
+        return if (sig.isPublic) IrTypeParameterPublicSymbolImpl(sig) else IrTypeParameterSymbolImpl()
     }
 
     fun declareVariable(
