@@ -78,9 +78,10 @@ sealed class IdSignature {
             }
 
             val nameSegments = nameSegments
-            if (nameSegments.size == 1 && mask == 0L) return this
+            val adoptedMask = adaptMask(mask)
+            if (nameSegments.size == 1 && mask == adoptedMask) return this
 
-            return PublicSignature(packageFqName, nameSegments.first(), null, adaptMask(mask))
+            return PublicSignature(packageFqName, nameSegments.first(), null, adoptedMask)
         }
 
         override fun isPackageSignature(): Boolean = id == null && declarationFqName.isEmpty()
