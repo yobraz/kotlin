@@ -404,45 +404,49 @@ KtFile: TryRecovery.kt
               PsiElement(COLON)(':')
               PsiWhiteSpace(' ')
               TYPE_REFERENCE
-                USER_TYPE
-                  USER_TYPE
+                UNION_TYPE
+                  TYPE_REFERENCE
                     USER_TYPE
+                      USER_TYPE
+                        USER_TYPE
+                          REFERENCE_EXPRESSION
+                            PsiElement(IDENTIFIER)('java')
+                        PsiElement(DOT)('.')
+                        REFERENCE_EXPRESSION
+                          PsiElement(IDENTIFIER)('lang')
+                      PsiElement(DOT)('.')
                       REFERENCE_EXPRESSION
-                        PsiElement(IDENTIFIER)('java')
-                    PsiElement(DOT)('.')
-                    REFERENCE_EXPRESSION
-                      PsiElement(IDENTIFIER)('lang')
-                  PsiElement(DOT)('.')
-                  REFERENCE_EXPRESSION
-                    PsiElement(IDENTIFIER)('IllegalArgumentException')
-              PsiElement(COMMA)(',')
-              PsiWhiteSpace(' ')
-              TYPE_REFERENCE
-                USER_TYPE
-                  USER_TYPE
+                        PsiElement(IDENTIFIER)('IllegalArgumentException')
+                  PsiWhiteSpace(' ')
+                  PsiElement(OR)('|')
+                  PsiWhiteSpace(' ')
+                  TYPE_REFERENCE
                     USER_TYPE
+                      USER_TYPE
+                        USER_TYPE
+                          REFERENCE_EXPRESSION
+                            PsiElement(IDENTIFIER)('java')
+                        PsiElement(DOT)('.')
+                        REFERENCE_EXPRESSION
+                          PsiElement(IDENTIFIER)('lang')
+                      PsiElement(DOT)('.')
                       REFERENCE_EXPRESSION
-                        PsiElement(IDENTIFIER)('java')
-                    PsiElement(DOT)('.')
-                    REFERENCE_EXPRESSION
-                      PsiElement(IDENTIFIER)('lang')
-                  PsiElement(DOT)('.')
-                  REFERENCE_EXPRESSION
-                    PsiElement(IDENTIFIER)('NullPointerException')
-              PsiElement(COMMA)(',')
-              PsiWhiteSpace(' ')
-              TYPE_REFERENCE
-                USER_TYPE
-                  USER_TYPE
+                        PsiElement(IDENTIFIER)('NullPointerException')
+                  PsiWhiteSpace(' ')
+                  PsiElement(OR)('|')
+                  PsiWhiteSpace(' ')
+                  TYPE_REFERENCE
                     USER_TYPE
+                      USER_TYPE
+                        USER_TYPE
+                          REFERENCE_EXPRESSION
+                            PsiElement(IDENTIFIER)('java')
+                        PsiElement(DOT)('.')
+                        REFERENCE_EXPRESSION
+                          PsiElement(IDENTIFIER)('lang')
+                      PsiElement(DOT)('.')
                       REFERENCE_EXPRESSION
-                        PsiElement(IDENTIFIER)('java')
-                    PsiElement(DOT)('.')
-                    REFERENCE_EXPRESSION
-                      PsiElement(IDENTIFIER)('lang')
-                  PsiElement(DOT)('.')
-                  REFERENCE_EXPRESSION
-                    PsiElement(IDENTIFIER)('IllegalStateException')
+                        PsiElement(IDENTIFIER)('IllegalStateException')
             PsiElement(RPAR)(')')
           PsiWhiteSpace(' ')
           BLOCK

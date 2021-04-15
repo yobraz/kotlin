@@ -52,15 +52,18 @@ KtFile: MultiCatch.kt
               PsiElement(COLON)(':')
               PsiWhiteSpace(' ')
               TYPE_REFERENCE
-                USER_TYPE
-                  REFERENCE_EXPRESSION
-                    PsiElement(IDENTIFIER)('IllegalArgumentException')
-              PsiElement(COMMA)(',')
-              PsiWhiteSpace(' ')
-              TYPE_REFERENCE
-                USER_TYPE
-                  REFERENCE_EXPRESSION
-                    PsiElement(IDENTIFIER)('NullPointerException')
+                UNION_TYPE
+                  TYPE_REFERENCE
+                    USER_TYPE
+                      REFERENCE_EXPRESSION
+                        PsiElement(IDENTIFIER)('IllegalArgumentException')
+                  PsiWhiteSpace(' ')
+                  PsiElement(OR)('|')
+                  PsiWhiteSpace(' ')
+                  TYPE_REFERENCE
+                    USER_TYPE
+                      REFERENCE_EXPRESSION
+                        PsiElement(IDENTIFIER)('NullPointerException')
             PsiElement(RPAR)(')')
           PsiWhiteSpace(' ')
           BLOCK
@@ -113,15 +116,18 @@ KtFile: MultiCatch.kt
               PsiElement(COLON)(':')
               PsiWhiteSpace(' ')
               TYPE_REFERENCE
-                USER_TYPE
-                  REFERENCE_EXPRESSION
-                    PsiElement(IDENTIFIER)('IllegalArgumentException')
-              PsiElement(COMMA)(',')
-              PsiWhiteSpace(' ')
-              TYPE_REFERENCE
-                USER_TYPE
-                  REFERENCE_EXPRESSION
-                    PsiElement(IDENTIFIER)('NullPointerException')
+                UNION_TYPE
+                  TYPE_REFERENCE
+                    USER_TYPE
+                      REFERENCE_EXPRESSION
+                        PsiElement(IDENTIFIER)('IllegalArgumentException')
+                  PsiWhiteSpace(' ')
+                  PsiElement(OR)('|')
+                  PsiWhiteSpace(' ')
+                  TYPE_REFERENCE
+                    USER_TYPE
+                      REFERENCE_EXPRESSION
+                        PsiElement(IDENTIFIER)('NullPointerException')
             PsiElement(RPAR)(')')
           PsiWhiteSpace(' ')
           BLOCK
@@ -182,22 +188,25 @@ KtFile: MultiCatch.kt
               PsiElement(COLON)(':')
               PsiWhiteSpace(' ')
               TYPE_REFERENCE
-                USER_TYPE
-                  REFERENCE_EXPRESSION
-                    PsiElement(IDENTIFIER)('IllegalArgumentException')
-              PsiElement(COMMA)(',')
-              PsiWhiteSpace(' ')
-              TYPE_REFERENCE
-                USER_TYPE
-                  REFERENCE_EXPRESSION
-                    PsiElement(IDENTIFIER)('NullPointerException')
-              PsiElement(COMMA)(',')
-              PsiWhiteSpace(' ')
-              TYPE_REFERENCE
-                USER_TYPE
-                  REFERENCE_EXPRESSION
-                    PsiElement(IDENTIFIER)('IllegalStateException')
-            PsiElement(COMMA)(',')
+                UNION_TYPE
+                  TYPE_REFERENCE
+                    USER_TYPE
+                      REFERENCE_EXPRESSION
+                        PsiElement(IDENTIFIER)('IllegalArgumentException')
+                  PsiWhiteSpace(' ')
+                  PsiElement(OR)('|')
+                  PsiWhiteSpace(' ')
+                  TYPE_REFERENCE
+                    USER_TYPE
+                      REFERENCE_EXPRESSION
+                        PsiElement(IDENTIFIER)('NullPointerException')
+                  PsiWhiteSpace(' ')
+                  PsiElement(OR)('|')
+                  PsiWhiteSpace(' ')
+                  TYPE_REFERENCE
+                    USER_TYPE
+                      REFERENCE_EXPRESSION
+                        PsiElement(IDENTIFIER)('IllegalStateException')
             PsiElement(RPAR)(')')
           PsiWhiteSpace(' ')
           BLOCK
@@ -266,15 +275,18 @@ KtFile: MultiCatch.kt
                   PsiElement(COLON)(':')
                   PsiWhiteSpace(' ')
                   TYPE_REFERENCE
-                    USER_TYPE
-                      REFERENCE_EXPRESSION
-                        PsiElement(IDENTIFIER)('IllegalStateException')
-                  PsiElement(COMMA)(',')
-                  PsiWhiteSpace(' ')
-                  TYPE_REFERENCE
-                    USER_TYPE
-                      REFERENCE_EXPRESSION
-                        PsiElement(IDENTIFIER)('IOException')
+                    UNION_TYPE
+                      TYPE_REFERENCE
+                        USER_TYPE
+                          REFERENCE_EXPRESSION
+                            PsiElement(IDENTIFIER)('IllegalStateException')
+                      PsiWhiteSpace(' ')
+                      PsiElement(OR)('|')
+                      PsiWhiteSpace(' ')
+                      TYPE_REFERENCE
+                        USER_TYPE
+                          REFERENCE_EXPRESSION
+                            PsiElement(IDENTIFIER)('IOException')
                 PsiElement(RPAR)(')')
               PsiWhiteSpace(' ')
               BLOCK
@@ -302,15 +314,18 @@ KtFile: MultiCatch.kt
               PsiElement(COLON)(':')
               PsiWhiteSpace(' ')
               TYPE_REFERENCE
-                USER_TYPE
-                  REFERENCE_EXPRESSION
-                    PsiElement(IDENTIFIER)('IllegalArgumentException')
-              PsiElement(COMMA)(',')
-              PsiWhiteSpace(' ')
-              TYPE_REFERENCE
-                USER_TYPE
-                  REFERENCE_EXPRESSION
-                    PsiElement(IDENTIFIER)('NullPointerException')
+                UNION_TYPE
+                  TYPE_REFERENCE
+                    USER_TYPE
+                      REFERENCE_EXPRESSION
+                        PsiElement(IDENTIFIER)('IllegalArgumentException')
+                  PsiWhiteSpace(' ')
+                  PsiElement(OR)('|')
+                  PsiWhiteSpace(' ')
+                  TYPE_REFERENCE
+                    USER_TYPE
+                      REFERENCE_EXPRESSION
+                        PsiElement(IDENTIFIER)('NullPointerException')
             PsiElement(RPAR)(')')
           PsiWhiteSpace(' ')
           BLOCK

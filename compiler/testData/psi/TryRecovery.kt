@@ -62,5 +62,5 @@ fun testFinally() {
 
 fun testMultiCatch() {
     try {
-    } catch (e: java.lang.IllegalArgumentException, java.lang.NullPointerException, java.lang.IllegalStateException) {}
+    } catch (e: java.lang.IllegalArgumentException | java.lang.NullPointerException | java.lang.IllegalStateException) {}
 }
