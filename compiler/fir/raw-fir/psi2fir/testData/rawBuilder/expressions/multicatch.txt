@@ -3,7 +3,7 @@ FILE: multicatch.kt
         try {
             println#()
         }
-        catch (e: IllegalArgumentException, NullPointerException) {
+        catch (e: IllegalArgumentException | NullPointerException) {
             println#()
         }
 
@@ -12,7 +12,7 @@ FILE: multicatch.kt
         try {
             println#()
         }
-        catch (e: IllegalArgumentException, NullPointerException) {
+        catch (e: IllegalArgumentException | NullPointerException) {
             println#()
         }
         finally {
@@ -23,7 +23,7 @@ FILE: multicatch.kt
         try {
             println#()
         }
-        catch (e: IllegalArgumentException, NullPointerException, IllegalStateException) {
+        catch (e: IllegalArgumentException | NullPointerException | IllegalStateException) {
             println#()
         }
 
@@ -34,13 +34,13 @@ FILE: multicatch.kt
             try {
                 throw IllegalAccessError#()
             }
-            catch (f: IllegalStateException, IOException) {
+            catch (f: IllegalStateException | IOException) {
             }
             finally {
             }
 
         }
-        catch (e: IllegalArgumentException, NullPointerException) {
+        catch (e: IllegalArgumentException | NullPointerException) {
             println#()
         }
 

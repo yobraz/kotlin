@@ -1,7 +1,7 @@
 FILE: unionTypes.kt
     public? final? fun first(z: Float | Nothing): Double | Int {
         lval x: Int | String = IntegerLiteral(5)
-        logExceptions#<IllegalStateException | IllegalArgumentException>(<L> = logExceptions@fun <implicit>.<anonymous>(): <implicit> {
+        logExceptions#<IllegalStateException | IllegalArgumentException>(<L> = logExceptions@fun <implicit>.<anonymous>(): <implicit> <inline=Unknown>  {
             ^@logExceptions Unit
         }
         )
