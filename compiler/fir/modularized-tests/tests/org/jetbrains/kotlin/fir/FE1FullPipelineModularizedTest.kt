@@ -17,7 +17,8 @@ class FE1FullPipelineModularizedTest : AbstractFullPipelineModularizedTest() {
         args.useOldBackend = !USE_BE_IR
         args.useFir = false
         args.jvmDefault = "compatibility"
-        args.optIn = arrayOf("kotlin.RequiresOptIn")
+        args.multiPlatform = true
+        args.optIn = arrayOf("kotlin.RequiresOptIn", "org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI")
     }
 
     fun testTotalKotlin() {
