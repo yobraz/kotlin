@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.asJava.FilteredJvmDiagnostics
 import org.jetbrains.kotlin.backend.common.output.OutputFileCollection
 import org.jetbrains.kotlin.backend.common.output.SimpleOutputFileCollection
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
-import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensions
+import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
 import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
 import org.jetbrains.kotlin.backend.jvm.jvmPhases
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
@@ -67,7 +67,7 @@ class IrJvmBackend internal constructor(
             TopDownAnalyzerFacadeForJVM.newModuleSearchScope(input.project, input.sourceFiles), emptyList()
         )
 
-        val generatorExtensions = JvmGeneratorExtensions()
+        val generatorExtensions = JvmGeneratorExtensionsImpl()
 
         val generationState = GenerationState.Builder(
             input.project, ClassBuilderFactories.BINARIES,
@@ -89,7 +89,7 @@ class IrJvmBackend internal constructor(
 
         generationState.beforeCompile()
         codegenFactory.generateModuleInFrontendIRMode(
-            generationState, input.moduleFragment, input.symbolTable, input.sourceManager!!, generatorExtensions, input.backendExtensions!!,
+            generationState, input.moduleFragment, input.symbolTable, generatorExtensions, input.backendExtensions!!,
             {
 //                performanceManager?.notifyIRLoweringFinished()
 //                performanceManager?.notifyIRGenerationStarted()
@@ -108,9 +108,6 @@ class IrJvmBackend internal constructor(
             messageCollector
         )
 
-        AnalyzerWithCompilerReport.reportBytecodeVersionErrors(
-            generationState.extraJvmDiagnosticsTrace.bindingContext, messageCollector
-        )
         return ExecutionResult.Success(generationState, emptyList())
     }
 }
@@ -149,7 +146,9 @@ private fun writeOutput(
         val includeRuntime = configuration.get(JVMConfigurationKeys.INCLUDE_RUNTIME, false)
         val noReflect = configuration.get(JVMConfigurationKeys.NO_REFLECT, false)
         val resetTimestamps = !configuration.get(JVMConfigurationKeys.NO_RESET_JAR_TIMESTAMPS, false)
-        CompileEnvironmentUtil.writeToJar(jarPath, includeRuntime, noReflect, resetTimestamps, mainClassFqName, outputFiles)
+        CompileEnvironmentUtil.writeToJar(
+            jarPath, includeRuntime, noReflect, resetTimestamps, mainClassFqName, outputFiles, messageCollector
+        )
         if (reportOutputFiles) {
             val message = OutputMessageUtil.formatOutputMessage(outputFiles.asList().flatMap { it.sourceFiles }.distinct(), jarPath)
             messageCollector.report(CompilerMessageSeverity.OUTPUT, message)

@@ -3,6 +3,8 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
+@file:Suppress("unused")
+
 package org.jetbrains.kotlin.cli.fir
 
 import kotlin.reflect.KClass
@@ -16,8 +18,8 @@ interface CompilationStageBuilder<T, R> {
 }
 
 interface CompilationSession {
-    fun <T : CompilationStageBuilder<*, *>> createStage(impl: KClass<out T>): CompilationStageBuilder<*, *>
-    fun <T : Any, R : Any> createStage(from: KClass<T>, to: KClass<R>): CompilationStageBuilder<T, R>
+    fun <S : CompilationStage<*, *>> createStageBuilder(impl: KClass<S>): CompilationStageBuilder<*, *>
+    fun <T : Any, R : Any> createStageBuilder(from: KClass<T>, to: KClass<R>): CompilationStageBuilder<T, R>
     fun close()
 }
 

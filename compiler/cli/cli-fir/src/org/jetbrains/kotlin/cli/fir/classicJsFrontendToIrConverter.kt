@@ -38,7 +38,6 @@ import org.jetbrains.kotlin.modules.Module
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi2ir.Psi2IrConfiguration
 import org.jetbrains.kotlin.psi2ir.Psi2IrTranslator
-import org.jetbrains.kotlin.psi2ir.PsiSourceManager
 import org.jetbrains.kotlin.resolve.BindingContext
 
 data class FrontendToIrConverterResult(
@@ -53,7 +52,6 @@ data class FrontendToIrConverterResult(
     val hasErrors: Boolean,
     val configuration: CompilerConfiguration,
     val module: Module?,
-    val sourceManager: PsiSourceManager?,
     val jvmBackendClassResolver: JvmBackendClassResolver?,
     val backendExtensions: JvmBackendExtension?,
     val packagePartProvider: PackagePartProvider?
@@ -101,7 +99,7 @@ class ClassicJsFrontendToIrConverter internal constructor(
 
         val expectDescriptorToSymbol = mutableMapOf<DeclarationDescriptor, IrSymbol>()
         val feContext = psi2IrContext.run {
-            JsIrLinker.JsFePluginContext(moduleDescriptor, bindingContext, symbolTable, typeTranslator, irBuiltIns)
+            JsIrLinker.JsFePluginContext(moduleDescriptor, symbolTable, typeTranslator, irBuiltIns)
         }
 
         val (icData, serializedIrFiles) = prepareIncrementalCompilationData(configuration, input.sourceFiles)
@@ -146,7 +144,6 @@ class ClassicJsFrontendToIrConverter internal constructor(
                 hasErrors = input.analysisResult.hasErrors,
                 configuration = configuration,
                 module = null,
-                sourceManager = null,
                 jvmBackendClassResolver = null,
                 backendExtensions = null,
                 packagePartProvider = null

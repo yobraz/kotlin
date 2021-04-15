@@ -11,14 +11,18 @@ import kotlin.reflect.KClass
 
 class LocalCompilationSession(val rootDisposable: Disposable) : CompilationSession {
 
-    private val byClass: MutableMap<KClass<ClassicCliJvmCompiler>, () -> ClassicCliJvmCompilerBuilder> =
-        mutableMapOf(ClassicCliJvmCompiler::class to { ClassicCliJvmCompilerBuilder(rootDisposable) })
+    private val byClass =
+        mutableMapOf<KClass<out CompilationStage<*, *>>, () -> CompilationStageBuilder<*, *>>(
+            ClassicCliJvmCompiler::class to { ClassicCliJvmCompilerBuilder() }
+        )
 
-    @Suppress("TYPE_INFERENCE_ONLY_INPUT_TYPES_WARNING")
-    override fun <T : CompilationStageBuilder<*, *>> createStage(impl: KClass<out T>): CompilationStageBuilder<*, *> =
-        (byClass[impl] ?: throw RuntimeException("Unknown compilation stage: $impl")).invoke()
+    @Suppress("TYPE_INFERENCE_ONLY_INPUT_TYPES_WARNING", "USELESS_CAST", "UNCHECKED_CAST")
+    override fun <S : CompilationStage<*, *>> createStageBuilder(impl: KClass<S>): CompilationStageBuilder<*, *> {
+        val compilationStage = byClass[impl] ?: throw RuntimeException("Unknown compilation stage: $impl")
+        return compilationStage.invoke() as CompilationStageBuilder<*, *>
+    }
 
-    override fun <T : Any, R : Any> createStage(from: KClass<T>, to: KClass<R>): CompilationStageBuilder<T, R> {
+    override fun <T : Any, R : Any> createStageBuilder(from: KClass<T>, to: KClass<R>): CompilationStageBuilder<T, R> {
         TODO("Not yet implemented")
     }
 

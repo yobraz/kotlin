@@ -139,7 +139,7 @@ private fun example(args: List<String>, outStream: PrintStream) {
             return //ExitCode.COMPILATION_ERROR
         }
 
-        val jsFrontendBuilder = session.createStage(ClassicJsFrontendBuilder::class) as ClassicJsFrontendBuilder
+        val jsFrontendBuilder = session.createStageBuilder(ClassicJsFrontend::class) as ClassicJsFrontendBuilder
         val jsFrontend = jsFrontendBuilder {
 
             configuration.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, collector)
@@ -182,12 +182,12 @@ private fun example(args: List<String>, outStream: PrintStream) {
         }.build()
 
         val jsFrontendToIrConverterBuilder =
-            session.createStage(ClassicJsFrontendToIrConverterBuilder::class) as ClassicJsFrontendToIrConverterBuilder
+            session.createStageBuilder(ClassicJsFrontendToIrConverter::class) as ClassicJsFrontendToIrConverterBuilder
         val jsFrontendToIrConverter = jsFrontendToIrConverterBuilder {
             // defaults are ok
         }.build()
 
-        val jsKLibGeneratorBuilder = session.createStage(ClassicJsKLibGeneratorBuilder::class) as ClassicJsKLibGeneratorBuilder
+        val jsKLibGeneratorBuilder = session.createStageBuilder(ClassicJsKLibGenerator::class) as ClassicJsKLibGeneratorBuilder
         val jsKLibGenerator = jsKLibGeneratorBuilder {
             outputKlibPath =
                 if (arguments.irProduceKlibDir)

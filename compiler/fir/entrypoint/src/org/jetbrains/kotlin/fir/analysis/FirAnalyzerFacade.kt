@@ -61,18 +61,18 @@ class FirAnalyzerFacade(
 
     fun runResolution(): List<FirFile> {
         if (firFiles == null) buildRawFir()
-        if (_scopeSession != null) return firFiles!!
+        if (scopeSession != null) return firFiles!!
         val resolveProcessor = FirTotalResolveProcessor(session)
         resolveProcessor.process(firFiles!!)
-        _scopeSession = resolveProcessor.scopeSession
+        scopeSession = resolveProcessor.scopeSession
         return firFiles!!
     }
 
     @OptIn(ExperimentalStdlibApi::class)
     fun runCheckers(): Map<FirFile, List<FirDiagnostic<*>>> {
-        if (_scopeSession == null) runResolution()
+        if (scopeSession == null) runResolution()
         if (collectedDiagnostics != null) return collectedDiagnostics!!
-        val collector = FirDiagnosticsCollector.create(session, scopeSession)
+        val collector = FirDiagnosticsCollector.create(session, scopeSession!!)
         collectedDiagnostics = buildMap {
             for (file in firFiles!!) {
                 put(file, collector.collectDiagnostics(file))
@@ -82,11 +82,11 @@ class FirAnalyzerFacade(
     }
 
     fun convertToIr(extensions: GeneratorExtensions): Fir2IrResult {
-        if (_scopeSession == null) runResolution()
+        if (scopeSession == null) runResolution()
         val signaturer = JvmIdSignatureDescriptor(JvmManglerDesc())
 
         return Fir2IrConverter.createModuleFragment(
-            session, _scopeSession!!, firFiles!!,
+            session, scopeSession!!, firFiles!!,
             languageVersionSettings, signaturer,
             extensions, FirJvmKotlinMangler(session), IrFactoryImpl,
             FirJvmVisibilityConverter,

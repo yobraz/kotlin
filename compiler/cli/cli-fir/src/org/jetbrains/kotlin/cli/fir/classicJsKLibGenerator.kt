@@ -5,10 +5,10 @@
 
 package org.jetbrains.kotlin.cli.fir
 
+import org.jetbrains.kotlin.backend.common.lower.ExpectDeclarationRemover
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.ir.backend.js.expectActualLinker
 import org.jetbrains.kotlin.ir.backend.js.serializeModuleIntoKlib
-import org.jetbrains.kotlin.ir.util.ExpectDeclarationRemover
 import org.jetbrains.kotlin.ir.util.IrMessageLogger
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 

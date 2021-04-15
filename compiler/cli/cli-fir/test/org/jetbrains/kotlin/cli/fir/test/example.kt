@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.cli.fir.CompilationServiceBuilder
 import org.jetbrains.kotlin.cli.fir.CompilationSession
 import org.jetbrains.kotlin.cli.fir.ExecutionResult
 
+/*
 fun actualCompilerImpl(options: K2JVMCompilerArguments) {
 
     val compilationService = setupCompilationService {
@@ -60,4 +61,4 @@ fun setupCompilationService(body: CompilationServiceBuilder.() -> Unit): Compila
 
 object RemoteCompilationSession {
     fun connectOrRun(body: () -> Unit): CompilationSession
-}
+}*/

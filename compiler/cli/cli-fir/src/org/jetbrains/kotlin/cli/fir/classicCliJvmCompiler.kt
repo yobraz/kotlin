@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.cli.fir
 
-import com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
@@ -17,12 +16,7 @@ import org.jetbrains.kotlin.config.Services
 import java.io.File
 import java.io.PrintStream
 
-class ClassicJvmCompilerState(internal val compiler: K2JVMCompiler)
-
-class ClassicCliJvmCompilerBuilder(
-    val rootDisposable: Disposable,
-
-) : CompilationStageBuilder<K2JVMCompilerArguments, List<File>> {
+class ClassicCliJvmCompilerBuilder : CompilationStageBuilder<K2JVMCompilerArguments, List<File>> {
 
     var compilerArguments: K2JVMCompilerArguments = K2JVMCompilerArguments()
 
@@ -58,22 +52,24 @@ class ClassicCliJvmCompiler internal constructor(
     }
 }
 
+inline fun CompilationSession.buildClassicCliCompiler(body: ClassicCliJvmCompilerBuilder.() -> Unit): ClassicCliJvmCompiler =
+    (createStageBuilder(ClassicCliJvmCompiler::class) as ClassicCliJvmCompilerBuilder).also { it.body() }.build() as ClassicCliJvmCompiler
+
 @Suppress("unused")
-private fun example(args: List<String>, outStream: PrintStream) {
+internal fun classicCliJvmCompile(args: List<String>, outStream: PrintStream): ExecutionResult<List<File>> {
 
     val service = LocalCompilationServiceBuilder().build()
 
-    val session = service.createSession("")
+    val session = service.createSession("") as LocalCompilationSession
 
     val arguments = K2JVMCompilerArguments()
     parseCommandLineArguments(args, arguments)
     val collector = PrintingMessageCollector(outStream, MessageRenderer.WITHOUT_PATHS, arguments.verbose)
 
-    val compilerBuilder = session.createStage(ClassicCliJvmCompilerBuilder::class) as ClassicCliJvmCompilerBuilder
-    val compiler = compilerBuilder {
+    val compiler = session.buildClassicCliCompiler {
         compilerArguments = arguments
         messageCollector = collector
-    }.build()
+    }
 
-    compiler.execute(arguments)
+    return compiler.execute(arguments)
 }

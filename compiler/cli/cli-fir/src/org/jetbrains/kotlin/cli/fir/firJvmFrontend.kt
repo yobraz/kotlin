@@ -131,7 +131,7 @@ class FirJvmFrontend internal constructor(
         val moduleInfo = FirJvmModuleInfo(module.getModuleName())
         val session: FirSession =
             FirSessionFactory.createJavaModuleBasedSession(
-                moduleInfo, provider, scope, project, null, configuration.languageVersionSettings
+                moduleInfo, provider, scope, project, languageVersionSettings = configuration.languageVersionSettings
             ) {
 //            if (extendedAnalysisMode) {
 //                registerExtendedCommonCheckers()
@@ -192,7 +192,7 @@ private fun example(args: List<String>, outStream: PrintStream) {
 
         var environment: KotlinCoreEnvironment? = null
 
-        val frontendBuilder = session.createStage(FirJvmFrontendBuilder::class) as FirJvmFrontendBuilder
+        val frontendBuilder = session.createStageBuilder(FirJvmFrontend::class) as FirJvmFrontendBuilder
         val frontend = frontendBuilder {
 
             configureDefaultJvmFirFrontend(collector, arguments, paths)
@@ -206,12 +206,12 @@ private fun example(args: List<String>, outStream: PrintStream) {
 
         }.build()
 
-        val fir2IrBuilder = session.createStage(FirJvmFrontendToIrConverterBuilder::class) as FirJvmFrontendToIrConverterBuilder
+        val fir2IrBuilder = session.createStageBuilder(FirJvmFrontendToIrConverter::class) as FirJvmFrontendToIrConverterBuilder
         val fir2ir = fir2IrBuilder {
             messageCollector = collector
         }.build()
 
-        val backendBuilder = session.createStage(IrJvmBackendBuilder::class) as IrJvmBackendBuilder
+        val backendBuilder = session.createStageBuilder(IrJvmBackend::class) as IrJvmBackendBuilder
         val backend = backendBuilder {
 
             messageCollector = collector
@@ -221,7 +221,7 @@ private fun example(args: List<String>, outStream: PrintStream) {
         val moduleName = arguments.moduleName ?: JvmProtoBufUtil.DEFAULT_MODULE_NAME
         val module = ModuleBuilder(moduleName, destination?.path ?: ".", "java-production")
 
-        val frontendRes = frontend.execute(FirJvmFrontendInputs( module, environment!!.getSourceFiles()))
+        val frontendRes = frontend.execute(FirJvmFrontendInputs(module, environment!!.getSourceFiles()))
         if (frontendRes is ExecutionResult.Success) {
             val convertorRes = fir2ir.execute(frontendRes.value)
 
