@@ -479,6 +479,12 @@ allprojects {
                 freeCompilerArgs += "-Xuse-fir"
                 freeCompilerArgs += "-Xabi-stability=stable"
             }
+
+            afterEvaluate {
+                if (this@kotlinOptions.jvmTarget != "1.6") {
+                    freeCompilerArgs += "-Xlambdas=indy"
+                }
+            }
         }
     }
 
