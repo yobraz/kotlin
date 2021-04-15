@@ -2,7 +2,7 @@ class MultiCatchTest {
     fun test1() {
         try {
 
-        } catch (e: IllegalArgumentException, NullPointerException) {
+        } catch (e: IllegalArgumentException | NullPointerException) {
 
         }
     }
@@ -10,7 +10,7 @@ class MultiCatchTest {
     fun test2() {
         try {
 
-        } catch (e: IllegalArgumentException, NullPointerException) {
+        } catch (e: IllegalArgumentException | NullPointerException) {
 
         } finally {
 
@@ -20,7 +20,7 @@ class MultiCatchTest {
     fun test3() {
         try {
 
-        } catch (e: IllegalArgumentException, NullPointerException, IllegalStateException, ) {
+        } catch (e: IllegalArgumentException | NullPointerException | IllegalStateException, ) {
 
         }
     }
@@ -30,12 +30,12 @@ class MultiCatchTest {
 
             try {
 
-            } catch (f: IllegalStateException, NullPointerException) {
+            } catch (f: IllegalStateException | NullPointerException) {
 
             } finally {
 
             }
-        } catch (e: IllegalArgumentException, NullPointerException) {
+        } catch (e: IllegalArgumentException | NullPointerException) {
 
         }
     }

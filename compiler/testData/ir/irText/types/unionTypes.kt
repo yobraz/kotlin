@@ -3,6 +3,8 @@ fun getSize(x: Int | String | Boolean): Int {
         is Int -> x
         is String -> (x).length
         is Boolean -> 1
+        // TODO: remove me
+        else -> throw AssertionError()
     }
 }
 
@@ -21,5 +23,4 @@ fun main() {
     getSize(obj)
     getSize("foo")
     getSize(1)
-    getSize(5.0)
 }

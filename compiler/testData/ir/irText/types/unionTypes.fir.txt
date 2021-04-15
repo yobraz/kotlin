@@ -3,10 +3,10 @@ FILE fqName:<root> fileName:/unionTypes.kt
     VALUE_PARAMETER name:x index:0 type:kotlin.Int | kotlin.String | kotlin.Boolean
     BLOCK_BODY
       RETURN type=kotlin.Nothing from='public final fun getSize (x: kotlin.Int | kotlin.String | kotlin.Boolean): kotlin.Int declared in <root>'
-        BLOCK type=kotlin.Unit origin=WHEN
+        BLOCK type=kotlin.Int origin=WHEN
           VAR IR_TEMPORARY_VARIABLE name:tmp_0 type:kotlin.Int | kotlin.String | kotlin.Boolean [val]
             GET_VAR 'x: kotlin.Int | kotlin.String | kotlin.Boolean declared in <root>.getSize' type=kotlin.Int | kotlin.String | kotlin.Boolean origin=null
-          WHEN type=kotlin.Unit origin=WHEN
+          WHEN type=kotlin.Int origin=WHEN
             BRANCH
               if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.Int
                 GET_VAR 'val tmp_0: kotlin.Int | kotlin.String | kotlin.Boolean [val] declared in <root>.getSize' type=kotlin.Int | kotlin.String | kotlin.Boolean origin=null
@@ -15,15 +15,17 @@ FILE fqName:<root> fileName:/unionTypes.kt
             BRANCH
               if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.String
                 GET_VAR 'val tmp_0: kotlin.Int | kotlin.String | kotlin.Boolean [val] declared in <root>.getSize' type=kotlin.Int | kotlin.String | kotlin.Boolean origin=null
-              then: TYPE_OP type=kotlin.Unit origin=IMPLICIT_COERCION_TO_UNIT typeOperand=kotlin.Unit
-                CALL 'public open fun <get-length> (): kotlin.Int declared in kotlin.String' type=kotlin.Int origin=GET_PROPERTY
-                  $this: TYPE_OP type=kotlin.String origin=IMPLICIT_CAST typeOperand=kotlin.String
-                    GET_VAR 'x: kotlin.Int | kotlin.String | kotlin.Boolean declared in <root>.getSize' type=kotlin.Int | kotlin.String | kotlin.Boolean origin=null
+              then: CALL 'public open fun <get-length> (): kotlin.Int declared in kotlin.String' type=kotlin.Int origin=GET_PROPERTY
+                $this: TYPE_OP type=kotlin.String origin=IMPLICIT_CAST typeOperand=kotlin.String
+                  GET_VAR 'x: kotlin.Int | kotlin.String | kotlin.Boolean declared in <root>.getSize' type=kotlin.Int | kotlin.String | kotlin.Boolean origin=null
             BRANCH
               if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.Boolean
                 GET_VAR 'val tmp_0: kotlin.Int | kotlin.String | kotlin.Boolean [val] declared in <root>.getSize' type=kotlin.Int | kotlin.String | kotlin.Boolean origin=null
-              then: TYPE_OP type=kotlin.Unit origin=IMPLICIT_COERCION_TO_UNIT typeOperand=kotlin.Unit
-                CONST Int type=kotlin.Int value=1
+              then: CONST Int type=kotlin.Int value=1
+            BRANCH
+              if: CONST Boolean type=kotlin.Boolean value=true
+              then: THROW type=kotlin.Nothing
+                CONSTRUCTOR_CALL 'public constructor <init> () declared in java.lang.AssertionError' type=java.lang.AssertionError origin=null
   FUN name:getRandomObject visibility:public modality:FINAL <> () returnType:kotlin.Int | kotlin.String | kotlin.Boolean
     BLOCK_BODY
       RETURN type=kotlin.Nothing from='public final fun getRandomObject (): kotlin.Int | kotlin.String | kotlin.Boolean declared in <root>'
@@ -55,5 +57,3 @@ FILE fqName:<root> fileName:/unionTypes.kt
       TYPE_OP type=kotlin.Unit origin=IMPLICIT_COERCION_TO_UNIT typeOperand=kotlin.Unit
         CALL 'public final fun getSize (x: kotlin.Int | kotlin.String | kotlin.Boolean): kotlin.Int declared in <root>' type=kotlin.Int origin=null
           x: CONST Int type=kotlin.Int value=1
-      ERROR_CALL 'Unresolved reference: <Inapplicable(INAPPLICABLE): /getSize>#' type=kotlin.Int
-        CONST Double type=kotlin.Double value=5.0

@@ -3,8 +3,9 @@ fun getSize(x: Any): Int {
     val tmp0_subject: Any = x
     when {
       tmp0_subject is Int -> x /*as Int */
-      tmp0_subject is String -> x /*as String */.<get-length>() /*~> Unit */
-      tmp0_subject is Boolean -> 1 /*~> Unit */
+      tmp0_subject is String -> x /*as String */.<get-length>()
+      tmp0_subject is Boolean -> 1
+      else -> throw AssertionError()
     }
   }
 }
@@ -24,5 +25,4 @@ fun main() {
   getSize(x = obj) /*~> Unit */
   getSize(x = "foo") /*~> Unit */
   getSize(x = 1) /*~> Unit */
-  error("") /* ErrorCallExpression */5.0;
 }
