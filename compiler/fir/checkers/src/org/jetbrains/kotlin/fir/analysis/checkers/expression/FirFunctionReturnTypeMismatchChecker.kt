@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.fir.expressions.FirWhenExpression
 import org.jetbrains.kotlin.fir.expressions.isExhaustive
 import org.jetbrains.kotlin.fir.typeContext
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
+import org.jetbrains.kotlin.fir.types.ConeUnionType
 import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.fir.types.coneTypeSafe
 
@@ -30,6 +31,8 @@ object FirFunctionReturnTypeMismatchChecker : FirReturnExpressionChecker() {
         val functionReturnType = targetElement.returnTypeRef.coneType
         val typeContext = context.session.typeContext
         val returnExpressionType = resultExpression.typeRef.coneTypeSafe<ConeKotlinType>() ?: return
+        // TODO: remove me
+        if (functionReturnType is ConeUnionType) return
 
         if (!isSubtypeForTypeMismatch(typeContext, subtype = returnExpressionType, supertype = functionReturnType)) {
             val returnExpressionSource = resultExpression.source ?: return

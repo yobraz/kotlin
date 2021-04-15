@@ -27,6 +27,8 @@ object FirInitializerTypeMismatchChecker : FirPropertyChecker() {
         if (declaration.returnTypeRef.source?.kind != FirRealSourceElementKind) return
         val propertyType = declaration.returnTypeRef.coneType
         val expressionType = initializer.typeRef.coneTypeSafe<ConeKotlinType>() ?: return
+        // TODO: remove me
+        if (propertyType is ConeUnionType) return
         val typeContext = context.session.typeContext
 
         if (!isSubtypeForTypeMismatch(typeContext, subtype = expressionType, supertype = propertyType)) {
