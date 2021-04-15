@@ -4,10 +4,10 @@ fun test() {
     try {
         try {
             throw IllegalStateException()
-        } catch (f: IndexOutOfBoundsException, NullPointerException, IllegalStateException) {
+        } catch (f: IndexOutOfBoundsException | NullPointerException | IllegalStateException) {
             throw NullPointerException()
         }
-    } catch (e: IllegalArgumentException, NullPointerException) {
+    } catch (e: IllegalArgumentException | NullPointerException) {
         println()
     }
 }
