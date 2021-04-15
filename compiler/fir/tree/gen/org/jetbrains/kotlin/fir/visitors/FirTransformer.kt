@@ -617,7 +617,7 @@ abstract class FirTransformer<in D> : FirVisitor<FirElement, D>() {
         return transformElement(implicitTypeRef, data)
     }
 
-    open fun transformUnionTypeRef(unionTypeRef: FirUnionTypeRef, data: D): CompositeTransformResult<FirTypeRef> {
+    open fun transformUnionTypeRef(unionTypeRef: FirUnionTypeRef, data: D): FirTypeRef {
         return transformElement(unionTypeRef, data)
     }
 
@@ -1121,7 +1121,7 @@ abstract class FirTransformer<in D> : FirVisitor<FirElement, D>() {
         return transformImplicitTypeRef(implicitTypeRef, data)
     }
 
-    final override fun visitUnionTypeRef(unionTypeRef: FirUnionTypeRef, data: D): CompositeTransformResult<FirTypeRef> {
+    final override fun visitUnionTypeRef(unionTypeRef: FirUnionTypeRef, data: D): FirTypeRef {
         return transformUnionTypeRef(unionTypeRef, data)
     }
 
