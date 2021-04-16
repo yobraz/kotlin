@@ -48,7 +48,7 @@ sealed class IdSignature {
 
     open val hasTopLevel: Boolean get() = !isPackageSignature()
 
-    val isLocal: Boolean get() = !isPublic
+    open val isLocal: Boolean get() = !isPublic
 
     override fun toString(): String =
         "${if (isPublic) "public" else "private"} ${render()}"
@@ -104,7 +104,10 @@ sealed class IdSignature {
 
     class CompositeSignature(val container: IdSignature, val inner: IdSignature) : IdSignature() {
         override val isPublic: Boolean
-            get() = container.isPublic && inner.isPublic
+            get() = container.isPublic
+
+        override val isLocal: Boolean
+            get() = inner.isLocal
 
         override fun topLevelSignature(): IdSignature {
             return if (container is FileSignature)
@@ -189,6 +192,9 @@ sealed class IdSignature {
     class LocalSignature(val localFqn: String, val hashSig: Long?, val description: String?) : IdSignature() {
         override val isPublic: Boolean
             get() = false
+
+        override val isLocal: Boolean
+            get() = true
 
         override fun topLevelSignature(): IdSignature {
             error("Illegal access: Local Sig does not have toplevel (${render()}")

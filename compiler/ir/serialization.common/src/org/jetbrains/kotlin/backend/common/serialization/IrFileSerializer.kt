@@ -1058,7 +1058,11 @@ open class IrFileSerializer(
             .setNameType(serializeNameAndType(parameter.name, parameter.type))
 
         parameter.varargElementType?.let { proto.setVarargElementType(serializeIrType(it)) }
-        parameter.defaultValue?.let { proto.setDefaultValue(serializeIrExpressionBody(it.expression)) }
+        parameter.defaultValue?.let {
+            declarationTable.inLocalScope(parameter) {
+                proto.setDefaultValue(serializeIrExpressionBody(it.expression))
+            }
+        }
 
         return proto.build()
     }

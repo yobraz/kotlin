@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.backend.common.serialization.CompatibilityMode
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
 import org.jetbrains.kotlin.backend.common.serialization.GlobalDeclarationTable
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.overrides.FakeOverrideBuilderStrategy
@@ -102,8 +103,14 @@ class FakeOverrideBuilder(
             }
         }
 
-        signaturer.inFile(clazz.file.symbol) {
-            irOverridingUtil.buildFakeOverridesForClass(clazz, compatibilityMode.oldSignatures)
+        fakeOverrideDeclarationTable.run {
+            inFile(clazz.file) {
+                if (clazz.visibility == DescriptorVisibilities.LOCAL) {
+                    inLocalScope(clazz.parent) {
+                        irOverridingUtil.buildFakeOverridesForClass(clazz, compatibilityMode.oldSignatures)
+                    }
+                } else irOverridingUtil.buildFakeOverridesForClass(clazz, compatibilityMode.oldSignatures)
+            }
         }
     }
 

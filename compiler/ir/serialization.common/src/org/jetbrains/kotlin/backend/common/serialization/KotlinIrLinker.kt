@@ -105,18 +105,17 @@ abstract class KotlinIrLinker(
     }
 
     private fun findDeserializedDeclarationForSymbol(symbol: IrSymbol): DeclarationDescriptor? {
-        assert(symbol.isPublicApi || symbol.descriptor.module === currentModule || platformSpecificSymbol(symbol))
 
         if (symbol in triedToDeserializeDeclarationForSymbol || symbol in deserializedSymbols) {
             return null
         }
         triedToDeserializeDeclarationForSymbol.add(symbol)
 
+        if (!symbol.hasDescriptor) return null
         val descriptor = symbol.descriptor
 
         val moduleDeserializer = resolveModuleDeserializer(descriptor.module, symbol.signature)
 
-//        moduleDeserializer.deserializeIrSymbol(signature, symbol.kind())
         moduleDeserializer.declareIrSymbol(symbol)
 
         deserializeAllReachableTopLevels()
@@ -150,9 +149,11 @@ abstract class KotlinIrLinker(
     override fun getDeclaration(symbol: IrSymbol): IrDeclaration? {
 
         if (!symbol.isPublicApi) {
-            val descriptor = symbol.descriptor
-            if (!platformSpecificSymbol(symbol)) {
-                if (descriptor.module !== currentModule) return null
+            if (symbol.hasDescriptor) {
+                val descriptor = symbol.descriptor
+                if (!platformSpecificSymbol(symbol)) {
+                    if (descriptor.module !== currentModule) return null
+                }
             }
         }
 
