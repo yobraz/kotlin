@@ -51,7 +51,7 @@ sealed class IdSignature {
     open val isLocal: Boolean get() = !isPublic
 
     override fun toString(): String =
-        "${if (isPublic) "public" else "private"} ${render()}"
+        "${if (isLocal) "local " else ""} ${render()}"
 
     class PublicSignature(val packageFqName: String, val declarationFqName: String, val id: Long?, val mask: Long) : IdSignature() {
         override val isPublic: Boolean get() = true
