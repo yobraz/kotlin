@@ -66,16 +66,7 @@ abstract class IrBindablePublicSymbolBase<out D : DeclarationDescriptor, B : IrS
 
 class IrClassPublicSymbolImpl(sig: IdSignature, descriptor: ClassDescriptor? = null) :
     IrBindablePublicSymbolBase<ClassDescriptor, IrClass>(sig, descriptor),
-    IrClassSymbol {
-        init {
-            if (sig.toString() == "private <</box|2173511048851971368[0] <- [\$0, 18uqu4fjutw8d | local final fun <anonymous>(): (String) -> C defined in box]> <- [C\$0 | local final class C defined in box.<anonymous>]>") {
-                println("XXX")
-            }
-            if (sig.toString() == "private </box|2173511048851971368[0] <- [B\$0 | local final class B defined in box]>") {
-                println("YYY")
-            }
-        }
-    }
+    IrClassSymbol
 
 class IrEnumEntryPublicSymbolImpl(sig: IdSignature, descriptor: ClassDescriptor? = null) :
     IrBindablePublicSymbolBase<ClassDescriptor, IrEnumEntry>(sig, descriptor),
@@ -83,16 +74,7 @@ class IrEnumEntryPublicSymbolImpl(sig: IdSignature, descriptor: ClassDescriptor?
 
 class IrSimpleFunctionPublicSymbolImpl(sig: IdSignature, descriptor: FunctionDescriptor? = null) :
     IrBindablePublicSymbolBase<FunctionDescriptor, IrSimpleFunction>(sig, descriptor),
-    IrSimpleFunctionSymbol {
-        init {
-            if (sig.toString() == "private kotlin.js/|null[0]:1:8310451807829678750:-4905333781038051537") {
-                println("KKKKKK")
-            }
-            if (sig.toString() == "public kotlin.collections/AbstractMap.values.<get-values>.<no name provided>.toArray|2932041455850412365[0]") {
-                println("EEE")
-            }
-        }
-    }
+    IrSimpleFunctionSymbol
 
 class IrConstructorPublicSymbolImpl(sig: IdSignature, descriptor: ClassConstructorDescriptor? = null) :
     IrBindablePublicSymbolBase<ClassConstructorDescriptor, IrConstructor>(sig, descriptor),
