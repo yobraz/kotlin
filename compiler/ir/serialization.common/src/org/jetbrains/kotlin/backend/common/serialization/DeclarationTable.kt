@@ -83,7 +83,7 @@ open class DeclarationTable(globalTable: GlobalDeclarationTable) {
                 }
             }
 
-            override fun visitFunction(declaration: IrFunction) {
+            override fun visitSimpleFunction(declaration: IrSimpleFunction) {
                 scope.commitLocalFunction(declaration)
             }
 
