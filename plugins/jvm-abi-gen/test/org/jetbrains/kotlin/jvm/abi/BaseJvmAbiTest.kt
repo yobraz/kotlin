@@ -68,7 +68,7 @@ abstract class BaseJvmAbiTest : TestCase() {
             destination = compilation.destinationDir.canonicalPath
         }
         val exitCode = compiler.exec(messageCollector, Services.EMPTY, args)
-        if (exitCode != ExitCode.OK || messageCollector.errors.isNotEmpty()) {
+        if (exitCode.code != ExitCode.OK || messageCollector.errors.isNotEmpty()) {
             val errorLines = listOf("Could not compile $compilation", "Exit code: $exitCode", "Errors:") + messageCollector.errors
             error(errorLines.joinToString("\n"))
         }
