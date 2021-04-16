@@ -45,6 +45,7 @@ abstract class IdSignatureBuilder<D> {
         this.overridden = null
         this.description = null
         this.isTopLevelPrivate = false
+        this.errorIndex = null
 
         if (resetContainer) container = null
     }
