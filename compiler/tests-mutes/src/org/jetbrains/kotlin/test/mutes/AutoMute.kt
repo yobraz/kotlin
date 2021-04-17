@@ -22,6 +22,7 @@ val DO_AUTO_MUTE: AutoMute? by lazy {
         )
     } else {
         null
+        null
     }
 }
 

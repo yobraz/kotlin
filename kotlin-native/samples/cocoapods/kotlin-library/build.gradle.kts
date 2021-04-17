@@ -30,6 +30,6 @@ kotlin {
         homepage = "https://github.com/JetBrains/kotlin-native"
         
         // Configure a dependency on AFNetworking. It will be added in all macOS and iOS targets.
-        pod("AFNetworking", "~> 3.2.0")
+            pod("AFNetworking", "~> 3.2.0")
     }
 }
