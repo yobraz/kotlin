@@ -5,7 +5,9 @@
 
 package org.jetbrains.kotlin.gradle.targets.js.npm
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
@@ -64,6 +66,7 @@ internal abstract class AbstractNodeModulesCache : AutoCloseable, BuildService<A
 fun makeNodeModule(
     container: File,
     packageJson: PackageJson,
+    srcPackageJson: File?,
     files: (File) -> Unit
 ): File {
     val dir = importedPackageDir(container, packageJson.name, packageJson.version)
@@ -81,8 +84,17 @@ fun makeNodeModule(
 
     files(dir)
 
-    dir.resolve("package.json").writer().use {
-        gson.toJson(packageJson, it)
+    val jsonToWrite = srcPackageJson?.reader()?.use {
+        val json = Gson().fromJson(it, JsonObject::class.java)
+        json.addProperty(packageJson::name.name, packageJson.name)
+        json.addProperty(packageJson::version.name, packageJson.version)
+        json.addProperty(packageJson::main.name, packageJson.main)
+        json
+    } ?: packageJson
+
+    val packageJsonFile = dir.resolve("package.json")
+    packageJsonFile.writer().use {
+        gson.toJson(jsonToWrite, it)
     }
 
     return dir

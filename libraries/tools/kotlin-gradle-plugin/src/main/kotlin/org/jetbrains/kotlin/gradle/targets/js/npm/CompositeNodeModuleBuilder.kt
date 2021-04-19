@@ -33,13 +33,14 @@ internal class CompositeNodeModuleBuilder(
             ?.path
             ?: throw IllegalStateException("Unable to link composite builds for Kotlin/JS which have different roots")
 
-        return makeNodeModule(cacheDir, packageJson)
+        return makeNodeModule(cacheDir, packageJson, srcPackageJsonFile)
     }
 }
 
 private fun makeNodeModule(
     container: File,
-    packageJson: PackageJson
+    packageJson: PackageJson,
+    srcPackageJsonFile: File?
 ): File {
-    return makeNodeModule(container, packageJson) {}
+    return makeNodeModule(container, packageJson, srcPackageJsonFile) {}
 }

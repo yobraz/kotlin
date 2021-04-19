@@ -10,7 +10,6 @@ import com.google.gson.FieldAttributes
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import org.gradle.api.GradleException
-import org.gradle.api.tasks.Input
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 import java.io.File
 import java.io.Serializable

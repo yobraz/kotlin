@@ -65,7 +65,7 @@ internal class GradleNodeModuleBuilder(
 
         val actualFiles = files.filterNot { it.name.endsWith(".$META_JS") }
 
-        return makeNodeModule(cacheDir, packageJson) { nodeModule ->
+        return makeNodeModule(cacheDir, packageJson, srcPackageJsonFile) { nodeModule ->
             fs.copy { copy ->
                 copy.from(actualFiles)
                 copy.into(nodeModule)
