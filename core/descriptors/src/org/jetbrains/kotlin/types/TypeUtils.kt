@@ -185,7 +185,59 @@ fun KotlinType.contains(predicate: (UnwrappedType) -> Boolean) = TypeUtils.conta
 fun KotlinType.replaceArgumentsWithStarProjections() = replaceArgumentsWith(::StarProjectionImpl)
 fun KotlinType.replaceArgumentsWithNothing() = replaceArgumentsWith { it.builtIns.nothingType.asTypeProjection() }
 
-private inline fun KotlinType.replaceArgumentsWith(replacement: (TypeParameterDescriptor) -> TypeProjection): KotlinType {
+fun KotlinType.extractTypeParametersFromUpperBounds(): Set<TypeParameterDescriptor> =
+    mutableSetOf<TypeParameterDescriptor>().also { extractTypeParametersFromUpperBounds(this, it) }
+
+private fun KotlinType.extractTypeParametersFromUpperBounds(baseType: KotlinType, to: MutableSet<TypeParameterDescriptor>) {
+    val declarationDescriptor = constructor.declarationDescriptor
+
+    if (declarationDescriptor is TypeParameterDescriptor) {
+        if (constructor != baseType.constructor) {
+            to += declarationDescriptor
+        } else {
+            for (upperBound in declarationDescriptor.upperBounds) {
+                upperBound.extractTypeParametersFromUpperBounds(baseType, to)
+            }
+        }
+    } else {
+        for (argument in arguments) {
+            if (argument.isStarProjection || !argument.type.isComputed()) continue
+            argument.type.extractTypeParametersFromUpperBounds(baseType, to)
+        }
+    }
+}
+
+fun hasTypeParameterRecursiveBounds(typeParameter: TypeParameterDescriptor, selfConstructor: TypeConstructor? = null): Boolean =
+    typeParameter.upperBounds.any { upperBound ->
+        upperBound.isComputed() && upperBound.containsAmongComputed(typeParameter.defaultType)
+                && (selfConstructor == null || upperBound.constructor == selfConstructor)
+    }
+
+private fun KotlinType.containsAmongComputed(baseType: KotlinType): Boolean {
+    if (this.constructor == baseType.constructor) return true
+
+    return this.arguments.any {
+        if (!it.type.isComputed() || it.isStarProjection) return@any false
+        it.type.containsAmongComputed(baseType)
+    }
+}
+
+fun KotlinType.isComputed() = this !is WrappedType || isComputed()
+
+fun KotlinType.replaceArgumentsWithStarProjectionOrMapped(
+    substitutor: TypeSubstitutor,
+    substitutionMap: Map<TypeConstructor, TypeProjection>,
+    variance: Variance
+) =
+    replaceArgumentsWith { typeParameterDescriptor ->
+        val argument = arguments.getOrNull(typeParameterDescriptor.index)
+        if (argument != null && argument.type.isComputed() && argument.type.constructor in substitutionMap) {
+            argument
+        } else StarProjectionImpl(typeParameterDescriptor)
+    }.let { substitutor.safeSubstitute(it, variance) }
+
+
+inline fun KotlinType.replaceArgumentsWith(replacement: (TypeParameterDescriptor) -> TypeProjection): KotlinType {
     val unwrapped = unwrap()
     return when (unwrapped) {
         is FlexibleType -> KotlinTypeFactory.flexibleType(
@@ -196,7 +248,7 @@ private inline fun KotlinType.replaceArgumentsWith(replacement: (TypeParameterDe
     }.inheritEnhancement(unwrapped)
 }
 
-private inline fun SimpleType.replaceArgumentsWith(replacement: (TypeParameterDescriptor) -> TypeProjection): SimpleType {
+inline fun SimpleType.replaceArgumentsWith(replacement: (TypeParameterDescriptor) -> TypeProjection): SimpleType {
     if (constructor.parameters.isEmpty() || constructor.declarationDescriptor == null) return this
 
     val newArguments = constructor.parameters.map(replacement)

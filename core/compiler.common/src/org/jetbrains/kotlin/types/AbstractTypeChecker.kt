@@ -356,7 +356,7 @@ object AbstractTypeChecker {
 
         val typeVariableConstructor = superArgumentType.typeConstructor() as? TypeVariableTypeConstructorMarker ?: return false
 
-        return typeVariableConstructor.typeParameter?.doesFormSelfType(selfConstructor) == true
+        return typeVariableConstructor.typeParameter?.hasRecursiveBounds(selfConstructor) == true
     }
 
     fun AbstractTypeCheckerContext.isSubtypeForSameConstructor(
@@ -474,7 +474,7 @@ object AbstractTypeChecker {
          */
         if (subType is CapturedTypeMarker) {
             val typeParameter = getTypeParameterForArgumentInBaseIfItEqualToTarget(baseType = superType, targetType = subType)
-            if (typeParameter != null && typeParameter.doesFormSelfType(superType.typeConstructor())) {
+            if (typeParameter != null && typeParameter.hasRecursiveBounds(superType.typeConstructor())) {
                 return true
             }
         }
