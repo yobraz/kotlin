@@ -9,8 +9,8 @@ import com.intellij.openapi.util.io.FileUtil
 import junit.framework.TestCase
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.fir.ExecutionResult
-import org.jetbrains.kotlin.cli.fir.LocalCompilationServiceBuilder
 import org.jetbrains.kotlin.cli.fir.classicCliJvmCompile
+import org.jetbrains.kotlin.cli.fir.oldFeOldBeCompile
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.integration.KotlinIntegrationTestBase
 import org.junit.Test
@@ -26,22 +26,32 @@ private const val TEST_DATA_DIR = "compiler/cli/cli-fir/testData"
 class CompilationPipelineTest : KotlinIntegrationTestBase() {
 
     @Test
-    fun testHelloWorldJvm() {
+    fun testHelloWorldClassicJvm() {
         val source = File(TEST_DATA_DIR, "helloWorld/helloWorld.kt").normalize().absolutePath
 
         val baseDest = FileUtil.createTempDirectory("base", "out").normalize()
         val (baseResult, _) = compileWithOutput {
-            K2JVMCompiler().exec(it, "-d", baseDest.path, source)
+            K2JVMCompiler().exec(it, "-Xuse-old-backend", "-d", baseDest.path, source)
         }
         TestCase.assertEquals(ExitCode.OK, baseResult)
 
-        val classicDest = FileUtil.createTempDirectory("classic", "out")
-        val (classicResult, _) = compileWithOutput {
-            classicCliJvmCompile(listOf("-d", classicDest.path, source), it)
+        val classicCliDest = FileUtil.createTempDirectory("classic", "out")
+        val (classicCliResult, _) = compileWithOutput {
+            classicCliJvmCompile(listOf("-Xuse-old-backend", "-d", classicCliDest.path, source), it)
         }
-        assertTrue(classicResult is ExecutionResult.Success)
+        assertTrue(classicCliResult is ExecutionResult.Success)
 
-        compareDirectories(baseDest, classicDest)
+        compareDirectories(baseDest, classicCliDest)
+
+        val classicFeBeDest = FileUtil.createTempDirectory("classic", "out")
+        val (classicFeBeResult, classicFeBeOut) = compileWithOutput { outStr ->
+            oldFeOldBeCompile(listOf("-d", classicFeBeDest.path, source), outStr).also {
+                outStr.flush()
+            }
+        }
+        assertTrue(classicFeBeOut, classicFeBeResult is ExecutionResult.Success)
+
+        compareDirectories(baseDest, classicFeBeDest)
     }
 }
 
