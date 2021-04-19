@@ -119,7 +119,7 @@ private fun example(args: List<String>, outStream: PrintStream) {
 
     val service = LocalCompilationServiceBuilder().build()
 
-    val session = service.createSession("")
+    val session = service.createLocalJsOldFeIrCompilationSession()
 
     val rootDisposable = Disposer.newDisposable()
 
@@ -217,4 +217,11 @@ private fun String.splitByPathSeparator(): List<String> {
         .dropLastWhile { it.isEmpty() }
         .toTypedArray()
         .filterNot { it.isEmpty() }
+}
+
+fun CompilationService.createLocalJsOldFeIrCompilationSession() = createLocalCompilationSession {
+    registerStage<ClassicJsFrontend, ClassicJsFrontendBuilder> { ClassicJsFrontendBuilder() }
+    registerStage<ClassicJsFrontendToIrConverter, ClassicJsFrontendToIrConverterBuilder> { ClassicJsFrontendToIrConverterBuilder() }
+    registerStage<ClassicJsFrontendToIrConverter, ClassicJsFrontendToIrConverterBuilder> { ClassicJsFrontendToIrConverterBuilder() }
+    registerStage<IrJvmBackend, IrJvmBackendBuilder> { IrJvmBackendBuilder() }
 }

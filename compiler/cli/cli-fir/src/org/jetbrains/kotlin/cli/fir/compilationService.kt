@@ -17,16 +17,38 @@ interface CompilationStageBuilder<T, R> {
     fun build(): CompilationStage<T, R>
 }
 
-interface CompilationSession {
-    fun <S : CompilationStage<*, *>> createStageBuilder(impl: KClass<S>): CompilationStageBuilder<*, *>
-    fun <T : Any, R : Any> createStageBuilder(from: KClass<T>, to: KClass<R>): CompilationStageBuilder<T, R>
-    fun close()
+abstract class CompilationSession(
+    val compilationService: CompilationService,
+    val registeredCreateStage: MutableMap<KClass<out CompilationStage<*, *>>, () -> CompilationStageBuilder<*, *>>
+) {
+    fun <S : CompilationStage<*, *>> createStageBuilder(impl: KClass<S>): CompilationStageBuilder<*, *> {
+        val compilationStage = registeredCreateStage[impl] ?: throw AssertionError("Unknown compilation stage: $impl")
+        return compilationStage.invoke()
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun <T : Any, R : Any> createStageBuilder(from: KClass<T>, to: KClass<R>): CompilationStageBuilder<T, R> {
+        TODO("Not yet implemented")
+    }
+
+    abstract fun close()
+}
+
+abstract class CompilationSessionBuilder(val compilationService: CompilationService) {
+    val registeredCreateStage = mutableMapOf<KClass<out CompilationStage<*, *>>, (CompilationSession) -> CompilationStageBuilder<*, *>>()
+    // registeredDestroyStage ?
+
+    inline fun <reified S: CompilationStage<*, *>, reified B: CompilationStageBuilder<*, *>> registerStage(noinline createBuilder: (CompilationSession) -> B) =
+        registeredCreateStage.put(S::class, createBuilder)
+
+    abstract fun build(): CompilationSession
 }
 
 interface CompilationService {
-    fun createSession(name: String): CompilationSession
 }
 
-interface CompilationServiceBuilder {
-    fun build(): CompilationService
+abstract class CompilationServiceBuilder {
+    abstract fun build(): CompilationService
 }
+
+

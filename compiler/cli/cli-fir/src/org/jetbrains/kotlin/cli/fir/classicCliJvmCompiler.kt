@@ -18,14 +18,14 @@ import java.io.PrintStream
 
 class ClassicCliJvmCompilerBuilder : CompilationStageBuilder<K2JVMCompilerArguments, List<File>> {
 
-    var compilerArguments: K2JVMCompilerArguments = K2JVMCompilerArguments()
+    var compilerArguments: K2JVMCompilerArguments? = null
 
     var messageCollector: MessageCollector = MessageCollector.NONE
 
     var services: Services = Services.EMPTY
 
     override fun build(): CompilationStage<K2JVMCompilerArguments, List<File>> =
-        ClassicCliJvmCompiler(compilerArguments, messageCollector, services)
+        ClassicCliJvmCompiler(compilerArguments!!, messageCollector, services)
 
     operator fun invoke(body: ClassicCliJvmCompilerBuilder.() -> Unit): ClassicCliJvmCompilerBuilder {
         this.body()
@@ -55,16 +55,17 @@ class ClassicCliJvmCompiler internal constructor(
 inline fun CompilationSession.buildClassicCliCompiler(body: ClassicCliJvmCompilerBuilder.() -> Unit): ClassicCliJvmCompiler =
     (createStageBuilder(ClassicCliJvmCompiler::class) as ClassicCliJvmCompilerBuilder).also { it.body() }.build() as ClassicCliJvmCompiler
 
-@Suppress("unused")
+fun CompilationService.createLocalJvmDefaultCliCompilationSession() = createLocalCompilationSession {
+    registerStage<ClassicCliJvmCompiler, ClassicCliJvmCompilerBuilder> { ClassicCliJvmCompilerBuilder() }
+}
+
 internal fun classicCliJvmCompile(args: List<String>, outStream: PrintStream): ExecutionResult<List<File>> {
 
     val service = LocalCompilationServiceBuilder().build()
 
-    val session = service.createSession("") as LocalCompilationSession
+    val session = service.createLocalJvmDefaultCliCompilationSession()
 
-    val arguments = K2JVMCompilerArguments()
-    parseCommandLineArguments(args, arguments)
-    val collector = PrintingMessageCollector(outStream, MessageRenderer.WITHOUT_PATHS, arguments.verbose)
+    val (arguments, collector) = args.toJvmArgumentsAndCollector(outStream)
 
     val compiler = session.buildClassicCliCompiler {
         compilerArguments = arguments

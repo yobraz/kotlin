@@ -311,3 +311,9 @@ private fun tryLoadScriptingPluginFromCurrentClassLoader(configuration: Compiler
     false
 }
 
+fun CompilationService.createLocalJvmFirCompilationSession() = createLocalCompilationSession {
+    registerStage<FirJvmFrontend, FirJvmFrontendBuilder> { FirJvmFrontendBuilder() }
+    registerStage<FirJvmFrontendToIrConverter, FirJvmFrontendToIrConverterBuilder> { FirJvmFrontendToIrConverterBuilder() }
+    registerStage<IrJvmBackend, IrJvmBackendBuilder> { IrJvmBackendBuilder() }
+}
+

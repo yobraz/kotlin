@@ -7,34 +7,14 @@ package org.jetbrains.kotlin.cli.fir
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import kotlin.reflect.KClass
 
-class LocalCompilationSession(val rootDisposable: Disposable) : CompilationSession {
+class LocalCompilationServiceBuilder : CompilationServiceBuilder() {
 
-    private val byClass =
-        mutableMapOf<KClass<out CompilationStage<*, *>>, () -> CompilationStageBuilder<*, *>>(
-            ClassicCliJvmCompiler::class to { ClassicCliJvmCompilerBuilder() }
-        )
+    var rootDisposable: Disposable? = null
 
-    @Suppress("TYPE_INFERENCE_ONLY_INPUT_TYPES_WARNING", "USELESS_CAST", "UNCHECKED_CAST")
-    override fun <S : CompilationStage<*, *>> createStageBuilder(impl: KClass<S>): CompilationStageBuilder<*, *> {
-        val compilationStage = byClass[impl] ?: throw RuntimeException("Unknown compilation stage: $impl")
-        return compilationStage.invoke() as CompilationStageBuilder<*, *>
-    }
-
-    override fun <T : Any, R : Any> createStageBuilder(from: KClass<T>, to: KClass<R>): CompilationStageBuilder<T, R> {
-        TODO("Not yet implemented")
-    }
-
-    override fun close() {
-        rootDisposable.dispose()
-    }
+    override fun build(): CompilationService = LocalCompilationService(rootDisposable ?: Disposer.newDisposable())
 }
 
-class LocalCompilationServiceBuilder(var rootDisposable: Disposable = Disposer.newDisposable()) : CompilationServiceBuilder {
-    override fun build(): CompilationService = LocalCompilationService(rootDisposable)
+internal class LocalCompilationService(val rootDisposable: Disposable) : CompilationService {
 }
 
-class LocalCompilationService(val rootDisposable: Disposable) : CompilationService {
-    override fun createSession(name: String): CompilationSession = LocalCompilationSession(rootDisposable)
-}
