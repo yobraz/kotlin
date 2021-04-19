@@ -19,7 +19,9 @@ class PackageJson(
     var name: String,
     var version: String
 ) : Serializable {
-    internal val customFields = mutableMapOf<String, Any?>()
+    val customFields = mutableMapOf<String, Any?>()
+
+    var browser: Any? = null
 
     val empty: Boolean
         get() = main == null &&

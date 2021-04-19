@@ -462,6 +462,23 @@ internal class KotlinCompilationNpmResolver(
                 compilationResolver.packageJsonHandlers
             )
 
+            resolvedInternalDependencies.forEach {
+                val dependentPackageJson = it.packageJson
+                when (val browserField = packageJson.browser) {
+                    is String -> {
+                        // do nothing
+                    }
+                    is Map<*, *> -> {
+                        val mutableBrowserField = copyBrowserField(browserField, dependentPackageJson.browser)
+                        packageJson.browser = mutableBrowserField
+                    }
+                    null -> {
+                        val mutableBrowserField = copyBrowserField(browserField, dependentPackageJson.browser)
+                        packageJson.browser = mutableBrowserField
+                    }
+                }
+            }
+
             compositeDependencies.forEach {
                 packageJson.dependencies[it.name] = it.version
             }
@@ -491,6 +508,18 @@ internal class KotlinCompilationNpmResolver(
                 allNpmDependencies,
                 packageJson
             )
+        }
+
+        private fun copyBrowserField(browserField: Map<*, *>?, dependentBrowserField: Any?): Map<*, *> {
+            val mutableBrowserField = browserField?.toMutableMap() ?: mutableMapOf()
+            if (dependentBrowserField is Map<*, *>) {
+                dependentBrowserField.forEach { key, value ->
+                    if (key !in mutableBrowserField) {
+                        mutableBrowserField[key] = value
+                    }
+                }
+            }
+            return mutableBrowserField
         }
 
         private fun CompositeDependency.getPackages(): List<File> {
