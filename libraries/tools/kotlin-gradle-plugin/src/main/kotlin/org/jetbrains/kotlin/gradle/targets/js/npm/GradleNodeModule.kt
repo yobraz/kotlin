@@ -11,7 +11,12 @@ import java.io.Serializable
 /**
  * Fake NodeJS module directory created from Gradle external module
  */
-data class GradleNodeModule(val name: String, val version: String, val path: File) : Serializable {
+data class GradleNodeModule(
+    val name: String,
+    val version: String,
+    val path: File,
+    val packageJson: PackageJson
+    ) : Serializable {
     val semver: SemVer
         get() = SemVer.from(version)
 }

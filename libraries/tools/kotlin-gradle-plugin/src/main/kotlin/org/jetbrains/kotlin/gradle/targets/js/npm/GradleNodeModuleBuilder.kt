@@ -43,7 +43,7 @@ internal class GradleNodeModuleBuilder(
         }
     }
 
-    fun rebuild(): File? {
+    fun rebuild(): Pair<File, PackageJson>? {
         if (files.isEmpty() && srcPackageJsonFile == null) return null
 
         val packageJson = fromSrcPackageJson(srcPackageJsonFile)?.apply {
@@ -70,7 +70,7 @@ internal class GradleNodeModuleBuilder(
                 copy.from(actualFiles)
                 copy.into(nodeModule)
             }
-        }
+        } to packageJson
     }
 }
 

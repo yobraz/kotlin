@@ -485,10 +485,44 @@ internal class KotlinCompilationNpmResolver(
 
             resolvedInternalDependencies.forEach {
                 packageJson.dependencies[it.packageJson.name] = it.packageJson.version
+
+                val dependentPackageJson = it.packageJson
+                when (val browserField = packageJson.browser) {
+                    is String -> {
+                        // do nothing
+                    }
+                    is Map<*, *> -> {
+                        val mutableBrowserField = copyBrowserField(browserField, dependentPackageJson.browser)
+                        packageJson.browser = mutableBrowserField
+                    }
+                    null -> {
+                        val mutableBrowserField = copyBrowserField(browserField, dependentPackageJson.browser)
+                        if (mutableBrowserField.isNotEmpty()) {
+                            packageJson.browser = mutableBrowserField
+                        }
+                    }
+                }
             }
 
             importedExternalGradleDependencies.forEach {
                 packageJson.dependencies[it.name] = fileVersion(it.path)
+
+                val dependentPackageJson = it.packageJson
+                when (val browserField = packageJson.browser) {
+                    is String -> {
+                        // do nothing
+                    }
+                    is Map<*, *> -> {
+                        val mutableBrowserField = copyBrowserField(browserField, dependentPackageJson.browser)
+                        packageJson.browser = mutableBrowserField
+                    }
+                    null -> {
+                        val mutableBrowserField = copyBrowserField(browserField, dependentPackageJson.browser)
+                        if (mutableBrowserField.isNotEmpty()) {
+                            packageJson.browser = mutableBrowserField
+                        }
+                    }
+                }
             }
 
             compilationResolver.packageJsonHandlers.forEach {

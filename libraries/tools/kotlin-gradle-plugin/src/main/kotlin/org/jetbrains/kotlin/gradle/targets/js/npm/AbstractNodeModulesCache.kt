@@ -40,6 +40,8 @@ internal abstract class AbstractNodeModulesCache : AutoCloseable, BuildService<A
         )
     }
 
+    private val packageJsonCache = mutableMapOf<File, PackageJson>()
+
     @Synchronized
     fun get(
         name: String,
@@ -48,14 +50,25 @@ internal abstract class AbstractNodeModulesCache : AutoCloseable, BuildService<A
     ): GradleNodeModule? = cache.getOrCompute(file) {
         buildImportedPackage(name, version, file)
     }?.let {
-        GradleNodeModule(it)
+        val packageJson = it.second
+        val dir = it.first
+        if (packageJson != null) {
+            packageJsonCache[dir] = packageJson
+            GradleNodeModule(dir, packageJson)
+        } else {
+            val alternativePackageJson = packageJsonCache[dir]
+                ?: dir.resolve("package.json").reader().use {
+                    Gson().fromJson(it, PackageJson::class.java)
+                }
+            GradleNodeModule(dir, alternativePackageJson)
+        }
     }
 
     abstract fun buildImportedPackage(
         name: String,
         version: String,
         file: File
-    ): File?
+    ): Pair<File, PackageJson>?
 
     @Synchronized
     override fun close() {
@@ -103,4 +116,4 @@ fun makeNodeModule(
 fun importedPackageDir(container: File, name: String, version: String): File =
     container.resolve(name).resolve(version)
 
-fun GradleNodeModule(dir: File) = GradleNodeModule(dir.parentFile.name, dir.name, dir)
+fun GradleNodeModule(dir: File, packageJson: PackageJson) = GradleNodeModule(dir.parentFile.name, dir.name, dir, packageJson)

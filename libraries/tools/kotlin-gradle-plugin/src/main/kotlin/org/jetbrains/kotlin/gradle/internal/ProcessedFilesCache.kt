@@ -183,24 +183,34 @@ internal open class ProcessedFilesCache(
         } else null) ?: State()
     }
 
-    internal fun getOrCompute(
+    internal fun <T : Any> getOrCompute(
         file: File,
-        compute: () -> File?
-    ): File? = getOrComputeKey(file, compute)?.let { File(targetDir, it) }
+        compute: () -> Pair<File, T>?
+    ): Pair<File, T?>? {
+        return getOrComputeKey(file) {
+            val computeResult = compute()
+            computeResult?.first to computeResult?.second
+        }.let { pair ->
+            pair.first?.let {
+                File(targetDir, it) to pair.second
+            }
+        }
+    }
 
-    private fun getOrComputeKey(
+    private fun <T : Any> getOrComputeKey(
         file: File,
-        compute: () -> File?
-    ): String? {
+        compute: () -> Pair<File?, T?>
+    ): Pair<String?, T?> {
         val hash = fileHasher.hash(file).toByteArray()
         val old = state[hash]
 
         if (old != null) {
-            if (checkTarget(old.target)) return old.target
+            if (checkTarget(old.target)) return old.target to null
             else System.err.println("Cannot find ${File(targetDir.relativeTo(projectDir), old.target!!)}, rebuilding")
         }
 
-        val key = compute()?.relativeTo(targetDir)?.toString()
+        val computeResult = compute()
+        val key = computeResult.first?.relativeTo(targetDir)?.toString()
         val existedTarget = state.byTarget[key]
         if (key != null && existedTarget != null) {
             if (!File(existedTarget.src).exists()) {
@@ -210,7 +220,7 @@ internal open class ProcessedFilesCache(
         }
         state[hash] = Element(file.canonicalPath, key)
 
-        return key
+        return key to computeResult.second
     }
 
     private fun checkTarget(target: String?): Boolean {

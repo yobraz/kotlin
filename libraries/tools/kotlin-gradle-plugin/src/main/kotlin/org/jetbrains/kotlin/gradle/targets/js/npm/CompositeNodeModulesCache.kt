@@ -17,7 +17,7 @@ internal abstract class CompositeNodeModulesCache : AbstractNodeModulesCache() {
         name: String,
         version: String,
         file: File
-    ): File? {
+    ): Pair<File, PackageJson> {
         val module = CompositeNodeModuleBuilder(file, parameters.cacheDir.get().asFile)
         return module.rebuild()
     }

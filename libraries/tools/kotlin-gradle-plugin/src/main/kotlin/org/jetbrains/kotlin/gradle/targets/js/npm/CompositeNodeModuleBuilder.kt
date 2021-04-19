@@ -16,7 +16,7 @@ internal class CompositeNodeModuleBuilder(
 ) {
     var srcPackageJsonFile: File = srcDir
 
-    fun rebuild(): File? {
+    fun rebuild(): Pair<File, PackageJson> {
         check(srcPackageJsonFile.isFile) {
             "Unable to read package.json of composite build"
         }
@@ -41,6 +41,6 @@ private fun makeNodeModule(
     container: File,
     packageJson: PackageJson,
     srcPackageJsonFile: File?
-): File {
-    return makeNodeModule(container, packageJson, srcPackageJsonFile) {}
+): Pair<File, PackageJson> {
+    return makeNodeModule(container, packageJson, srcPackageJsonFile) {} to packageJson
 }

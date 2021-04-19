@@ -29,7 +29,7 @@ internal abstract class GradleNodeModulesCache : AbstractNodeModulesCache() {
         name: String,
         version: String,
         file: File
-    ): File? {
+    ): Pair<File, PackageJson>? {
         val module = GradleNodeModuleBuilder(fs, archiveOperations, name, version, listOf(file), parameters.cacheDir.get().asFile)
         module.visitArtifacts()
         return module.rebuild()
