@@ -178,30 +178,6 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
         }
     }
 
-    private fun ModuleBuilder.configureFromArgs(args: K2JVMCompilerArguments) {
-        args.friendPaths?.forEach { addFriendDir(it) }
-        args.classpath?.split(File.pathSeparator)?.forEach { addClasspathEntry(it) }
-        args.javaSourceRoots?.forEach {
-            addJavaSourceRoot(JavaRootPath(it, args.javaPackagePrefix))
-        }
-
-        val commonSources = args.commonSources?.toSet().orEmpty()
-        for (arg in args.freeArgs) {
-            if (arg.endsWith(JavaFileType.DOT_DEFAULT_EXTENSION)) {
-                addJavaSourceRoot(JavaRootPath(arg, args.javaPackagePrefix))
-            } else {
-                addSourceFiles(arg)
-                if (arg in commonSources) {
-                    addCommonSourceFiles(arg)
-                }
-
-                if (File(arg).isDirectory) {
-                    addJavaSourceRoot(JavaRootPath(arg, args.javaPackagePrefix))
-                }
-            }
-        }
-    }
-
     override fun MutableList<String>.addPlatformOptions(arguments: K2JVMCompilerArguments) {
         if (arguments.scriptTemplates?.isNotEmpty() == true) {
             add("plugin:kotlin.scripting:script-templates=${arguments.scriptTemplates!!.joinToString(",")}")

@@ -19,11 +19,11 @@ interface CompilationStageBuilder<T, R> {
 
 abstract class CompilationSession(
     val compilationService: CompilationService,
-    val registeredCreateStage: MutableMap<KClass<out CompilationStage<*, *>>, () -> CompilationStageBuilder<*, *>>
+    val registeredCreateStage: MutableMap<KClass<out CompilationStage<*, *>>, (CompilationSession) -> CompilationStageBuilder<*, *>>
 ) {
     fun <S : CompilationStage<*, *>> createStageBuilder(impl: KClass<S>): CompilationStageBuilder<*, *> {
         val compilationStage = registeredCreateStage[impl] ?: throw AssertionError("Unknown compilation stage: $impl")
-        return compilationStage.invoke()
+        return compilationStage.invoke(this)
     }
 
     @Suppress("UNUSED_PARAMETER")

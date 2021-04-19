@@ -177,7 +177,7 @@ private fun example(args: List<String>, outStream: PrintStream) {
 
     val service = LocalCompilationServiceBuilder().build()
 
-    val session = service.createSession("")
+    val session = service.createLocalJvmFirCompilationSession()
 
     val rootDisposable = Disposer.newDisposable()
 

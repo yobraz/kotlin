@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
 
 class ClassicBackendBuilder : CompilationStageBuilder<Pair<AnalysisResult, List<KtFile>>, GenerationState> {
-    val configuration = CompilerConfiguration()
+    var configuration = CompilerConfiguration()
 
     override fun build(): CompilationStage<Pair<AnalysisResult, List<KtFile>>, GenerationState> {
         TODO("Not yet implemented")
@@ -47,3 +47,6 @@ class ClassicBackend internal constructor(
         return ExecutionResult.Success(res, emptyList())
     }
 }
+
+inline fun CompilationSession.buildJvmOldBackend(body: ClassicBackendBuilder.() -> Unit): ClassicBackend =
+    (createStageBuilder(ClassicBackend::class) as ClassicBackendBuilder).also { it.body() }.build() as ClassicBackend

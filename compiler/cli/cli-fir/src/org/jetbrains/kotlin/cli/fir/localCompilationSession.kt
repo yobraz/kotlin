@@ -10,7 +10,7 @@ import kotlin.reflect.KClass
 
 class LocalCompilationSession(
     compilationService: CompilationService,
-    registeredCreateStage: MutableMap<KClass<out CompilationStage<*, *>>, () -> CompilationStageBuilder<*, *>>,
+    registeredCreateStage: MutableMap<KClass<out CompilationStage<*, *>>, (CompilationSession) -> CompilationStageBuilder<*, *>>,
     val rootDisposable: Disposable,
 ) : CompilationSession(compilationService, registeredCreateStage) {
 
@@ -20,11 +20,14 @@ class LocalCompilationSession(
 }
 
 class LocalCompilationSessionBuilder(compilationService: CompilationService) : CompilationSessionBuilder(compilationService) {
-    val rootDisposable: Disposable? = null
+    var rootDisposable: Disposable? = null
 
-    override fun build(): LocalCompilationSession {
-        return LocalCompilationSession(compilationService, registeredCreateStage, rootDisposable!!)
-    }
+    override fun build(): LocalCompilationSession =
+        LocalCompilationSession(
+            compilationService,
+            registeredCreateStage,
+            rootDisposable ?: (compilationService as LocalCompilationService).rootDisposable
+        )
 }
 
 inline fun CompilationService.createLocalCompilationSession(body: LocalCompilationSessionBuilder.() -> Unit): CompilationSession =

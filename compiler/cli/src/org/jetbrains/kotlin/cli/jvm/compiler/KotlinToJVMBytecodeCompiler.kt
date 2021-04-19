@@ -75,7 +75,7 @@ import org.jetbrains.kotlin.utils.newLinkedHashMapWithExpectedSize
 import java.io.File
 
 object KotlinToJVMBytecodeCompiler {
-    private fun writeOutput(
+    fun writeOutput(
         configuration: CompilerConfiguration,
         outputFiles: OutputFileCollection,
         mainClassFqName: FqName?
@@ -249,7 +249,7 @@ object KotlinToJVMBytecodeCompiler {
         return true
     }
 
-    internal fun configureSourceRoots(configuration: CompilerConfiguration, chunk: List<Module>, buildFile: File? = null) {
+    fun configureSourceRoots(configuration: CompilerConfiguration, chunk: List<Module>, buildFile: File? = null) {
         for (module in chunk) {
             val commonSources = getBuildFilePaths(buildFile, module.getCommonSourceFiles()).toSet()
 
