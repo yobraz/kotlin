@@ -86,7 +86,7 @@ class IcSerializer(
             val symbolToSignature = fileDeserializer.symbolDeserializer.deserializedSymbols.entries.associate { (idSig, symbol) -> symbol to idSig }.toMutableMap()
 
             val icDeclarationTable = IcDeclarationTable(globalDeclarationTable, irFactory, 1000000, 1000000, symbolToSignature)
-            val fileSerializer = JsIrFileSerializer(IrMessageLogger.None, icDeclarationTable, mutableMapOf(), skipExpects = true, icMode = true, allowNullTypes = true)
+            val fileSerializer = JsIrFileSerializer(linker.messageLogger, icDeclarationTable, mutableMapOf(), skipExpects = true, icMode = true, allowNullTypes = true)
 
             bodies.forEachIndexed { index, body ->
                 if (body is IrExpressionBody) {
