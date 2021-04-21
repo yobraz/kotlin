@@ -165,10 +165,10 @@ class IrBodyDeserializer(
 
     private val returnableBlockStack = mutableListOf<IrReturnableBlockSymbol>()
 
-    private inline fun withReturnableBlock(symbol: IrReturnableBlockSymbol, fn: () -> Unit) {
+    private inline fun <T> withReturnableBlock(symbol: IrReturnableBlockSymbol, fn: () -> T): T {
         returnableBlockStack.push(symbol)
         try {
-            fn()
+            return fn()
         } finally {
             returnableBlockStack.pop()
         }
@@ -184,16 +184,13 @@ class IrBodyDeserializer(
             declarationDeserializer.deserializeIrSymbolAndRemap(proto.inlineFunctionSymbol) as IrFunctionSymbol
         } else null
 
-        val statements = mutableListOf<IrStatement>()
-        val statementProtos = proto.statementList
-        val origin = if (proto.hasOriginName()) deserializeIrStatementOrigin(proto.originName) else null
-
-        withReturnableBlock(symbol) {
-            statementProtos.forEach {
-                statements.add(deserializeStatement(it) as IrStatement)
+        val statements = withReturnableBlock(symbol) {
+            proto.statementList.map {
+                deserializeStatement(it) as IrStatement
             }
         }
 
+        val origin = if (proto.hasOriginName()) deserializeIrStatementOrigin(proto.originName) else null
         return IrReturnableBlockImpl(start, end, type, symbol, origin, statements, inlineFunctionSymbol)
     }
 

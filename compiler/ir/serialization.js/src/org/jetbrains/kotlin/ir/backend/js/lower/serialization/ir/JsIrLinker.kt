@@ -61,7 +61,7 @@ class JsIrLinker(
 
 
     fun moduleDeserializer(moduleDescriptor: ModuleDescriptor): IrModuleDeserializer {
-        return deserializersForModules[moduleDescriptor]!!
+        return deserializersForModules[moduleDescriptor] ?: error("Deserializer for $moduleDescriptor not found")
     }
 
     class JsFePluginContext(

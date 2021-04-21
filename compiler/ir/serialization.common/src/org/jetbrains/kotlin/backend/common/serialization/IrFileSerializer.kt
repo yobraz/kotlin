@@ -994,7 +994,6 @@ open class IrFileSerializer(
             proto.label = serializeString(it)
         }
         val loopId = loopIndex[expression.loop] ?: -1
-            ?: error("asdfds")
         proto.loopId = loopId
 
         return proto.build()
