@@ -8,26 +8,19 @@ import kotlin.coroutines.intrinsics.*
 @Suppress("UNSUPPORTED_FEATURE")
 inline class I(val x: Any?)
 
-suspend fun suspendHere(): Unit = suspendCoroutineUninterceptedOrReturn {
-    c = it
-    COROUTINE_SUSPENDED
-}
-
 class C {
     private suspend fun f(): I {
-        suspendHere()
         return I("OK")
     }
 
     fun g() = suspend { f() }
 }
 
-var c: Continuation<Unit>? = null
+val c: Continuation<Unit>? = null
 
 fun box(): String {
     var result = "fail"
     suspend { result = C().g()().x as String }.startCoroutine(EmptyContinuation)
 
-    c?.resume(Unit)
     return result
 }

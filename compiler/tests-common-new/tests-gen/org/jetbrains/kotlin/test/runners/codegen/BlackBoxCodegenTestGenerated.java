@@ -10363,6 +10363,12 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
                 public void testReturnResult() throws Exception {
                     runTest("compiler/testData/codegen/box/coroutines/inlineClasses/direct/returnResult.kt");
                 }
+
+                @Test
+                @TestMetadata("syntheticAccessor.kt")
+                public void testSyntheticAccessor() throws Exception {
+                    runTest("compiler/testData/codegen/box/coroutines/inlineClasses/direct/syntheticAccessor.kt");
+                }
             }
 
             @Nested
