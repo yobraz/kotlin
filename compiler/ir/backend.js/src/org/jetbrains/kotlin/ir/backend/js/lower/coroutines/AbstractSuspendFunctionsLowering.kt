@@ -424,10 +424,9 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
 
             if (isSuspendLambda) {
                 // Suspend lambda - create factory methods.
-                val createFunction = coroutineBaseClass.owner.simpleFunctions()
-                    .atMostOne {
-                        it.name.asString() == "create" && it.valueParameters.size == function.valueParameters.size + 1
-                    }
+                val createFunction = coroutineBaseClass.owner.simpleFunctions().singleOrNull {
+                    it.name.asString() == "create" && it.valueParameters.size == function.valueParameters.size + 1
+                }
 
                 val createMethod = buildCreateMethod(createFunction, coroutineConstructor)
                 implementedMembers.add(createMethod)

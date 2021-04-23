@@ -5,7 +5,10 @@
 
 package org.jetbrains.kotlin.backend.common
 
-import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
@@ -16,7 +19,7 @@ class SimpleMemberScope(val members: List<DeclarationDescriptor>) : MemberScopeI
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
         members.filterIsInstance<ClassifierDescriptor>()
-            .atMostOne { it.name == name }
+            .singleOrNull { it.name == name }
 
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
         members.filterIsInstance<PropertyDescriptor>()

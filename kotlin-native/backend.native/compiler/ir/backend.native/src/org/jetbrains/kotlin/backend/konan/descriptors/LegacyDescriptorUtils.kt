@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.backend.konan.descriptors
 
-import org.jetbrains.kotlin.backend.common.atMostOne
 import org.jetbrains.kotlin.backend.konan.RuntimeNames
 import org.jetbrains.kotlin.builtins.konan.KonanBuiltIns
 import org.jetbrains.kotlin.descriptors.*
@@ -108,14 +107,14 @@ internal fun DeclarationDescriptor.allContainingDeclarations(): List<Declaration
 }
 
 fun AnnotationDescriptor.getStringValueOrNull(name: String): String? {
-    val constantValue = this.allValueArguments.entries.atMostOne {
+    val constantValue = this.allValueArguments.entries.singleOrNull {
         it.key.asString() == name
     }?.value
     return constantValue?.value as String?
 }
 
 inline fun <reified T> AnnotationDescriptor.getArgumentValueOrNull(name: String): T? {
-    val constantValue = this.allValueArguments.entries.atMostOne {
+    val constantValue = this.allValueArguments.entries.singleOrNull {
         it.key.asString() == name
     }?.value
     return constantValue?.value as T?

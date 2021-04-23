@@ -42,7 +42,6 @@ import org.jetbrains.kotlin.library.toUnresolvedLibraries
 import org.jetbrains.kotlin.util.removeSuffixIfPresent
 import org.jetbrains.kotlin.util.suffixIfNot
 import java.io.File
-import java.lang.IllegalArgumentException
 import java.nio.file.*
 import java.util.*
 
@@ -87,14 +86,6 @@ private fun String.asArgList(key: String) =
             this.split(Regex("(?<!\\\\)\\Q \\E")).filter { it.isNotEmpty() }.map { it.replace("\\ ", " ") }
         else
             listOf(this)
-
-private fun <T> Collection<T>.atMostOne(): T? {
-    return when (this.size) {
-        0 -> null
-        1 -> this.iterator().next()
-        else -> throw IllegalArgumentException("Collection has more than one element.")
-    }
-}
 
 private fun List<String>?.isTrue(): Boolean {
     // The rightmost wins, null != "true".
@@ -228,7 +219,7 @@ private fun processCLib(flavor: KotlinPlatform, cinteropArguments: CInteropArgum
             cinteropArguments.linkerOptions.value.toTypedArray()
     val verbose = cinteropArguments.verbose
 
-    val entryPoint = def.config.entryPoints.atMostOne()
+    val entryPoint = def.config.entryPoints.singleOrNull()
     val linkerName = cinteropArguments.linker ?: def.config.linker
     val linker = "${tool.llvmHome}/bin/$linkerName"
     val compiler = "${tool.llvmHome}/bin/clang"

@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.ir.backend.js
 
-import org.jetbrains.kotlin.backend.common.atMostOne
 import org.jetbrains.kotlin.backend.common.ir.Ir
 import org.jetbrains.kotlin.backend.common.ir.Symbols
 import org.jetbrains.kotlin.builtins.PrimitiveType
@@ -290,9 +289,9 @@ class JsIrBackendContext(
         get() {
             val contextGetter =
                 continuationClass.owner.declarations.filterIsInstance<IrSimpleFunction>()
-                    .atMostOne { it.name == CONTINUATION_CONTEXT_GETTER_NAME }
+                    .singleOrNull { it.name == CONTINUATION_CONTEXT_GETTER_NAME }
                     ?: continuationClass.owner.declarations.filterIsInstance<IrProperty>()
-                        .atMostOne { it.name == CONTINUATION_CONTEXT_PROPERTY_NAME }?.getter!!
+                        .singleOrNull { it.name == CONTINUATION_CONTEXT_PROPERTY_NAME }?.getter!!
             return contextGetter.symbol
         }
 

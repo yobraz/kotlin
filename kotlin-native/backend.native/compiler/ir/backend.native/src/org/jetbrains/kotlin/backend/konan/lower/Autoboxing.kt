@@ -7,14 +7,13 @@ package org.jetbrains.kotlin.backend.konan.lower
 
 import org.jetbrains.kotlin.backend.common.AbstractValueUsageTransformer
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
-import org.jetbrains.kotlin.backend.common.atMostOne
 import org.jetbrains.kotlin.backend.common.ir.copyTo
 import org.jetbrains.kotlin.backend.common.lower.*
 import org.jetbrains.kotlin.backend.konan.*
 import org.jetbrains.kotlin.backend.konan.cgen.hasCCallAnnotation
 import org.jetbrains.kotlin.backend.konan.ir.*
-import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
+import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
@@ -354,7 +353,7 @@ private class InlineClassTransformer(private val context: Context) : IrBuildingT
 
     private fun buildBoxFunction(irClass: IrClass, function: IrFunction) {
         val builder = context.createIrBuilder(function.symbol)
-        val cache = BoxCache.values().toList().atMostOne { context.irBuiltIns.getKotlinClass(it) == irClass }
+        val cache = BoxCache.values().toList().singleOrNull { context.irBuiltIns.getKotlinClass(it) == irClass }
 
         function.body = builder.irBlockBody(function) {
             val valueToBox = function.valueParameters[0]

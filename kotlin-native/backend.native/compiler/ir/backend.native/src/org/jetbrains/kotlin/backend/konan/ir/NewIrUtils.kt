@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.backend.konan.ir
 
-import org.jetbrains.kotlin.backend.common.atMostOne
 import org.jetbrains.kotlin.backend.konan.DECLARATION_ORIGIN_INLINE_CLASS_SPECIAL_FUNCTION
 import org.jetbrains.kotlin.backend.konan.descriptors.allOverriddenFunctions
 import org.jetbrains.kotlin.backend.konan.descriptors.isInteropLibrary
@@ -42,7 +41,7 @@ fun IrClass.isUnit() = this.isClassTypeWithSignature(IdSignatureValues.unit)
 fun IrClass.isKotlinArray() = this.isClassTypeWithSignature(IdSignatureValues.array)
 
 val IrClass.superClasses get() = this.superTypes.map { it.classifierOrFail as IrClassSymbol }
-fun IrClass.getSuperClassNotAny() = this.superClasses.map { it.owner }.atMostOne { !it.isInterface && !it.isAny() }
+fun IrClass.getSuperClassNotAny() = this.superClasses.map { it.owner }.singleOrNull { !it.isInterface && !it.isAny() }
 
 fun IrClass.isAny() = this.isClassTypeWithSignature(IdSignatureValues.any)
 
@@ -117,7 +116,7 @@ internal val IrFunctionAccessExpression.isVirtualCall: Boolean
     get() = this is IrCall && this.superQualifierSymbol == null && this.symbol.owner.isOverridable
 
 private fun IrClass.getOverridingOf(function: IrFunction) = (function as? IrSimpleFunction)?.let {
-    it.allOverriddenFunctions.atMostOne { it.parent == this }
+    it.allOverriddenFunctions.singleOrNull { it.parent == this }
 }
 
 val ModuleDescriptor.konanLibrary get() = (this.klibModuleOrigin as? DeserializedKlibModuleOrigin)?.library

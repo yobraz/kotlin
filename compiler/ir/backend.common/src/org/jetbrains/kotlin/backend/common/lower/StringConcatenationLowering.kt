@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.backend.common.lower
 
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
-import org.jetbrains.kotlin.backend.common.atMostOne
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
@@ -72,7 +71,7 @@ private class StringConcatenationTransformer(val lower: StringConcatenationLower
 
     private val appendFunctions: Map<IrType, IrSimpleFunction?> =
         typesWithSpecialAppendFunction.map { type ->
-            type to stringBuilder.functions.toList().atMostOne {
+            type to stringBuilder.functions.toList().singleOrNull {
                 it.name == nameAppend && it.valueParameters.singleOrNull()?.type == type
             }
         }.toMap()

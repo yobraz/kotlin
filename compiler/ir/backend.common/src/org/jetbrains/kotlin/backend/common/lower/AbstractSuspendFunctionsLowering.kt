@@ -384,7 +384,7 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
                 coroutineFactoryConstructor = buildFactoryConstructor(boundFunctionParameters!!)
 
                 val createFunctionSymbol = coroutineBaseClass.owner.simpleFunctions()
-                    .atMostOne { it.name == CREATE_IDENTIFIER && it.valueParameters.size == unboundFunctionParameters!!.size + 1 }
+                    .singleOrNull { it.name == CREATE_IDENTIFIER && it.valueParameters.size == unboundFunctionParameters!!.size + 1 }
                     ?.symbol
 
                 createMethod = buildCreateMethod(

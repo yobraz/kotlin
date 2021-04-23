@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.backend.konan.descriptors
 
-import org.jetbrains.kotlin.backend.common.atMostOne
 import org.jetbrains.kotlin.backend.konan.*
 import org.jetbrains.kotlin.backend.konan.ir.getSuperClassNotAny
 import org.jetbrains.kotlin.backend.konan.ir.getSuperInterfaces
@@ -286,7 +285,7 @@ fun AnnotationDescriptor.getAnnotationStringValue(name: String): String {
 }
 
 fun <T> IrConstructorCall.getAnnotationValueOrNull(name: String): T? {
-    val parameter = symbol.owner.valueParameters.atMostOne { it.name.asString() == name }
+    val parameter = symbol.owner.valueParameters.singleOrNull { it.name.asString() == name }
     return parameter?.let { getValueArgument(it.index)?.let { (it.cast<IrConst<T>>()).value } }
 }
 
