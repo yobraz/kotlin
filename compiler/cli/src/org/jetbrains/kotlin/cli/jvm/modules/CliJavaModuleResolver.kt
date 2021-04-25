@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.jvm.modules.JavaModule
 import org.jetbrains.kotlin.resolve.jvm.modules.JavaModuleResolver
+import java.util.concurrent.ConcurrentHashMap
 
 class CliJavaModuleResolver(
     private val moduleGraph: JavaModuleGraph,
@@ -42,11 +43,23 @@ class CliJavaModuleResolver(
         }
     }
 
+    private val modulesAnnotationCache = ConcurrentHashMap<ClassId, List<JavaAnnotation>?>()
+
     private val virtualFileFinder by lazy { VirtualFileFinder.getInstance(project) }
 
-    override fun getModuleAnnotations(classId: ClassId): List<JavaAnnotation>? {
+    override fun getAnnotationsForModuleOwnerOfClass(classId: ClassId): List<JavaAnnotation>? {
+        if (modulesAnnotationCache.containsKey(classId)) {
+            return modulesAnnotationCache[classId]
+        }
+
         val virtualFile = virtualFileFinder.findSourceOrBinaryVirtualFile(classId) ?: return null
-        return (findJavaModule(virtualFile) as? JavaModule.Explicit)?.moduleInfo?.annotations
+        val moduleAnnotations = (findJavaModule(virtualFile) as? JavaModule.Explicit)?.moduleInfo?.annotations
+
+        if (moduleAnnotations != null && moduleAnnotations.size < MODULE_ANNOTATIONS_CACHE_SIZE) {
+            modulesAnnotationCache[classId] = moduleAnnotations
+        }
+
+        return moduleAnnotations
     }
 
     private val sourceModule: JavaModule? = userModules.firstOrNull(JavaModule::isSourceModule)
@@ -88,5 +101,9 @@ class CliJavaModuleResolver(
         }
 
         return null
+    }
+
+    companion object {
+        private const val MODULE_ANNOTATIONS_CACHE_SIZE = 10000
     }
 }
