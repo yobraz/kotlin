@@ -68,8 +68,8 @@ open class DefaultInlineFunctionResolver(open val context: CommonBackendContext)
             function.isBuiltInSuspendCoroutineUninterceptedOrReturn() ->
                 context.ir.symbols.suspendCoroutineUninterceptedOrReturn.owner
 
-            symbol == context.ir.symbols.coroutineContextGetter ->
-                context.ir.symbols.coroutineGetContext.owner
+//            symbol == context.ir.symbols.coroutineContextGetter ->
+//                context.ir.symbols.coroutineGetContext.owner
 
             else -> (symbol.owner as? IrSimpleFunction)?.resolveFakeOverride() ?: symbol.owner
         }
