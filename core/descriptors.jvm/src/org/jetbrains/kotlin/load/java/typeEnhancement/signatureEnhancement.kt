@@ -151,7 +151,7 @@ class SignatureEnhancement(
     private fun <D : CallableMemberDescriptor> D.getDefaultAnnotations(c: LazyJavaResolverContext): Annotations {
         val topLevelClassifier = getTopLevelContainingClassifier() ?: return annotations
         val classId = topLevelClassifier.classId ?: return annotations
-        val moduleAnnotations = c.components.javaModuleResolver.getModuleAnnotations(classId)
+        val moduleAnnotations = c.components.javaModuleResolver.getAnnotationsForModuleOwnerOfClass(classId)
 
         if (moduleAnnotations.isNullOrEmpty()) return annotations
 
