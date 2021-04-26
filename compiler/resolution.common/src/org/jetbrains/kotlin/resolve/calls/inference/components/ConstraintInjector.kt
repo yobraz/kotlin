@@ -90,6 +90,7 @@ class ConstraintInjector(
         typeCheckerContext.setConstrainingTypesToPrintDebugInfo(lowerType, upperType)
         typeCheckerContext.runIsSubtypeOf(lowerType, upperType)
 
+        // Missed constraints are constraints which we skipped in the constraints processor by mistake (incorrect optimization)
         val missedConstraints = processConstraints(c, typeCheckerContext)
 
         if (missedConstraints != null) {
@@ -106,6 +107,7 @@ class ConstraintInjector(
         typeCheckerContext.setConstrainingTypesToPrintDebugInfo(typeVariable, equalType)
         typeCheckerContext.addEqualityConstraint(typeVariable.typeConstructor(c), equalType)
 
+        // Missed constraints are constraints which we skipped in the constraints processor by mistake (incorrect optimization)
         val missedConstraints = processConstraints(c, typeCheckerContext)
 
         if (missedConstraints != null) {
@@ -118,6 +120,12 @@ class ConstraintInjector(
         position: IncorporationConstraintPosition,
         missedConstraints: List<Pair<TypeVariableMarker, Constraint>>
     ) {
+        val properConstraintsProcessingEnabled =
+            languageVersionSettings.supportsFeature(LanguageFeature.ProperTypeInferenceConstraintsProcessing)
+
+        // If proper constraints processing is enabled, then we don't have missed constraints
+        if (properConstraintsProcessingEnabled) return
+
         val typeCheckerContext = TypeCheckerContext(c, position)
         for ((variable, constraint) in missedConstraints) {
             typeCheckerContext.addPossibleNewConstraint(variable, constraint)
@@ -130,12 +138,15 @@ class ConstraintInjector(
         typeCheckerContext: TypeCheckerContext,
         skipProperEqualityConstraints: Boolean = true
     ): MutableList<Pair<TypeVariableMarker, Constraint>>? {
+        val properConstraintsProcessingEnabled =
+            languageVersionSettings.supportsFeature(LanguageFeature.ProperTypeInferenceConstraintsProcessing)
+
         while (typeCheckerContext.hasConstraintsToProcess()) {
             processGivenConstraints(c, typeCheckerContext, typeCheckerContext.extractAllConstraints()!!)
 
             val contextOps = c as? ConstraintSystemOperation
 
-            if (!skipProperEqualityConstraints) continue
+            if (!skipProperEqualityConstraints || properConstraintsProcessingEnabled) continue
 
             if (contextOps != null && c.notFixedTypeVariables.all { typeVariable ->
                     typeVariable.value.constraints.any { constraint ->

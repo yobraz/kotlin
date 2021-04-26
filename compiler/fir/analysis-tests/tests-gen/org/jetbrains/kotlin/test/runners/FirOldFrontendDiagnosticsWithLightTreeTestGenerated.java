@@ -12457,6 +12457,12 @@ public class FirOldFrontendDiagnosticsWithLightTreeTestGenerated extends Abstrac
                 runTest("compiler/testData/diagnostics/tests/inference/violatingUpperBoundForSelfType.kt");
             }
 
+            @Test
+            @TestMetadata("violatingUpperBoundForSelfTypeError.kt")
+            public void testViolatingUpperBoundForSelfTypeError() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/inference/violatingUpperBoundForSelfTypeError.kt");
+            }
+
             @Nested
             @TestMetadata("compiler/testData/diagnostics/tests/inference/builderInference")
             @TestDataPath("$PROJECT_ROOT")
@@ -13286,6 +13292,12 @@ public class FirOldFrontendDiagnosticsWithLightTreeTestGenerated extends Abstrac
                 @TestMetadata("manyConstraintsDueToFlexibleRawTypes.kt")
                 public void testManyConstraintsDueToFlexibleRawTypes() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/inference/constraints/manyConstraintsDueToFlexibleRawTypes.kt");
+                }
+
+                @Test
+                @TestMetadata("manyConstraintsDueToFlexibleRawTypesError.kt")
+                public void testManyConstraintsDueToFlexibleRawTypesError() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/inference/constraints/manyConstraintsDueToFlexibleRawTypesError.kt");
                 }
 
                 @Test
@@ -29015,6 +29027,12 @@ public class FirOldFrontendDiagnosticsWithLightTreeTestGenerated extends Abstrac
             @TestMetadata("kt42042.kt")
             public void testKt42042() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/typeParameters/kt42042.kt");
+            }
+
+            @Test
+            @TestMetadata("kt42042Error.kt")
+            public void testKt42042Error() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/typeParameters/kt42042Error.kt");
             }
 
             @Test

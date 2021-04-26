@@ -1,4 +1,4 @@
-// !LANGUAGE: -ProperTypeInferenceConstraintsProcessing
+// !LANGUAGE: +ProperTypeInferenceConstraintsProcessing
 
 sealed class Subtype<A1, B1> {
     abstract fun cast(value: A1): B1
@@ -8,6 +8,6 @@ sealed class Subtype<A1, B1> {
 }
 
 fun <A, B> unsafeCast(value: A): B {
-    val proof: Subtype<A, B> = Subtype.Trivial()
+    val proof: Subtype<A, B> = Subtype.<!TYPE_MISMATCH, TYPE_MISMATCH!>Trivial()<!>
     return proof.cast(value)
 }

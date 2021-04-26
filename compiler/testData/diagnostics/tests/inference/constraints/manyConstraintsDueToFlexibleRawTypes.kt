@@ -1,4 +1,4 @@
-// !WITH_NEW_INFERENCE
+// !LANGUAGE: -ProperTypeInferenceConstraintsProcessing
 // SKIP_JAVAC
 
 // FILE: MySettings.java

@@ -204,6 +204,7 @@ enum class LanguageFeature(
 
     DefinitelyNotNullTypeParameters(KOTLIN_1_6),
     ProhibitUsingNullableTypeParameterAgainstNotNullAnnotated(KOTLIN_1_6, kind = BUG_FIX),
+    ProperTypeInferenceConstraintsProcessing(KOTLIN_1_6, kind = BUG_FIX),
 
     // Temporarily disabled, see KT-27084/KT-22379
     SoundSmartcastFromLoopConditionForLoopAssignedVariables(sinceVersion = null, kind = BUG_FIX),

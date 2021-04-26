@@ -1,3 +1,4 @@
+// !LANGUAGE: -ProperTypeInferenceConstraintsProcessing
 // WITH_RUNTIME
 // !DIAGNOSTICS: -UNUSED_PARAMETER -CAST_NEVER_SUCCEEDS
 
