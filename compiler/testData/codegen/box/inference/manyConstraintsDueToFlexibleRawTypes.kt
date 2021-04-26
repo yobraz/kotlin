@@ -1,9 +1,7 @@
-// !WITH_NEW_INFERENCE
-// SKIP_JAVAC
-
 // FILE: MySettings.java
 
 import java.util.Collection;
+import java.util.Collections;
 
 public class MySettings<
         SS extends MySettings<SS, PS, L>,
@@ -12,11 +10,11 @@ public class MySettings<
     >
 {
     public Collection<PS> getLinkedProjectsSettings() {
-        return null;
+        return Collections.emptyList();
     }
 
     public static MySettings getSettings() {
-        return null;
+        return new MySettings();
     }
 }
 
@@ -25,8 +23,10 @@ abstract class MySettingsListener<S extends MyComparableSettings> {}
 
 // FILE: test.kt
 
-fun test() {
+fun box(): String {
     val a = MySettings.getSettings()
     a.getLinkedProjectsSettings()
-    <!TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING, TYPE_MISMATCH_WARNING!>a<!>.linkedProjectsSettings
+    a.linkedProjectsSettings
+
+    return "OK"
 }
