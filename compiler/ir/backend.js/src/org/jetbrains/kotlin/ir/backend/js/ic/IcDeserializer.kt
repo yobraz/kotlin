@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.backend.common.overrides.DefaultFakeOverrideClassFil
 import org.jetbrains.kotlin.backend.common.serialization.*
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
+import org.jetbrains.kotlin.backend.common.serialization.signature.PublicIdSignatureComputer
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.backend.js.JsMappingState
@@ -43,8 +44,7 @@ class IcDeserializer(
     val linker: JsIrLinker,
     val context: JsIrBackendContext,
 ) {
-    private val signaturer = IdSignatureSerializer(JsManglerIr)
-    private val globalDeclarationTable = JsGlobalDeclarationTable(signaturer, context.irBuiltIns)
+    private val globalDeclarationTable = JsGlobalDeclarationTable(context.irBuiltIns)
 
     fun injectIcData(module: IrModuleFragment, icData: SerializedIcData) {
         // Prepare per-file indices

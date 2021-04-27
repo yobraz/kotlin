@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.ir.backend.js.ic
 
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
+import org.jetbrains.kotlin.backend.common.serialization.signature.PublicIdSignatureComputer
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.backend.js.JsMapping
 import org.jetbrains.kotlin.ir.backend.js.SerializedMappings
@@ -39,8 +40,7 @@ class IcSerializer(
     val module: IrModuleFragment
 ) {
 
-    private val signaturer = IdSignatureSerializer(JsManglerIr)
-    private val globalDeclarationTable = JsGlobalDeclarationTable(signaturer, irBuiltIns)
+    private val globalDeclarationTable = JsGlobalDeclarationTable(irBuiltIns)
 
     fun serializeDeclarations(declarations: Iterable<IrDeclaration>): SerializedIcData {
 
@@ -138,9 +138,8 @@ class IcSerializer(
         val existingMappings: MutableMap<IrSymbol, IdSignature>
     ) : DeclarationTable(globalDeclarationTable) {
 
-        init {
-            signaturer.reset(newLocalIndex, newScopeIndex)
-        }
+        override val signaturer: IdSignatureSerializer =
+            IdSignatureSerializer(globalDeclarationTable.publicIdSignatureComputer, this, newLocalIndex, newScopeIndex)
 
         override fun signatureByDeclaration(declaration: IrDeclaration): IdSignature {
             return existingMappings.getOrPut(declaration.symbol) {
