@@ -212,6 +212,8 @@ val FirProperty.hasBackingField: Boolean
         }
     }
 
+inline val FirDeclaration.isJava: Boolean
+    get() = origin == FirDeclarationOrigin.Java
 inline val FirDeclaration.isFromLibrary: Boolean
     get() = origin == FirDeclarationOrigin.Library
 inline val FirDeclaration.isSynthetic: Boolean
