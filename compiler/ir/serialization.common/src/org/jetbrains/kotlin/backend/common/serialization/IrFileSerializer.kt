@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.backend.common.serialization
 
 import org.jetbrains.kotlin.backend.common.ir.ir2string
 import org.jetbrains.kotlin.backend.common.serialization.encodings.*
+import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.descriptors.*
@@ -1191,10 +1192,8 @@ open class IrFileSerializer(
         return proto.build()
     }
 
-    private fun serializeIrClass(clazz: IrClass): ProtoClass {
-        val proto = ProtoClass.newBuilder()
-            .setBase(serializeIrDeclarationBase(clazz, ClassFlags.encode(clazz)))
-            .setName(serializeName(clazz.name))
+
+    private fun ProtoClass.Builder.serializeClassBody(clazz: IrClass) {
 
         val representation = clazz.inlineClassRepresentation
         if (representation != null) {
@@ -1203,19 +1202,52 @@ open class IrFileSerializer(
 
         if (!skipMutableState) {
             clazz.declarations.forEach {
-                if (memberNeedsSerialization(it)) proto.addDeclaration(serializeDeclaration(it))
+                if (memberNeedsSerialization(it)) addDeclaration(serializeDeclaration(it))
             }
 
             clazz.typeParameters.forEach {
-                proto.addTypeParameter(serializeIrTypeParameter(it))
+                addTypeParameter(serializeIrTypeParameter(it))
             }
 
-            clazz.thisReceiver?.let { proto.thisReceiver = serializeIrValueParameter(it) }
+            clazz.thisReceiver?.let { thisReceiver = serializeIrValueParameter(it) }
 
             clazz.superTypes.forEach {
-                proto.addSuperType(serializeIrType(it))
+                addSuperType(serializeIrType(it))
             }
         }
+    }
+
+    private fun serializeIrClass(clazz: IrClass): ProtoClass {
+        val proto = ProtoClass.newBuilder()
+            .setBase(serializeIrDeclarationBase(clazz, ClassFlags.encode(clazz)))
+            .setName(serializeName(clazz.name))
+
+        if (clazz.kind == ClassKind.ENUM_CLASS) {
+            if (clazz.name.asString() == "CharClasses") {
+                println("kkk")
+            }
+            declarationTable.inLocalScope(clazz) {
+                proto.serializeClassBody(clazz)
+            }
+        } else proto.serializeClassBody(clazz)
+
+
+
+//        if (!skipMutableState) {
+//            clazz.declarations.forEach {
+//                if (memberNeedsSerialization(it)) proto.addDeclaration(serializeDeclaration(it))
+//            }
+//
+//            clazz.typeParameters.forEach {
+//                proto.addTypeParameter(serializeIrTypeParameter(it))
+//            }
+//
+//            clazz.thisReceiver?.let { proto.thisReceiver = serializeIrValueParameter(it) }
+//
+//            clazz.superTypes.forEach {
+//                proto.addSuperType(serializeIrType(it))
+//            }
+//        }
 
         return proto.build()
     }
@@ -1249,21 +1281,19 @@ open class IrFileSerializer(
     }
 
     private fun serializeIrEnumEntry(enumEntry: IrEnumEntry): ProtoEnumEntry {
-        return declarationTable.inLocalScope(enumEntry) {
-            val proto = ProtoEnumEntry.newBuilder()
-                .setBase(serializeIrDeclarationBase(enumEntry, null))
-                .setName(serializeName(enumEntry.name))
+        val proto = ProtoEnumEntry.newBuilder()
+            .setBase(serializeIrDeclarationBase(enumEntry, null))
+            .setName(serializeName(enumEntry.name))
 
-            if (!skipMutableState) {
-                enumEntry.initializerExpression?.let {
-                    proto.initializer = serializeIrExpressionBody(it.expression)
-                }
-                enumEntry.correspondingClass?.let {
-                    proto.correspondingClass = serializeIrClass(it)
-                }
+        if (!skipMutableState) {
+            enumEntry.initializerExpression?.let {
+                proto.initializer = serializeIrExpressionBody(it.expression)
             }
-            proto.build()
+            enumEntry.correspondingClass?.let {
+                proto.correspondingClass = serializeIrClass(it)
+            }
         }
+        return proto.build()
     }
 
     fun serializeDeclaration(declaration: IrDeclaration): ProtoDeclaration {
@@ -1368,7 +1398,7 @@ open class IrFileSerializer(
 
         for (declaration in declarations) {
             val byteArray = serializeDeclaration(declaration).toByteArray()
-            val idSig = declarationTable.signatureByDeclaration(declaration)
+            val idSig = declarationTable.signatureByDeclaration(declaration, compatibleMode = false)
 
             // TODO: keep order similar
             // ^ TODO what does that mean?
@@ -1460,7 +1490,8 @@ open class IrFileSerializer(
         if (skipExpects) return
 
         expectActualTable.table.forEach next@{ (expect, actualSymbol) ->
-            val expectSymbol = expectDescriptorToSymbol[expect] ?: error("Could not find expect symbol for expect descriptor $expect")
+            val expectSymbol = expectDescriptorToSymbol[expect] ?:
+            error("Could not find expect symbol for expect descriptor $expect")
 
             proto.addActuals(
                 ProtoActual.newBuilder()

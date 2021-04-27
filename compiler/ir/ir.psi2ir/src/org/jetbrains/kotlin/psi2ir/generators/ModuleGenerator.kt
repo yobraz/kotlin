@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.backend.common.CodegenUtil
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.ir.PsiIrFileEntry
 import org.jetbrains.kotlin.ir.declarations.DescriptorMetadataSource
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.impl.IrFileImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrModuleFragmentImpl
@@ -43,11 +44,11 @@ class ModuleGenerator(
 ) : Generator {
     private val constantValueGenerator = context.constantValueGenerator
 
-    fun generateModuleFragment(ktFiles: Collection<KtFile>): IrModuleFragment =
+    fun generateModuleFragment(ktFiles: Collection<KtFile>, irFilesMap: Map<KtFile, IrFile>?): IrModuleFragment =
         IrModuleFragmentImpl(context.moduleDescriptor, context.irBuiltIns).also { irModule ->
             val irDeclarationGenerator = DeclarationGenerator(context)
             ktFiles.toSet().mapTo(irModule.files) { ktFile ->
-                generateSingleFile(irDeclarationGenerator, ktFile, irModule)
+                generateSingleFile(irDeclarationGenerator, ktFile, irFilesMap, irModule)
             }
         }
 
@@ -69,8 +70,8 @@ class ModuleGenerator(
             .generateUnboundSymbolsAsDependencies()
     }
 
-    private fun generateSingleFile(irDeclarationGenerator: DeclarationGenerator, ktFile: KtFile, module: IrModuleFragment): IrFileImpl {
-        val irFile = createEmptyIrFile(ktFile, module)
+    private fun generateSingleFile(irDeclarationGenerator: DeclarationGenerator, ktFile: KtFile, irFilesMap: Map<KtFile, IrFile>?): IrFile {
+        val irFile = irFilesMap?.get(ktFile) ?: createEmptyIrFile(ktFile, module)
 
         context.symbolTable.signaturer.inFile(irFile.symbol) {
             for (ktAnnotationEntry in ktFile.annotationEntries) {
@@ -103,7 +104,7 @@ class ModuleGenerator(
         return irFile
     }
 
-    private fun createEmptyIrFile(ktFile: KtFile, module: IrModuleFragment): IrFileImpl {
+    fun createEmptyIrFile(ktFile: KtFile, module: IrModuleFragment): IrFileImpl {
         val fileEntry = PsiIrFileEntry(ktFile)
         val packageFragmentDescriptor = context.moduleDescriptor.findPackageFragmentForFile(ktFile)!!
         return IrFileImpl(fileEntry, packageFragmentDescriptor, module).apply {
