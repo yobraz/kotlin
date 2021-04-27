@@ -35,7 +35,7 @@ class KotlinTestJUnitInspection : DomElementsInspection<MavenDomProjectModel>(Ma
         }
 
         val kotlinTestDependencies = domFileElement.rootElement.dependencies.dependencies.filter {
-            it.groupId.rawText == KotlinMavenConfigurator.GROUP_ID && it.artifactId.rawText == KotlinJavaMavenConfigurator.TEST_LIB_ID
+            it.groupId.rawText == KotlinMavenConfigurator.GROUP_ID && it.artifactId.rawText == KotlinJavaMavenConfigurator.TEST_LIB_ID_OLD
         }
 
         kotlinTestDependencies.forEach {
