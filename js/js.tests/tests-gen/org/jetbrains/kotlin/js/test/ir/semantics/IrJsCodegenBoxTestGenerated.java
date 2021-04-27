@@ -9781,6 +9781,11 @@ public class IrJsCodegenBoxTestGenerated extends AbstractIrJsCodegenBoxTest {
             runTest("compiler/testData/codegen/box/directInvokeOptimization/contructorRef.kt");
         }
 
+        @TestMetadata("nestedLambdas.kt")
+        public void testNestedLambdas() throws Exception {
+            runTest("compiler/testData/codegen/box/directInvokeOptimization/nestedLambdas.kt");
+        }
+
         @TestMetadata("simpleAnonymousFun.kt")
         public void testSimpleAnonymousFun() throws Exception {
             runTest("compiler/testData/codegen/box/directInvokeOptimization/simpleAnonymousFun.kt");

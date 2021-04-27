@@ -1,4 +1,3 @@
-// IGNORE_BACKEND_FIR: JVM_IR
 fun test() {
     val fn = fun Int.() = 2
     1.fn()

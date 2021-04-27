@@ -14169,6 +14169,12 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
         }
 
         @Test
+        @TestMetadata("nestedLambdas.kt")
+        public void testNestedLambdas() throws Exception {
+            runTest("compiler/testData/codegen/box/directInvokeOptimization/nestedLambdas.kt");
+        }
+
+        @Test
         @TestMetadata("simpleAnonymousFun.kt")
         public void testSimpleAnonymousFun() throws Exception {
             runTest("compiler/testData/codegen/box/directInvokeOptimization/simpleAnonymousFun.kt");

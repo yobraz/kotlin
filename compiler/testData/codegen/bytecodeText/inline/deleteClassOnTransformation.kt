@@ -19,7 +19,8 @@ fun test2() {
 
 
 // JVM_TEMPLATES:
-// 1 class DeleteClassOnTransformationKt\$test\$1\$1
+// 1 class DeleteClassOnTransformationKt\$test\$1 extends
+// 1 class DeleteClassOnTransformationKt\$test\$1\$lam\$1 extends
 // 0 class DeleteClassOnTransformationKt\$test2\$1\$1
 // 1 class DeleteClassOnTransformationKt\$test2\$\$inlined\$ifun\$lambda\$1
 
