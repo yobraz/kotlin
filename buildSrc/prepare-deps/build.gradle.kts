@@ -15,15 +15,12 @@ plugins {
     base
 }
 
-val intellijUltimateEnabled: Boolean by rootProject.extra
 val intellijReleaseType: String by rootProject.extra
 val intellijVersion = rootProject.extra["versions.intellijSdk"] as String
 val asmVersion = rootProject.findProperty("versions.jar.asm-all") as String?
 val androidStudioRelease = rootProject.findProperty("versions.androidStudioRelease") as String?
 val androidStudioBuild = rootProject.findProperty("versions.androidStudioBuild") as String?
 val intellijSeparateSdks: Boolean by rootProject.extra
-val installIntellijCommunity = !intellijUltimateEnabled || intellijSeparateSdks
-val installIntellijUltimate = intellijUltimateEnabled && androidStudioRelease == null
 
 val intellijVersionDelimiterIndex = intellijVersion.indexOfAny(charArrayOf('.', '-'))
 if (intellijVersionDelimiterIndex == -1) {
@@ -32,13 +29,10 @@ if (intellijVersionDelimiterIndex == -1) {
 
 val platformBaseVersion = intellijVersion.substring(0, intellijVersionDelimiterIndex)
 
-logger.info("intellijUltimateEnabled: $intellijUltimateEnabled")
 logger.info("intellijVersion: $intellijVersion")
 logger.info("androidStudioRelease: $androidStudioRelease")
 logger.info("androidStudioBuild: $androidStudioBuild")
 logger.info("intellijSeparateSdks: $intellijSeparateSdks")
-logger.info("installIntellijCommunity: $installIntellijCommunity")
-logger.info("installIntellijUltimate: $installIntellijUltimate")
 
 val androidStudioOs by lazy {
     when {
@@ -73,7 +67,6 @@ repositories {
 }
 
 val intellij by configurations.creating
-val intellijUltimate by configurations.creating
 val androidStudio by configurations.creating
 val sources by configurations.creating
 val jpsStandalone by configurations.creating
@@ -105,12 +98,7 @@ dependencies {
 
         androidStudio("google:android-studio-ide:$androidStudioBuild@$extension")
     } else {
-        if (installIntellijCommunity) {
-            intellij("com.jetbrains.intellij.idea:ideaIC:$intellijVersion")
-        }
-        if (installIntellijUltimate) {
-            intellijUltimate("com.jetbrains.intellij.idea:ideaIU:$intellijVersion")
-        }
+        intellij("com.jetbrains.intellij.idea:ideaIC:$intellijVersion")
     }
 
     if (asmVersion != null) {
@@ -120,9 +108,6 @@ dependencies {
     sources("com.jetbrains.intellij.idea:ideaIC:$intellijVersion:sources@jar")
     jpsStandalone("com.jetbrains.intellij.idea:jps-standalone:$intellijVersion")
     intellijCore("com.jetbrains.intellij.idea:intellij-core:$intellijVersion")
-    if (intellijUltimateEnabled) {
-        nodeJSPlugin("com.jetbrains.plugins:NodeJS:${rootProject.extra["versions.idea.NodeJS"]}@zip")
-    }
 }
 
 val makeIntellijCore = buildIvyRepositoryTask(intellijCore, customDepsOrg, customDepsRepoDir)
@@ -185,11 +170,7 @@ val makeIde = if (androidStudioBuild != null) {
             ::skipToplevelDirectory
     )
 } else {
-    val task = if (installIntellijUltimate) {
-        buildIvyRepositoryTask(intellijUltimate, customDepsOrg, customDepsRepoDir, null, sourcesFile)
-    } else {
-        buildIvyRepositoryTask(intellij, customDepsOrg, customDepsRepoDir, null, sourcesFile)
-    }
+    val task = buildIvyRepositoryTask(intellij, customDepsOrg, customDepsRepoDir, null, sourcesFile)
 
     task.configure {
         dependsOn(mergeSources)
@@ -207,13 +188,6 @@ tasks.named("build") {
         buildJpsStandalone,
         makeIntellijAnnotations
     )
-
-}
-
-if (installIntellijUltimate) {
-    val buildNodeJsPlugin =
-        buildIvyRepositoryTask(nodeJSPlugin, customDepsOrg, customDepsRepoDir, ::skipToplevelDirectory, sourcesFile)
-    tasks.named("build") { dependsOn(buildNodeJsPlugin) }
 }
 
 tasks.named<Delete>("clean") {

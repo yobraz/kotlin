@@ -90,10 +90,8 @@ val distKotlinHomeDir by extra("$distDir/kotlinc")
 val distLibDir = "$distKotlinHomeDir/lib"
 val commonLocalDataDir = "$rootDir/local"
 val ideaSandboxDir = "$commonLocalDataDir/ideaSandbox"
-val ideaUltimateSandboxDir = "$commonLocalDataDir/ideaUltimateSandbox"
 val artifactsDir = "$distDir/artifacts"
 val ideaPluginDir = "$artifactsDir/ideaPlugin/Kotlin"
-val ideaUltimatePluginDir = "$artifactsDir/ideaUltimatePlugin/Kotlin"
 
 extra["ktorExcludesForDaemon"] = listOf(
     "org.jetbrains.kotlin" to "kotlin-reflect",
@@ -111,9 +109,7 @@ extra["distLibDir"] = project.file(distLibDir)
 extra["libsDir"] = project.file(distLibDir)
 extra["commonLocalDataDir"] = project.file(commonLocalDataDir)
 extra["ideaSandboxDir"] = project.file(ideaSandboxDir)
-extra["ideaUltimateSandboxDir"] = project.file(ideaUltimateSandboxDir)
 extra["ideaPluginDir"] = project.file(ideaPluginDir)
-extra["ideaUltimatePluginDir"] = project.file(ideaUltimatePluginDir)
 extra["isSonatypeRelease"] = false
 val kotlinNativeVersionObject = project.kotlinNativeVersionValue()
 subprojects {
@@ -195,7 +191,6 @@ if (!project.hasProperty("versions.kotlin-native")) {
     extra["versions.kotlin-native"] = "1.5.20-dev-5613"
 }
 
-val intellijUltimateEnabled by extra(project.kotlinBuildProperties.intellijUltimateEnabled)
 val effectSystemEnabled by extra(project.getBooleanProperty("kotlin.compiler.effectSystemEnabled") ?: false)
 val newInferenceEnabled by extra(project.getBooleanProperty("kotlin.compiler.newInferenceEnabled") ?: false)
 val useJvmIrBackend by extra(project.kotlinBuildProperties.useIR)
@@ -908,22 +903,6 @@ tasks {
         )
     }
 
-    register("kmmTest", AggregateTest::class) {
-        dependsOn(
-            ":idea:idea-gradle:test",
-            ":idea:test",
-            ":compiler:test",
-            ":compiler:container:test",
-            ":js:js.tests:test"
-        )
-
-        dependsOn(":kotlin-gradle-plugin-integration-tests:test")
-        if (Ide.AS40.orHigher())
-            dependsOn(":kotlin-ultimate:ide:android-studio-native:test")
-
-        testPatternFile = file("tests/mpp/kmm-patterns.csv")
-    }
-
     register("test") {
         doLast {
             throw GradleException("Don't use directly, use aggregate tasks *-check instead")
@@ -1027,8 +1006,7 @@ val zipTestData by task<Zip> {
 val zipPlugin by task<Zip> {
     val src = when (project.findProperty("pluginArtifactDir") as String?) {
         "Kotlin" -> ideaPluginDir
-        "KotlinUltimate" -> ideaUltimatePluginDir
-        null -> if (project.hasProperty("ultimate")) ideaUltimatePluginDir else ideaPluginDir
+        null -> ideaPluginDir
         else -> error("Unsupported plugin artifact dir")
     }
     val destPath = project.findProperty("pluginZipPath") as String?

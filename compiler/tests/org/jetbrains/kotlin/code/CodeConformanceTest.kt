@@ -180,9 +180,7 @@ class CodeConformanceTest : TestCase() {
                 // substring check is an optimization
                 "@author" in source && atAuthorPattern.matcher(source).find() &&
                         "ASM: a very small and fast Java bytecode manipulation framework" !in source &&
-                        "package org.jetbrains.kotlin.tools.projectWizard.settings.version.maven" !in source &&
-                        !file.relativeTo(root).systemIndependentPath.startsWith("kotlin-ultimate/ide/common-cidr-native") &&
-                        file.name != "CLionKonanProjectDataService.kt"
+                        "package org.jetbrains.kotlin.tools.projectWizard.settings.version.maven" !in source
             },
             TestData(
                 "%d source files use something from com.beust.jcommander.internal package.\n" +
