@@ -28,7 +28,7 @@ class IrSymbolDeserializer(
     val fileReader: IrLibraryFile,
     val filePath: String,
     val actuals: List<Actual>,
-    val enqueueLocalTopLevelDeclaration: (IdSignature, BinarySymbolData.SymbolKind) -> Unit,
+    val enqueueLocalTopLevelDeclaration: (IdSignature, IrSymbol) -> Unit,
     val handleExpectActualMapping: (IdSignature, IrSymbol) -> IrSymbol,
     val pathToFileSymbol: (String) -> IrFileSymbol = { error("indexToFileSymbol not provided") },
     private val enqueueAllDeclarations: Boolean = false,
@@ -64,8 +64,6 @@ class IrSymbolDeserializer(
                 IrLocalDelegatedPropertySymbolImpl()
             BinarySymbolData.SymbolKind.FILE_SYMBOL -> pathToFileSymbol((idSig as IdSignature.FileSignature).path)
             else -> error("Unexpected classifier symbol kind: $symbolKind for signature $idSig")
-        }.also { symbol ->
-            deserializedSymbols.putIfAbsent(idSig, symbol)
         }
     }
 
@@ -82,13 +80,14 @@ class IrSymbolDeserializer(
 
     private fun deserializeIrSymbolData(idSignature: IdSignature, symbolKind: BinarySymbolData.SymbolKind): IrSymbol {
         if (idSignature.isLocal) {
-            if (enqueueAllDeclarations) {
-                enqueueLocalTopLevelDeclaration(idSignature, symbolKind)
-            } else if (idSignature.hasTopLevel) {
-                enqueueLocalTopLevelDeclaration(idSignature.topLevelSignature(), symbolKind)
-            }
             return deserializedSymbols.getOrPut(idSignature) {
-                    referenceDeserializedSymbol(symbolKind, idSignature)
+                referenceDeserializedSymbol(symbolKind, idSignature).also { symbol ->
+                    if (enqueueAllDeclarations) {
+                        enqueueLocalTopLevelDeclaration(idSignature, symbol)
+                    } else if (idSignature.hasTopLevel) {
+                        enqueueLocalTopLevelDeclaration(idSignature.topLevelSignature(), symbol)
+                    }
+                }
             }
         }
 

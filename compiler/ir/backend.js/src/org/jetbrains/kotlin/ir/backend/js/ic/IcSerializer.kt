@@ -149,23 +149,6 @@ class IcSerializer(
     }
 }
 
-class SerializedIcDataForFile(
-    val file: SerializedIrFile,
-    val carriers: SerializedCarriers,
-    val mappings: SerializedMappings,
-    val order: SerializedOrder,
-)
-
-class SerializedIcData(
-    val files: Collection<SerializedIcDataForFile>,
-)
-
-class SerializedOrder(
-    val topLevelSignatures: ByteArray,
-    val containerSignatures: ByteArray,
-    val declarationSignatures: ByteArray,
-)
-
 fun storeOrder(file: IrFile, idSigToLong: (IrSymbol) -> Long): SerializedOrder {
     val topLevelSignatures = mutableListOf<Long>()
     val containerSignatures = mutableListOf<Long>()

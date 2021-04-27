@@ -18,6 +18,7 @@ dependencies {
     compile(project(":js:js.frontend"))
 
     compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+    implementation(kotlin("reflect"))
 }
 
 sourceSets {
