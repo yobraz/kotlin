@@ -97,10 +97,10 @@ class FakeOverrideBuilder(
         }
 
         superClasses.forEach { superClass ->
-            fakeOverrideCandidates[superClass]?.let { mode ->
-                buildFakeOverrideChainsForClass(superClass, mode)
-                haveFakeOverrides.add(superClass)
-            }
+            val mode = fakeOverrideCandidates[superClass] ?: compatibilityMode
+            buildFakeOverrideChainsForClass(superClass, mode)
+            haveFakeOverrides.add(superClass)
+
         }
 
         fakeOverrideDeclarationTable.run {

@@ -269,6 +269,7 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
             when (declaration) {
                 is IrValueDeclaration -> IdSignature.ScopeLocalDeclaration(scopeCounter++, declaration.name.asString())
                 is IrAnonymousInitializer -> IdSignature.ScopeLocalDeclaration(scopeCounter++, "ANON INIT")
+                is IrLocalDelegatedProperty -> IdSignature.ScopeLocalDeclaration(scopeCounter++, declaration.name.asString())
                 is IrField -> {
                     assert(compatibleMode) { "Field private signatures allowed only in compatible mode" }
                     val p = declaration.correspondingPropertySymbol?.let { composeSignatureForDeclaration(it.owner, true) }
@@ -302,7 +303,7 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
                     )
                 }
                 else -> {
-                    assert(compatibleMode) { "Private signatures allowed only in compatible mode" }
+                    assert(compatibleMode) { "Private signatures allowed only in compatible mode (${declaration.render()})" }
                     IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent, compatibleMode), ++localCounter)
                 }
             }
