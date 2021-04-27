@@ -215,7 +215,7 @@ class JavaTypeResolver(
                  * but it's wrong because Foo<*> isn't subtype of Foo<Foo<*>> in accordance with declared upper bound of Foo.
                  * So we should create Foo<*> in this case (CapturedType(*) is really subtype of Foo<CapturedType(*)>).
                  */
-                if (hasTypeParameterRecursiveBounds(parameter))
+                if (hasTypeParameterRecursiveBounds(parameter, selfConstructor = null, attr.upperBoundOfTypeParameter))
                     return@map StarProjectionImpl(parameter)
 
                 // Some activity for preventing recursion in cases like `class A<T extends A, F extends T>`
@@ -352,7 +352,7 @@ internal fun TypeParameterDescriptor.getErasedUpperBound(
      * but it's wrong type: projection(*) != projection(Any).
      * So we should substitute erasure of the corresponding type parameter: `Foo<Foo<Any>, Any>` or `Foo<Foo<*>, *>`.
      */
-    val erasedUpperBounds = defaultType.extractTypeParametersFromUpperBounds().associate {
+    val erasedUpperBounds = defaultType.extractTypeParametersFromUpperBounds(typeAttr.upperBoundOfTypeParameter).associate {
         it.typeConstructor to RawSubstitution.computeProjection(
             this,
             // if erasure happens due to invalid arguments number, use star projections instead
@@ -365,16 +365,26 @@ internal fun TypeParameterDescriptor.getErasedUpperBound(
     val firstUpperBound = upperBounds.first()
 
     if (firstUpperBound.constructor.declarationDescriptor is ClassDescriptor) {
-        return firstUpperBound.replaceArgumentsWithStarProjectionOrMapped(erasedUpperBoundsSubstitutor, erasedUpperBounds, OUT_VARIANCE)
+        return firstUpperBound.replaceArgumentsWithStarProjectionOrMapped(
+            erasedUpperBoundsSubstitutor,
+            erasedUpperBounds,
+            OUT_VARIANCE,
+            typeAttr.upperBoundOfTypeParameter
+        )
     }
 
-    val stopAt = typeAttr?.upperBoundOfTypeParameter ?: this
+    val stopAt = typeAttr.upperBoundOfTypeParameter ?: this
     var current = firstUpperBound.constructor.declarationDescriptor as TypeParameterDescriptor
 
     while (current != stopAt) {
         val nextUpperBound = current.upperBounds.first()
         if (nextUpperBound.constructor.declarationDescriptor is ClassDescriptor) {
-            return nextUpperBound.replaceArgumentsWithStarProjectionOrMapped(erasedUpperBoundsSubstitutor, erasedUpperBounds, OUT_VARIANCE)
+            return nextUpperBound.replaceArgumentsWithStarProjectionOrMapped(
+                erasedUpperBoundsSubstitutor,
+                erasedUpperBounds,
+                OUT_VARIANCE,
+                typeAttr.upperBoundOfTypeParameter
+            )
         }
 
         current = nextUpperBound.constructor.declarationDescriptor as TypeParameterDescriptor
