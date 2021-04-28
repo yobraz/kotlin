@@ -37,8 +37,8 @@ fun AutoMute.muteTest(testKey: String) {
 
 internal fun wrapWithAutoMute(f: () -> Unit, testKey: String): (() -> Unit)? {
     val doAutoMute = DO_AUTO_MUTE
-    if (doAutoMute != null) {
-        return {
+    return if (doAutoMute != null) {
+        {
             try {
                 f()
             } catch (e: Throwable) {
@@ -47,6 +47,6 @@ internal fun wrapWithAutoMute(f: () -> Unit, testKey: String): (() -> Unit)? {
             }
         }
     } else {
-        return null
+        null
     }
 }
