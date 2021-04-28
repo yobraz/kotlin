@@ -62,10 +62,10 @@ open class DeclarationTable(globalTable: GlobalDeclarationTable) {
         it.table = this
     }
 
-    fun inFile(file: IrFile, block: () -> Unit) {
+    fun inFile(file: IrFile?, block: () -> Unit) {
         signaturer.reset()
         signaturer.table = this
-        signaturer.inFile(file.symbol, block)
+        signaturer.inFile(file?.symbol, block)
     }
 
 

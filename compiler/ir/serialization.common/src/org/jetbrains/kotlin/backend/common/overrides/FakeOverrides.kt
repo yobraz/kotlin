@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.ir.symbols.impl.IrPropertySymbolImpl
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.SymbolTable
-import org.jetbrains.kotlin.ir.util.file
+import org.jetbrains.kotlin.ir.util.fileOrNull
 import org.jetbrains.kotlin.ir.util.parentAsClass
 
 class FakeOverrideGlobalDeclarationTable(
@@ -100,11 +100,10 @@ class FakeOverrideBuilder(
             val mode = fakeOverrideCandidates[superClass] ?: compatibilityMode
             buildFakeOverrideChainsForClass(superClass, mode)
             haveFakeOverrides.add(superClass)
-
         }
 
         fakeOverrideDeclarationTable.run {
-            inFile(clazz.file) {
+            inFile(clazz.fileOrNull) {
                 if (clazz.visibility == DescriptorVisibilities.LOCAL) {
                     inLocalScope(clazz.parent) {
                         irOverridingUtil.buildFakeOverridesForClass(clazz, compatibilityMode.oldSignatures)
