@@ -533,7 +533,7 @@ class SymbolTable(
 
     fun declareClassFromLinker(descriptor: ClassDescriptor, sig: IdSignature, factory: (IrClassSymbol) -> IrClass): IrClass {
         return classSymbolTable.run {
-            if (sig.isPublic) {
+            if (sig.isPubliclyVisible) {
                 declare(sig, descriptor, { IrClassPublicSymbolImpl(sig, descriptor) }, factory)
             } else {
                 declare(descriptor, { IrClassSymbolImpl(descriptor) }, factory)
@@ -550,7 +550,7 @@ class SymbolTable(
     override fun referenceClassFromLinker(sig: IdSignature): IrClassSymbol =
         classSymbolTable.run {
 //            referenced(sig) { IrClassPublicSymbolImpl(sig) }
-            if (sig.isPublic) referenced(sig) { IrClassPublicSymbolImpl(sig) }
+            if (sig.isPubliclyVisible) referenced(sig) { IrClassPublicSymbolImpl(sig) }
             else IrClassSymbolImpl()
         }
 
@@ -601,7 +601,7 @@ class SymbolTable(
         constructorFactory: (IrConstructorSymbol) -> IrConstructor
     ): IrConstructor {
         return constructorSymbolTable.run {
-            if (sig.isPublic) {
+            if (sig.isPubliclyVisible) {
                 declare(sig, descriptor, { IrConstructorPublicSymbolImpl(sig, descriptor) }, constructorFactory)
             } else {
                 declare(descriptor, { IrConstructorSymbolImpl(descriptor) }, constructorFactory)
@@ -612,7 +612,7 @@ class SymbolTable(
     override fun referenceConstructorFromLinker(sig: IdSignature): IrConstructorSymbol =
         constructorSymbolTable.run {
 //            referenced(sig) { IrConstructorPublicSymbolImpl(sig) }
-            if (sig.isPublic) referenced(sig) { IrConstructorPublicSymbolImpl(sig) }
+            if (sig.isPubliclyVisible) referenced(sig) { IrConstructorPublicSymbolImpl(sig) }
             else IrConstructorSymbolImpl()
         }
 
@@ -650,7 +650,7 @@ class SymbolTable(
         factory: (IrEnumEntrySymbol) -> IrEnumEntry
     ): IrEnumEntry {
         return enumEntrySymbolTable.run {
-            if (sig.isPublic) {
+            if (sig.isPubliclyVisible) {
                 declare(sig, descriptor, { IrEnumEntryPublicSymbolImpl(sig, descriptor) }, factory)
             } else {
                 declare(descriptor, { IrEnumEntrySymbolImpl(descriptor) }, factory)
@@ -663,7 +663,7 @@ class SymbolTable(
 
     override fun referenceEnumEntryFromLinker(sig: IdSignature) =
         enumEntrySymbolTable.run {
-            if (sig.isPublic) referenced(sig) { IrEnumEntryPublicSymbolImpl(sig) }
+            if (sig.isPubliclyVisible) referenced(sig) { IrEnumEntryPublicSymbolImpl(sig) }
             else IrEnumEntrySymbolImpl()
         }
 
@@ -727,7 +727,7 @@ class SymbolTable(
 
     fun declareFieldFromLinker(descriptor: PropertyDescriptor, sig: IdSignature, factory: (IrFieldSymbol) -> IrField): IrField {
         return fieldSymbolTable.run {
-            if (sig.isPublic) {
+            if (sig.isPubliclyVisible) {
                 declare(sig, descriptor, { IrFieldPublicSymbolImpl(sig, descriptor) }, factory)
             } else {
                 declare(descriptor, { IrFieldSymbolImpl(descriptor) }, factory)
@@ -746,7 +746,7 @@ class SymbolTable(
     override fun referenceFieldFromLinker(sig: IdSignature) =
         fieldSymbolTable.run {
 //            referenced(sig) { IrFieldPublicSymbolImpl(sig) }
-            if (sig.isPublic) referenced(sig) { IrFieldPublicSymbolImpl(sig) }
+            if (sig.isPubliclyVisible) referenced(sig) { IrFieldPublicSymbolImpl(sig) }
             else IrFieldSymbolImpl()
         }
 
@@ -810,7 +810,7 @@ class SymbolTable(
 
     fun declarePropertyFromLinker(descriptor: PropertyDescriptor, sig: IdSignature, factory: (IrPropertySymbol) -> IrProperty): IrProperty {
         return propertySymbolTable.run {
-            if (sig.isPublic) {
+            if (sig.isPubliclyVisible) {
                 declare(sig, descriptor, { IrPropertyPublicSymbolImpl(sig, descriptor) }, factory)
             } else {
                 declare(descriptor, { IrPropertySymbolImpl(descriptor) }, factory)
@@ -827,7 +827,7 @@ class SymbolTable(
     override fun referencePropertyFromLinker(sig: IdSignature): IrPropertySymbol =
         propertySymbolTable.run {
 //            referenced(sig) { IrPropertyPublicSymbolImpl(sig) }
-            if (sig.isPublic) referenced(sig) { IrPropertyPublicSymbolImpl(sig) }
+            if (sig.isPubliclyVisible) referenced(sig) { IrPropertyPublicSymbolImpl(sig) }
             else IrPropertySymbolImpl()
         }
 
@@ -846,7 +846,7 @@ class SymbolTable(
         factory: (IrTypeAliasSymbol) -> IrTypeAlias
     ): IrTypeAlias {
         return typeAliasSymbolTable.run {
-            if (sig.isPublic) {
+            if (sig.isPubliclyVisible) {
                 declare(sig, descriptor, { IrTypeAliasPublicSymbolImpl(sig, descriptor) }, factory)
             } else {
                 declare(descriptor, { IrTypeAliasSymbolImpl(descriptor) }, factory)
@@ -856,7 +856,7 @@ class SymbolTable(
 
     override fun referenceTypeAliasFromLinker(sig: IdSignature) =
         typeAliasSymbolTable.run {
-            if (sig.isPublic) referenced(sig) { IrTypeAliasPublicSymbolImpl(sig) }
+            if (sig.isPubliclyVisible) referenced(sig) { IrTypeAliasPublicSymbolImpl(sig) }
             else IrTypeAliasSymbolImpl()
         }
 
@@ -916,7 +916,7 @@ class SymbolTable(
         functionFactory: (IrSimpleFunctionSymbol) -> IrSimpleFunction
     ): IrSimpleFunction {
         return simpleFunctionSymbolTable.run {
-            if (sig.isPublic) {
+            if (sig.isPubliclyVisible) {
                 declare(sig, descriptor, { IrSimpleFunctionPublicSymbolImpl(sig, descriptor) }, functionFactory)
             } else {
                 declare(descriptor!!, { IrSimpleFunctionSymbolImpl(descriptor) }, functionFactory)
@@ -933,7 +933,7 @@ class SymbolTable(
     override fun referenceSimpleFunctionFromLinker(sig: IdSignature): IrSimpleFunctionSymbol {
         return simpleFunctionSymbolTable.run {
 //            referenced(sig) { IrSimpleFunctionPublicSymbolImpl(sig) }
-            if (sig.isPublic) referenced(sig) { IrSimpleFunctionPublicSymbolImpl(sig) }
+            if (sig.isPubliclyVisible) referenced(sig) { IrSimpleFunctionPublicSymbolImpl(sig) }
             else IrSimpleFunctionSymbolImpl()
         }
     }
@@ -982,7 +982,7 @@ class SymbolTable(
     ): IrTypeParameter {
 //        require(sig.isLocal)
         return globalTypeParameterSymbolTable.declare(descriptor, {
-            if (sig.isPublic) IrTypeParameterPublicSymbolImpl(sig, descriptor) else IrTypeParameterSymbolImpl(descriptor) }, typeParameterFactory)
+            if (sig.isPubliclyVisible) IrTypeParameterPublicSymbolImpl(sig, descriptor) else IrTypeParameterSymbolImpl(descriptor) }, typeParameterFactory)
     }
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
@@ -1072,7 +1072,7 @@ class SymbolTable(
 
     override fun referenceTypeParameterFromLinker(sig: IdSignature): IrTypeParameterSymbol {
 //        require(sig.isLocal)
-        return if (sig.isPublic) IrTypeParameterPublicSymbolImpl(sig) else IrTypeParameterSymbolImpl()
+        return if (sig.isPubliclyVisible) IrTypeParameterPublicSymbolImpl(sig) else IrTypeParameterSymbolImpl()
     }
 
     fun declareVariable(

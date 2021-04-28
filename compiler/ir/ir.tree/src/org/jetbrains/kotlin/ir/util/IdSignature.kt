@@ -26,7 +26,7 @@ sealed class IdSignature {
         fun decode(flags: Long): Boolean = (flags and (1L shl ordinal) != 0L)
     }
 
-    abstract val isPublic: Boolean
+    abstract val isPubliclyVisible: Boolean
 
     open fun isPackageSignature(): Boolean = false
 
@@ -45,13 +45,13 @@ sealed class IdSignature {
 
     open val hasTopLevel: Boolean get() = !isPackageSignature()
 
-    open val isLocal: Boolean get() = !isPublic
+    open val isLocal: Boolean get() = !isPubliclyVisible
 
     override fun toString(): String =
         "${if (isLocal) "local " else ""}${render()}"
 
     class PublicSignature(val packageFqName: String, val declarationFqName: String, val id: Long?, val mask: Long) : IdSignature() {
-        override val isPublic: Boolean get() = true
+        override val isPubliclyVisible: Boolean get() = true
 
         override fun packageFqName(): FqName = FqName(packageFqName)
 
@@ -100,8 +100,8 @@ sealed class IdSignature {
     }
 
     class CompositeSignature(val container: IdSignature, val inner: IdSignature) : IdSignature() {
-        override val isPublic: Boolean
-            get() = container.isPublic
+        override val isPubliclyVisible: Boolean
+            get() = container.isPubliclyVisible
 
         override val isLocal: Boolean
             get() = inner.isLocal
@@ -137,7 +137,7 @@ sealed class IdSignature {
     }
 
     class AccessorSignature(val propertySignature: IdSignature, val accessorSignature: PublicSignature) : IdSignature() {
-        override val isPublic: Boolean get() = true
+        override val isPubliclyVisible: Boolean get() = true
 
         override fun topLevelSignature(): IdSignature = propertySignature.topLevelSignature()
 
@@ -163,7 +163,7 @@ sealed class IdSignature {
 
         override fun hashCode(): Int = fileSymbol.owner.hashCode()
 
-        override val isPublic: Boolean
+        override val isPubliclyVisible: Boolean
             get() = true
 
         override fun isPackageSignature(): Boolean = true
@@ -187,7 +187,7 @@ sealed class IdSignature {
     }
 
     class LocalSignature(val localFqn: String, val hashSig: Long?, val description: String?) : IdSignature() {
-        override val isPublic: Boolean
+        override val isPubliclyVisible: Boolean
             get() = false
 
         override val isLocal: Boolean
@@ -251,14 +251,14 @@ sealed class IdSignature {
         val memberSignature: IdSignature,
         val overriddenSignatures: List<IdSignature>
     ) : IdSignature() {
-        override val isPublic: Boolean
-            get() = memberSignature.isPublic
+        override val isPubliclyVisible: Boolean
+            get() = memberSignature.isPubliclyVisible
 
         override fun topLevelSignature(): IdSignature =
             memberSignature.topLevelSignature()
 
         override fun nearestPublicSig(): IdSignature =
-            if (memberSignature.isPublic)
+            if (memberSignature.isPubliclyVisible)
                 this
             else
                 memberSignature.nearestPublicSig()
@@ -289,7 +289,7 @@ sealed class IdSignature {
     }
 
     class FileLocalSignature(val container: IdSignature, val id: Long) : IdSignature() {
-        override val isPublic: Boolean get() = false
+        override val isPubliclyVisible: Boolean get() = false
 
         override fun packageFqName(): FqName = container.packageFqName()
 
@@ -319,7 +319,7 @@ sealed class IdSignature {
 
         val description: String = _description ?: "<no description>"
 
-        override val isPublic: Boolean get() = false
+        override val isPubliclyVisible: Boolean get() = false
 
         override val hasTopLevel: Boolean get() = false
 

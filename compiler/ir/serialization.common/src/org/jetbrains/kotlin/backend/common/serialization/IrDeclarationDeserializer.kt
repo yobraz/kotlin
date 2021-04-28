@@ -267,7 +267,7 @@ class IrDeclarationDeserializer(
                 val symbolData = BinarySymbolData.decode(proto.base.symbol)
                 sig = symbolDeserializer.deserializeIdSignature(symbolData.signatureId)
                 declareScopedTypeParameter(sig, {
-                    if (it.isPublic) IrTypeParameterPublicSymbolImpl(it) else IrTypeParameterSymbolImpl() }, factory)
+                    if (it.isPubliclyVisible) IrTypeParameterPublicSymbolImpl(it) else IrTypeParameterSymbolImpl() }, factory)
             }
         }
 
@@ -752,7 +752,7 @@ class IrDeclarationDeserializer(
             else -> return false
         }
         if (symbol !is IrPublicSymbolBase<*>) return false
-        if (!symbol.signature.isPublic) return false
+        if (!symbol.signature.isPubliclyVisible) return false
 
         return when (proto.declaratorCase!!) {
             IR_FUNCTION -> FunctionFlags.decode(proto.irFunction.base.base.flags).isFakeOverride
