@@ -42,7 +42,7 @@ fun compileWasm(
     val (moduleFragment, dependencyModules, irBuiltIns, symbolTable, deserializer) =
         loadIr(
             project, mainModule, analyzer, configuration, allDependencies, friendDependencies,
-            irFactory, true
+            irFactory, verifySignatures = false
         )
 
     val allModules = when (mainModule) {
