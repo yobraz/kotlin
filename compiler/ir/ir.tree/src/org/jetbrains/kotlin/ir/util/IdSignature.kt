@@ -101,7 +101,7 @@ sealed class IdSignature {
 
     class CompositeSignature(val container: IdSignature, val inner: IdSignature) : IdSignature() {
         override val isPubliclyVisible: Boolean
-            get() = container.isPubliclyVisible
+            get() = true
 
         override val isLocal: Boolean
             get() = inner.isLocal
