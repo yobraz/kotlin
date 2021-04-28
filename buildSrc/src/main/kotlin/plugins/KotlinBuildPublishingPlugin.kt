@@ -161,10 +161,22 @@ fun Project.configureDefaultPublishing() {
         .all { configureRepository() }
 }
 
+private fun Project.getSensitiveProperty(name: String): String? {
+    return project.findProperty(name) as? String ?: System.getenv(name)
+}
+
 private fun Project.configureSigning() {
     configure<SigningExtension> {
         sign(extensions.getByType<PublishingExtension>().publications) // all publications
-        useGpgCmd()
+
+        val signKeyId = project.getSensitiveProperty("signKeyId")
+        if (!signKeyId.isNullOrBlank()) {
+            val signKeyPrivate = project.getSensitiveProperty("signKeyPrivate") ?: error("Parameter `signKeyPrivate` not found")
+            val signKeyPassphrase = project.getSensitiveProperty("signKeyPassphrase") ?: error("Parameter `signKeyPassphrase` not found")
+            useInMemoryPgpKeys(signKeyId, signKeyPrivate, signKeyPassphrase)
+        } else {
+            useGpgCmd()
+        }
     }
 }
 
