@@ -35,7 +35,13 @@ class CompatibilityMode(val abiVersion: KotlinAbiVersion) {
         assert(abiVersion.isCompatible())
     }
 
-    val oldSignatures: Boolean = abiVersion.patch <= LAST_PRIVATE_SIG_ABI_VERSION.patch
+    val oldSignatures: Boolean
+        get() {
+            if (abiVersion.minor == LAST_PRIVATE_SIG_ABI_VERSION.minor) {
+                return abiVersion.patch <= LAST_PRIVATE_SIG_ABI_VERSION.patch
+            }
+            return abiVersion.minor < LAST_PRIVATE_SIG_ABI_VERSION.minor
+        }
 
     companion object {
         val LAST_PRIVATE_SIG_ABI_VERSION = KotlinAbiVersion(1, 5, 0)
