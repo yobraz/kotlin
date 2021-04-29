@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.resolve.calls.inference.model
 
-import org.jetbrains.kotlin.resolve.calls.inference.components.AbstractTypeCheckerContextForConstraintSystem
 import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.types.model.*
 

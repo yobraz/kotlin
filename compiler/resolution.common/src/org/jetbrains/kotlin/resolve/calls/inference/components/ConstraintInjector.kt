@@ -146,16 +146,18 @@ class ConstraintInjector(
 
             val contextOps = c as? ConstraintSystemOperation
 
-            if (!skipProperEqualityConstraints || properConstraintsProcessingEnabled) continue
+            val useIncorrectOptimization = skipProperEqualityConstraints && !properConstraintsProcessingEnabled
 
-            if (contextOps != null && c.notFixedTypeVariables.all { typeVariable ->
-                    typeVariable.value.constraints.any { constraint ->
-                        constraint.kind == EQUALITY && contextOps.isProperType(constraint.type)
-                    }
+            if (!useIncorrectOptimization) continue
+
+            // Optimization below is wrong and it's going to be removed after finished the corresponding deprecation cycle
+            val hasProperEqualityConstraintForEachVariable = contextOps != null && c.notFixedTypeVariables.all { typeVariable ->
+                typeVariable.value.constraints.any { constraint ->
+                    constraint.kind == EQUALITY && contextOps.isProperType(constraint.type)
                 }
-            ) {
-                return typeCheckerContext.extractAllConstraints()
             }
+
+            if (hasProperEqualityConstraintForEachVariable) return typeCheckerContext.extractAllConstraints()
         }
         return null
     }
