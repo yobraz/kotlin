@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.test.services.globalMetadataInfoHandler
 import org.jetbrains.kotlin.utils.JavaTypeEnhancementState
 import org.jetbrains.kotlin.utils.ReportLevel
 
+// Not that this diagnostic handler should be included only with `ClassicDiagnosticsHandler` and go after it
 class JspecifyDiagnosticComplianceHandler(testServices: TestServices) : ClassicFrontendAnalysisHandler(testServices) {
     override fun processModule(module: TestModule, info: ClassicFrontendOutputArtifact) {
         val jspecifyMode = module.directives[ForeignAnnotationsDirectives.JSPECIFY_STATE].singleOrNull()
