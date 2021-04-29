@@ -30,7 +30,7 @@ class IDEVirtualFileFinder(private val scope: GlobalSearchScope) : VirtualFileFi
     override fun hasMetadataPackage(fqName: FqName): Boolean = KotlinMetadataFilePackageIndex.hasSomethingInPackage(fqName, scope)
 
     override fun findBuiltInsData(packageFqName: FqName): InputStream? =
-        findVirtualFileWithHeader(packageFqName, KotlinBuiltInsMetadataIndex.KEY)?.inputStreamreplace('.', '$') + ".class")
+        findVirtualFileWithHeader(packageFqName, KotlinBuiltInsMetadataIndex.KEY)?.inputStream
 
     override fun findSourceOrBinaryVirtualFile(classId: ClassId) = findVirtualFileWithHeader(classId)
 
