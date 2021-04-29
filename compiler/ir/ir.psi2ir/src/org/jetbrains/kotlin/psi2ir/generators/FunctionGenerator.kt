@@ -265,7 +265,7 @@ class FunctionGenerator(declarationGenerator: DeclarationGenerator) : Declaratio
             }.apply {
                 metadata = DescriptorMetadataSource.Function(it.descriptor)
             }
-        }.buildWithLocalScope(ktTree as KtElement) { irConstructor ->
+        }.buildWithLocalScope(ktTree as? KtElement) { irConstructor ->
             generateValueParameterDeclarations(irConstructor, ktParametersElement, null)
             irConstructor.body = createBodyGenerator(irConstructor.symbol).generateBody()
             irConstructor.returnType = constructorDescriptor.returnType.toIrType()
