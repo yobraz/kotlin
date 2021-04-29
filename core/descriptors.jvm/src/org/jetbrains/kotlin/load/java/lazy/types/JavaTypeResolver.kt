@@ -344,7 +344,7 @@ internal fun TypeParameterDescriptor.getErasedUpperBound(
     typeAttr: JavaTypeAttributes,
     defaultValue: (() -> KotlinType) = { ErrorUtils.createErrorType("Can't compute erased upper bound of type parameter `$this`") }
 ): KotlinType {
-    if (this === typeAttr?.upperBoundOfTypeParameter) return defaultValue()
+    if (this === typeAttr.upperBoundOfTypeParameter) return defaultValue()
 
     /*
      * We should do erasure of containing type parameters with their erasure to avoid creating inconsistent types.
