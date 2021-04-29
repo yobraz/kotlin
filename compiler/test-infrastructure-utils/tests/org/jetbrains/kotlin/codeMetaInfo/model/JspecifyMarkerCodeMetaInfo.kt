@@ -13,7 +13,7 @@ class JspecifyMarkerCodeMetaInfo(
     val offset: Int,
     val name: String
 ) : CodeMetaInfo {
-    override val tagPrefix = "${System.lineSeparator()}${" ".repeat(offset)}// "
+    override val tagPrefix = "\n${" ".repeat(offset)}// "
     override val tagPostfix = ""
     override val closingTag = ""
 
