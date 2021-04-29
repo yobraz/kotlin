@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.ir.descriptors.IrAbstractFunctionFactory
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
-import org.jetbrains.kotlin.ir.symbols.isPublicApi
 import org.jetbrains.kotlin.ir.util.DeclarationStubGenerator
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.IrMessageLogger
@@ -156,7 +155,7 @@ class JvmIrLinker(
         }
 
         override fun declareIrSymbol(symbol: IrSymbol) {
-            assert(symbol.isPublicApi || symbol.descriptor.isJavaDescriptor())
+//            assert(symbol.isPublicApi || symbol.descriptor.isJavaDescriptor())
             if (symbol is IrFieldSymbol) {
                 declareJavaFieldStub(symbol)
             } else {
