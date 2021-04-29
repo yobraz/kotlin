@@ -450,6 +450,14 @@ class SymbolTable(
         )
     }
 
+    fun declareExternalPackageFragmentIfNotExists(descriptor: PackageFragmentDescriptor): IrExternalPackageFragment {
+        return externalPackageFragmentTable.declareIfNotExists(
+            descriptor,
+            { IrExternalPackageFragmentSymbolImpl(descriptor) },
+            { IrExternalPackageFragmentImpl(it, descriptor.fqName) }
+        )
+    }
+
     private fun createAnonymousInitializerSymbol(descriptor: ClassDescriptor): IrAnonymousInitializerSymbol {
         return IrAnonymousInitializerSymbolImpl(descriptor)
     }
