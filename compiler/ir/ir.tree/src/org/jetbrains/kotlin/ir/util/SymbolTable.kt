@@ -1179,7 +1179,6 @@ class SymbolTable(
         block: (IrSymbol) -> Unit
     ) {
         idSigToSymbol.forEach { (_, sym) ->
-            assert(sym.isPublicApi)
             block(sym)
         }
     }
