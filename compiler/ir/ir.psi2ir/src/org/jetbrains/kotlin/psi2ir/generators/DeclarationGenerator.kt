@@ -207,12 +207,16 @@ class IrElementScopeBuilder : ScopeBuilder<DeclarationDescriptor, IrElement> {
                 // TODO: is that correct?
                 scope.commitAnonymousObject(declaration.descriptor)
             } else {
-                scope.commitLocalClass(declaration.descriptor)
+                if (declaration.visibility == DescriptorVisibilities.LOCAL) {
+                    scope.commitLocalClass(declaration.descriptor)
+                }
             }
         }
 
         override fun visitFunction(declaration: IrFunction) {
-            scope.commitLocalFunction(declaration.descriptor)
+            if (declaration.visibility == DescriptorVisibilities.LOCAL) {
+                scope.commitLocalFunction(declaration.descriptor)
+            }
         }
 
         override fun visitFunctionExpression(expression: IrFunctionExpression) {
@@ -245,7 +249,11 @@ class KtElementScopeBuilder(private val bindingContext: BindingContext) : ScopeB
         }
 
         override fun visitNamedFunction(function: KtNamedFunction) {
-            scope.commitLocalFunction(function.functionDescriptor)
+            function.functionDescriptor.let {
+                if (it.visibility == DescriptorVisibilities.LOCAL) {
+                    scope.commitLocalFunction(it)
+                }
+            }
         }
 
         override fun visitObjectLiteralExpression(expression: KtObjectLiteralExpression) {
@@ -253,7 +261,11 @@ class KtElementScopeBuilder(private val bindingContext: BindingContext) : ScopeB
         }
 
         override fun visitClassOrObject(classOrObject: KtClassOrObject) {
-            scope.commitLocalClass(classOrObject.classDescriptor)
+            classOrObject.classDescriptor.let {
+                if (it.visibility == DescriptorVisibilities.LOCAL) {
+                    scope.commitLocalClass(it)
+                }
+            }
         }
 
         override fun visitEnumEntry(enumEntry: KtEnumEntry) {

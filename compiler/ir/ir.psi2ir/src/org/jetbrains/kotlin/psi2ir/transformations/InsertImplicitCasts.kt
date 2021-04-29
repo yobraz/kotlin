@@ -123,6 +123,16 @@ internal class InsertImplicitCasts(
         }
     }
 
+    override fun visitScript(declaration: IrScript): IrStatement {
+        val scopeBridge: (SignatureScope<DeclarationDescriptor>) -> Unit = {
+            localScopeBuilder(declaration, it)
+        }
+
+        return symbolTable.signaturer.inLocalScope(scopeBridge) {
+            super.visitScript(declaration)
+        }
+    }
+
     override fun visitFile(declaration: IrFile): IrFile {
         symbolTable.signaturer.inFile(file.symbol) {
             declaration.transformChildrenVoid()
@@ -243,7 +253,7 @@ internal class InsertImplicitCasts(
         }
     }
 
-    private fun localScopeBuilder(declaration: IrFunction, scope: SignatureScope<DeclarationDescriptor>) {
+    private fun localScopeBuilder(declaration: IrDeclaration, scope: SignatureScope<DeclarationDescriptor>) {
         IrElementScopeBuilder().build(scope, declaration)
     }
 
