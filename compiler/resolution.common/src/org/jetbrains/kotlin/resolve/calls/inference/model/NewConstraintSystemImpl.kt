@@ -346,7 +346,12 @@ class NewConstraintSystemImpl(
 
         constraintInjector.addInitialEqualityConstraint(this@NewConstraintSystemImpl, variable.defaultType(), resultType, position)
 
-        checkMissedConstraints(variable)
+        /*
+         * Checking missed constraint can introduce new type mismatch warnings.
+         * It's needed to deprecate green code which works only due to incorrect optimization in the constraint injector.
+         * TODO: remove this code (and `substituteMissedConstraints`) with removing `ProperTypeInferenceConstraintsProcessing` feature
+         */
+        checkMissedConstraints()
 
         val freshTypeConstructor = variable.freshTypeConstructor()
         val variableWithConstraints = notFixedTypeVariables.remove(freshTypeConstructor)
@@ -357,7 +362,7 @@ class NewConstraintSystemImpl(
 
         storage.fixedTypeVariables[freshTypeConstructor] = resultType
 
-        // Substitute freshly fixed type variable in missed constraints
+        // Substitute freshly fixed type variable into missed constraints
         substituteMissedConstraints()
 
         postponeOnlyInputTypesCheck(variableWithConstraints, resultType)
@@ -366,16 +371,17 @@ class NewConstraintSystemImpl(
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    private fun checkMissedConstraints(variable: TypeVariableMarker) {
+    private fun checkMissedConstraints() {
         val constraintSystem = this@NewConstraintSystemImpl
         val errorsByMissedConstraints = buildList {
             runTransaction {
                 for ((position, constraints) in storage.missedConstraints) {
-                    val myConstraints = constraints.filter { (typeVariable, _) -> typeVariable == variable }
-                    constraintInjector.processMissedConstraints(constraintSystem, position, myConstraints)
+                    val fixedVariableConstraints =
+                        constraints.filter { (typeVariable, _) -> typeVariable.freshTypeConstructor() in notFixedTypeVariables }
+                    constraintInjector.processMissedConstraints(constraintSystem, position, fixedVariableConstraints)
                 }
                 errors.filterIsInstance<NewConstraintError>().forEach(::add)
-                !hasContradiction
+                false
             }
         }
         val constraintErrors = constraintSystem.errors.filterIsInstance<NewConstraintError>()

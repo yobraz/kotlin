@@ -357,6 +357,7 @@ class DiagnosticReporterByTrackingStrategy(
                         else -> null
                     }
                 val typeMismatchDiagnostic = if (error.isWarning) TYPE_MISMATCH_WARNING else TYPE_MISMATCH
+                val report = if (error.isWarning) trace::reportDiagnosticOnce else trace::report
                 argument?.let {
                     it.safeAs<LambdaKotlinCallArgument>()?.let lambda@{ lambda ->
                         val parameterTypes = lambda.parametersTypes?.toList() ?: return@lambda
@@ -365,7 +366,7 @@ class DiagnosticReporterByTrackingStrategy(
                         val parameter = lambdaExpression.valueParameters.getOrNull(index) ?: return@lambda
                         val diagnosticFactory =
                             if (error.isWarning) EXPECTED_PARAMETER_TYPE_MISMATCH_WARNING else EXPECTED_PARAMETER_TYPE_MISMATCH
-                        trace.report(diagnosticFactory.on(parameter, error.upperKotlinType))
+                        report(diagnosticFactory.on(parameter, error.upperKotlinType))
                         return
                     }
 
@@ -382,7 +383,7 @@ class DiagnosticReporterByTrackingStrategy(
                             return
                         }
                     }
-                    trace.report(typeMismatchDiagnostic.on(deparenthesized, error.upperKotlinType, error.lowerKotlinType))
+                    report(typeMismatchDiagnostic.on(deparenthesized, error.upperKotlinType, error.lowerKotlinType))
                 }
 
                 (position as? ExpectedTypeConstraintPositionImpl)?.let {
@@ -391,14 +392,14 @@ class DiagnosticReporterByTrackingStrategy(
                         if (!error.lowerKotlinType.isNullableNothing()) error.lowerKotlinType
                         else error.upperKotlinType.makeNullable()
                     if (call != null) {
-                        trace.report(typeMismatchDiagnostic.on(call, error.upperKotlinType, inferredType))
+                        report(typeMismatchDiagnostic.on(call, error.upperKotlinType, inferredType))
                     }
                 }
 
                 (position as? ExplicitTypeParameterConstraintPositionImpl)?.let {
                     val typeArgumentReference = (it.typeArgument as SimpleTypeArgumentImpl).typeReference
                     val diagnosticFactory = if (error.isWarning) UPPER_BOUND_VIOLATED_WARNING else UPPER_BOUND_VIOLATED
-                    trace.report(diagnosticFactory.on(typeArgumentReference, error.upperKotlinType, error.lowerKotlinType))
+                    report(diagnosticFactory.on(typeArgumentReference, error.upperKotlinType, error.lowerKotlinType))
                 }
 
                 (position as? FixVariableConstraintPositionImpl)?.let {
