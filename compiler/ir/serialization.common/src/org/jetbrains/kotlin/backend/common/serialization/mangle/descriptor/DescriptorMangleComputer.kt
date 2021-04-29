@@ -73,9 +73,7 @@ abstract class DescriptorMangleComputer(protected val builder: StringBuilder, pr
 
     open fun FunctionDescriptor.platformSpecificFunctionName(): String? = null
 
-    private fun reportUnexpectedDescriptor(descriptor: DeclarationDescriptor) {
-        println("unexpected descriptor $descriptor")
-    }
+    private fun reportUnexpectedDescriptor(descriptor: DeclarationDescriptor) {}
 
     open fun FunctionDescriptor.platformSpecificSuffix(): String? = null
     open fun PropertyDescriptor.platformSpecificSuffix(): String? = null
@@ -267,7 +265,8 @@ abstract class DescriptorMangleComputer(protected val builder: StringBuilder, pr
         constructorDescriptor.mangleFunction(isCtor = true, container = constructorDescriptor, data)
     }
 
-    override fun visitScriptDescriptor(scriptDescriptor: ScriptDescriptor, data: (DeclarationDescriptor) -> String?) = reportUnexpectedDescriptor(scriptDescriptor)
+    override fun visitScriptDescriptor(scriptDescriptor: ScriptDescriptor, data: (DeclarationDescriptor) -> String?) =
+        visitClassDescriptor(scriptDescriptor, data)
 
     override fun visitPropertyDescriptor(descriptor: PropertyDescriptor, data: (DeclarationDescriptor) -> String?) {
 
