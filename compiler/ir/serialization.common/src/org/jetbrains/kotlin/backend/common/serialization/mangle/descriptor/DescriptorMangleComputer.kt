@@ -73,6 +73,7 @@ abstract class DescriptorMangleComputer(protected val builder: StringBuilder, pr
 
     open fun FunctionDescriptor.platformSpecificFunctionName(): String? = null
 
+    @Suppress("UNUSED_PARAMETER")
     private fun reportUnexpectedDescriptor(descriptor: DeclarationDescriptor) {}
 
     open fun FunctionDescriptor.platformSpecificSuffix(): String? = null
