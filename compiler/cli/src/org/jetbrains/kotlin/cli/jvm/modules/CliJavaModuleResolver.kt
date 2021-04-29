@@ -43,23 +43,12 @@ class CliJavaModuleResolver(
         }
     }
 
-    private val modulesAnnotationCache = ConcurrentHashMap<ClassId, List<JavaAnnotation>?>()
-
     private val virtualFileFinder by lazy { VirtualFileFinder.getInstance(project) }
 
     override fun getAnnotationsForModuleOwnerOfClass(classId: ClassId): List<JavaAnnotation>? {
-        if (modulesAnnotationCache.containsKey(classId)) {
-            return modulesAnnotationCache[classId]
-        }
-
         val virtualFile = virtualFileFinder.findSourceOrBinaryVirtualFile(classId) ?: return null
-        val moduleAnnotations = (findJavaModule(virtualFile) as? JavaModule.Explicit)?.moduleInfo?.annotations
 
-        if (moduleAnnotations != null && moduleAnnotations.size < MODULE_ANNOTATIONS_CACHE_SIZE) {
-            modulesAnnotationCache[classId] = moduleAnnotations
-        }
-
-        return moduleAnnotations
+        return (findJavaModule(virtualFile) as? JavaModule.Explicit)?.moduleInfo?.annotations
     }
 
     private val sourceModule: JavaModule? = userModules.firstOrNull(JavaModule::isSourceModule)
