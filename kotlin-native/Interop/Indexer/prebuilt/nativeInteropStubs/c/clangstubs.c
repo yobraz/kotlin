@@ -3,7 +3,6 @@
 #include <jni.h>
 #include <clang-c/Index.h>
 #include <clang-c/ext.h>
-#include <clang-c/ExtVector.h>
 
 // NOTE THIS FILE IS AUTO-GENERATED
 
@@ -1135,7 +1134,4 @@ JNIEXPORT jint JNICALL Java_clang_clang_kniBridge342 (JNIEnv* jniEnv, jclass jcl
 }
 JNIEXPORT jint JNICALL Java_clang_clang_kniBridge343 (JNIEnv* jniEnv, jclass jclss, jlong p0) {
     return (jint)clang_Cursor_isObjCConsumingSelfMethod(*(CXCursor*)p0);
-}
-JNIEXPORT jint JNICALL Java_clang_clang_kniBridge344 (JNIEnv* jniEnv, jclass jclss, jlong p0) {
-    return (jint)clang_isExtVectorType(*(CXType*)p0);
 }

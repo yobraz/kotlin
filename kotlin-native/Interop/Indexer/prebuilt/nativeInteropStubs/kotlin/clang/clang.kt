@@ -4047,12 +4047,6 @@ fun clang_Cursor_isObjCConsumingSelfMethod(cursor: CValue<CXCursor>): Int {
     }
 }
 
-fun clang_isExtVectorType(type: CValue<CXType>): Int {
-    memScoped {
-        return kniBridge344(type.getPointer(memScope).rawValue)
-    }
-}
-
 val CINDEX_VERSION_MAJOR: Int get() = 0
 
 val CINDEX_VERSION_MINOR: Int get() = 59
@@ -4949,5 +4943,4 @@ private external fun kniBridge340(p0: NativePtr, p1: Int, p2: NativePtr): Unit
 private external fun kniBridge341(p0: NativePtr): Int
 private external fun kniBridge342(p0: NativePtr): Int
 private external fun kniBridge343(p0: NativePtr): Int
-private external fun kniBridge344(p0: NativePtr): Int
 private val loadLibrary = loadKonanLibrary("clangstubs")
