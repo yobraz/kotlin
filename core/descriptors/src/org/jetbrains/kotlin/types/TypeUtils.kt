@@ -208,6 +208,7 @@ private fun KotlinType.extractTypeParametersFromUpperBounds(
         for ((i, argument) in arguments.withIndex()) {
             val typeParameter = typeParameters?.get(i)
             if (argument.isStarProjection || (typeParameter != null && typeParameter == upperBoundOfTypeParameter)) continue
+            if (argument.type.constructor.declarationDescriptor in to || argument.type.constructor == baseType.constructor) continue
             argument.type.extractTypeParametersFromUpperBounds(baseType, to, upperBoundOfTypeParameter)
         }
     }

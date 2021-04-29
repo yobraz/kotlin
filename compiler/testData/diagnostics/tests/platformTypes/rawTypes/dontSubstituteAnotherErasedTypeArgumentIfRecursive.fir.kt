@@ -20,7 +20,7 @@ interface I<P> {}
 
 // FILE: test.kt
 fun test() {
-    val t = X.E.t
+    val t = X.E.<!UNRESOLVED_REFERENCE!>t<!>
     t
-    t.id // should be OK
+    t.<!UNRESOLVED_REFERENCE!>id<!> // should be OK
 }
