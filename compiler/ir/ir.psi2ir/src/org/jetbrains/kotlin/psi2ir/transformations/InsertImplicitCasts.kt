@@ -77,7 +77,7 @@ internal class InsertImplicitCasts(
     private val file: IrFile,
 ) : IrElementTransformerVoid() {
 
-    private val expectedFunctionExpressionReturnType = hashMapOf<FunctionDescriptor, IrType>()
+    private val expectedFunctionExpressionReturnType: MutableMap<FunctionDescriptor, IrType> = mutableMapOf()
 
     fun run(element: IrElement) {
         element.transformChildrenVoid(this)
@@ -121,6 +121,13 @@ internal class InsertImplicitCasts(
         return expression.transformPostfix {
             transformReceiverArguments(substitutedDescriptor)
         }
+    }
+
+    override fun visitFile(declaration: IrFile): IrFile {
+        symbolTable.signaturer.inFile(file.symbol) {
+            declaration.transformChildrenVoid()
+        }
+        return declaration
     }
 
     private fun IrMemberAccessExpression<*>.transformReceiverArguments(substitutedDescriptor: CallableDescriptor) {

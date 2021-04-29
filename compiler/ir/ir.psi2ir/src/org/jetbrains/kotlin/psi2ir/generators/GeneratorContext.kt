@@ -15,7 +15,6 @@ import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.expressions.IrDeclarationReference
 import org.jetbrains.kotlin.ir.util.ConstantValueGenerator
 import org.jetbrains.kotlin.ir.util.SymbolTable
-import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.psi2ir.Psi2IrConfiguration
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
@@ -27,7 +26,7 @@ class GeneratorContext(
     val languageVersionSettings: LanguageVersionSettings,
     val symbolTable: SymbolTable,
     val extensions: GeneratorExtensions,
-    val typeTranslator: TypeTranslator,
+    val typeTranslator: TypeTranslatorImpl,
     val constantValueGenerator: ConstantValueGenerator,
     override val irBuiltIns: IrBuiltIns
 ) : IrGeneratorContext {

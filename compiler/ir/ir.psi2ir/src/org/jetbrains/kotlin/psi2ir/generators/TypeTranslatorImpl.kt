@@ -6,8 +6,12 @@
 package org.jetbrains.kotlin.psi2ir.generators
 
 import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
 import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.types.*
 
 class TypeTranslatorImpl(
@@ -39,6 +43,22 @@ class TypeTranslatorImpl(
 
     override fun commonSupertype(types: Collection<KotlinType>): KotlinType =
         CommonSupertypes.commonSupertype(types)
+
+    override fun isTypeAliasAccessibleHere(typeAliasDescriptor: TypeAliasDescriptor): Boolean {
+        if (typeAliasDescriptor.visibility != DescriptorVisibilities.PRIVATE) return true
+
+        val psiFile = typeAliasDescriptor.source.getPsi()?.containingFile ?: return false
+
+        return psiFile == currentFile
+    }
+
+    private var currentFile: KtFile? = null
+
+    fun inFile(ktFile: KtFile?, block: () -> Unit) {
+        currentFile = ktFile
+        block()
+        currentFile = null
+    }
 
     init {
         signatureComposer.setupTypeApproximation { approximate(it) }

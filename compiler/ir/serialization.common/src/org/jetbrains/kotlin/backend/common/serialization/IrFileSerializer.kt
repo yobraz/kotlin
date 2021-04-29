@@ -1223,9 +1223,6 @@ open class IrFileSerializer(
             .setName(serializeName(clazz.name))
 
         if (clazz.kind == ClassKind.ENUM_CLASS) {
-            if (clazz.name.asString() == "CharClasses") {
-                println("kkk")
-            }
             declarationTable.inLocalScope(clazz) {
                 proto.serializeClassBody(clazz)
             }
