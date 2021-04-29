@@ -554,7 +554,7 @@ fun runTest() {
                 project.logger.quiet("ERROR: Compilation failed for test suite: $name with exception", ex)
                 project.logger.quiet("The following files were unable to compile:")
                 ktFiles.each { project.logger.quiet(it.name) }
-                suite.abort(ex, ktFiles.size())
+                suite.abort("Compilation failed for test suite: $name", ex, ktFiles.map { it.name })
                 throw new RuntimeException("Compilation failed", ex)
             }
 
