@@ -103,7 +103,17 @@ fun loadIrForIc(
 
     val icData = icCache.values.single() // TODO find a stable key present both in klib and module
 
-    IcDeserializer(linker, context).injectIcData(module, icData)
+    val icModuleDeserializer = IcModuleDeserializer(
+        context.irFactory as PersistentIrFactory,
+        context.mapping,
+        linker,
+        icData,
+        module.descriptor,
+        module
+    )
+    icModuleDeserializer.init()
+    icModuleDeserializer.deserializeAll()
+    icModuleDeserializer.postProcess()
 
     println("${(System.currentTimeMillis() - time) / 1000.0}s")
 

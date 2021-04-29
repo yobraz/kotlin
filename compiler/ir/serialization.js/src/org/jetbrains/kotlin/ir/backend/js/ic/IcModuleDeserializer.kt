@@ -15,19 +15,15 @@ import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsGlobalDeclara
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsIrLinker
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.persistent.PersistentIrFactory
-import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.util.IdSignature
-import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.util.fileOrNull
 import org.jetbrains.kotlin.library.IrLibrary
 import org.jetbrains.kotlin.library.impl.IrLongArrayMemoryReader
 
 class IcModuleDeserializer(
-    val irBuiltIns: IrBuiltIns,
-    val symbolTable: SymbolTable,
     val irFactory: PersistentIrFactory,
     val mapping: JsMapping,
     val linker: JsIrLinker,
@@ -36,7 +32,7 @@ class IcModuleDeserializer(
     override val moduleFragment: IrModuleFragment,
 ) : IrModuleDeserializer(moduleDescriptor) {
 
-    private val globalDeclarationTable = JsGlobalDeclarationTable(irBuiltIns)
+    private val globalDeclarationTable = JsGlobalDeclarationTable(linker.builtIns)
 
     val fileQueue = ArrayDeque<IcFileDeserializer>()
     val signatureQueue = ArrayDeque<IdSignature>()
@@ -78,7 +74,7 @@ class IcModuleDeserializer(
 
     override fun init() {
         // This is needed to link functional types' type parameters
-        symbolTable.typeParameterSymbols().forEach {
+        linker.symbolTable.typeParameterSymbols().forEach {
             val typeParameter = it.owner
 
             val filePath = typeParameter.fileOrNull?.path ?: ""
@@ -89,7 +85,7 @@ class IcModuleDeserializer(
                 filePath
             )
 
-            symbolTable.saveTypeParameterSignature(idSig, it)
+            linker.symbolTable.saveTypeParameterSignature(idSig, it)
         }
 
         // intrinsics from JsIntrinsics
