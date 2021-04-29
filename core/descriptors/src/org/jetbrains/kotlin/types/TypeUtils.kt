@@ -219,18 +219,21 @@ fun hasTypeParameterRecursiveBounds(
     upperBoundOfTypeParameter: TypeParameterDescriptor? = null
 ): Boolean =
     typeParameter.upperBounds.any { upperBound ->
-        upperBound.containsSelfTypeParameter(typeParameter.defaultType, upperBoundOfTypeParameter)
+        upperBound.containsSelfTypeParameter(typeParameter.defaultType.constructor, upperBoundOfTypeParameter)
                 && (selfConstructor == null || upperBound.constructor == selfConstructor)
     }
 
-private fun KotlinType.containsSelfTypeParameter(baseType: KotlinType, upperBoundOfTypeParameter: TypeParameterDescriptor?): Boolean {
-    if (this.constructor == baseType.constructor) return true
+private fun KotlinType.containsSelfTypeParameter(
+    baseConstructor: TypeConstructor,
+    upperBoundOfTypeParameter: TypeParameterDescriptor?
+): Boolean {
+    if (this.constructor == baseConstructor) return true
 
     val typeParameters = (constructor.declarationDescriptor as? ClassifierDescriptorWithTypeParameters)?.declaredTypeParameters
     return arguments.withIndex().any { (i, argument) ->
         val typeParameter = typeParameters?.get(i)
         if ((typeParameter != null && typeParameter == upperBoundOfTypeParameter) || argument.isStarProjection) return@any false
-        argument.type.containsSelfTypeParameter(baseType, upperBoundOfTypeParameter)
+        argument.type.containsSelfTypeParameter(baseConstructor, upperBoundOfTypeParameter)
     }
 }
 
