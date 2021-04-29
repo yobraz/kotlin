@@ -8,31 +8,35 @@ package org.jetbrains.kotlin.ir.backend.js.ic
 import org.jetbrains.kotlin.backend.common.serialization.DeserializationStrategy
 import org.jetbrains.kotlin.backend.common.serialization.IrFileDeserializer
 import org.jetbrains.kotlin.backend.common.serialization.IrModuleDeserializer
-import org.jetbrains.kotlin.backend.common.serialization.KotlinIrLinker
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
+import org.jetbrains.kotlin.ir.backend.js.JsMapping
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsGlobalDeclarationTable
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsIrLinker
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.persistent.PersistentIrFactory
+import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.util.IdSignature
+import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.util.fileOrNull
 import org.jetbrains.kotlin.library.IrLibrary
 import org.jetbrains.kotlin.library.impl.IrLongArrayMemoryReader
 
 class IcModuleDeserializer(
-    val context: JsIrBackendContext,
+    val irBuiltIns: IrBuiltIns,
+    val symbolTable: SymbolTable,
+    val irFactory: PersistentIrFactory,
+    val mapping: JsMapping,
     val linker: JsIrLinker,
     val icData: SerializedIcData,
     moduleDescriptor: ModuleDescriptor,
     override val moduleFragment: IrModuleFragment,
 ) : IrModuleDeserializer(moduleDescriptor) {
 
-    private val globalDeclarationTable = JsGlobalDeclarationTable(context.irBuiltIns)
+    private val globalDeclarationTable = JsGlobalDeclarationTable(irBuiltIns)
 
     val fileQueue = ArrayDeque<IcFileDeserializer>()
     val signatureQueue = ArrayDeque<IdSignature>()
@@ -51,10 +55,12 @@ class IcModuleDeserializer(
     }
 
     override fun contains(idSig: IdSignature): Boolean {
+        // New declaration | old declaration
         TODO("Not yet implemented")
     }
 
     override fun deserializeIrSymbol(idSig: IdSignature, symbolKind: BinarySymbolData.SymbolKind): IrSymbol {
+
         TODO("Not yet implemented")
     }
 
@@ -72,7 +78,7 @@ class IcModuleDeserializer(
 
     override fun init() {
         // This is needed to link functional types' type parameters
-        context.symbolTable.typeParameterSymbols().forEach {
+        symbolTable.typeParameterSymbols().forEach {
             val typeParameter = it.owner
 
             val filePath = typeParameter.fileOrNull?.path ?: ""
@@ -83,12 +89,12 @@ class IcModuleDeserializer(
                 filePath
             )
 
-            context.symbolTable.saveTypeParameterSignature(idSig, it)
+            symbolTable.saveTypeParameterSignature(idSig, it)
         }
 
         // intrinsics from JsIntrinsics
         val existingPublicSymbols = mutableMapOf<IdSignature, IrSymbol>()
-        (context.irFactory as PersistentIrFactory).symbolToSignatureMap.entries.forEach { (symbol, idSig) ->
+        irFactory.symbolToSignatureMap.entries.forEach { (symbol, idSig) ->
             existingPublicSymbols[idSig] = symbol
         }
 
@@ -109,7 +115,7 @@ class IcModuleDeserializer(
                 IcFileDeserializer(
                     linker, fd, icFileData,
                     pathToFileSymbol = { p -> pathToFileSymbol[p]!! },
-                    context.mapping.state,
+                    mapping.state,
                     existingPublicSymbols,
                     moduleDeserializer,
                     publicSignatureToIcFileDeserializer,
@@ -162,7 +168,7 @@ class IcModuleDeserializer(
     }
 
     override fun postProcess() {
-        context.irFactory.stageController.withStage(1000) {
+        irFactory.stageController.withStage(1000) {
 
             for (icDeserializer in icDeserializers) {
                 val fd = icDeserializer.fileDeserializer
@@ -183,7 +189,7 @@ class IcModuleDeserializer(
             }
 
             for ((klass, declarations) in classToDeclarationSymbols.entries) {
-                context.irFactory.stageController.unrestrictDeclarationListsAccess {
+                irFactory.stageController.unrestrictDeclarationListsAccess {
                     klass.declarations.clear()
                     for (ds in declarations) {
                         klass.declarations += ds.owner as IrDeclaration

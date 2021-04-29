@@ -6,22 +6,25 @@
 package org.jetbrains.kotlin.ir.backend.js.ic
 
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
-import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsGlobalDeclarationTable
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsIrLinker
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.persistent.PersistentIrFactory
-import org.jetbrains.kotlin.ir.symbols.IrSymbol
-import org.jetbrains.kotlin.ir.util.IdSignature
-import org.jetbrains.kotlin.ir.util.fileOrNull
-import org.jetbrains.kotlin.library.impl.*
-import kotlin.collections.ArrayDeque
 
 class IcDeserializer(
     val linker: JsIrLinker,
     val context: JsIrBackendContext,
 ) {
     fun injectIcData(module: IrModuleFragment, icData: SerializedIcData) {
-        val icModuleDeserializer = IcModuleDeserializer(context, linker, icData, module.descriptor, module)
+        val icModuleDeserializer = IcModuleDeserializer(
+            context.irBuiltIns,
+            context.symbolTable,
+            context.irFactory as PersistentIrFactory,
+            context.mapping,
+            linker,
+            icData,
+            module.descriptor,
+            module
+        )
         icModuleDeserializer.init()
         icModuleDeserializer.deserializeAll()
         icModuleDeserializer.postProcess()
