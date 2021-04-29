@@ -84,12 +84,12 @@ open class JvmForeignAnnotationsConfigurator(testServices: TestServices) : Envir
         configuration.addJvmClasspathRoot(ForTestCompileRuntime.jvmAnnotationsForTests())
 
         if (JvmEnvironmentConfigurationDirectives.WITH_JSR305_TEST_ANNOTATIONS in registeredDirectives) {
-            val javaFilesDir = createTempDirectory().toFile().also {
+            val jsr305AnnotationsDir = createTempDirectory().toFile().also {
                 File(JSR_305_TEST_ANNOTATIONS_PATH).copyRecursively(it)
             }
             configuration.addJvmClasspathRoot(
                 MockLibraryUtil.compileJavaFilesLibraryToJar(
-                    javaFilesDir.path,
+                    jsr305AnnotationsDir.path,
                     "jsr-305-test-annotations",
                     assertions = JUnit5Assertions,
                     extraClasspath = configuration.jvmClasspathRoots.map { it.absolutePath }
