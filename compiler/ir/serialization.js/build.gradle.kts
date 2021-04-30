@@ -12,6 +12,7 @@ dependencies {
     compile(project(":compiler:ir.tree.persistent"))
 
     compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+    implementation(kotlin("reflect"))
 }
 
 sourceSets {

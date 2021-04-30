@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.ir.backend.js.JsStatementOrigins
 import org.jetbrains.kotlin.backend.common.overrides.DefaultFakeOverrideClassFilter
 import org.jetbrains.kotlin.backend.common.serialization.*
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData
-import org.jetbrains.kotlin.backend.common.serialization.proto.IrFile
+import org.jetbrains.kotlin.backend.common.serialization.proto.IrFile as ProtoIrFile
 import org.jetbrains.kotlin.ir.backend.js.JsMappingState
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsIrLinker
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
@@ -74,7 +74,7 @@ class IcFileDeserializer(
         allowErrorStatementOrigins = true,
     )
 
-    private val protoFile: IrFile = IrFile.parseFrom(icFileData.file.fileData.codedInputStream, ExtensionRegistryLite.newInstance())
+    private val protoFile: ProtoIrFile = ProtoIrFile.parseFrom(icFileData.file.fileData.codedInputStream, ExtensionRegistryLite.newInstance())
 
     private val carrierDeserializer = CarrierDeserializer(declarationDeserializer, icFileData.carriers)
 
