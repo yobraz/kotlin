@@ -138,7 +138,7 @@ class JvmEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfig
         val useJava9ToCompileIncludedJavaFiles = javaVersionToCompile == TestJavacVersion.JAVAC_9
 
         if (configurationKind.withRuntime) {
-            configuration.configureStandardLibs(PathUtil.kotlinPathsForDistDirectory, K2JVMCompilerArguments())
+            configuration.configureStandardLibs(PathUtil.kotlinPathsForDistDirectory, K2JVMCompilerArguments().also { it.noReflect = true })
             configuration.addJvmClasspathRoot(ForTestCompileRuntime.kotlinTestJarForTests())
         } else if (configurationKind.withMockRuntime) {
             configuration.addJvmClasspathRoot(ForTestCompileRuntime.minimalRuntimeJarForTests())
