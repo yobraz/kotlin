@@ -224,11 +224,13 @@ private fun prepareIr(
     useGlobalSignatures: Boolean,
     useStdlibCache: Boolean,
 ): PreparedIr {
-    val cacheProvider: ((String) -> SerializedIcData?)? = when {
-        useStdlibCache -> icCache::get
-        useGlobalSignatures -> {
-            { null }
+    val cacheProvider: LoweringsCacheProvider? = when {
+        useStdlibCache -> object : LoweringsCacheProvider {
+            override fun cacheByPath(path: String): SerializedIcData? {
+                return icCache[path]
+            }
         }
+        useGlobalSignatures -> EmptyLoweringsCacheProvider
         else -> null
     }
 

@@ -143,7 +143,7 @@ fun generateKLib(
     }
 
     val depsDescriptors =
-        ModulesStructure(project, MainModule.SourceFiles(files), analyzer, configuration, allDependencies, friendDependencies)
+        ModulesStructure(project, MainModule.SourceFiles(files), analyzer, configuration, allDependencies, friendDependencies, EmptyLoweringsCacheProvider)
 
     val (psi2IrContext, hasErrors) = runAnalysisAndPreparePsi2Ir(depsDescriptors, errorPolicy, SymbolTable(IdSignatureDescriptor(JsManglerDesc), irFactory))
     val irBuiltIns = psi2IrContext.irBuiltIns
@@ -218,6 +218,14 @@ private fun sortDependencies(dependencies: List<KotlinLibrary>, mapping: Map<Kot
     }.reversed()
 }
 
+interface LoweringsCacheProvider {
+    fun cacheByPath(path: String): SerializedIcData?
+}
+
+object EmptyLoweringsCacheProvider : LoweringsCacheProvider {
+    override fun cacheByPath(path: String): SerializedIcData? = null
+}
+
 fun loadIr(
     project: Project,
     mainModule: MainModule,
@@ -226,9 +234,9 @@ fun loadIr(
     allDependencies: KotlinLibraryResolveResult,
     friendDependencies: List<KotlinLibrary>,
     irFactory: IrFactory,
-    loweringsCacheProvider: ((String) -> SerializedIcData?)? = null,
+    loweringsCacheProvider: LoweringsCacheProvider? = null,
 ): IrModuleInfo {
-    val depsDescriptors = ModulesStructure(project, mainModule, analyzer, configuration, allDependencies, friendDependencies, loweringsCacheProvider ?: { null })
+    val depsDescriptors = ModulesStructure(project, mainModule, analyzer, configuration, allDependencies, friendDependencies, loweringsCacheProvider ?: EmptyLoweringsCacheProvider)
     val errorPolicy = configuration.get(JSConfigurationKeys.ERROR_TOLERANCE_POLICY) ?: ErrorTolerancePolicy.DEFAULT
     val messageLogger = configuration.get(IrMessageLogger.IR_MESSAGE_LOGGER) ?: IrMessageLogger.None
 
@@ -395,7 +403,7 @@ private class ModulesStructure(
     val compilerConfiguration: CompilerConfiguration,
     val allDependencies: KotlinLibraryResolveResult,
     private val friendDependencies: List<KotlinLibrary>,
-    private val loweringsCacheProvider: (String) -> SerializedIcData? = { null },
+    private val loweringsCacheProvider: LoweringsCacheProvider,
 ) {
     val moduleDependencies: Map<KotlinLibrary, List<KotlinLibrary>> = run {
         val transitives = allDependencies.getFullResolvedList()
@@ -472,7 +480,7 @@ private class ModulesStructure(
         val dependencies = moduleDependencies.getValue(current).map { getModuleDescriptor(it) }
         md.setDependencies(listOf(md) + dependencies)
 
-        loweringsCacheProvider(current.libraryFile.absolutePath)?.let { icData ->
+        loweringsCacheProvider.cacheByPath(current.libraryFile.absolutePath)?.let { icData ->
             loweredIcData[md] = icData
         }
 
