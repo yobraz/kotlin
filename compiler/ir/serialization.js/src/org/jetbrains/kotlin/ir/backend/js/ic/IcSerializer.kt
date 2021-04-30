@@ -77,8 +77,6 @@ class IcSerializer(
 
             val fileDeserializer = fileToDeserializer[file]!!
 
-
-
             val symbolToSignature = fileDeserializer.symbolDeserializer.deserializedSymbols.entries.associate { (idSig, symbol) -> symbol to idSig }.toMutableMap()
 
             val icDeclarationTable = IcDeclarationTable(globalDeclarationTable, irFactory, 1000000, 1000000, symbolToSignature)
@@ -168,6 +166,9 @@ class IdSignatureSerializerWithForIC(
     }
 
     override fun IrDeclaration.createFileLocalSignature(parentSignature: IdSignature, localIndex: Long): IdSignature {
+        if (this is IrTypeParameter) {
+            return IdSignature.GlobalFileLocalSignature(parentSignature, 1000_000_000_000L + index, fileOrNull?.path ?: "")
+        }
         return IdSignature.GlobalFileLocalSignature(parentSignature, localIndex, fileOrNull?.path ?: "")
     }
 

@@ -153,7 +153,6 @@ open class IdSignatureSerializer(
                         },
                     )
                 }
-                is IrTypeParameter -> declaration.createFileLocalSignature(composeContainerIdSignature(declaration.parent), 1000_000_000_000L + declaration.index)
                 else -> declaration.createFileLocalSignature(composeContainerIdSignature(declaration.parent), ++localIndex)
             }
         }
