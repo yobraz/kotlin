@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.ir.backend.js.*
 import org.jetbrains.kotlin.ir.backend.js.lower.generateTests
 import org.jetbrains.kotlin.ir.backend.js.lower.moveBodilessDeclarationsToSeparatePlace
+import org.jetbrains.kotlin.ir.backend.js.lower.moveBodilessDeclarationsToSeparatePlaceDelayed
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsIrLinker
 import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.IrModuleToJsTransformer
 import org.jetbrains.kotlin.ir.declarations.*
@@ -99,9 +100,9 @@ fun loadIrForIc(
 
     val time = System.currentTimeMillis()
 
-    moveBodilessDeclarationsToSeparatePlace(context, module)
-
     val icData = icCache.values.single() // TODO find a stable key present both in klib and module
+
+    val mover = moveBodilessDeclarationsToSeparatePlaceDelayed(module)
 
     val icModuleDeserializer = IcModuleDeserializer(
         context.irFactory as PersistentIrFactory,
@@ -114,6 +115,8 @@ fun loadIrForIc(
     icModuleDeserializer.init()
     icModuleDeserializer.deserializeAll()
     icModuleDeserializer.postProcess()
+
+    mover.saveToContext(context)
 
     println("${(System.currentTimeMillis() - time) / 1000.0}s")
 

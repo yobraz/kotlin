@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.fileOrNull
+import org.jetbrains.kotlin.ir.util.isEffectivelyExternal
 import org.jetbrains.kotlin.library.IrLibrary
 import org.jetbrains.kotlin.library.impl.IrLongArrayMemoryReader
 
@@ -170,7 +171,7 @@ class IcModuleDeserializer(
                 val fd = icDeserializer.fileDeserializer
                 val order = icDeserializer.icFileData.order
 
-                fd.file.declarations.clear()
+                fd.file.declarations.retainAll { it.isEffectivelyExternal() }
 
                 IrLongArrayMemoryReader(order.topLevelSignatures).array.forEach {
                     val symbolData = icDeserializer.symbolDeserializer.parseSymbolData(it)
