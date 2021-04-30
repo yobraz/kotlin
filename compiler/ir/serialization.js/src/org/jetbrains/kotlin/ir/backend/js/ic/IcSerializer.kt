@@ -36,7 +36,7 @@ class IcSerializer(
     val module: IrModuleFragment
 ) {
 
-    private val globalDeclarationTable = JsGlobalDeclarationTable(irBuiltIns)
+    private val globalDeclarationTable = JsGlobalDeclarationTable(irBuiltIns, throwOnClash = false)
 
     fun serializeDeclarations(declarations: Iterable<IrDeclaration>): SerializedIcData {
 

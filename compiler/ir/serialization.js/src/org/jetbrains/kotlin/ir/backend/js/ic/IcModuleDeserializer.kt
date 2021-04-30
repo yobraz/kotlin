@@ -31,7 +31,7 @@ class IcModuleDeserializer(
     val wrapped: IrModuleDeserializer,
 ) : IrModuleDeserializer(wrapped.moduleDescriptor) {
 
-    private val globalDeclarationTable = JsGlobalDeclarationTable(linker.builtIns)
+    private val globalDeclarationTable = JsGlobalDeclarationTable(linker.builtIns, throwOnClash = false)
 
     val fileQueue = ArrayDeque<IcFileDeserializer>()
     val signatureQueue = ArrayDeque<IdSignature>()
