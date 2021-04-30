@@ -26,6 +26,13 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.jvm.isJvm
+import org.jetbrains.kotlin.project.model.BasicKpmCompilerPlugin
+import org.jetbrains.kotlin.project.model.PluginData
+import org.jetbrains.kotlin.project.model.PluginOption
+import org.jetbrains.kotlin.project.model.StringOption
+import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverCommandLineProcessor.Companion.ANNOTATION_OPTION
+import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverCommandLineProcessor.Companion.PLUGIN_ID
+import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverCommandLineProcessor.Companion.PRESET_OPTION
 import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverCommandLineProcessor.Companion.SUPPORTED_PRESETS
 import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverConfigurationKeys.ANNOTATION
 import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverConfigurationKeys.PRESET
@@ -78,4 +85,25 @@ class CliSamWithReceiverComponentContributor(val annotations: List<String>): Sto
 
         container.useInstance(SamWithReceiverResolverExtension(annotations))
     }
+}
+
+class SamWithReceiverKpmCompilerPlugin(
+    annotations: List<String>,
+    presets: List<String>
+): BasicKpmCompilerPlugin() {
+    override val pluginId = PLUGIN_ID
+
+    override val pluginOptions: List<PluginOption> = listOf(
+        ANNOTATION_OPTION to annotations,
+        PRESET_OPTION to presets
+    ).flatMap { (cliOption, values) ->
+        values.map { value -> StringOption(cliOption.optionName, value) }
+    }
+
+    override fun commonPluginArtifact() = PluginData.ArtifactCoordinates(
+        group = "org.jetbrains.kotlin",
+        artifact = "kotlin-sam-with-receiver"
+    )
+
+    override fun nativePluginArtifact(): PluginData.ArtifactCoordinates? = null
 }

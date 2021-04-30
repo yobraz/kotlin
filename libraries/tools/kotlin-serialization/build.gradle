@@ -16,6 +16,8 @@ compileJava {
 dependencies {
     compileOnly project(':kotlin-gradle-plugin')
     compile project(':kotlin-gradle-plugin-api')
+    compileOnly project(':kotlinx-serialization-compiler-plugin')
+    compileOnly project(':kotlin-project-model')
 
     compileOnly kotlinStdlib()
     compileOnly project(path: ':kotlin-compiler-embeddable', configuration: 'runtimeJar')

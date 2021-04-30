@@ -25,8 +25,13 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.dsl.multiplatformExtensionOrNull
 import org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask
 import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.GradleKpmCompilerPlugin
 import org.jetbrains.kotlin.gradle.scripting.ScriptingExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.project.model.BasicKpmCompilerPlugin
+import org.jetbrains.kotlin.project.model.KpmCompilerPlugin
+import org.jetbrains.kotlin.project.model.PluginData
+import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingKpmCompilerPlugin
 import org.jetbrains.kotlin.scripting.compiler.plugin.impl.reporter
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinitionsFromClasspathDiscoverySource
 import java.io.File
@@ -213,7 +218,8 @@ private fun Configuration.discoverScriptExtensionsFiles() =
 class ScriptingKotlinGradleSubplugin :
     KotlinCompilerPluginSupportPlugin,
     @Suppress("DEPRECATION") // implementing to fix KT-39809
-    KotlinGradleSubplugin<KotlinCompile> {
+    KotlinGradleSubplugin<KotlinCompile>,
+    GradleKpmCompilerPlugin {
     companion object {
         const val SCRIPTING_ARTIFACT_NAME = "kotlin-scripting-compiler-embeddable"
 
@@ -223,15 +229,21 @@ class ScriptingKotlinGradleSubplugin :
         val LEGACY_SCRIPT_RESOLVER_ENVIRONMENT_OPTION = "script-resolver-environment"
     }
 
+    private lateinit var project: Project
+
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
+
+    override fun apply(target: Project) {
+        project = target
+        target.extensions.create("kotlinScripting", ScriptingExtension::class.java)
+    }
 
     override fun applyToCompilation(
         kotlinCompilation: KotlinCompilation<*>
     ): Provider<List<SubpluginOption>> {
         val project = kotlinCompilation.target.project
 
-        val scriptingExtension = project.extensions.findByType(ScriptingExtension::class.java)
-            ?: project.extensions.create("kotlinScripting", ScriptingExtension::class.java)
+        val scriptingExtension = project.extensions.getByType(ScriptingExtension::class.java)
 
         return project.provider {
             val options = mutableListOf<SubpluginOption>()
@@ -265,4 +277,14 @@ class ScriptingKotlinGradleSubplugin :
         kotlinCompilation: KotlinCompilation<KotlinCommonOptions>?
     ): List<SubpluginOption> = emptyList()
     //endregion
+
+    override val kpmCompilerPlugin by lazy {
+        val extension = project.extensions.getByType(ScriptingExtension::class.java)
+        ScriptingKpmCompilerPlugin(
+            scriptDefinitions = extension.myScriptDefinitions,
+            scriptDefinitionsClasspath = extension.myScriptDefinitionsClasspath,
+            disableScriptDefinitionsFromClassPath = extension.myDisableScriptDefinitionsFromClasspath,
+            legacyScriptResolverEnvironment = extension.myScriptResolverEnvironment
+        )
+    }
 }

@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.useInstance
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
+import org.jetbrains.kotlin.noarg.NoArgCommandLineProcessor.Companion.PLUGIN_ID
 import org.jetbrains.kotlin.noarg.NoArgCommandLineProcessor.Companion.SUPPORTED_PRESETS
 import org.jetbrains.kotlin.noarg.NoArgConfigurationKeys.ANNOTATION
 import org.jetbrains.kotlin.noarg.NoArgConfigurationKeys.INVOKE_INITIALIZERS
@@ -35,6 +36,10 @@ import org.jetbrains.kotlin.noarg.NoArgConfigurationKeys.PRESET
 import org.jetbrains.kotlin.noarg.diagnostic.CliNoArgDeclarationChecker
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.jvm.isJvm
+import org.jetbrains.kotlin.project.model.BasicKpmCompilerPlugin
+import org.jetbrains.kotlin.project.model.PluginData
+import org.jetbrains.kotlin.project.model.PluginOption
+import org.jetbrains.kotlin.project.model.StringOption
 
 object NoArgConfigurationKeys {
     val ANNOTATION: CompilerConfigurationKey<List<String>> =
@@ -116,4 +121,32 @@ private class CliNoArgComponentContainerContributor(
 
         container.useInstance(CliNoArgDeclarationChecker(annotations, useIr))
     }
+}
+
+class NoArgKpmCompilerPlugin(
+    private val annotations: List<String>,
+    private val presets: List<String>,
+    private val invokeInitializers: Boolean
+) : BasicKpmCompilerPlugin() {
+    override val pluginId = PLUGIN_ID
+
+    override val pluginOptions: List<PluginOption> by lazy {
+        val options = mutableListOf<PluginOption>()
+
+        annotations.mapTo(options) { StringOption("annotation", it) }
+        presets.mapTo(options) { StringOption("preset", it) }
+
+        if (invokeInitializers) {
+            options += StringOption("invokeInitializers", "true")
+        }
+
+        options
+    }
+
+    override fun commonPluginArtifact() = PluginData.ArtifactCoordinates(
+        group = "org.jetbrains.kotlin",
+        artifact = "kotlin-allopen"
+    )
+
+    override fun nativePluginArtifact(): PluginData.ArtifactCoordinates? = null
 }

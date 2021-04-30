@@ -24,15 +24,21 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.GradleKpmCompilerPlugin
 import org.jetbrains.kotlin.noarg.gradle.model.builder.SamWithReceiverModelBuilder
+import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverKpmCompilerPlugin
 import javax.inject.Inject
 
 class SamWithReceiverGradleSubplugin @Inject internal constructor(private val registry: ToolingModelBuilderRegistry) :
     KotlinCompilerPluginSupportPlugin,
     @Suppress("DEPRECATION") // implementing to fix KT-39809
-    KotlinGradleSubplugin<AbstractCompile> {
+    KotlinGradleSubplugin<AbstractCompile>,
+    GradleKpmCompilerPlugin {
+
+    private lateinit var project: Project
 
     override fun apply(target: Project) {
+        project = target
         target.extensions.create("samWithReceiver", SamWithReceiverExtension::class.java)
         registry.register(SamWithReceiverModelBuilder())
     }
@@ -89,4 +95,12 @@ class SamWithReceiverGradleSubplugin @Inject internal constructor(private val re
                 "Please use an older version of kotlin-sam-with-receiver or upgrade the Kotlin Gradle plugin version to make them match."
     )
     //endregion
+
+    override val kpmCompilerPlugin by lazy {
+        val extension = project.extensions.getByType(SamWithReceiverExtension::class.java)
+        SamWithReceiverKpmCompilerPlugin(
+            annotations = extension.myAnnotations,
+            presets = extension.myPresets
+        )
+    }
 }

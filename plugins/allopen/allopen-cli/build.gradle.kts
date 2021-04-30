@@ -9,6 +9,7 @@ plugins {
 dependencies {
     compileOnly(project(":compiler:plugin-api"))
     compileOnly(project(":compiler:frontend"))
+    compileOnly(project(":kotlin-project-model"))
     compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
 
     runtimeOnly(kotlinStdlib())

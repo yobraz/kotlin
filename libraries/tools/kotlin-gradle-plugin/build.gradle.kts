@@ -41,6 +41,7 @@ dependencies {
     compileOnly(project(":native:kotlin-native-utils"))
     compileOnly(project(":kotlin-reflect-api"))
     compileOnly(project(":kotlin-android-extensions"))
+    compileOnly(project(":plugins:parcelize:parcelize-compiler"))
     compileOnly(project(":kotlin-build-common"))
     compileOnly(project(":kotlin-compiler-runner"))
     compileOnly(project(":kotlin-annotation-processing"))

@@ -16,6 +16,7 @@ dependencies {
     compileOnly(project(":js:js.frontend"))
     compileOnly(project(":js:js.translator"))
     compileOnly(project(":kotlin-util-klib-metadata"))
+    compileOnly(project(":kotlin-project-model"))
 
     runtimeOnly(kotlinStdlib())
 

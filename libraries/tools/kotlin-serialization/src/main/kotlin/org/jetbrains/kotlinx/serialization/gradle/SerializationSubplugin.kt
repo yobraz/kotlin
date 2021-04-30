@@ -24,12 +24,15 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.GradleKpmCompilerPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationKpmCompilerPlugin
 
 class SerializationGradleSubplugin :
     KotlinCompilerPluginSupportPlugin,
     @Suppress("DEPRECATION") // implementing to fix KT-39809
-    KotlinGradleSubplugin<AbstractCompile> {
+    KotlinGradleSubplugin<AbstractCompile>,
+    GradleKpmCompilerPlugin {
 
     companion object {
         const val SERIALIZATION_GROUP_NAME = "org.jetbrains.kotlin"
@@ -63,4 +66,6 @@ class SerializationGradleSubplugin :
                 "Please use an older version of kotlin-serialization or upgrade the Kotlin Gradle plugin version to make them match."
     )
     //endregion
+
+    override val kpmCompilerPlugin = SerializationKpmCompilerPlugin
 }

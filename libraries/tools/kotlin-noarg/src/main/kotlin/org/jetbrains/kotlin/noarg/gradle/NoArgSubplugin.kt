@@ -24,13 +24,16 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.GradleKpmCompilerPlugin
+import org.jetbrains.kotlin.noarg.NoArgKpmCompilerPlugin
 import org.jetbrains.kotlin.noarg.gradle.model.builder.NoArgModelBuilder
 import javax.inject.Inject
 
 class NoArgGradleSubplugin @Inject internal constructor(private val registry: ToolingModelBuilderRegistry) :
     KotlinCompilerPluginSupportPlugin,
     @Suppress("DEPRECATION") // implementing to fix KT-39809
-    KotlinGradleSubplugin<AbstractCompile> {
+    KotlinGradleSubplugin<AbstractCompile>,
+    GradleKpmCompilerPlugin {
 
     companion object {
         fun getNoArgExtension(project: Project): NoArgExtension {
@@ -44,7 +47,10 @@ class NoArgGradleSubplugin @Inject internal constructor(private val registry: To
         private const val INVOKE_INITIALIZERS_ARG_NAME = "invokeInitializers"
     }
 
+    lateinit var project: Project
+
     override fun apply(target: Project) {
+        project = target
         target.extensions.create("noArg", NoArgExtension::class.java)
         registry.register(NoArgModelBuilder())
     }
@@ -96,4 +102,13 @@ class NoArgGradleSubplugin @Inject internal constructor(private val registry: To
                 "Please use an older version of kotlin-noarg or upgrade the Kotlin Gradle plugin version to make them match."
     )
     //endregion
+
+    override val kpmCompilerPlugin by lazy {
+        val extension = getNoArgExtension(project)
+        NoArgKpmCompilerPlugin(
+            annotations = extension.myAnnotations,
+            presets = extension.myPresets,
+            invokeInitializers = extension.invokeInitializers
+        )
+    }
 }

@@ -22,15 +22,18 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import org.jetbrains.kotlin.allopen.AllOpenKpmCompilerPlugin
 import org.jetbrains.kotlin.allopen.gradle.model.builder.AllOpenModelBuilder
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.GradleKpmCompilerPlugin
 import javax.inject.Inject
 
 class AllOpenGradleSubplugin @Inject internal constructor(private val registry: ToolingModelBuilderRegistry) :
     KotlinCompilerPluginSupportPlugin,
     @Suppress("DEPRECATION") // implementing to fix KT-39809
-    KotlinGradleSubplugin<AbstractCompile> {
+    KotlinGradleSubplugin<AbstractCompile>,
+    GradleKpmCompilerPlugin {
 
     companion object {
         fun getAllOpenExtension(project: Project): AllOpenExtension {
@@ -43,7 +46,10 @@ class AllOpenGradleSubplugin @Inject internal constructor(private val registry: 
         private const val PRESET_ARG_NAME = "preset"
     }
 
+    private lateinit var project: Project
+
     override fun apply(target: Project) {
+        project = target
         target.extensions.create("allOpen", AllOpenExtension::class.java)
         registry.register(AllOpenModelBuilder())
     }
@@ -92,4 +98,12 @@ class AllOpenGradleSubplugin @Inject internal constructor(private val registry: 
                 "Please use an older version of kotlin-allopen or upgrade the Kotlin Gradle plugin version to make them match."
     )
     //endregion
+
+    override val kpmCompilerPlugin by lazy {
+        val extension = getAllOpenExtension(project)
+        AllOpenKpmCompilerPlugin(
+            annotations = extension.myAnnotations,
+            presets = extension.myPresets
+        )
+    }
 }

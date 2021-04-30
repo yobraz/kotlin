@@ -16,6 +16,7 @@ dependencies {
     compileOnly(project(":compiler:ir.tree.impl"))
     compileOnly(project(":compiler:backend.jvm:backend.jvm.entrypoint"))
     compileOnly(project(":kotlin-reflect-api"))
+    compileOnly(project(":kotlin-project-model"))
     compile(project(":kotlin-scripting-common"))
     compile(project(":kotlin-scripting-js"))
     compile(project(":kotlin-util-klib"))

@@ -16,6 +16,7 @@ pill {
 dependencies {
     compile project(':kotlin-gradle-plugin-api')
     compile project(':kotlin-gradle-plugin-model')
+    compileOnly project(':kotlin-project-model')
 
     compile kotlinStdlib()
     compileOnly project(':compiler')

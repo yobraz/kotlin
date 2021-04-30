@@ -13,6 +13,7 @@ dependencies {
     compileOnly(project(":compiler:util"))
     compileOnly(project(":compiler:plugin-api"))
     compileOnly(project(":compiler:ir.backend.common"))
+    compileOnly(project(":kotlin-project-model"))
     compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
     compileOnly(intellijDep()) { includeJars("asm-all", rootProject = rootProject) }
     runtime(kotlinStdlib())
