@@ -84,8 +84,11 @@ class KonanTestSuiteReportEnvironment(val name: String, val project: Project, va
     }
 
     fun abort(comment: String, throwable: Throwable, testNames: List<String>) {
-        testNames.map { KonanTestCaseReport(it, TestStatus.ERROR, "$comment\n${throwable.toString()}") }
-                .forEach { tests += it }
+        testNames.forEach {
+            tc?.startTest(it)
+            tc?.errorTest(it, java.lang.Exception(throwable))
+            tests += KonanTestCaseReport(it, TestStatus.ERROR, "$comment\n${throwable.toString()}")
+        }
         abort(throwable, testNames.size)
     }
 
