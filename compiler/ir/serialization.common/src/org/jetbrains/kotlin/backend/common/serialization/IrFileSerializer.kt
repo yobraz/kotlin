@@ -117,8 +117,10 @@ open class IrFileSerializer(
     private val expectDescriptorToSymbol: MutableMap<DeclarationDescriptor, IrSymbol>,
     private val bodiesOnlyForInlines: Boolean = false,
     private val skipExpects: Boolean = false,
-    private val skipMutableState: Boolean = false, // required for JS IC caches
+    // required for JS IC caches
+    private val skipMutableState: Boolean = false,
     private val allowNullTypes: Boolean = false,
+    private val allowErrorStatementOrigins: Boolean = false,
 ) {
     private val loopIndex = mutableMapOf<IrLoop, Int>()
     private var currentLoopIndex = 0
@@ -180,7 +182,8 @@ open class IrFileSerializer(
 
     fun serializeIrDeclarationOrigin(origin: IrDeclarationOrigin): Int = serializeString((origin as IrDeclarationOriginImpl).name)
 
-    private fun serializeIrStatementOrigin(origin: IrStatementOrigin): Int = serializeString((origin as? IrStatementOriginImpl)?.debugName ?: "error_origin")
+    private fun serializeIrStatementOrigin(origin: IrStatementOrigin): Int =
+        serializeString((origin as? IrStatementOriginImpl)?.debugName ?: if (allowErrorStatementOrigins) "error_origin" else error("Unable to serialize origin ${origin.javaClass.name}"))
 
     private fun serializeCoordinates(start: Int, end: Int): Long = BinaryCoordinates.encode(start, end)
 

@@ -81,7 +81,8 @@ class IrBodyDeserializer(
     private val irFactory: IrFactory,
     private val fileReader: IrLibraryFile,
     private val declarationDeserializer: IrDeclarationDeserializer,
-    private val statementOriginIndex: Map<String, IrStatementOrigin>
+    private val statementOriginIndex: Map<String, IrStatementOrigin>,
+    private val allowErrorStatementOrigins: Boolean,
 ) {
 
     private val fileLoops = mutableMapOf<Int, IrLoop>()
@@ -877,7 +878,7 @@ class IrBodyDeserializer(
                 it.startsWith(componentPrefix) -> {
                     IrStatementOrigin.COMPONENT_N.withIndex(it.removePrefix(componentPrefix).toInt())
                 }
-                else -> statementOriginIndex[it] ?: object : IrStatementOriginImpl(it) {}//error("Unexpected statement origin: $it")
+                else -> statementOriginIndex[it] ?: if (allowErrorStatementOrigins) object : IrStatementOriginImpl(it) {} else error("Unexpected statement origin: $it")
             }
         }
     }

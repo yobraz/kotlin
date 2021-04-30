@@ -70,6 +70,7 @@ class IcFileDeserializer(
         linker.fakeOverrideBuilder,
         skipMutableState = true,
         additionalStatementOriginIndex = additionalStatementOriginIndex,
+        allowErrorStatementOrigins = true,
     )
 
     private val protoFile: IrFile = IrFile.parseFrom(icFileData.file.fileData.codedInputStream, ExtensionRegistryLite.newInstance())

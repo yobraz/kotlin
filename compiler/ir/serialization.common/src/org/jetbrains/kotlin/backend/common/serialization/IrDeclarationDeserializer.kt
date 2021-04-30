@@ -67,9 +67,10 @@ class IrDeclarationDeserializer(
     private val fakeOverrideBuilder: FakeOverrideBuilder,
     private val skipMutableState: Boolean = false,
     additionalStatementOriginIndex: Map<String, IrStatementOrigin> = emptyMap(),
+    allowErrorStatementOrigins: Boolean = false,
 ) {
 
-    val bodyDeserializer = IrBodyDeserializer(builtIns, allowErrorNodes, irFactory, fileReader, this, statementOriginIndex + additionalStatementOriginIndex)
+    val bodyDeserializer = IrBodyDeserializer(builtIns, allowErrorNodes, irFactory, fileReader, this, statementOriginIndex + additionalStatementOriginIndex, allowErrorStatementOrigins)
 
     private fun deserializeName(index: Int): Name {
         val name = fileReader.deserializeString(index)
