@@ -82,18 +82,20 @@ class IcModuleDeserializer(
 
     override fun postProcess() {
         // This is needed to link functional types' type parameters
-        linker.symbolTable.typeParameterSymbols().forEach {
-            val typeParameter = it.owner
+        (linker.symbolTable as IcSymbolTable).let { icSymbolTable ->
+            icSymbolTable.typeParameterSymbols().forEach {
+                val typeParameter = it.owner
 
-            val filePath = typeParameter.fileOrNull?.path ?: ""
+                val filePath = typeParameter.fileOrNull?.path ?: ""
 
-            val idSig = IdSignature.FileLocalSignature(
-                globalDeclarationTable.computeSignatureByDeclaration(typeParameter.parent as IrDeclaration),
-                1000_000_000_000L + typeParameter.index,
-                filePath
-            )
+                val idSig = IdSignature.FileLocalSignature(
+                    globalDeclarationTable.computeSignatureByDeclaration(typeParameter.parent as IrDeclaration),
+                    1000_000_000_000L + typeParameter.index,
+                    filePath
+                )
 
-            linker.symbolTable.saveTypeParameterSignature(idSig, it)
+                icSymbolTable.saveTypeParameterSignature(idSig, it)
+            }
         }
 
         // intrinsics from JsIntrinsics

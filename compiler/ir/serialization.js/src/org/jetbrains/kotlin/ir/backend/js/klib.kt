@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.LookupTracker
+import org.jetbrains.kotlin.ir.backend.js.ic.IcSymbolTable
 import org.jetbrains.kotlin.ir.backend.js.ic.SerializedIcData
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsIrLinker
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsIrModuleSerializer
@@ -144,7 +145,7 @@ fun generateKLib(
     val depsDescriptors =
         ModulesStructure(project, MainModule.SourceFiles(files), analyzer, configuration, allDependencies, friendDependencies)
 
-    val (psi2IrContext, hasErrors) = runAnalysisAndPreparePsi2Ir(depsDescriptors, irFactory, errorPolicy)
+    val (psi2IrContext, hasErrors) = runAnalysisAndPreparePsi2Ir(depsDescriptors, errorPolicy, SymbolTable(IdSignatureDescriptor(JsManglerDesc), irFactory))
     val irBuiltIns = psi2IrContext.irBuiltIns
     val functionFactory = IrFunctionFactory(irBuiltIns, psi2IrContext.symbolTable)
     irBuiltIns.functionFactory = functionFactory
@@ -225,17 +226,19 @@ fun loadIr(
     allDependencies: KotlinLibraryResolveResult,
     friendDependencies: List<KotlinLibrary>,
     irFactory: IrFactory,
-    loweringsCacheProvider: (String) -> SerializedIcData? = { null },
+    loweringsCacheProvider: ((String) -> SerializedIcData?)? = null,
 ): IrModuleInfo {
-    val depsDescriptors = ModulesStructure(project, mainModule, analyzer, configuration, allDependencies, friendDependencies, loweringsCacheProvider)
+    val depsDescriptors = ModulesStructure(project, mainModule, analyzer, configuration, allDependencies, friendDependencies, loweringsCacheProvider ?: { null })
     val errorPolicy = configuration.get(JSConfigurationKeys.ERROR_TOLERANCE_POLICY) ?: ErrorTolerancePolicy.DEFAULT
     val messageLogger = configuration.get(IrMessageLogger.IR_MESSAGE_LOGGER) ?: IrMessageLogger.None
 
+    val signaturer = IdSignatureDescriptor(JsManglerDesc)
+    val symbolTable = if (loweringsCacheProvider == null) SymbolTable(signaturer, irFactory) else IcSymbolTable(signaturer, irFactory)
+
     when (mainModule) {
         is MainModule.SourceFiles -> {
-            val (psi2IrContext, _) = runAnalysisAndPreparePsi2Ir(depsDescriptors, irFactory, errorPolicy)
+            val (psi2IrContext, _) = runAnalysisAndPreparePsi2Ir(depsDescriptors, errorPolicy, symbolTable)
             val irBuiltIns = psi2IrContext.irBuiltIns
-            val symbolTable = psi2IrContext.symbolTable
             val functionFactory = IrFunctionFactory(irBuiltIns, symbolTable)
             irBuiltIns.functionFactory = functionFactory
             val feContext = psi2IrContext.run {
@@ -265,8 +268,6 @@ fun loadIr(
         is MainModule.Klib -> {
             val moduleDescriptor = depsDescriptors.getModuleDescriptor(mainModule.lib)
             val mangler = JsManglerDesc
-            val signaturer = IdSignatureDescriptor(mangler)
-            val symbolTable = SymbolTable(signaturer, irFactory)
             val typeTranslator =
                 TypeTranslatorImpl(symbolTable, depsDescriptors.compilerConfiguration.languageVersionSettings, moduleDescriptor)
             val irBuiltIns = IrBuiltIns(moduleDescriptor.builtIns, typeTranslator, symbolTable)
@@ -298,15 +299,14 @@ fun loadIr(
 
 private fun runAnalysisAndPreparePsi2Ir(
     depsDescriptors: ModulesStructure,
-    irFactory: IrFactory,
-    errorIgnorancePolicy: ErrorTolerancePolicy
+    errorIgnorancePolicy: ErrorTolerancePolicy,
+    symbolTable: SymbolTable,
 ): Pair<GeneratorContext, Boolean> {
     val analysisResult = depsDescriptors.runAnalysis(errorIgnorancePolicy)
     val psi2Ir = Psi2IrTranslator(
         depsDescriptors.compilerConfiguration.languageVersionSettings,
         Psi2IrConfiguration(errorIgnorancePolicy.allowErrors)
     )
-    val symbolTable = SymbolTable(IdSignatureDescriptor(JsManglerDesc), irFactory)
     return psi2Ir.createGeneratorContext(analysisResult.moduleDescriptor, analysisResult.bindingContext, symbolTable) to analysisResult.hasErrors
 }
 

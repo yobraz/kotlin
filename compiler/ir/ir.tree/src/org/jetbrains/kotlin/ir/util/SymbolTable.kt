@@ -61,7 +61,7 @@ interface ReferenceSymbolTable {
     fun leaveScope(owner: IrDeclaration)
 }
 
-class SymbolTable(
+open class SymbolTable(
     val signaturer: IdSignatureComposer,
     val irFactory: IrFactory,
     val nameProvider: NameProvider = NameProvider.DEFAULT,
@@ -72,7 +72,7 @@ class SymbolTable(
     @Suppress("LeakingThis")
     val lazyWrapper = IrLazySymbolTable(this)
 
-    private abstract class SymbolTableBase<D : DeclarationDescriptor, B : IrSymbolOwner, S : IrBindableSymbol<D, B>>(val lock: IrLock) {
+    protected abstract class SymbolTableBase<D : DeclarationDescriptor, B : IrSymbolOwner, S : IrBindableSymbol<D, B>>(val lock: IrLock) {
         val unboundSymbols = linkedSetOf<S>()
 
         abstract fun get(d: D): S?
@@ -191,7 +191,7 @@ class SymbolTable(
         }
     }
 
-    private open inner class FlatSymbolTable<D : DeclarationDescriptor, B : IrSymbolOwner, S : IrBindableSymbol<D, B>> :
+    protected open inner class FlatSymbolTable<D : DeclarationDescriptor, B : IrSymbolOwner, S : IrBindableSymbol<D, B>> :
         SymbolTableBase<D, B, S>(lock) {
         val descriptorToSymbol = linkedMapOf<D, S>()
         val idSigToSymbol = linkedMapOf<IdSignature, S>()
@@ -224,11 +224,11 @@ class SymbolTable(
         override fun signature(descriptor: ClassDescriptor): IdSignature? = signaturer.composeEnumEntrySignature(descriptor)
     }
 
-    private inner class FieldSymbolTable : FlatSymbolTable<PropertyDescriptor, IrField, IrFieldSymbol>() {
+    protected inner class FieldSymbolTable : FlatSymbolTable<PropertyDescriptor, IrField, IrFieldSymbol>() {
         override fun signature(descriptor: PropertyDescriptor): IdSignature? = null
     }
 
-    private inner class ScopedSymbolTable<D : DeclarationDescriptor, B : IrSymbolOwner, S : IrBindableSymbol<D, B>>
+    protected inner class ScopedSymbolTable<D : DeclarationDescriptor, B : IrSymbolOwner, S : IrBindableSymbol<D, B>>
         : SymbolTableBase<D, B, S>(lock) {
         inner class Scope(val owner: IrSymbol, val parent: Scope?) {
             private val descriptorToSymbol = linkedMapOf<D, S>()
@@ -279,7 +279,7 @@ class SymbolTable(
             fun dump(): String = dumpTo(StringBuilder()).toString()
         }
 
-        private var currentScope: Scope? = null
+        protected var currentScope: Scope? = null
 
         override fun get(d: D): S? {
             val scope = currentScope ?: return null
@@ -338,21 +338,13 @@ class SymbolTable(
     private val classSymbolTable = FlatSymbolTable<ClassDescriptor, IrClass, IrClassSymbol>()
     private val constructorSymbolTable = FlatSymbolTable<ClassConstructorDescriptor, IrConstructor, IrConstructorSymbol>()
     private val enumEntrySymbolTable = EnumEntrySymbolTable()
-    private val fieldSymbolTable = FieldSymbolTable()
+    protected val fieldSymbolTable = FieldSymbolTable()
     private val simpleFunctionSymbolTable = FlatSymbolTable<FunctionDescriptor, IrSimpleFunction, IrSimpleFunctionSymbol>()
     private val propertySymbolTable = FlatSymbolTable<PropertyDescriptor, IrProperty, IrPropertySymbol>()
     private val typeAliasSymbolTable = FlatSymbolTable<TypeAliasDescriptor, IrTypeAlias, IrTypeAliasSymbol>()
 
-    fun typeParameterSymbols(): Collection<IrTypeParameterSymbol> {
-        return globalTypeParameterSymbolTable.descriptorToSymbol.values
-    }
-
-    fun saveTypeParameterSignature(idSig: IdSignature, symbol: IrTypeParameterSymbol) {
-        globalTypeParameterSymbolTable.idSigToSymbol[idSig] = symbol
-    }
-
-    private val globalTypeParameterSymbolTable = FlatSymbolTable<TypeParameterDescriptor, IrTypeParameter, IrTypeParameterSymbol>()
-    private val scopedTypeParameterSymbolTable by threadLocal {
+    protected val globalTypeParameterSymbolTable = FlatSymbolTable<TypeParameterDescriptor, IrTypeParameter, IrTypeParameterSymbol>()
+    protected val scopedTypeParameterSymbolTable by threadLocal {
         ScopedSymbolTable<TypeParameterDescriptor, IrTypeParameter, IrTypeParameterSymbol>()
     }
     private val valueParameterSymbolTable by threadLocal {
@@ -653,11 +645,10 @@ class SymbolTable(
     override fun referenceField(descriptor: PropertyDescriptor) =
         fieldSymbolTable.referenced(descriptor) { createFieldSymbol(descriptor) }
 
-    override fun referenceFieldFromLinker(sig: IdSignature) =
+    override fun referenceFieldFromLinker(sig: IdSignature): IrFieldSymbol =
         fieldSymbolTable.run {
-//            require(sig.isLocal)
-//            IrFieldSymbolImpl()
-            fieldSymbolTable.referenced(sig) { IrFieldPublicSymbolImpl(sig) }
+            require(sig.isLocal)
+            IrFieldSymbolImpl()
         }
 
     val unboundFields: Set<IrFieldSymbol> get() = fieldSymbolTable.unboundSymbols
@@ -879,12 +870,12 @@ class SymbolTable(
             typeParameterFactory
         )
 
-    fun declareGlobalTypeParameter(
+    open fun declareGlobalTypeParameter(
         sig: IdSignature,
         symbolFactory: () -> IrTypeParameterSymbol,
         typeParameterFactory: (IrTypeParameterSymbol) -> IrTypeParameter
     ): IrTypeParameter {
-//        require(sig.isLocal)
+        require(sig.isLocal)
         return globalTypeParameterSymbolTable.declare(sig, symbolFactory, typeParameterFactory)
     }
 
@@ -975,10 +966,8 @@ class SymbolTable(
         }
 
     override fun referenceTypeParameterFromLinker(sig: IdSignature): IrTypeParameterSymbol {
-//        require(sig.isLocal)
-        return scopedTypeParameterSymbolTable.get(sig) ?: globalTypeParameterSymbolTable.referenced(sig) {
-            IrTypeParameterPublicSymbolImpl(sig)
-        }
+        require(sig.isLocal)
+        return IrTypeParameterSymbolImpl()
     }
 
     fun declareVariable(
