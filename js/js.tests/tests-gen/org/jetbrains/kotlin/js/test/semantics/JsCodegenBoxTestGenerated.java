@@ -11961,11 +11961,6 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             runTest("compiler/testData/codegen/box/inference/lastExpressionOfLambdaWithNothingConstraint.kt");
         }
 
-        @TestMetadata("manyConstraintsDueToFlexibleRawTypes.kt")
-        public void testManyConstraintsDueToFlexibleRawTypes() throws Exception {
-            runTest("compiler/testData/codegen/box/inference/manyConstraintsDueToFlexibleRawTypes.kt");
-        }
-
         @TestMetadata("mapCollectChainWithNullResult.kt")
         public void testMapCollectChainWithNullResult() throws Exception {
             runTest("compiler/testData/codegen/box/inference/mapCollectChainWithNullResult.kt");
@@ -12014,11 +12009,6 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
         @TestMetadata("unsafeVarianceCodegen.kt")
         public void testUnsafeVarianceCodegen() throws Exception {
             runTest("compiler/testData/codegen/box/inference/unsafeVarianceCodegen.kt");
-        }
-
-        @TestMetadata("violatingUpperBoundForSelfType.kt")
-        public void testViolatingUpperBoundForSelfType() throws Exception {
-            runTest("compiler/testData/codegen/box/inference/violatingUpperBoundForSelfType.kt");
         }
 
         @TestMetadata("compiler/testData/codegen/box/inference/builderInference")

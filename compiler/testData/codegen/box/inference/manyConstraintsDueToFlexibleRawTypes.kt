@@ -1,3 +1,4 @@
+// TARGET_BACKEND: JVM
 // FILE: MySettings.java
 
 import java.util.Collection;
