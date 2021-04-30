@@ -72,9 +72,13 @@ fun compileJavaFilesExternally(files: Collection<File>, options: List<String?>, 
 
     process.waitFor()
 
-    if (process.exitValue() != 0) throw IllegalStateException(errors)
+    val isSuccess = process.exitValue() == 0
 
-    return true
+    if (!isSuccess) {
+        System.err.println(errors)
+    }
+
+    return isSuccess
 }
 
 private fun errorsToString(diagnosticCollector: DiagnosticCollector<JavaFileObject>, humanReadable: Boolean): String {
