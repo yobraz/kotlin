@@ -44,8 +44,10 @@ class ModuleGenerator(
 ) : Generator {
     private val constantValueGenerator = context.constantValueGenerator
 
-    fun generateModuleFragment(ktFiles: Collection<KtFile>, irFilesMap: Map<KtFile, IrFile>?): IrModuleFragment =
-        IrModuleFragmentImpl(context.moduleDescriptor, context.irBuiltIns).also { irModule ->
+    fun createModuleFragment(): IrModuleFragment = IrModuleFragmentImpl(context.moduleDescriptor, context.irBuiltIns)
+
+    fun generateModuleFragment(ktFiles: Collection<KtFile>, irFilesMap: Map<KtFile, IrFile>?, module: IrModuleFragment?): IrModuleFragment =
+        (module ?: createModuleFragment()).also { irModule ->
             val irDeclarationGenerator = DeclarationGenerator(context)
             ktFiles.toSet().mapTo(irModule.files) { ktFile ->
                 generateSingleFile(irDeclarationGenerator, ktFile, irFilesMap, irModule)
@@ -70,7 +72,7 @@ class ModuleGenerator(
             .generateUnboundSymbolsAsDependencies()
     }
 
-    private fun generateSingleFile(irDeclarationGenerator: DeclarationGenerator, ktFile: KtFile, irFilesMap: Map<KtFile, IrFile>?): IrFile {
+    private fun generateSingleFile(irDeclarationGenerator: DeclarationGenerator, ktFile: KtFile, irFilesMap: Map<KtFile, IrFile>?, module: IrModuleFragment): IrFile {
         val irFile = irFilesMap?.get(ktFile) ?: createEmptyIrFile(ktFile, module)
 
         context.symbolTable.signaturer.inFile(irFile.symbol) {

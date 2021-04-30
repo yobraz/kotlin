@@ -70,9 +70,10 @@ class Psi2IrTranslator(
         )
     }
 
-    fun createFiles(context: GeneratorContext, ktFiles: Collection<KtFile>): Map<KtFile, IrFile> {
+    fun createFiles(context: GeneratorContext, ktFiles: Collection<KtFile>): Pair<Map<KtFile, IrFile>, IrModuleFragment> {
         val moduleGenerator = ModuleGenerator(context, null)
-        return ktFiles.associateWith { moduleGenerator.createEmptyIrFile(it) }
+        val moduleFragment = moduleGenerator.createModuleFragment()
+        return ktFiles.associateWith { moduleGenerator.createEmptyIrFile(it, moduleFragment) } to moduleFragment
     }
 
     fun generateModuleFragment(
@@ -81,10 +82,11 @@ class Psi2IrTranslator(
         irProviders: List<IrProvider>,
         linkerExtensions: Collection<IrDeserializer.IrLinkerExtension>,
         expectDescriptorToSymbol: MutableMap<DeclarationDescriptor, IrSymbol>? = null,
-        irFilesMap: Map<KtFile, IrFile>? = null
+        irFilesMap: Map<KtFile, IrFile>? = null,
+        moduleFragment: IrModuleFragment? = null
     ): IrModuleFragment {
         val moduleGenerator = ModuleGenerator(context, expectDescriptorToSymbol)
-        val irModule = moduleGenerator.generateModuleFragment(ktFiles, irFilesMap)
+        val irModule = moduleGenerator.generateModuleFragment(ktFiles, irFilesMap, moduleFragment)
 
         val deserializers = irProviders.filterIsInstance<IrDeserializer>()
         deserializers.forEach { it.init(irModule, linkerExtensions) }
