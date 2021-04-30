@@ -5,28 +5,28 @@
 
 package org.jetbrains.kotlin.generators.interpreter
 
+import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureDescriptor
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
-import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.generators.util.GeneratorsFileUtil
+import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerDesc
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
-import org.jetbrains.kotlin.ir.symbols.IrFileSymbol
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
-import org.jetbrains.kotlin.ir.util.IdSignature
-import org.jetbrains.kotlin.ir.util.IdSignatureComposer
-import org.jetbrains.kotlin.ir.util.SignatureScope
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi2ir.generators.TypeTranslatorImpl
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
-import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.Printer
 import java.io.File
 
@@ -202,30 +202,7 @@ private fun getIrBuiltIns(): IrBuiltIns {
     val languageSettings = LanguageVersionSettingsImpl(LanguageVersion.KOTLIN_1_3, ApiVersion.KOTLIN_1_3)
 
     val moduleDescriptor = ModuleDescriptorImpl(Name.special("<test-module>"), LockBasedStorageManager(""), DefaultBuiltIns.Instance)
-    val signaturer = object : IdSignatureComposer {
-        override fun composeSignature(descriptor: DeclarationDescriptor): IdSignature = error("jhhh")
-
-        override fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature = error("dsd")
-        override fun composeFieldSignature(descriptor: PropertyDescriptor): IdSignature {
-            TODO("Not yet implemented")
-        }
-
-        override fun composeAnonInitSignature(descriptor: ClassDescriptor): IdSignature {
-            TODO("Not yet implemented")
-        }
-
-        override fun inFile(file: IrFileSymbol?, block: () -> Unit) {
-            TODO("Not yet implemented")
-        }
-
-        override fun setupTypeApproximation(app: (KotlinType) -> KotlinType) {
-
-        }
-
-        override fun <E, R> inLocalScope(builder: (SignatureScope<E>) -> Unit, block: () -> R): R {
-            TODO("Not yet implemented")
-        }
-    }
+    val signaturer = IdSignatureDescriptor(JsManglerDesc)
     val symbolTable = SymbolTable(signaturer, IrFactoryImpl)
     val typeTranslator = TypeTranslatorImpl(symbolTable, signaturer, languageSettings, moduleDescriptor)
     return IrBuiltIns(moduleDescriptor.builtIns, typeTranslator, symbolTable)

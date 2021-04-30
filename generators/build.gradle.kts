@@ -38,6 +38,7 @@ dependencies {
     interpreterApi(project(":compiler:ir.tree"))
     interpreterApi(project(":compiler:ir.tree.impl"))
     interpreterApi(project(":compiler:ir.psi2ir"))
+    interpreterApi(project(":compiler:ir.serialization.js"))
 
     testCompile(builtinsSourceSet.output)
     testCompile(evaluateSourceSet.output)
