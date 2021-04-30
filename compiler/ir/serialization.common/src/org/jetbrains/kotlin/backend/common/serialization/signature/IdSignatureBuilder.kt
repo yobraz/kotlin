@@ -126,11 +126,10 @@ abstract class IdSignatureBuilder<D> {
 
     protected open fun isKotlinPackage(descriptor: PackageFragmentDescriptor): Boolean = true
 
-    fun buildSignature(declaration: D, extra: IdSignatureBuilder<D>.() -> Unit = { }): IdSignature {
+    fun buildSignature(declaration: D): IdSignature {
         reset()
 
         accept(declaration)
-        extra()
 
         return build()
     }
