@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.backend.common.serialization.DeserializationStrategy
 import org.jetbrains.kotlin.backend.common.serialization.IrFileDeserializer
 import org.jetbrains.kotlin.backend.common.serialization.IrModuleDeserializer
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.ir.backend.js.JsMapping
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsGlobalDeclarationTable
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsIrLinker
@@ -29,9 +28,8 @@ class IcModuleDeserializer(
     val mapping: JsMapping,
     val linker: JsIrLinker,
     val icData: SerializedIcData,
-    moduleDescriptor: ModuleDescriptor,
-    override val moduleFragment: IrModuleFragment,
-) : IrModuleDeserializer(moduleDescriptor) {
+    val wrapped: IrModuleDeserializer,
+) : IrModuleDeserializer(wrapped.moduleDescriptor) {
 
     private val globalDeclarationTable = JsGlobalDeclarationTable(linker.builtIns)
 
@@ -52,28 +50,37 @@ class IcModuleDeserializer(
     }
 
     override fun contains(idSig: IdSignature): Boolean {
-        // New declaration | old declaration
-        TODO("Not yet implemented")
+        return wrapped.contains(idSig)
     }
 
     override fun deserializeIrSymbol(idSig: IdSignature, symbolKind: BinarySymbolData.SymbolKind): IrSymbol {
-
-        TODO("Not yet implemented")
+        return wrapped.deserializeIrSymbol(idSig, symbolKind)
     }
 
     override fun referenceSimpleFunctionByLocalSignature(file: IrFile, idSignature: IdSignature): IrSimpleFunctionSymbol {
-        return super.referenceSimpleFunctionByLocalSignature(file, idSignature)
+        return wrapped.referenceSimpleFunctionByLocalSignature(file, idSignature)
     }
 
     override fun referencePropertyByLocalSignature(file: IrFile, idSignature: IdSignature): IrPropertySymbol {
-        return super.referencePropertyByLocalSignature(file, idSignature)
+        return wrapped.referencePropertyByLocalSignature(file, idSignature)
     }
 
     override fun declareIrSymbol(symbol: IrSymbol) {
-        super.declareIrSymbol(symbol)
+        wrapped.declareIrSymbol(symbol)
     }
 
     override fun init() {
+        wrapped.init(this)
+    }
+
+    private lateinit var actualDeserializer: IrModuleDeserializer
+
+    override fun init(delegate: IrModuleDeserializer) {
+        actualDeserializer = delegate
+        wrapped.init(delegate)
+    }
+
+    override fun postProcess() {
         // This is needed to link functional types' type parameters
         linker.symbolTable.typeParameterSymbols().forEach {
             val typeParameter = it.owner
@@ -138,9 +145,7 @@ class IcModuleDeserializer(
                 }
             }
         }
-    }
 
-    fun deserializeAll() {
         while (signatureQueue.isNotEmpty()) {
             val icFileDeserializer = fileQueue.removeFirst()
             val signature = signatureQueue.removeFirst()
@@ -162,9 +167,7 @@ class IcModuleDeserializer(
                 }
             }
         }
-    }
 
-    override fun postProcess() {
         irFactory.stageController.withStage(1000) {
 
             for (icDeserializer in icDeserializers) {
@@ -196,28 +199,26 @@ class IcModuleDeserializer(
         }
     }
 
-    override fun init(delegate: IrModuleDeserializer) {
-        super.init(delegate)
-    }
-
     override fun addModuleReachableTopLevel(idSig: IdSignature) {
-        super.addModuleReachableTopLevel(idSig)
+        wrapped.addModuleReachableTopLevel(idSig)
     }
 
     override val klib: IrLibrary
-        get() = TODO("Not yet implemented")
+        get() = wrapped.klib
 
     override val strategy: DeserializationStrategy
-        get() = TODO("Not yet implemented")
+        get() = wrapped.strategy
 
     override val moduleDependencies: Collection<IrModuleDeserializer>
-        get() = TODO("Not yet implemented")
+        get() = wrapped.moduleDependencies
 
-    override val isCurrent: Boolean get() = false
+    override val isCurrent: Boolean
+        get() = wrapped.isCurrent
 
     override fun fileDeserializers(): Collection<IrFileDeserializer> {
-        return super.fileDeserializers()
+        return wrapped.fileDeserializers()
     }
 
-
+    override val moduleFragment: IrModuleFragment
+        get() = wrapped.moduleFragment
 }

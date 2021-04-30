@@ -7,16 +7,16 @@ package org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir
 
 import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideBuilder
 import org.jetbrains.kotlin.backend.common.serialization.*
-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
-import org.jetbrains.kotlin.backend.common.serialization.signature.PublicIdSignatureComputer
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.ir.backend.js.JsMapping
+import org.jetbrains.kotlin.ir.backend.js.ic.IcModuleDeserializer
+import org.jetbrains.kotlin.ir.backend.js.ic.SerializedIcData
 import org.jetbrains.kotlin.ir.builders.TranslationPluginContext
-import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.declarations.persistent.PersistentIrFactory
 import org.jetbrains.kotlin.ir.descriptors.IrAbstractFunctionFactory
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.util.IrMessageLogger
-import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.util.TypeTranslator
@@ -28,7 +28,8 @@ class JsIrLinker(
     private val currentModule: ModuleDescriptor?, messageLogger: IrMessageLogger, builtIns: IrBuiltIns, symbolTable: SymbolTable,
     override val functionalInterfaceFactory: IrAbstractFunctionFactory,
     override val translationPluginContext: TranslationPluginContext?,
-    private val icData: ICData? = null
+    private val icData: ICData? = null,
+    private val loweredIcData: Map<ModuleDescriptor, SerializedIcData> = emptyMap(),
 ) : KotlinIrLinker(currentModule, messageLogger, builtIns, symbolTable, emptyList()) {
 
     override val fakeOverrideBuilder = FakeOverrideBuilder(this, symbolTable, JsManglerIr, builtIns)
@@ -40,7 +41,16 @@ class JsIrLinker(
         get() = this is KotlinLibrary && this.containsErrorCode
 
     override fun createModuleDeserializer(moduleDescriptor: ModuleDescriptor, klib: IrLibrary?, strategy: DeserializationStrategy): IrModuleDeserializer =
-        JsModuleDeserializer(moduleDescriptor, klib ?: error("Expecting kotlin library"), strategy, klib.libContainsErrorCode)
+        maybeWrapWithIcLowerings(JsModuleDeserializer(moduleDescriptor, klib ?: error("Expecting kotlin library"), strategy, klib.libContainsErrorCode))
+
+    private fun maybeWrapWithIcLowerings(deserializer: IrModuleDeserializer): IrModuleDeserializer {
+        loweredIcData[deserializer.moduleDescriptor]?.let { loweredIcData ->
+            return IcModuleDeserializer(symbolTable.irFactory as PersistentIrFactory, mapping, this, loweredIcData, deserializer)
+        }
+        return deserializer
+    }
+
+    val mapping: JsMapping by lazy { JsMapping(symbolTable.irFactory) }
 
     private inner class JsModuleDeserializer(moduleDescriptor: ModuleDescriptor, klib: IrLibrary, strategy: DeserializationStrategy, allowErrorCode: Boolean) :
         BasicIrModuleDeserializer(this, moduleDescriptor, klib, strategy, allowErrorCode)
@@ -63,6 +73,15 @@ class JsIrLinker(
 
     fun moduleDeserializer(moduleDescriptor: ModuleDescriptor): IrModuleDeserializer {
         return deserializersForModules[moduleDescriptor] ?: error("Deserializer for $moduleDescriptor not found")
+    }
+
+    fun loadIcIr(preprocess: (IrModuleFragment) -> Unit) {
+        deserializersForModules.values.forEach {
+            if (it.moduleDescriptor in loweredIcData) {
+                preprocess(it.moduleFragment)
+            }
+            it.postProcess()
+        }
     }
 
     class JsFePluginContext(

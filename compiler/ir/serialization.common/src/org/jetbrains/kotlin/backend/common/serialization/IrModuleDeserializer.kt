@@ -200,6 +200,10 @@ class IrModuleDeserializerWithBuiltIns(
     override fun fileDeserializers(): Collection<IrFileDeserializer> {
         return delegate.fileDeserializers()
     }
+
+    override fun postProcess() {
+        delegate.postProcess()
+    }
 }
 
 open class CurrentModuleDeserializer(

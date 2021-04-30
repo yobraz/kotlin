@@ -45,7 +45,7 @@ fun prepareIcCaches(
 
 //    icCache.clear()
 
-    icCache.computeIfAbsent(stdlibKlib.libraryName) {
+    icCache.computeIfAbsent(stdlibKlib.libraryFile.absolutePath) {
         val (context, deserializer, allModules) = prepareIr(
             project,
             MainModule.Klib(stdlibKlib),
@@ -57,7 +57,8 @@ fun prepareIcCaches(
             null,
             false,
             false,
-            irFactory
+            irFactory,
+            useStdlibCache = false,
         )
 
         val moduleFragment = allModules.single()
@@ -97,32 +98,32 @@ fun loadIrForIc(
     module: IrModuleFragment,
     context: JsIrBackendContext,
 ) {
+//
+//    val time = System.currentTimeMillis()
+//
+//    val icData = icCache.values.single() // TODO find a stable key present both in klib and module
+//
+//    val mover = moveBodilessDeclarationsToSeparatePlaceDelayed(module)
+//
+//    val icModuleDeserializer = IcModuleDeserializer(
+//        context.irFactory as PersistentIrFactory,
+//        context.mapping,
+//        linker,
+//        icData,
+//        module.descriptor,
+//        module
+//    )
+//    icModuleDeserializer.init()
+//    icModuleDeserializer.deserializeAll()
+//    icModuleDeserializer.postProcess()
+//
+//    mover.saveToContext(context)
+//
+//    println("${(System.currentTimeMillis() - time) / 1000.0}s")
+//
+//    linker.symbolTable.noUnboundLeft("Unbound symbols found")
 
-    val time = System.currentTimeMillis()
-
-    val icData = icCache.values.single() // TODO find a stable key present both in klib and module
-
-    val mover = moveBodilessDeclarationsToSeparatePlaceDelayed(module)
-
-    val icModuleDeserializer = IcModuleDeserializer(
-        context.irFactory as PersistentIrFactory,
-        context.mapping,
-        linker,
-        icData,
-        module.descriptor,
-        module
-    )
-    icModuleDeserializer.init()
-    icModuleDeserializer.deserializeAll()
-    icModuleDeserializer.postProcess()
-
-    mover.saveToContext(context)
-
-    println("${(System.currentTimeMillis() - time) / 1000.0}s")
-
-    linker.symbolTable.noUnboundLeft("Unbound symbols found")
-
-    if (false) {
+    if (true) {
 
         val perFactory = context.irFactory as PersistentIrFactory
         val oldController = perFactory.stageController
@@ -143,11 +144,32 @@ fun loadIrForIc(
             }
             actual += "\n"
         }
-        PrintWriter("/home/ab/vcs/kotlin/simple-dump-actual.txt").use {
+        PrintWriter("/home/ab/vcs/kotlin/simple-dump.txt").use {
             it.print(actual)
         }
 
         perFactory.stageController = oldController
+    }
+}
+
+private fun dumpIr(module: IrModuleFragment, fileName: String) {
+    val dumpOptions = KotlinLikeDumpOptions(printElseAsTrue = true)
+
+    var actual = ""
+
+    for (file in module.files) {
+        actual += file.path + "\n"
+        actual += run {
+            var r = ""
+
+            file.declarations.map { it.dumpKotlinLike(dumpOptions) }.sorted().forEach { r += it }
+
+            r
+        }
+        actual += "\n"
+    }
+    PrintWriter("/home/ab/vcs/kotlin/$fileName.txt").use {
+        it.print(actual)
     }
 }
 
@@ -169,11 +191,17 @@ fun icCompile(
     propertyLazyInitialization: Boolean,
     useStdlibCache: Boolean,
 ): CompilerResult {
+
+    if (useStdlibCache) {
+        // Lower and save stdlib IC data if needed
+        prepareIcCaches(project, analyzer, configuration, allDependencies)
+    }
+
     val irFactory = PersistentIrFactory()
     val controller = WholeWorldStageController()
     irFactory.stageController = controller
 
-    val (context, deserializer, allModules) = prepareIr(
+    val (context, deserializer, allModules, loweredIrLoaded) = prepareIr(
         project,
         mainModule,
         analyzer,
@@ -184,18 +212,15 @@ fun icCompile(
         dceRuntimeDiagnostic,
         es6mode,
         propertyLazyInitialization,
-        irFactory
+        irFactory,
+        useStdlibCache,
     )
 
-    val modulesToLower = if (useStdlibCache) {
-        // Lower and save stdlib IC data if needed
-        prepareIcCaches(project, analyzer, configuration, allDependencies)
+//    if (useStdlibCache) {
+//        loadIrForIc(deserializer, allModules.first(), context)
+//    }
 
-        // Inject carriers, new declarations and mappings into the stdlib IrModule
-        loadIrForIc(deserializer, allModules.first(), context)
-
-        allModules.drop(1)
-    } else allModules
+    val modulesToLower = allModules.filter { it !in loweredIrLoaded }
 
     // This won't work incrementally
     modulesToLower.forEach { module ->
@@ -208,6 +233,8 @@ fun icCompile(
     modulesToLower.forEach {
         lowerPreservingIcData(it, context, controller)
     }
+
+//    dumpIr(allModules.first(), "simple-dump${if (useStdlibCache) "-actual" else ""}")
 
     val transformer = IrModuleToJsTransformer(
         context,
@@ -251,9 +278,12 @@ private fun prepareIr(
     es6mode: Boolean = false,
     propertyLazyInitialization: Boolean,
     irFactory: PersistentIrFactory,
-): Triple<JsIrBackendContext, JsIrLinker, List<IrModuleFragment>> {
-    val (moduleFragment: IrModuleFragment, dependencyModules, irBuiltIns, symbolTable, deserializer) =
-        loadIr(project, mainModule, analyzer, configuration, allDependencies, friendDependencies, irFactory)
+    useStdlibCache: Boolean,
+): PreparedIr {
+    val (moduleFragment: IrModuleFragment, dependencyModules, irBuiltIns, symbolTable, deserializer, loweredIrLoaded) =
+        loadIr(project, mainModule, analyzer, configuration, allDependencies, friendDependencies, irFactory) { path ->
+            if (useStdlibCache) icCache[path] else null
+        }
 
     val moduleDescriptor = moduleFragment.descriptor
 
@@ -273,7 +303,8 @@ private fun prepareIr(
             es6mode = es6mode,
             dceRuntimeDiagnostic = dceRuntimeDiagnostic,
             propertyLazyInitialization = propertyLazyInitialization,
-            irFactory = irFactory
+            irFactory = irFactory,
+            mapping = deserializer.mapping,
         )
     }
 
@@ -284,5 +315,14 @@ private fun prepareIr(
     deserializer.postProcess()
     symbolTable.noUnboundLeft("Unbound symbols at the end of linker")
 
-    return Triple(context, deserializer, allModules)
+    deserializer.loadIcIr { moveBodilessDeclarationsToSeparatePlace(context, it) }
+
+    return PreparedIr(context, deserializer, allModules, loweredIrLoaded)
 }
+
+data class PreparedIr(
+    val context: JsIrBackendContext,
+    val linker: JsIrLinker,
+    val allModules: List<IrModuleFragment>,
+    val loweredIrLoaded: Set<IrModuleFragment>,
+)
