@@ -65,11 +65,20 @@ class FileDeserializationState(
     allowErrorNodes: Boolean,
     deserializeInlineFunctions: Boolean,
     moduleDeserializer: IrModuleDeserializer,
+    useGlobalSignatures: Boolean,
     handleNoModuleDeserializerFound: (IdSignature, ModuleDescriptor, Collection<IrModuleDeserializer>) -> IrModuleDeserializer,
 ) {
 
     val symbolDeserializer =
-        IrSymbolDeserializer(linker.symbolTable, fileReader, file.path, fileProto.actualsList, { idSig, _ -> addIdSignature(idSig) }, linker::handleExpectActualMapping) { idSig, symbolKind ->
+        IrSymbolDeserializer(
+            linker.symbolTable,
+            fileReader,
+            file.path,
+            fileProto.actualsList,
+            { idSig, _ -> addIdSignature(idSig) },
+            linker::handleExpectActualMapping,
+            useGlobalSignatures = useGlobalSignatures,
+        ) { idSig, symbolKind ->
             assert(idSig.isPublic)
 
             val topLevelSig = idSig.topLevelSignature()

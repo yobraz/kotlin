@@ -172,7 +172,53 @@ sealed class IdSignature {
         }
     }
 
-    class FileLocalSignature(val container: IdSignature, val id: Long, val filePath: String) : IdSignature() {
+    class FileLocalSignature(val container: IdSignature, val id: Long) : IdSignature() {
+        override val isPublic: Boolean get() = false
+
+        override fun packageFqName(): FqName = container.packageFqName()
+
+        override fun topLevelSignature(): IdSignature {
+            val topLevelContainer = container.topLevelSignature()
+            if (topLevelContainer === container) {
+                if (topLevelContainer is PublicSignature && topLevelContainer.declarationFqName.isEmpty()) {
+                    // private top level
+                    return this
+                }
+            }
+            return topLevelContainer
+        }
+
+        override fun nearestPublicSig(): IdSignature = container.nearestPublicSig()
+
+        override fun render(): String = "${container.render()}:$id"
+
+        override fun equals(other: Any?): Boolean =
+            other is FileLocalSignature && id == other.id && container == other.container
+
+        override fun hashCode(): Int = container.hashCode() * 31 + id.hashCode()
+    }
+
+    // Used to reference local variable and value parameters in function
+    class ScopeLocalDeclaration(val id: Int, val description: String = "<no description>") : IdSignature() {
+        override val isPublic: Boolean get() = false
+
+        override val hasTopLevel: Boolean get() = false
+
+        override fun topLevelSignature(): IdSignature = error("Is not supported for Local ID")
+
+        override fun nearestPublicSig(): IdSignature = error("Is not supported for Local ID")
+
+        override fun packageFqName(): FqName = error("Is not supported for Local ID")
+
+        override fun render(): String = "#$id"
+
+        override fun equals(other: Any?): Boolean =
+            other is ScopeLocalDeclaration && id == other.id
+
+        override fun hashCode(): Int = id
+    }
+
+    class GlobalFileLocalSignature(val container: IdSignature, val id: Long, val filePath: String) : IdSignature() {
         override val isPublic: Boolean get() = false
 
         override fun packageFqName(): FqName = container.packageFqName()
@@ -193,13 +239,13 @@ sealed class IdSignature {
         override fun render(): String = "${container.render()}:$id from ${filePath.split('/').last()}"
 
         override fun equals(other: Any?): Boolean =
-            other is FileLocalSignature && id == other.id && container == other.container && filePath == other.filePath
+            other is GlobalFileLocalSignature && id == other.id && container == other.container && filePath == other.filePath
 
         override fun hashCode(): Int = (container.hashCode() * 31 + id.hashCode()) * 31 + filePath.hashCode()
     }
 
     // Used to reference local variable and value parameters in function
-    class ScopeLocalDeclaration(val id: Int, val description: String = "<no description>", val filePath: String) : IdSignature() {
+    class GlobalScopeLocalDeclaration(val id: Int, val description: String = "<no description>", val filePath: String) : IdSignature() {
         override val isPublic: Boolean get() = false
 
         override val hasTopLevel: Boolean get() = false
@@ -213,7 +259,7 @@ sealed class IdSignature {
         override fun render(): String = "#$id"
 
         override fun equals(other: Any?): Boolean =
-            other is ScopeLocalDeclaration && id == other.id && filePath == other.filePath
+            other is GlobalScopeLocalDeclaration && id == other.id && filePath == other.filePath
 
         override fun hashCode(): Int = id * 31 + filePath.hashCode()
     }

@@ -7,9 +7,11 @@ package org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir
 
 import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideBuilder
 import org.jetbrains.kotlin.backend.common.serialization.*
+import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.ir.backend.js.JsMapping
 import org.jetbrains.kotlin.ir.backend.js.ic.IcModuleDeserializer
+import org.jetbrains.kotlin.ir.backend.js.ic.IdSignatureSerializerWithForIC
 import org.jetbrains.kotlin.ir.backend.js.ic.SerializedIcData
 import org.jetbrains.kotlin.ir.builders.TranslationPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
@@ -30,9 +32,13 @@ class JsIrLinker(
     override val translationPluginContext: TranslationPluginContext?,
     private val icData: ICData? = null,
     private val loweredIcData: Map<ModuleDescriptor, SerializedIcData> = emptyMap(),
+    private val useGlobalSignatures: Boolean = false,
 ) : KotlinIrLinker(currentModule, messageLogger, builtIns, symbolTable, emptyList()) {
 
-    override val fakeOverrideBuilder = FakeOverrideBuilder(this, symbolTable, JsManglerIr, builtIns)
+    override val fakeOverrideBuilder = FakeOverrideBuilder(this, symbolTable, JsManglerIr, builtIns,
+                                                           signatureSerializerFactory = { publicSignatureBuilder, table ->
+        if (useGlobalSignatures) IdSignatureSerializerWithForIC(publicSignatureBuilder, table) else IdSignatureSerializer(publicSignatureBuilder, table)
+    })
 
     override fun isBuiltInModule(moduleDescriptor: ModuleDescriptor): Boolean =
         moduleDescriptor === moduleDescriptor.builtIns.builtInsModule
@@ -53,7 +59,7 @@ class JsIrLinker(
     val mapping: JsMapping by lazy { JsMapping(symbolTable.irFactory) }
 
     private inner class JsModuleDeserializer(moduleDescriptor: ModuleDescriptor, klib: IrLibrary, strategy: DeserializationStrategy, allowErrorCode: Boolean) :
-        BasicIrModuleDeserializer(this, moduleDescriptor, klib, strategy, allowErrorCode)
+        BasicIrModuleDeserializer(this, moduleDescriptor, klib, strategy, allowErrorCode, useGlobalSignatures)
 
     override fun createCurrentModuleDeserializer(moduleFragment: IrModuleFragment, dependencies: Collection<IrModuleDeserializer>): IrModuleDeserializer {
         val currentModuleDeserializer = super.createCurrentModuleDeserializer(moduleFragment, dependencies)

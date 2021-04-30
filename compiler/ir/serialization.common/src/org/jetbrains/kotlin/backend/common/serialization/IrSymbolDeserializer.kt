@@ -32,6 +32,7 @@ class IrSymbolDeserializer(
     val handleExpectActualMapping: (IdSignature, IrSymbol) -> IrSymbol,
     val pathToFileSymbol: (String) -> IrFileSymbol = { error("indexToFileSymbol not provided") },
     private val enqueueAllDeclarations: Boolean = false,
+    private val useGlobalSignatures: Boolean = false,
     val deserializePublicSymbol: (IdSignature, BinarySymbolData.SymbolKind) -> IrSymbol,
 ) {
 
@@ -145,17 +146,29 @@ class IrSymbolDeserializer(
         return IdSignature.AccessorSignature(propertySignature, accessorSignature)
     }
 
-    private fun deserializeFileLocalIdSignature(proto: ProtoFileLocalIdSignature): IdSignature.FileLocalSignature {
-        val fp = if (proto.hasFile()) fileReader.deserializeString(proto.file) else filePath
-        return IdSignature.FileLocalSignature(deserializeIdSignature(proto.container), proto.localId, fp)
+    private fun deserializeFileLocalIdSignature(proto: ProtoFileLocalIdSignature): IdSignature {
+        if (useGlobalSignatures) {
+            val fp = if (proto.hasFile()) fileReader.deserializeString(proto.file) else filePath
+            return IdSignature.GlobalFileLocalSignature(deserializeIdSignature(proto.container), proto.localId, fp)
+        } else {
+            return IdSignature.FileLocalSignature(deserializeIdSignature(proto.container), proto.localId)
+        }
     }
 
-    private fun deserializeScopeLocalIdSignature(proto: Int): IdSignature.ScopeLocalDeclaration {
-        return IdSignature.ScopeLocalDeclaration(proto, filePath = filePath)
+    private fun deserializeScopeLocalIdSignature(proto: Int): IdSignature {
+        if (useGlobalSignatures) {
+            return IdSignature.GlobalScopeLocalDeclaration(proto, filePath = filePath)
+        } else {
+            return IdSignature.ScopeLocalDeclaration(proto)
+        }
     }
 
-    private fun deserializeExternalScopeLocalIdSignature(proto: ProtoScopeLocalIdSignature): IdSignature.ScopeLocalDeclaration {
-        return IdSignature.ScopeLocalDeclaration(proto.id, filePath = fileReader.deserializeString(proto.file))
+    private fun deserializeExternalScopeLocalIdSignature(proto: ProtoScopeLocalIdSignature): IdSignature {
+        if (useGlobalSignatures) {
+            return IdSignature.GlobalScopeLocalDeclaration(proto.id, filePath = fileReader.deserializeString(proto.file))
+        } else {
+            return IdSignature.ScopeLocalDeclaration(proto.id)
+        }
     }
 
     private fun deserializeLoweredDeclarationSignature(proto: ProtoLoweredIdSignature): IdSignature.LoweredDeclarationSignature {

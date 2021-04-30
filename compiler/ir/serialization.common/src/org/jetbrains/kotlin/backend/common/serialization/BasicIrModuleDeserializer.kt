@@ -25,7 +25,8 @@ abstract class BasicIrModuleDeserializer(
     moduleDescriptor: ModuleDescriptor,
     override val klib: IrLibrary,
     override val strategy: DeserializationStrategy,
-    private val containsErrorCode: Boolean = false
+    private val containsErrorCode: Boolean = false,
+    private val useGlobalSignatures: Boolean = false,
 ) :
     IrModuleDeserializer(moduleDescriptor) {
 
@@ -118,7 +119,8 @@ abstract class BasicIrModuleDeserializer(
             allowErrorNodes,
             strategy.inlineBodies,
             moduleDeserializer,
-            linker::handleNoModuleDeserializerFound,
+            useGlobalSignatures,
+            linker::handleNoModuleDeserializerFound
         )
 
         fileToDeserializerMap[file] = fileDeserializationState.fileDeserializer

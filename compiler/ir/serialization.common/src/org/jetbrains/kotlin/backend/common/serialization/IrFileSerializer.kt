@@ -231,12 +231,23 @@ open class IrFileSerializer(
 
         proto.container = protoIdSignature(signature.container)
         proto.localId = signature.id
+
+        return proto.build()
+    }
+
+    private fun serializeScopeLocalSignature(signature: IdSignature.ScopeLocalDeclaration): Int = signature.id
+
+    private fun serializePrivateSignature(signature: IdSignature.GlobalFileLocalSignature): ProtoFileLocalIdSignature {
+        val proto = ProtoFileLocalIdSignature.newBuilder()
+
+        proto.container = protoIdSignature(signature.container)
+        proto.localId = signature.id
         proto.file = serializeString(signature.filePath)
 
         return proto.build()
     }
 
-    private fun serializeScopeLocalSignature(signature: IdSignature.ScopeLocalDeclaration): ProtoScopeLocalIdSignature {
+    private fun serializeScopeLocalSignature(signature: IdSignature.GlobalScopeLocalDeclaration): ProtoScopeLocalIdSignature {
         val proto = ProtoScopeLocalIdSignature.newBuilder()
 
         proto.id = signature.id
@@ -267,9 +278,11 @@ open class IrFileSerializer(
             is IdSignature.PublicSignature -> proto.publicSig = serializePublicSignature(idSignature)
             is IdSignature.AccessorSignature -> proto.accessorSig = serializeAccessorSignature(idSignature)
             is IdSignature.FileLocalSignature -> proto.privateSig = serializePrivateSignature(idSignature)
-            is IdSignature.ScopeLocalDeclaration -> proto.externalScopedLocalSig = serializeScopeLocalSignature(idSignature)
+            is IdSignature.ScopeLocalDeclaration -> proto.scopedLocalSig = serializeScopeLocalSignature(idSignature)
             is IdSignature.LoweredDeclarationSignature -> proto.icSig = serializeLoweredDeclarationSignature(idSignature)
             is IdSignature.FileSignature -> proto.fileSig = serializeFileSignature(idSignature)
+            is IdSignature.GlobalFileLocalSignature -> proto.privateSig = serializePrivateSignature(idSignature)
+            is IdSignature.GlobalScopeLocalDeclaration -> proto.externalScopedLocalSig = serializeScopeLocalSignature(idSignature)
         }
         return proto.build()
     }

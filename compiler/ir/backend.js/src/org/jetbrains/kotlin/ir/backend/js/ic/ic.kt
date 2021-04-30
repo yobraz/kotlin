@@ -58,6 +58,7 @@ fun prepareIcCaches(
             false,
             false,
             irFactory,
+            useGlobalSignatures = true,
             useStdlibCache = false,
         )
 
@@ -91,65 +92,6 @@ private fun findStdlib(allDependencies: KotlinLibraryResolveResult): KotlinLibra
     }
 
     return result!!
-}
-
-fun loadIrForIc(
-    linker: JsIrLinker,
-    module: IrModuleFragment,
-    context: JsIrBackendContext,
-) {
-//
-//    val time = System.currentTimeMillis()
-//
-//    val icData = icCache.values.single() // TODO find a stable key present both in klib and module
-//
-//    val mover = moveBodilessDeclarationsToSeparatePlaceDelayed(module)
-//
-//    val icModuleDeserializer = IcModuleDeserializer(
-//        context.irFactory as PersistentIrFactory,
-//        context.mapping,
-//        linker,
-//        icData,
-//        module.descriptor,
-//        module
-//    )
-//    icModuleDeserializer.init()
-//    icModuleDeserializer.deserializeAll()
-//    icModuleDeserializer.postProcess()
-//
-//    mover.saveToContext(context)
-//
-//    println("${(System.currentTimeMillis() - time) / 1000.0}s")
-//
-//    linker.symbolTable.noUnboundLeft("Unbound symbols found")
-
-    if (true) {
-
-        val perFactory = context.irFactory as PersistentIrFactory
-        val oldController = perFactory.stageController
-        perFactory.stageController = StageController(100)
-
-        println("==== Dumping ====")
-
-        var actual = ""
-
-        for (file in module.files) {
-            actual += file.path + "\n"
-            actual += context.irFactory.stageController.withStage(100) {
-                var r = ""
-
-                file.declarations.map { it.dumpKotlinLike() }.sorted().forEach { r += it }
-
-                r
-            }
-            actual += "\n"
-        }
-        PrintWriter("/home/ab/vcs/kotlin/simple-dump.txt").use {
-            it.print(actual)
-        }
-
-        perFactory.stageController = oldController
-    }
 }
 
 private fun dumpIr(module: IrModuleFragment, fileName: String) {
@@ -213,6 +155,7 @@ fun icCompile(
         es6mode,
         propertyLazyInitialization,
         irFactory,
+        useStdlibCache,
         useStdlibCache,
     )
 
@@ -278,12 +221,19 @@ private fun prepareIr(
     es6mode: Boolean = false,
     propertyLazyInitialization: Boolean,
     irFactory: PersistentIrFactory,
+    useGlobalSignatures: Boolean,
     useStdlibCache: Boolean,
 ): PreparedIr {
-    val (moduleFragment: IrModuleFragment, dependencyModules, irBuiltIns, symbolTable, deserializer, loweredIrLoaded) =
-        loadIr(project, mainModule, analyzer, configuration, allDependencies, friendDependencies, irFactory) { path ->
-            if (useStdlibCache) icCache[path] else null
+    val cacheProvider: ((String) -> SerializedIcData?)? = when {
+        useStdlibCache -> icCache::get
+        useGlobalSignatures -> {
+            { null }
         }
+        else -> null
+    }
+
+    val (moduleFragment: IrModuleFragment, dependencyModules, irBuiltIns, symbolTable, deserializer, loweredIrLoaded) =
+        loadIr(project, mainModule, analyzer, configuration, allDependencies, friendDependencies, irFactory, cacheProvider)
 
     val moduleDescriptor = moduleFragment.descriptor
 

@@ -244,7 +244,17 @@ fun loadIr(
             val feContext = psi2IrContext.run {
                 JsIrLinker.JsFePluginContext(moduleDescriptor, symbolTable, typeTranslator, irBuiltIns)
             }
-            val irLinker = JsIrLinker(psi2IrContext.moduleDescriptor, messageLogger, irBuiltIns, symbolTable, functionFactory, feContext, null, depsDescriptors.loweredIcData)
+            val irLinker = JsIrLinker(
+                psi2IrContext.moduleDescriptor,
+                messageLogger,
+                irBuiltIns,
+                symbolTable,
+                functionFactory,
+                feContext,
+                null,
+                depsDescriptors.loweredIcData,
+                loweringsCacheProvider != null
+            )
             val deserializedModuleFragments = sortDependencies(allDependencies.getFullList(), depsDescriptors.descriptors).map {
                 irLinker.deserializeIrModuleHeader(depsDescriptors.getModuleDescriptor(it), it)
             }
@@ -267,13 +277,22 @@ fun loadIr(
         }
         is MainModule.Klib -> {
             val moduleDescriptor = depsDescriptors.getModuleDescriptor(mainModule.lib)
-            val mangler = JsManglerDesc
             val typeTranslator =
                 TypeTranslatorImpl(symbolTable, depsDescriptors.compilerConfiguration.languageVersionSettings, moduleDescriptor)
             val irBuiltIns = IrBuiltIns(moduleDescriptor.builtIns, typeTranslator, symbolTable)
             val functionFactory = IrFunctionFactory(irBuiltIns, symbolTable)
             val irLinker =
-                JsIrLinker(null, messageLogger, irBuiltIns, symbolTable, functionFactory, null, null, depsDescriptors.loweredIcData)
+                JsIrLinker(
+                    null,
+                    messageLogger,
+                    irBuiltIns,
+                    symbolTable,
+                    functionFactory,
+                    null,
+                    null,
+                    depsDescriptors.loweredIcData,
+                    loweringsCacheProvider != null
+                )
 
             val deserializedModuleFragments = sortDependencies(allDependencies.getFullList(), depsDescriptors.descriptors).map {
                 val strategy =

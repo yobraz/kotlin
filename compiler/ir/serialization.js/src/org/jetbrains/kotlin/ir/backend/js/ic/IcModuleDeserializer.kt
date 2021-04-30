@@ -88,7 +88,7 @@ class IcModuleDeserializer(
 
                 val filePath = typeParameter.fileOrNull?.path ?: ""
 
-                val idSig = IdSignature.FileLocalSignature(
+                val idSig = IdSignature.GlobalFileLocalSignature(
                     globalDeclarationTable.computeSignatureByDeclaration(typeParameter.parent as IrDeclaration),
                     1000_000_000_000L + typeParameter.index,
                     filePath
@@ -139,8 +139,8 @@ class IcModuleDeserializer(
                 if (idSig.isPublic) {
                     idSig.enqueue(icDeserializer, symbol)
                 } else {
-                    if (idSig is IdSignature.FileLocalSignature && idSig.filePath == currentFilePath ||
-                        idSig is IdSignature.ScopeLocalDeclaration && idSig.filePath == currentFilePath
+                    if (idSig is IdSignature.GlobalFileLocalSignature && idSig.filePath == currentFilePath ||
+                        idSig is IdSignature.GlobalScopeLocalDeclaration && idSig.filePath == currentFilePath
                     ) {
                         idSig.enqueue(icDeserializer, symbol)
                     }

@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.ir.backend.js.ic
 
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
+import org.jetbrains.kotlin.backend.common.serialization.signature.PublicIdSignatureComputer
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.backend.js.JsMapping
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsGlobalDeclarationTable
@@ -142,13 +143,36 @@ class IcSerializer(
     ) : DeclarationTable(globalDeclarationTable) {
 
         override val signaturer: IdSignatureSerializer =
-            IdSignatureSerializer(globalDeclarationTable.publicIdSignatureComputer, this, newLocalIndex, newScopeIndex)
+            IdSignatureSerializerWithForIC(globalDeclarationTable.publicIdSignatureComputer, this, newLocalIndex, newScopeIndex)
 
         override fun signatureByDeclaration(declaration: IrDeclaration): IdSignature {
             return existingMappings.getOrPut(declaration.symbol) {
                 irFactory.declarationSignature(declaration) ?: super.signatureByDeclaration(declaration)
             }
         }
+    }
+}
+
+class IdSignatureSerializerWithForIC(
+    publicSignatureBuilder: PublicIdSignatureComputer,
+    table: DeclarationTable,
+    localIndexOffset: Long = 0,
+    scopeIndexOffset: Int = 0,
+) : IdSignatureSerializer(
+    publicSignatureBuilder,
+    table
+) {
+    init {
+        localIndex = localIndexOffset
+        scopeIndex = scopeIndexOffset
+    }
+
+    override fun IrDeclaration.createFileLocalSignature(parentSignature: IdSignature, localIndex: Long): IdSignature {
+        return IdSignature.GlobalFileLocalSignature(parentSignature, localIndex, fileOrNull?.path ?: "")
+    }
+
+    override fun IrDeclaration.createScopeLocalSignature(scopeIndex: Int, description: String): IdSignature {
+        return IdSignature.GlobalScopeLocalDeclaration(scopeIndex, description, fileOrNull?.path ?: "")
     }
 }
 

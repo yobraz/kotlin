@@ -49,6 +49,7 @@ class IcFileDeserializer(
         { _, s -> s },
         pathToFileSymbol,
         enqueueAllDeclarations = true,
+        useGlobalSignatures = true,
         ::deserializePublicSymbol,
     ).also {
         for ((idSig, symbol) in fileDeserializer.symbolDeserializer.deserializedSymbols.entries) {

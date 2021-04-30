@@ -61,7 +61,7 @@ open class DeclarationTable(globalTable: GlobalDeclarationTable) {
         return !isExportedDeclaration(this)
     }
 
-    open fun isExportedDeclaration(declaration: IrDeclaration) = globalDeclarationTable.isExportedDeclaration(declaration)
+    fun isExportedDeclaration(declaration: IrDeclaration) = globalDeclarationTable.isExportedDeclaration(declaration)
 
     protected open fun tryComputeBackendSpecificSignature(declaration: IrDeclaration): IdSignature? = null
 
