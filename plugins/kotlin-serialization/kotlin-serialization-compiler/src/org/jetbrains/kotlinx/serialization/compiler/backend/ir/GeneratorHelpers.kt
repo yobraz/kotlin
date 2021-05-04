@@ -142,7 +142,7 @@ interface IrBuilderExtension {
     fun IrBuilderWithScope.irInvoke(
         dispatchReceiver: IrExpression? = null,
         callee: IrFunctionSymbol,
-        typeArguments: List<IrType?>,
+        typeArguments: List<IrType>,
         valueArguments: List<IrExpression>,
         returnTypeHint: IrType? = null
     ): IrMemberAccessExpression<*> =
@@ -816,7 +816,7 @@ interface IrBuilderExtension {
 
         var serializerClass = serializerClassOriginal
         var args: List<IrExpression>
-        var typeArgs: List<IrType?>
+        var typeArgs: List<IrType>
         val thisIrType = kType.toIrType()
         val hasNewCtxSerCtor =
             serializerClassOriginal.classId == contextSerializerId && compilerContext.referenceConstructors(serializerClass.fqNameSafe)

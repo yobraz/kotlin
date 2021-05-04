@@ -57,7 +57,7 @@ class RenderIrElementVisitor(private val normalizeNames: Boolean = false) : IrEl
 
         if (irAnnotation.typeArgumentsCount != 0) {
             (0 until irAnnotation.typeArgumentsCount).joinTo(this, ", ", "<", ">") { i ->
-                irAnnotation.getTypeArgument(i)?.let { renderType(it) } ?: "null"
+                renderType(irAnnotation.getTypeArgument(i))
             }
         }
 

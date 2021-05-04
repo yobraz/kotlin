@@ -37,14 +37,14 @@ abstract class IrMemberAccessExpression<S : IrSymbol>(typeArgumentsCount: Int) :
 
     val typeArgumentsCount: Int get() = typeArgumentsByIndex.size
 
-    fun getTypeArgument(index: Int): IrType? {
+    fun getTypeArgument(index: Int): IrType {
         if (index >= typeArgumentsCount) {
             throwNoSuchArgumentSlotException("type", index, typeArgumentsCount)
         }
-        return typeArgumentsByIndex[index]
+        return typeArgumentsByIndex[index] ?: throwTypeArgumentNotSetException(index)
     }
 
-    fun putTypeArgument(index: Int, type: IrType?) {
+    fun putTypeArgument(index: Int, type: IrType) {
         if (index >= typeArgumentsCount) {
             throwNoSuchArgumentSlotException("type", index, typeArgumentsCount)
         }
@@ -69,7 +69,14 @@ internal fun IrMemberAccessExpression<*>.throwNoSuchArgumentSlotException(kind: 
     )
 }
 
-fun IrMemberAccessExpression<*>.getTypeArgument(typeParameterDescriptor: TypeParameterDescriptor): IrType? =
+private fun IrMemberAccessExpression<*>.throwTypeArgumentNotSetException(index: Int): Nothing {
+    throw AssertionError(
+        "Type argument #$index not set for ${this::class.java.simpleName}" +
+                (symbol.signature?.let { ".\nSymbol: $it" } ?: "")
+    )
+}
+
+fun IrMemberAccessExpression<*>.getTypeArgument(typeParameterDescriptor: TypeParameterDescriptor): IrType =
     getTypeArgument(typeParameterDescriptor.index)
 
 fun IrMemberAccessExpression<*>.copyTypeArgumentsFrom(other: IrMemberAccessExpression<*>, shift: Int = 0) {
@@ -99,7 +106,7 @@ val CallableDescriptor.typeParametersCount: Int
         }
 
 fun IrMemberAccessExpression<*>.getTypeArgumentOrDefault(irTypeParameter: IrTypeParameter) =
-    getTypeArgument(irTypeParameter.index) ?: irTypeParameter.defaultType
+    getTypeArgument(irTypeParameter.index)
 
 fun IrMemberAccessExpression<*>.getValueArgument(valueParameterDescriptor: ValueParameterDescriptor) =
     getValueArgument(valueParameterDescriptor.index)

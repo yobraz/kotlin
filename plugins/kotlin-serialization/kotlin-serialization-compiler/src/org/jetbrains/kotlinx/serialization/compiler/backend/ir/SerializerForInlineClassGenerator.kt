@@ -105,7 +105,7 @@ class SerializerForInlineClassGenerator(
         irInvoke(
             null,
             serializableIrClass.constructors.single { it.isPrimary }.symbol,
-            (inlineClassBoxType as IrSimpleType).arguments.map { it.typeOrNull },
+            (inlineClassBoxType as IrSimpleType).arguments.map { it.typeOrNull!! },
             listOf(expression)
         )
 

@@ -354,21 +354,21 @@ fun usefulDeclarations(roots: Iterable<IrDeclaration>, context: JsIrBackendConte
 
                     when (expression.symbol) {
                         context.intrinsics.jsBoxIntrinsic -> {
-                            val inlineClass = context.inlineClassesUtils.getInlinedClass(expression.getTypeArgument(0)!!)!!
+                            val inlineClass = context.inlineClassesUtils.getInlinedClass(expression.getTypeArgument(0))!!
                             val constructor = inlineClass.declarations.filterIsInstance<IrConstructor>().single { it.isPrimary }
                             constructor.enqueue("intrinsic: jsBoxIntrinsic")
                         }
                         context.intrinsics.jsClass -> {
-                            val ref = expression.getTypeArgument(0)!!.classifierOrFail.owner as IrDeclaration
+                            val ref = expression.getTypeArgument(0).classifierOrFail.owner as IrDeclaration
                             ref.enqueue("intrinsic: jsClass")
                             referencedJsClasses += ref
                         }
                         context.intrinsics.jsGetKClassFromExpression -> {
-                            val ref = expression.getTypeArgument(0)?.classOrNull ?: context.irBuiltIns.anyClass
+                            val ref = expression.getTypeArgument(0).classOrNull ?: context.irBuiltIns.anyClass
                             referencedJsClassesFromExpressions += ref.owner
                         }
                         context.intrinsics.jsObjectCreate.symbol -> {
-                            val classToCreate = expression.getTypeArgument(0)!!.classifierOrFail.owner as IrClass
+                            val classToCreate = expression.getTypeArgument(0).classifierOrFail.owner as IrClass
                             classToCreate.enqueue("intrinsic: jsObjectCreate")
                             constructedClasses += classToCreate
                         }
@@ -387,18 +387,18 @@ fun usefulDeclarations(roots: Iterable<IrDeclaration>, context: JsIrBackendConte
                             }
                         }
                         context.intrinsics.jsConstruct -> {
-                            val callType = expression.getTypeArgument(0)!!
+                            val callType = expression.getTypeArgument(0)
                             val constructor = callType.getClass()!!.primaryConstructor
                             constructor!!.enqueue("ctor call from jsConstruct-intrinsic")
                         }
                         context.intrinsics.es6DefaultType -> {
                             //same as jsClass
-                            val ref = expression.getTypeArgument(0)!!.classifierOrFail.owner as IrDeclaration
+                            val ref = expression.getTypeArgument(0).classifierOrFail.owner as IrDeclaration
                             ref.enqueue("intrinsic: jsClass")
                             referencedJsClasses += ref
 
                             //Generate klass in `val currResultType = resultType || klass`
-                            val arg = expression.getTypeArgument(0)!!
+                            val arg = expression.getTypeArgument(0)
                             val klass = arg.getClass()
                             constructedClasses.addIfNotNull(klass)
                         }

@@ -88,7 +88,7 @@ internal class WasmVarargExpressionLowering(
                         putValueArgument(0, irInt(0))
                         if (primaryConstructor.typeParameters.isNotEmpty()) {
                             check(primaryConstructor.typeParameters.size == 1)
-                            putTypeArgument(0, parameter.varargElementType)
+                            putTypeArgument(0, parameter.varargElementType!!)
                         }
                     }
                 }

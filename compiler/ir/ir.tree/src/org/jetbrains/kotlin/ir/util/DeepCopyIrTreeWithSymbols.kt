@@ -519,7 +519,7 @@ open class DeepCopyIrTreeWithSymbols(
             "Mismatching type arguments: $typeArgumentsCount vs ${other.typeArgumentsCount} "
         }
         for (i in 0 until typeArgumentsCount) {
-            putTypeArgument(i, other.getTypeArgument(i)?.remapType())
+            putTypeArgument(i, other.getTypeArgument(i).remapType())
         }
     }
 

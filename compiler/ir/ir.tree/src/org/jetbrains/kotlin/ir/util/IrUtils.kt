@@ -530,7 +530,7 @@ fun IrMemberAccessExpression<*>.getTypeSubstitutionMap(irFunction: IrFunction): 
         }
     }
     return typeParameters.withIndex().associateTo(result) {
-        it.value.symbol to getTypeArgument(it.index)!!
+        it.value.symbol to getTypeArgument(it.index)
     }
 }
 

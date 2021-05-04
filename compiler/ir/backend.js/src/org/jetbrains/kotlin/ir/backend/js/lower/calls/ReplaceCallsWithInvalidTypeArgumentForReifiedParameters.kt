@@ -27,7 +27,7 @@ class ReplaceCallsWithInvalidTypeArgumentForReifiedParameters(val context: JsIrB
             if (!typeParameter.isReified) continue
             val typeArgument = call.getTypeArgument(typeParameter.index)
 
-            if (typeArgument?.classOrNull == null) {
+            if (typeArgument.classOrNull == null) {
                 val args = call.getArgumentsWithIr().map { it.second }
 
                 val callErrorCode = JsIrBuilder.buildCall(context.errorCodeSymbol!!).apply {
@@ -37,7 +37,7 @@ class ReplaceCallsWithInvalidTypeArgumentForReifiedParameters(val context: JsIrB
                             UNDEFINED_OFFSET,
                             UNDEFINED_OFFSET,
                             context.irBuiltIns.stringType,
-                            "Invalid type argument (${typeArgument?.render()}) for reified type parameter (${typeParameter.render()})"
+                            "Invalid type argument (${typeArgument.render()}) for reified type parameter (${typeParameter.render()})"
                         )
                     )
                 }

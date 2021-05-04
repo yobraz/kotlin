@@ -223,7 +223,7 @@ class IrBodyDeserializer(
 
                 for (i in typeParameters.indices) {
                     val typeParameter = typeParameters[i]
-                    val callTypeArgument = constructorCall.getTypeArgument(i) ?: error("No type argument for id $i")
+                    val callTypeArgument = constructorCall.getTypeArgument(i)
                     val typeArgument = makeTypeProjection(callTypeArgument, typeParameter.variance)
                     typeArguments.add(typeArgument)
                     typeParameterSymbols.add(typeParameter.symbol)

@@ -16,7 +16,7 @@ object IsArrayOf : IntrinsicMethod() {
         signature: JvmMethodSignature,
         context: JvmBackendContext
     ): IrIntrinsicFunction = IrIntrinsicFunction.create(expression, signature, context) { v ->
-        val arrayType = context.irBuiltIns.arrayClass.typeWith(expression.getTypeArgument(0)!!)
+        val arrayType = context.irBuiltIns.arrayClass.typeWith(expression.getTypeArgument(0))
         v.instanceOf(context.typeMapper.mapType(arrayType))
     }
 }

@@ -182,7 +182,7 @@ class BodyGenerator(val context: WasmFunctionCodegenContext) : IrElementVisitorV
         // Box intrinsic has an additional klass ID argument.
         // Processing it separately
         if (call.symbol == wasmSymbols.boxIntrinsic) {
-            val toType = call.getTypeArgument(0)!!
+            val toType = call.getTypeArgument(0)
             val klass = toType.erasedUpperBound!!
             val structTypeName = context.referenceGcType(klass.symbol)
             val klassId = context.referenceClassId(klass.symbol)
@@ -264,22 +264,22 @@ class BodyGenerator(val context: WasmFunctionCodegenContext) : IrElementVisitorV
 
         when (function.symbol) {
             wasmSymbols.wasmClassId -> {
-                val klass = call.getTypeArgument(0)!!.getClass()
+                val klass = call.getTypeArgument(0).getClass()
                     ?: error("No class given for wasmClassId intrinsic")
                 assert(!klass.isInterface)
                 body.buildConstI32Symbol(context.referenceClassId(klass.symbol))
             }
 
             wasmSymbols.wasmInterfaceId -> {
-                val irInterface = call.getTypeArgument(0)!!.getClass()
+                val irInterface = call.getTypeArgument(0).getClass()
                     ?: error("No interface given for wasmInterfaceId intrinsic")
                 assert(irInterface.isInterface)
                 body.buildConstI32Symbol(context.referenceInterfaceId(irInterface.symbol))
             }
 
             wasmSymbols.wasmRefCast -> {
-                val fromType = call.getTypeArgument(0)!!
-                val toType = call.getTypeArgument(1)!!
+                val fromType = call.getTypeArgument(0)
+                val toType = call.getTypeArgument(1)
                 generateTypeRTT(toType)
                 body.buildRefCast(context.transformType(fromType), context.transformType(toType))
             }
@@ -292,7 +292,7 @@ class BodyGenerator(val context: WasmFunctionCodegenContext) : IrElementVisitorV
             }
 
             wasmSymbols.unboxIntrinsic -> {
-                val fromType = call.getTypeArgument(0)!!
+                val fromType = call.getTypeArgument(0)
 
                 if (fromType.isNothing()) {
                     body.buildUnreachable()
@@ -306,7 +306,7 @@ class BodyGenerator(val context: WasmFunctionCodegenContext) : IrElementVisitorV
                     return true
                 }
 
-                val toType = call.getTypeArgument(1)!!
+                val toType = call.getTypeArgument(1)
                 val klass: IrClass = backendContext.inlineClassesUtils.getInlinedClass(toType)!!
                 val field = getInlineClassBackingField(klass)
 
@@ -518,7 +518,7 @@ class BodyGenerator(val context: WasmFunctionCodegenContext) : IrElementVisitorV
                         WasmOp.REF_TEST -> {
                             val fromIrType = call.getValueArgument(0)!!.type
                             val fromWasmType = context.transformBoxedType(fromIrType)
-                            val toIrType = call.getTypeArgument(0)!!
+                            val toIrType = call.getTypeArgument(0)
                             val toWasmType = context.transformBoxedType(toIrType)
                             immediates = arrayOf(
                                 WasmImmediate.HeapType(fromWasmType),

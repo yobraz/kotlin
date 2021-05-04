@@ -548,7 +548,7 @@ class ExpressionCodegen(
         mv.load(0, OBJECT_TYPE)
 
         for (argumentIndex in 0 until expression.typeArgumentsCount) {
-            val classifier = expression.getTypeArgument(argumentIndex)?.classifierOrNull
+            val classifier = expression.getTypeArgument(argumentIndex).classifierOrNull
             if (classifier is IrTypeParameterSymbol && classifier.owner.isReified) {
                 consumeReifiedOperationMarker(classifier)
             }

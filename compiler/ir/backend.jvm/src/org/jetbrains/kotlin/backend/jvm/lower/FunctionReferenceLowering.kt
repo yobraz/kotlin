@@ -600,7 +600,7 @@ internal class FunctionReferenceLowering(private val context: JvmBackendContext)
                 var unboundIndex = 0
                 irExprBody(irCall(callee).apply {
                     for (typeParameter in irFunctionReference.symbol.owner.allTypeParameters) {
-                        putTypeArgument(typeParameter.index, typeArgumentsMap[typeParameter.symbol])
+                        putTypeArgument(typeParameter.index, typeArgumentsMap[typeParameter.symbol]!!)
                     }
 
                     for (parameter in callee.explicitParameters) {

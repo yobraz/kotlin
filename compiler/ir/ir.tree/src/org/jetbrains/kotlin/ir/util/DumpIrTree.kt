@@ -244,7 +244,7 @@ class DumpIrTreeVisitor(
     }
 
     private fun IrMemberAccessExpression<*>.renderTypeArgument(index: Int): String =
-        getTypeArgument(index)?.render() ?: "<none>"
+        getTypeArgument(index).render()
 
     override fun visitGetField(expression: IrGetField, data: String) {
         expression.dumpLabeledElementWith(data) {

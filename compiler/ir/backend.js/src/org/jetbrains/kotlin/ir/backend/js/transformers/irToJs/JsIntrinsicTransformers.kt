@@ -81,7 +81,7 @@ class JsIntrinsicTransformers(backendContext: JsIrBackendContext) {
             prefixOp(intrinsics.jsTypeOf, JsUnaryOperator.TYPEOF)
 
             add(intrinsics.jsObjectCreate) { call, context ->
-                val classToCreate = call.getTypeArgument(0)!!.classifierOrFail.owner as IrClass
+                val classToCreate = call.getTypeArgument(0).classifierOrFail.owner as IrClass
                 val className = context.getNameForClass(classToCreate)
                 val prototype = prototypeOf(className.makeRef())
                 JsInvocation(Namer.JS_OBJECT_CREATE_FUNCTION, prototype)
@@ -89,8 +89,7 @@ class JsIntrinsicTransformers(backendContext: JsIrBackendContext) {
 
             add(intrinsics.jsClass) { call, context ->
                 val typeArgument = call.getTypeArgument(0)
-                typeArgument?.getClassRef(context)
-                    ?: error("Type argument of jsClass must be statically known class, but " + typeArgument?.render())
+                typeArgument.getClassRef(context)
             }
 
             add(intrinsics.jsNewTarget) { _, _ ->
@@ -111,7 +110,7 @@ class JsIntrinsicTransformers(backendContext: JsIrBackendContext) {
             }
 
             add(intrinsics.es6DefaultType) { call, context ->
-                val typeArgument = call.getTypeArgument(0)!!
+                val typeArgument = call.getTypeArgument(0)
                 typeArgument.getClassRef(context)
             }
 
@@ -172,14 +171,14 @@ class JsIntrinsicTransformers(backendContext: JsIrBackendContext) {
 
             add(intrinsics.jsBoxIntrinsic) { call, context ->
                 val arg = translateCallArguments(call, context).single()
-                val inlineClass = icUtils.getInlinedClass(call.getTypeArgument(0)!!)!!
+                val inlineClass = icUtils.getInlinedClass(call.getTypeArgument(0))!!
                 val constructor = inlineClass.declarations.filterIsInstance<IrConstructor>().single { it.isPrimary }
                 JsNew(context.getNameForConstructor(constructor).makeRef(), listOf(arg))
             }
 
             add(intrinsics.jsUnboxIntrinsic) { call, context ->
                 val arg = translateCallArguments(call, context).single()
-                val inlineClass = icUtils.getInlinedClass(call.getTypeArgument(1)!!)!!
+                val inlineClass = icUtils.getInlinedClass(call.getTypeArgument(1))!!
                 val field = getInlineClassBackingField(inlineClass)
                 val fieldName = context.getNameForField(field)
                 JsNameRef(fieldName, arg)

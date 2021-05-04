@@ -188,7 +188,7 @@ internal fun getTypeArguments(
     }
 
     val typeArguments = container.typeParameters.mapIndexed { index, typeParameter ->
-        val typeArgument = expression.getTypeArgument(index)!!
+        val typeArgument = expression.getTypeArgument(index)
         Variable(typeParameter.symbol, typeArgument.getState())
     }.toMutableList()
 

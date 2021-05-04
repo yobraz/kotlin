@@ -23,7 +23,7 @@ class EnumIntrinsicsTransformer(private val context: JsIrBackendContext) : Calls
         call: IrFunctionAccessExpression,
         staticMethodPredicate: (IrSimpleFunction) -> Boolean
     ): IrExpression {
-        val enum = call.getTypeArgument(0)?.getClass() ?: return call
+        val enum = call.getTypeArgument(0).getClass() ?: return call
         if (!enum.isEnumClass) return call
         val staticMethod = enum.findDeclaration(staticMethodPredicate)
         if (staticMethod == null || !staticMethod.isStaticMethodOfClass)

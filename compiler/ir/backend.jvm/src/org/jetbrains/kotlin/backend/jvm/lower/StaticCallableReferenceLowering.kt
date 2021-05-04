@@ -104,7 +104,7 @@ class StaticCallableReferenceLowering(val backendContext: JvmBackendContext) : F
 
                 override fun visitMemberAccess(expression: IrMemberAccessExpression<*>) {
                     for (i in 0 until expression.typeArgumentsCount) {
-                        if (expression.getTypeArgument(i)?.isReified == true) {
+                        if (expression.getTypeArgument(i).isReified) {
                             containsReified = true
                             break
                         }

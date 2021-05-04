@@ -135,7 +135,7 @@ private class InlineCallableReferenceToLambdaTransformer(
             val argumentTypes = referencedFunction.explicitParameters.drop(toDropAtStart).take(nParams).map { parameter ->
                 parameter.type.substitute(
                     referencedFunction.typeParameters,
-                    referencedFunction.typeParameters.indices.map { expression.getTypeArgument(it)!! }
+                    referencedFunction.typeParameters.indices.map { expression.getTypeArgument(it) }
                 )
             }
 

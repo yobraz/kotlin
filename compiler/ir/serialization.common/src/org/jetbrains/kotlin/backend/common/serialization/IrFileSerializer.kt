@@ -482,7 +482,7 @@ open class IrFileSerializer(
         }
 
         for (index in 0 until call.typeArgumentsCount) {
-            val typeArgument = call.getTypeArgument(index) ?: error("Expected type argument at $index in ${call.render()}")
+            val typeArgument = call.getTypeArgument(index)
             proto.addTypeArgument(serializeIrType(typeArgument))
         }
 

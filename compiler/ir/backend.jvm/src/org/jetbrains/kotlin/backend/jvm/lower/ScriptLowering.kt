@@ -438,7 +438,7 @@ private class ScriptToClassTransformer(
 
     override fun visitMemberAccess(expression: IrMemberAccessExpression<*>): IrExpression = expression.apply {
         for (i in 0 until typeArgumentsCount) {
-            putTypeArgument(i, getTypeArgument(i)?.remapType())
+            putTypeArgument(i, getTypeArgument(i).remapType())
         }
         visitExpression(expression)
     }
