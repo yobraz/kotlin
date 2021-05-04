@@ -205,7 +205,7 @@ class IrBodyDeserializer(
         }
 
         proto.typeArgumentList.mapIndexed { i, arg ->
-            access.putTypeArgument(i, declarationDeserializer.deserializeNullableIrType(arg))
+            access.putTypeArgument(i, declarationDeserializer.deserializeIrType(arg))
         }
 
         if (proto.hasDispatchReceiver()) {
