@@ -385,6 +385,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
                 runTest("compiler/testData/codegen/box/annotations/typeAnnotations/checkingNotincorporatedInputTypes.kt");
             }
 
+            @TestMetadata("functionTypeParameterBound.kt")
+            public void testFunctionTypeParameterBound() throws Exception {
+                runTest("compiler/testData/codegen/box/annotations/typeAnnotations/functionTypeParameterBound.kt");
+            }
+
             @TestMetadata("implicitReturn.kt")
             public void testImplicitReturn() throws Exception {
                 runTest("compiler/testData/codegen/box/annotations/typeAnnotations/implicitReturn.kt");
@@ -403,6 +408,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             @TestMetadata("methodParameters.kt")
             public void testMethodParameters() throws Exception {
                 runTest("compiler/testData/codegen/box/annotations/typeAnnotations/methodParameters.kt");
+            }
+
+            @TestMetadata("methodTypeParameters.kt")
+            public void testMethodTypeParameters() throws Exception {
+                runTest("compiler/testData/codegen/box/annotations/typeAnnotations/methodTypeParameters.kt");
             }
 
             @TestMetadata("typeAnnotationTarget6.kt")

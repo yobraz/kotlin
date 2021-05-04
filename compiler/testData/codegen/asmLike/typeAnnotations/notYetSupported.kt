@@ -16,6 +16,7 @@ annotation class Ann3
 @Target(AnnotationTarget.TYPE)
 annotation class Ann4
 
+
 class Bar<T>
 
 class Outer {
@@ -52,5 +53,7 @@ class Kotlin {
     fun <T> fooGenericOut(s: @Ann Bar<out @Ann2 T>) {
     }
 
+    fun <T: Bar<Outer.Inner<@Ann Outer>>> innerClassInBound() {
+    }
 
 }
