@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.render
 
-class JsUniqIdClashTracker(private val throwOnClash: Boolean = true) : IdSignatureClashTracker {
+class JsUniqIdClashTracker() : IdSignatureClashTracker {
     private val committedIdSignatures = mutableMapOf<IdSignature, IrDeclaration>()
 
     override fun commit(declaration: IrDeclaration, signature: IdSignature) {
@@ -30,10 +30,8 @@ class JsUniqIdClashTracker(private val throwOnClash: Boolean = true) : IdSignatu
                 require(clashedParent is IrSimpleFunction)
                 require(clashedParent.correspondingPropertySymbol === parent.correspondingPropertySymbol)
             } else {
-                if (throwOnClash) {
-                    // TODO: handle clashes properly
-                    error("IdSignature clash: $signature; Existed declaration ${clashedDeclaration.render()} clashed with new ${declaration.render()}")
-                }
+                // TODO: handle clashes properly
+                error("IdSignature clash: $signature; Existed declaration ${clashedDeclaration.render()} clashed with new ${declaration.render()}")
             }
         }
 
@@ -41,8 +39,8 @@ class JsUniqIdClashTracker(private val throwOnClash: Boolean = true) : IdSignatu
     }
 }
 
-class JsGlobalDeclarationTable(builtIns: IrBuiltIns, throwOnClash: Boolean = true) :
-    GlobalDeclarationTable(JsManglerIr, JsUniqIdClashTracker(throwOnClash)) {
+class JsGlobalDeclarationTable(builtIns: IrBuiltIns, tracker: IdSignatureClashTracker = JsUniqIdClashTracker()) :
+    GlobalDeclarationTable(JsManglerIr, tracker) {
     init {
         loadKnownBuiltins(builtIns)
     }

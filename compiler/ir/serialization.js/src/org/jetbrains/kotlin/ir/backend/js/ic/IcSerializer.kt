@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.ir.backend.js.ic
 
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
+import org.jetbrains.kotlin.backend.common.serialization.IdSignatureClashTracker
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
 import org.jetbrains.kotlin.backend.common.serialization.signature.PublicIdSignatureComputer
 import org.jetbrains.kotlin.ir.IrElement
@@ -36,16 +37,16 @@ class IcSerializer(
     val module: IrModuleFragment
 ) {
 
-    private val globalDeclarationTable = JsGlobalDeclarationTable(irBuiltIns, throwOnClash = false)
+    private val globalDeclarationTable = JsGlobalDeclarationTable(irBuiltIns, IdSignatureClashTracker.DEFAULT_TRACKER)
 
-    fun serializeDeclarations(declarations: Iterable<IrDeclaration>): SerializedIcData {
+    fun serializeDeclarations(moduleDeclarations: Iterable<IrDeclaration>): SerializedIcData {
 
         // TODO serialize body carriers and new bodies as well
         val moduleDeserializer = linker.moduleDeserializer(module.descriptor)
 
         val fileToDeserializer = moduleDeserializer.fileDeserializers().associateBy { it.file }
 
-        val filteredDeclarations = declarations.filter {
+        val filteredDeclarations = moduleDeclarations.filter {
             when {
                 it.fileOrNull.let { it == null || fileToDeserializer[it] == null } -> false
                 it is IrFakeOverrideFunction -> it.isBound
@@ -72,7 +73,7 @@ class IcSerializer(
         val icData = mutableListOf<SerializedIcDataForFile>()
 
         for (file in fileToDeserializer.keys) {
-            val declarations = dataToSerialize[file] ?: emptyList()
+            val fileDeclarations = dataToSerialize[file] ?: emptyList()
             val bodies = filteredBodies[file] ?: emptyList()
 
             val fileDeserializer = fileToDeserializer[file]!!
@@ -90,7 +91,7 @@ class IcSerializer(
                 allowErrorStatementOrigins = true
             )
 
-            bodies.forEachIndexed { index, body ->
+            bodies.forEach { body ->
                 if (body is IrExpressionBody) {
                     fileSerializer.serializeIrExpressionBody(body.expression)
                 } else {
@@ -99,18 +100,18 @@ class IcSerializer(
             }
 
             // Only save newly created declarations
-            val newDeclarations = declarations.filter { d ->
+            val newDeclarations = fileDeclarations.filter { d ->
                 d is PersistentIrDeclarationBase<*> && (d.createdOn > 0 || d.isFakeOverride || (d is IrValueParameter || d is IrTypeParameter) && (d.parent as IrDeclaration).isFakeOverride)
             }
 
             val serializedCarriers = fileSerializer.serializeCarriers(
-                declarations,
+                fileDeclarations,
                 bodies,
             ) { declaration ->
                 icDeclarationTable.signatureByDeclaration(declaration)
             }
 
-            val serializedMappings = mappings.state.serializeMappings(declarations) { symbol ->
+            val serializedMappings = mappings.state.serializeMappings(fileDeclarations) { symbol ->
                 fileSerializer.serializeIrSymbol(symbol)
             }
 

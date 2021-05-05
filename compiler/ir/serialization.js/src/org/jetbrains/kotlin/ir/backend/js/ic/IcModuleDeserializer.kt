@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.ir.backend.js.ic
 
 import org.jetbrains.kotlin.backend.common.serialization.DeserializationStrategy
+import org.jetbrains.kotlin.backend.common.serialization.IdSignatureClashTracker
 import org.jetbrains.kotlin.backend.common.serialization.IrFileDeserializer
 import org.jetbrains.kotlin.backend.common.serialization.IrModuleDeserializer
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData
@@ -31,7 +32,7 @@ class IcModuleDeserializer(
     val wrapped: IrModuleDeserializer,
 ) : IrModuleDeserializer(wrapped.moduleDescriptor) {
 
-    private val globalDeclarationTable = JsGlobalDeclarationTable(linker.builtIns, throwOnClash = false)
+    private val globalDeclarationTable = JsGlobalDeclarationTable(linker.builtIns, IdSignatureClashTracker.DEFAULT_TRACKER)
 
     val fileQueue = ArrayDeque<IcFileDeserializer>()
     val signatureQueue = ArrayDeque<IdSignature>()

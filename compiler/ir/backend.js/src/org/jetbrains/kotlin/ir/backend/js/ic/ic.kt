@@ -143,7 +143,7 @@ fun icCompile(
     val controller = WholeWorldStageController()
     irFactory.stageController = controller
 
-    val (context, deserializer, allModules, loweredIrLoaded) = prepareIr(
+    val (context, _, allModules, loweredIrLoaded) = prepareIr(
         project,
         mainModule,
         analyzer,
