@@ -95,7 +95,8 @@ class IrModuleToJsTransformer(
             val dependencies = others.mapIndexed { index, module ->
                 val moduleName = module.externalModuleName()
 
-                val exportedDeclarations = ExportModelGenerator(backendContext).let { module.files.flatMap { file -> it.generateExport(file) } }
+                val exportedDeclarations =
+                    ExportModelGenerator(backendContext).let { module.files.flatMap { file -> it.generateExport(file) } }
 
                 moduleName to generateWrappedModuleBody2(
                     listOf(module),
@@ -146,6 +147,7 @@ class IrModuleToJsTransformer(
 
         val (importStatements, importedJsModules) =
             generateImportStatements(
+                modules,
                 getNameForExternalDeclaration = { rootContext.getNameForStaticDeclaration(it) },
                 declareFreshGlobal = { JsName(sanitizeName(it)) } // TODO: Declare fresh name
             )
@@ -158,7 +160,11 @@ class IrModuleToJsTransformer(
 
         val callToMain = generateCallToMain(modules, rootContext)
 
-        val (crossModuleImports, importedKotlinModules) = generateCrossModuleImports(nameGenerator, modules, dependencies, { JsName(sanitizeName(it)) })
+        val (crossModuleImports, importedKotlinModules) = generateCrossModuleImports(
+            nameGenerator,
+            modules,
+            dependencies
+        ) { JsName(sanitizeName(it)) }
         val crossModuleExports = generateCrossModuleExports(modules, refInfo, internalModuleName)
 
         val program = JsProgram()
@@ -331,20 +337,25 @@ class IrModuleToJsTransformer(
     }
 
     private fun generateImportStatements(
+        modules: Iterable<IrModuleFragment>,
         getNameForExternalDeclaration: (IrDeclarationWithName) -> JsName,
         declareFreshGlobal: (String) -> JsName
     ): Pair<MutableList<JsStatement>, List<JsImportedModule>> {
+        val files = modules.flatMap { it.files }.toSet()
         val declarationLevelJsModules =
-            backendContext.declarationLevelJsModules.map { externalDeclaration ->
-                val jsModule = externalDeclaration.getJsModule()!!
-                val name = getNameForExternalDeclaration(externalDeclaration)
-                JsImportedModule(jsModule, name, name.makeRef())
-            }
+            backendContext.declarationLevelJsModules
+                .filter { (file, _) -> file in files }
+                .map { (_, externalDeclaration) ->
+                    val jsModule = externalDeclaration.getJsModule()!!
+                    val name = getNameForExternalDeclaration(externalDeclaration)
+                    JsImportedModule(jsModule, name, name.makeRef())
+                }
 
         val packageLevelJsModules = mutableListOf<JsImportedModule>()
         val importStatements = mutableListOf<JsStatement>()
 
         for (file in backendContext.packageLevelJsModules) {
+            if (file !in files) continue
             val jsModule = file.getJsModule()
             val jsQualifier = file.getJsQualifier()
 

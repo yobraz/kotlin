@@ -79,7 +79,7 @@ class JsIrBackendContext(
     )
 
     val packageLevelJsModules = mutableSetOf<IrFile>()
-    val declarationLevelJsModules = mutableListOf<IrDeclarationWithName>()
+    val declarationLevelJsModules = mutableMapOf<IrFile, IrDeclarationWithName>()
 
     private val internalPackageFragmentDescriptor = EmptyPackageFragmentDescriptor(builtIns.builtInsModule, FqName("kotlin.js.internal"))
 
