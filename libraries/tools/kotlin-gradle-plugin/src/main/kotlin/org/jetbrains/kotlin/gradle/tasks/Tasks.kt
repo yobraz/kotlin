@@ -419,6 +419,13 @@ abstract class KotlinCompile @Inject constructor(
             logger.kotlinDebug { "Set $this.usePreciseJavaTracking=$value" }
         }
 
+    @get:Input
+    var useClasspathSnapshot: Boolean? = false
+        set(value) {
+            field = value
+            logger.kotlinDebug { "Set $this.useClasspathSnapshot=$value" }
+        }
+
     init {
         incremental = true
     }

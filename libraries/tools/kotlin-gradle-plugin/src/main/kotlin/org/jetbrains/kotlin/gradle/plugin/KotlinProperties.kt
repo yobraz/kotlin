@@ -35,6 +35,9 @@ internal fun PropertiesProvider.mapKotlinTaskProperties(task: AbstractKotlinComp
         usePreciseJavaTracking?.let {
             task.usePreciseJavaTracking = it
         }
+        useClasspathSnapshot?.let {
+            task.useClasspathSnapshot = it
+        }
         useFir?.let {
             if (it == true) {
                 task.kotlinOptions.useFir = true
@@ -92,6 +95,9 @@ internal class PropertiesProvider private constructor(private val project: Proje
 
     val usePreciseJavaTracking: Boolean?
         get() = booleanProperty("kotlin.incremental.usePreciseJavaTracking")
+
+    val useClasspathSnapshot: Boolean?
+        get() = booleanProperty("kotlin.incremental.useClasspathSnapshot")
 
     val useFir: Boolean?
         get() = booleanProperty("kotlin.useFir")
