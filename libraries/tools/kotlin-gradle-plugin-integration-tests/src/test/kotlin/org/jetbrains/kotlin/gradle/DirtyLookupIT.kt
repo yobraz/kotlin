@@ -8,6 +8,9 @@ import org.junit.Test
 import java.io.File
 
 public class DirtyLookupIT : BaseGradleIT() {
+    override fun defaultBuildOptions(): BuildOptions {
+        return super.defaultBuildOptions().copy(abiSnapshot = true)
+    }
 
     @Test //https://youtrack.jetbrains.com/issue/KT-28233
     fun testChangeTypeAlias() {
