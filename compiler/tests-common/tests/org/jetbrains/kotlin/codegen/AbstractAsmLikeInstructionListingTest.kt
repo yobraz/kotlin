@@ -81,6 +81,33 @@ abstract class AbstractAsmLikeInstructionListingTest : CodegenTestCase() {
 
             appendLine(" {")
 
+            if (renderAnnotations) {
+                val textifier = Textifier()
+                val visitor = TraceMethodVisitor(textifier)
+
+                clazz.visibleAnnotations?.forEach {
+                    if (it.desc != "Lkotlin/Metadata;" && it.desc != "Lkotlin/annotation/Target;" && it.desc != "Lkotlin/annotation/Retention;" &&
+                        it.desc != "Ljava/lang/annotation/Retention;" && it.desc != "Ljava/lang/annotation/Target;") {
+                        it.accept(visitor.visitAnnotation(it.desc, true))
+                    }
+                }
+                clazz.invisibleAnnotations?.forEach {
+                    it.accept(visitor.visitAnnotation(it.desc, false))
+                }
+
+                clazz.visibleTypeAnnotations?.forEach {
+                    it.accept(visitor.visitTypeAnnotation(it.typeRef, it.typePath, it.desc, true))
+                }
+                clazz.invisibleTypeAnnotations?.forEach {
+                    it.accept(visitor.visitTypeAnnotation(it.typeRef, it.typePath, it.desc, false))
+                }
+
+                textifier.getText().takeIf { it.isNotEmpty() }?.let {
+                    appendLine(textifier.getText().joinToString("").trimEnd())
+                    appendLine("")
+                }
+            }
+
             fields.joinTo(this, LINE_SEPARATOR.repeat(2)) { renderField(it, renderAnnotations).withMargin() }
 
             if (fields.isNotEmpty()) {
@@ -226,7 +253,7 @@ abstract class AbstractAsmLikeInstructionListingTest : CodegenTestCase() {
 
     private fun getParameterName(index: Int, method: MethodNode): String {
         val localVariableIndexOffset = when {
-            (method.access and Opcodes.ACC_STATIC) != 0 -> 0
+            (method.access and ACC_STATIC) != 0 -> 0
             method.isJvmOverloadsGenerated() -> 0
             else -> 1
         }
