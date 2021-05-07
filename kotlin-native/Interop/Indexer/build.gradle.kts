@@ -46,9 +46,6 @@ val libclang =
 val cflags = mutableListOf( "-I$llvmDir/include",
         "-I${project(":kotlin-native:libclangext").projectDir.absolutePath}/src/main/include",
                             *platformManager.hostPlatform.clang.hostCompilerArgsForJni)
-if (!HostManager.hostIsMingw) {
-    cflags += "-fPIC"
-}
 
 val ldflags = mutableListOf("$llvmDir/$libclang", "-L${libclangextDir.absolutePath}", "-lclangext")
 
@@ -93,34 +90,22 @@ val lib = if (HostManager.hostIsMingw) "lib" else "a"
 
 native {
     val obj = if (HostManager.hostIsMingw) "obj" else "o"
-    val host = rootProject.project(":kotlin-native").extra["hostName"]
-    val hostLibffiDir = rootProject.project(":kotlin-native").extra["${host}LibffiDir"]
-    val cxxflags = listOf("-std=c++11", *cflags.toTypedArray())
     suffixes {
         (".c" to ".$obj") {
             tool(*platformManager.hostPlatform.clang.clangC("").toTypedArray())
             flags(*cflags.toTypedArray(),
                   "-c", "-o", ruleOut(), ruleInFirst())
         }
-        (".cpp" to ".$obj") {
-            tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
-            flags(*cxxflags.toTypedArray(), "-c", "-o", ruleOut(), ruleInFirst())
-        }
-
     }
     sourceSet {
         "main-c" {
             dir("prebuilt/nativeInteropStubs/c")
         }
-        "main-cpp" {
-            dir("src/nativeInteropStubs/cpp")
-        }
     }
-    val objSet = arrayOf(sourceSets["main-c"]!!.transform(".c" to ".$obj"),
-                         sourceSets["main-cpp"]!!.transform(".cpp" to ".$obj"))
+    val objSet = arrayOf(sourceSets["main-c"]!!.transform(".c" to ".$obj"))
 
     target(solib("clangstubs"), *objSet) {
-        tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
+        tool(*platformManager.hostPlatform.clang.clangC("").toTypedArray())
         flags(
             "-shared",
             "-o", ruleOut(), *ruleInAll(),

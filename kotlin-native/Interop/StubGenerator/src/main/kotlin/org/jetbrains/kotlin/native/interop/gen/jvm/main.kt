@@ -476,7 +476,8 @@ internal fun buildNativeLibrary(
     val language = selectNativeLanguage(def.config)
     val compilerOpts: List<String> = mutableListOf<String>().apply {
         addAll(def.config.compilerOpts)
-        addAll(tool.getDefaultCompilerOptsForLanguage(language))
+        val args = tool.getDefaultCompilerOptsForLanguage(language).toMutableList()
+        addAll(args.toList())
         // We compile with -O2 because Clang may insert inline asm in bitcode at -O0.
         // It is undesirable in case of watchos_arm64 since we target armv7k
         // for this target instead of arm64_32 because it is not supported in LLVM 8.

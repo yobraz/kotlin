@@ -420,7 +420,7 @@ class MingwLinker(targetProperties: MingwConfigurables)
     : LinkerFlags(targetProperties), MingwConfigurables by targetProperties {
 
     private val ar = "$absoluteTargetToolchain/bin/ar"
-    private val linker = "$absoluteTargetToolchain/bin/clang++"
+    private val linker = "$absoluteLlvmHome/bin/clang++"
 
     override val useCompilerDriverAsLinker: Boolean get() = true
 
@@ -468,6 +468,7 @@ class MingwLinker(targetProperties: MingwConfigurables)
             +linkerArgs
             +linkerKonanFlags
             if (mimallocEnabled) +mimallocLinkerDependencies
+            +"-fuse-ld="
         })
     }
 }

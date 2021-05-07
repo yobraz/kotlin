@@ -14,3 +14,5 @@ linkerOpts = -fPIC
 strictEnums = CXErrorCode CXCursorKind CXTypeKind CXDiagnosticSeverity CXLoadDiag_Error CXSaveError \
     CXTUResourceUsageKind CXLinkageKind CXVisibilityKind CXLanguageKind CXCallingConv CXChildVisitResult \
     CXTokenKind CXEvalResultKind CXVisitorResult CXResult CXIdxEntityKind
+
+excludedFunctions = clang_Cursor_getVarDeclInitializer clang_Cursor_hasVarDeclExternalStorage clang_Cursor_hasVarDeclGlobalStorage

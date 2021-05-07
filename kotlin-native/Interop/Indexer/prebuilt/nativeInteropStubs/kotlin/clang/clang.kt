@@ -2445,27 +2445,27 @@ fun clang_disposeCXPlatformAvailability(availability: CValuesRef<CXPlatformAvail
     }
 }
 
-fun clang_Cursor_getVarDeclInitializer(cursor: CValue<CXCursor>): CValue<CXCursor> {
-    memScoped {
-        val kniRetVal = nativeHeap.alloc<CXCursor>()
-        try {
-            kniBridge113(cursor.getPointer(memScope).rawValue, kniRetVal.rawPtr)
-            return kniRetVal.readValue()
-        } finally { nativeHeap.free(kniRetVal) }
-    }
-}
+//fun clang_Cursor_getVarDeclInitializer(cursor: CValue<CXCursor>): CValue<CXCursor> {
+//    memScoped {
+//        val kniRetVal = nativeHeap.alloc<CXCursor>()
+//        try {
+//            kniBridge113(cursor.getPointer(memScope).rawValue, kniRetVal.rawPtr)
+//            return kniRetVal.readValue()
+//        } finally { nativeHeap.free(kniRetVal) }
+//    }
+//}
 
-fun clang_Cursor_hasVarDeclGlobalStorage(cursor: CValue<CXCursor>): Int {
-    memScoped {
-        return kniBridge114(cursor.getPointer(memScope).rawValue)
-    }
-}
+//fun clang_Cursor_hasVarDeclGlobalStorage(cursor: CValue<CXCursor>): Int {
+//    memScoped {
+//        return kniBridge114(cursor.getPointer(memScope).rawValue)
+//    }
+//}
 
-fun clang_Cursor_hasVarDeclExternalStorage(cursor: CValue<CXCursor>): Int {
-    memScoped {
-        return kniBridge115(cursor.getPointer(memScope).rawValue)
-    }
-}
+//fun clang_Cursor_hasVarDeclExternalStorage(cursor: CValue<CXCursor>): Int {
+//    memScoped {
+//        return kniBridge115(cursor.getPointer(memScope).rawValue)
+//    }
+//}
 
 fun clang_getCursorLanguage(cursor: CValue<CXCursor>): CXLanguageKind {
     memScoped {
