@@ -646,22 +646,39 @@ class ExpressionCodegen(
     override fun visitGetValue(expression: IrGetValue, data: BlockInfo): PromisedValue {
         expression.markLineNumber(startOffset = true)
         val type = frameMap.typeOf(expression.symbol)
-        mv.load(findLocalIndex(expression.symbol), type)
+        val index = findLocalIndex(expression.symbol)
+        mv.load(index, type)
         unboxResultIfNeeded(expression)
-        unboxInlineClassArgumentOfInlineCallableReference(expression)
+        unboxInlineClassArgumentOfInlineCallableReference(expression, index)
         return MaterialValue(this, type, expression.type)
     }
 
     // JVM_IR generates inline callable differently from the old backend:
     // it generates them as normal functions and not objects.
     // Thus, we need to unbox inline class argument with reference underlying type.
-    private fun unboxInlineClassArgumentOfInlineCallableReference(arg: IrGetValue) {
+    private fun unboxInlineClassArgumentOfInlineCallableReference(arg: IrGetValue, index: Int) {
         if (!arg.type.isInlineClassType()) return
         if (arg.type.isMappedToPrimitive) return
         if (!irFunction.isInlineCallableReference) return
         if (irFunction.extensionReceiverParameter?.symbol == arg.symbol) return
         if (arg.type.isNullable() && arg.type.makeNotNull().unboxInlineClass().isNullable()) return
-        StackValue.unboxInlineClass(OBJECT_TYPE, arg.type.erasedUpperBound.defaultType, mv, typeMapper)
+        checkArgForNullAndUnbox(arg, index)
+    }
+
+    private fun checkArgForNullAndUnbox(arg: IrGetValue, index: Int) {
+        if (arg.type.isNullable()) {
+            val nullLabel = Label()
+            val notNullLabel = Label()
+            mv.ifnonnull(notNullLabel)
+            mv.aconst(null)
+            mv.goTo(nullLabel)
+            mv.mark(notNullLabel)
+            mv.load(index, OBJECT_TYPE)
+            StackValue.unboxInlineClass(OBJECT_TYPE, arg.type.erasedUpperBound.defaultType, mv, typeMapper)
+            mv.mark(nullLabel)
+        } else {
+            StackValue.unboxInlineClass(OBJECT_TYPE, arg.type.erasedUpperBound.defaultType, mv, typeMapper)
+        }
     }
 
     // We do not mangle functions if Result is the only parameter of the function,
@@ -669,6 +686,8 @@ class ExpressionCodegen(
     // bridge to unbox it. Instead, we unbox it in the non-mangled function manually.
     private fun unboxResultIfNeeded(arg: IrGetValue) {
         if (arg.type.erasedUpperBound.fqNameWhenAvailable != StandardNames.RESULT_FQ_NAME) return
+        // Unlike inline callable reference arguments, nullable Result arguments are unboxed during coercion to not-null Result
+        if (arg.type.isNullable()) return
         // Do not unbox arguments of lambda, but unbox arguments of callable references
         if (irFunction.origin == IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA) return
         if (!onlyResultInlineClassParameters()) return
