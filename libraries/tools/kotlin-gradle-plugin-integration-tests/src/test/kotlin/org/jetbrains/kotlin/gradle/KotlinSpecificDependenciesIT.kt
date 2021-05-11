@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.gradle
 import org.jetbrains.kotlin.gradle.util.AGPVersion
 import org.jetbrains.kotlin.gradle.util.modify
 import org.jetbrains.kotlin.test.util.KtTestUtil
+import kotlin.system.measureTimeMillis
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -165,8 +166,9 @@ class KotlinSpecificDependenciesIT : BaseGradleIT() {
                 )
             )
         ).forEach { testCase ->
+            println(testCase)
             with(testCase) {
-                project.prepare()
+                measure("prepare") { project.prepare() }
                 project.gradleBuildScript().appendText(
                     configurationsToAddDependency.joinToString("\n", "\n") { configuration ->
                         "\ndependencies { \"$configuration\"(\"$kotlinTestMultiplatformDependency\") }"
@@ -174,14 +176,27 @@ class KotlinSpecificDependenciesIT : BaseGradleIT() {
                 )
                 classpathElementsExpectedByTask.forEach { (task, expected) ->
                     val (notInClasspath, inClasspath) = expected.partition { it.startsWith("!") }
-                    project.checkTaskCompileClasspath(task, inClasspath, notInClasspath.map { it.removePrefix("!") })
+                    measure("Task: $task") {
+                        project.checkTaskCompileClasspath(task, inClasspath, notInClasspath.map { it.removePrefix("!") })
+                    }
                 }
                 filesExpectedByConfiguration.forEach { (configuration, expected) ->
                     val (notInItems, inItems) = expected.partition { it.startsWith("!") }
-                    project.checkConfigurationContent(configuration, subproject = null, inItems, notInItems.map { it.removePrefix("!") })
+                    measure("Configuration: $configuration") {
+                        project.checkConfigurationContent(
+                            configuration,
+                            subproject = null,
+                            inItems,
+                            notInItems.map { it.removePrefix("!") })
+                    }
                 }
             }
         }
+    }
+
+    fun measure(message: String, f: () -> Unit) {
+        println(message)
+        println(measureTimeMillis(f))
     }
 
     @Test
@@ -320,7 +335,8 @@ private fun BaseGradleIT.Project.checkPrintedItems(
         }
         """.trimIndent()
     )
-    build("${subproject?.prependIndent(":").orEmpty()}:$printingTaskName") {
+    build("${subproject?.prependIndent(":").orEmpty()}:$printingTaskName",
+          options = defaultBuildOptions().copy(forceOutputToStdout = true)) {
         assertSuccessful()
         val itemsLine = output.lines().single { "###$printingTaskName" in it }.substringAfter(printingTaskName)
         val items = itemsLine.removeSurrounding("[", "]").split(", ").toSet()

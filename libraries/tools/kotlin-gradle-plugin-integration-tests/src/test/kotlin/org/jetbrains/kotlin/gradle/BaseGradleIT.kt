@@ -236,6 +236,7 @@ abstract class BaseGradleIT {
         val androidGradlePluginVersion: AGPVersion? = null,
         val forceOutputToStdout: Boolean = false,
         val debug: Boolean = false,
+        val parallel: Boolean = true,
         val freeCommandLineArgs: List<String> = emptyList(),
         val kotlinVersion: String = KOTLIN_VERSION,
         val kotlinDaemonDebugPort: Int? = null,
@@ -268,7 +269,7 @@ abstract class BaseGradleIT {
         val projectName: String,
         val gradleVersionRequirement: GradleVersionRequired = defaultGradleVersion,
         directoryPrefix: String? = null,
-        val minLogLevel: LogLevel = LogLevel.DEBUG,
+        val minLogLevel: LogLevel = LogLevel.INFO,
         val addHeapDumpOptions: Boolean = true
     ) {
         internal val testCase = this@BaseGradleIT
@@ -903,6 +904,9 @@ Finished executing task ':$taskName'|
             options.androidGradlePluginVersion?.let { add("-Pandroid_tools_version=$it") }
             if (options.debug) {
                 add("-Dorg.gradle.debug=true")
+            }
+            if (options.parallel) {
+                add("-Dorg.gradle.parallel=true")
             }
             options.kotlinDaemonDebugPort?.let { port ->
                 add("-Dkotlin.daemon.jvm.options=-agentlib:jdwp=transport=dt_socket\\,server=y\\,suspend=y\\,address=$port")
