@@ -354,7 +354,7 @@ internal fun TypeParameterDescriptor.getErasedUpperBound(
      */
     val erasedUpperBounds = defaultType.extractTypeParametersFromUpperBounds(typeAttr.upperBoundOfTypeParameter).associate {
         it.typeConstructor to RawSubstitution.computeProjection(
-            this,
+            it,
             // if erasure happens due to invalid arguments number, use star projections instead
             if (isRaw) typeAttr else typeAttr.withFlexibility(INFLEXIBLE),
             it.getErasedUpperBound(isRaw, typeAttr)
