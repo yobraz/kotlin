@@ -28,17 +28,24 @@ import javax.tools.ToolProvider
 
 abstract class AbstractIncrementalJvmCompilerRunnerTest : AbstractIncrementalCompilerRunnerTestBase<K2JVMCompilerArguments>() {
     override fun make(cacheDir: File, outDir: File, sourceRoots: Iterable<File>, args: K2JVMCompilerArguments): TestCompilationResult {
-        val reporter = TestICReporter()
-        val messageCollector = TestMessageCollector()
-        makeIncrementally(cacheDir, sourceRoots, args, reporter = reporter, messageCollector = messageCollector)
-        val kotlinCompileResult = TestCompilationResult(reporter, messageCollector)
+        val kotlinCompileResult = measure("kotlin") {
+            val reporter = TestICReporter()
+            val messageCollector = TestMessageCollector()
+            makeIncrementally(cacheDir, sourceRoots, args, reporter = reporter, messageCollector = messageCollector)
+            TestCompilationResult(reporter, messageCollector)
+        }
+
         if (kotlinCompileResult.exitCode != ExitCode.OK) return kotlinCompileResult
 
-        val (javaExitCode, _, javaErrors) = compileJava(sourceRoots, args.destination!!)
-        return when (javaExitCode) {
-            ExitCode.OK -> kotlinCompileResult
-            else -> kotlinCompileResult.copy(exitCode = javaExitCode, compileErrors = javaErrors)
+        val r = measure("java") {
+            val (javaExitCode, _, javaErrors) = compileJava(sourceRoots, args.destination!!)
+            when (javaExitCode) {
+                ExitCode.OK -> kotlinCompileResult
+                else -> kotlinCompileResult.copy(exitCode = javaExitCode, compileErrors = javaErrors)
+            }
         }
+
+        return r
     }
 
     private fun compileJava(sourceRoots: Iterable<File>, kotlinClassesPath: String): TestCompilationResult {

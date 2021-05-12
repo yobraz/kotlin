@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.incremental.utils.TestCompilationResult
 import org.jetbrains.kotlin.test.testFramework.KtUsefulTestCase
 import org.junit.Assert
 import java.io.File
+import kotlin.system.measureTimeMillis
 
 abstract class AbstractIncrementalCompilerRunnerTestBase<Args : CommonCompilerArguments> : TestWithWorkingDir() {
     protected abstract fun createCompilerArguments(destinationDir: File, testDir: File): Args
@@ -53,7 +54,9 @@ abstract class AbstractIncrementalCompilerRunnerTestBase<Args : CommonCompilerAr
         val mapWorkingToOriginalFile = HashMap(copyTestSources(testDir, srcDir, filePrefix = ""))
         val sourceRoots = setupTest(testDir, srcDir, cacheDir, outDir)
         val args = createCompilerArgumentsImpl(outDir, testDir)
-        val (_, _, errors) = initialMake(cacheDir, outDir, sourceRoots, args)
+        val (_, _, errors) = measure("Initial make") {
+            initialMake(cacheDir, outDir, sourceRoots, args)
+        }
         check(errors.isEmpty()) { "Initial build failed: \n${errors.joinToString("\n")}" }
 
         // modifications
@@ -79,22 +82,44 @@ abstract class AbstractIncrementalCompilerRunnerTestBase<Args : CommonCompilerAr
         val expectedSBWithoutErrors = StringBuilder()
         val actualSBWithoutErrors = StringBuilder()
         var step = 1
-        for ((modificationStep, buildLogStep) in modifications.zip(buildLogSteps)) {
-            modificationStep.forEach { it.perform(workingDir, mapWorkingToOriginalFile) }
-            val (_, compiledSources, compileErrors) = incrementalMake(cacheDir, outDir, sourceRoots, createCompilerArgumentsImpl(outDir, testDir))
 
-            expectedSB.appendLine(stepLogAsString(step, buildLogStep.compiledKotlinFiles, buildLogStep.compileErrors))
-            expectedSBWithoutErrors.appendLine(
-                stepLogAsString(
-                    step,
-                    buildLogStep.compiledKotlinFiles,
-                    buildLogStep.compileErrors,
-                    includeErrors = false
-                )
-            )
-            actualSB.appendLine(stepLogAsString(step, compiledSources.relativePaths(), compileErrors))
-            actualSBWithoutErrors.appendLine(stepLogAsString(step, compiledSources.relativePaths(), compileErrors, includeErrors = false))
-            step++
+        for ((modificationStep, buildLogStep) in modifications.zip(buildLogSteps)) {
+            measure("Iteration: $modificationStep") {
+                measure("apply") {
+                    modificationStep.forEach { it.perform(workingDir, mapWorkingToOriginalFile) }
+                }
+
+                val (_, compiledSources, compileErrors) = measure("incrementalMake") {
+                     incrementalMake(
+                        cacheDir,
+                        outDir,
+                        sourceRoots,
+                        createCompilerArgumentsImpl(outDir, testDir)
+                    )
+                }
+
+                measure("logs") {
+                    expectedSB.appendLine(stepLogAsString(step, buildLogStep.compiledKotlinFiles, buildLogStep.compileErrors))
+                    expectedSBWithoutErrors.appendLine(
+                        stepLogAsString(
+                            step,
+                            buildLogStep.compiledKotlinFiles,
+                            buildLogStep.compileErrors,
+                            includeErrors = false
+                        )
+                    )
+                    actualSB.appendLine(stepLogAsString(step, compiledSources.relativePaths(), compileErrors))
+                    actualSBWithoutErrors.appendLine(
+                        stepLogAsString(
+                            step,
+                            compiledSources.relativePaths(),
+                            compileErrors,
+                            includeErrors = false
+                        )
+                    )
+                }
+                step++
+            }
         }
 
         if (expectedSBWithoutErrors.toString() != actualSBWithoutErrors.toString()) {
@@ -106,7 +131,9 @@ abstract class AbstractIncrementalCompilerRunnerTestBase<Args : CommonCompilerAr
             }
         }
 
-        rebuildAndCompareOutput(sourceRoots, testDir, buildLogSteps, outDir)
+        measure("Rebuild and compare") {
+            rebuildAndCompareOutput(sourceRoots, testDir, buildLogSteps, outDir)
+        }
     }
 
     // these functions are needed only to simplify debugging of IC tests
@@ -166,6 +193,14 @@ abstract class AbstractIncrementalCompilerRunnerTestBase<Args : CommonCompilerAr
     }
 
     companion object {
+        fun <T> measure(message: String, f: () -> T): T {
+            var r: T
+            println("$message " + measureTimeMillis {
+                r = f()
+            })
+            return r
+        }
+
         @JvmStatic
         private val distKotlincLib: File = File("dist/kotlinc/lib")
 
