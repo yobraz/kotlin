@@ -51,7 +51,6 @@ abstract class IdSignatureBuilder<D> {
         }
     }
 
-
     protected fun setExpected(f: Boolean) {
         mask = mask or IdSignature.Flags.IS_EXPECT.encode(f)
     }

@@ -134,11 +134,11 @@ object SetDeclarationsParentVisitor : IrElementVisitor<Unit, IrDeclarationParent
     }
 }
 
-tailrec fun IrDeclaration.getContainingFile(): IrFile? {
+tailrec fun IrDeclaration.getContainingFile(): IrPackageFragment? {
     val parent = this.parent
 
     return when (parent) {
-        is IrFile -> parent
+        is IrPackageFragment -> parent
         is IrDeclaration -> parent.getContainingFile()
         else -> null
     }
@@ -148,7 +148,7 @@ internal fun KonanBackendContext.report(declaration: IrDeclaration, message: Str
     val irFile = declaration.getContainingFile()
     this.report(
             declaration,
-            irFile,
+            irFile as? IrFile,
             if (irFile != null) {
                 message
             } else {

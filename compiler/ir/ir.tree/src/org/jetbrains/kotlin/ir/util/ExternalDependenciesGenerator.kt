@@ -24,9 +24,12 @@ import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 class ExternalDependenciesGenerator(
-    val symbolTable: SymbolTable,
+    val symbolsProvider: () -> Set<IrSymbol>,
     private val irProviders: List<IrProvider>
 ) {
+
+    constructor(symbolTable: SymbolTable, irProviders: List<IrProvider>) : this(symbolTable::allUnbound, irProviders)
+
     fun generateUnboundSymbolsAsDependencies() {
         // There should be at most one DeclarationStubGenerator (none in closed world?)
         irProviders.singleOrNull { it is DeclarationStubGenerator }?.let {
@@ -40,7 +43,7 @@ class ExternalDependenciesGenerator(
         try {
             do {
                 prevUnbound = unbound
-                unbound = symbolTable.allUnbound
+                unbound = symbolsProvider()
 
                 for (symbol in unbound) {
                     // Symbol could get bound as a side effect of deserializing other symbols.

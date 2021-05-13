@@ -19,6 +19,7 @@ message IrFile {
   repeated IrConstructorCall annotation = 4;
   repeated int64 explicitly_exported_to_compiler = 5 [packed=true];
   repeated Actual actuals = 6;
+  optional bool hasNoInlineFunctions = 7 [default = true];
 }
 
 /* ------ IdSignature -------------------------------------------- */

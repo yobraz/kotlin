@@ -26,9 +26,7 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrModuleFragmentImpl
 import org.jetbrains.kotlin.ir.linkage.IrDeserializer
 import org.jetbrains.kotlin.ir.linkage.IrProvider
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
-import org.jetbrains.kotlin.ir.util.ExternalDependenciesGenerator
-import org.jetbrains.kotlin.ir.util.StubGeneratorExtensions
-import org.jetbrains.kotlin.ir.util.patchDeclarationParents
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.psi.KtFile
@@ -54,18 +52,27 @@ class ModuleGenerator(
     fun generateUnboundSymbolsAsDependencies(
         irModule: IrModuleFragment,
         deserializer: IrDeserializer? = null,
-        extensions: StubGeneratorExtensions = StubGeneratorExtensions.EMPTY
+        extensions: StubGeneratorExtensions = StubGeneratorExtensions.EMPTY,
+        konan: Boolean = false
     ) {
         val fullIrProvidersList = generateTypicalIrProviderList(
             irModule.descriptor, context.irBuiltIns, context.symbolTable, deserializer,
             extensions
         )
-        ExternalDependenciesGenerator(context.symbolTable, fullIrProvidersList)
+        val symbols = when {
+            konan -> context.symbolTable::konanUnbound
+            else -> context.symbolTable::allUnbound
+        }
+        ExternalDependenciesGenerator(symbols, fullIrProvidersList)
             .generateUnboundSymbolsAsDependencies()
     }
 
-    fun generateUnboundSymbolsAsDependencies(irProviders: List<IrProvider>) {
-        ExternalDependenciesGenerator(context.symbolTable, irProviders)
+    fun generateUnboundSymbolsAsDependencies(irProviders: List<IrProvider>, konan: Boolean = false) {
+        val symbols = when {
+            konan -> context.symbolTable::konanUnbound
+            else -> context.symbolTable::allUnbound
+        }
+        ExternalDependenciesGenerator(symbols, irProviders)
             .generateUnboundSymbolsAsDependencies()
     }
 

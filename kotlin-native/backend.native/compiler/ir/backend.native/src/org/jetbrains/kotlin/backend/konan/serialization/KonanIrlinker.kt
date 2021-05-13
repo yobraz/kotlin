@@ -91,7 +91,7 @@ internal class KonanIrLinker(
     override fun isBuiltInModule(moduleDescriptor: ModuleDescriptor): Boolean = moduleDescriptor.isNativeStdlib()
 
     private val forwardDeclarationDeserializer = forwardModuleDescriptor?.let { KonanForwardDeclarationModuleDeserializer(it) }
-    override val fakeOverrideBuilder = FakeOverrideBuilder(this, symbolTable, IdSignatureSerializer(KonanManglerIr), builtIns, KonanFakeOverrideClassFilter)
+    override val fakeOverrideBuilder = FakeOverrideBuilder(this, symbolTable, IdSignatureSerializer(KonanManglerIr), builtIns, KonanFakeOverrideClassFilter, stubGenerator)
 
     override fun createModuleDeserializer(moduleDescriptor: ModuleDescriptor, klib: IrLibrary?, strategy: DeserializationStrategy): IrModuleDeserializer {
         if (moduleDescriptor === forwardModuleDescriptor) {
@@ -105,14 +105,24 @@ internal class KonanIrLinker(
             return KonanInteropModuleDeserializer(moduleDescriptor, isCached)
         }
 
-        return KonanModuleDeserializer(moduleDescriptor, klib ?: error("Expecting kotlin library"), strategy)
+        return KonanModuleDeserializer(
+                moduleDescriptor,
+                klib ?: error("Expecting kotlin library"),
+                strategy
+        )
     }
 
     private inner class KonanModuleDeserializer(
             moduleDescriptor: ModuleDescriptor,
             klib: IrLibrary,
             strategy: DeserializationStrategy
-    ): BasicIrModuleDeserializer(this@KonanIrLinker, moduleDescriptor, klib, strategy){
+    ): BasicIrModuleDeserializer(
+            this@KonanIrLinker,
+            moduleDescriptor,
+            klib,
+            strategy
+    ) {
+
         override val moduleFragment: IrModuleFragment = KonanIrModuleFragmentImpl(moduleDescriptor, builtIns, emptyList())
     }
 

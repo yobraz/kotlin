@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
 import org.jetbrains.kotlin.ir.util.render
 
 internal fun CommonBackendContext.reportCompilationError(message: String, irFile: IrFile, irElement: IrElement): Nothing {
@@ -31,17 +32,17 @@ internal fun CommonBackendContext.reportCompilationWarning(message: String) {
     report(null, null, message, false)
 }
 
-internal fun error(irFile: IrFile?, element: IrElement?, message: String): Nothing {
+internal fun error(irFile: IrPackageFragment?, element: IrElement?, message: String): Nothing {
     error(renderCompilerError(irFile, element, message))
 }
 
-internal fun renderCompilerError(irFile: IrFile?, element: IrElement?, message: String) =
+internal fun renderCompilerError(irFile: IrPackageFragment?, element: IrElement?, message: String) =
         buildString {
             append("Internal compiler error: $message\n")
             if (element == null) {
                 append("(IR element is null)")
             } else {
-                if (irFile != null) {
+                if (irFile != null && irFile is IrFile) {
                     val location = element.getCompilerMessageLocation(irFile)
                     append("at $location\n")
                 }

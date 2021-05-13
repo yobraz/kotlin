@@ -73,7 +73,8 @@ class Psi2IrTranslator(
         ktFiles: Collection<KtFile>,
         irProviders: List<IrProvider>,
         linkerExtensions: Collection<IrDeserializer.IrLinkerExtension>,
-        expectDescriptorToSymbol: MutableMap<DeclarationDescriptor, IrSymbol>? = null
+        expectDescriptorToSymbol: MutableMap<DeclarationDescriptor, IrSymbol>? = null,
+        konan: Boolean = false
     ): IrModuleFragment {
         val moduleGenerator = ModuleGenerator(context, expectDescriptorToSymbol)
         val irModule = moduleGenerator.generateModuleFragment(ktFiles)
@@ -81,7 +82,7 @@ class Psi2IrTranslator(
         val deserializers = irProviders.filterIsInstance<IrDeserializer>()
         deserializers.forEach { it.init(irModule, linkerExtensions) }
 
-        moduleGenerator.generateUnboundSymbolsAsDependencies(irProviders)
+        moduleGenerator.generateUnboundSymbolsAsDependencies(irProviders, konan)
 
         deserializers.forEach { it.postProcess() }
         context.symbolTable.noUnboundLeft("Unbound symbols not allowed\n")
@@ -90,7 +91,7 @@ class Psi2IrTranslator(
 //        assert(context.symbolTable.allUnbound.isEmpty()) // TODO: fix IrPluginContext to make it not produce additional external reference
 
         // TODO: remove it once plugin API improved
-        moduleGenerator.generateUnboundSymbolsAsDependencies(irProviders)
+        moduleGenerator.generateUnboundSymbolsAsDependencies(irProviders, konan)
         deserializers.forEach { it.postProcess() }
 
         return irModule

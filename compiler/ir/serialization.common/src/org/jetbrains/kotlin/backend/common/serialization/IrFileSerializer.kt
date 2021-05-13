@@ -1303,6 +1303,7 @@ open class IrFileSerializer(
             .setFileEntry(serializeFileEntry(file.fileEntry))
             .addAllFqName(serializeFqName(file.fqName.asString()))
 
+
         val topLevelDeclarations = mutableListOf<SerializedDeclaration>()
 
         for (declaration in declarations) {
@@ -1335,11 +1336,22 @@ open class IrFileSerializer(
 
     fun serializeIrFile(file: IrFile): SerializedIrFile {
         val topLevelDeclarations = mutableListOf<SerializedDeclaration>()
+        var hasNoInlineFunctions = true
+        file.acceptChildrenVoid(object : IrElementVisitorVoid {
+            override fun visitElement(element: IrElement) {
+                element.acceptChildrenVoid(this)
+            }
+
+            override fun visitFunction(declaration: IrFunction) {
+                if (declaration.isInline) hasNoInlineFunctions = false
+            }
+        })
 
         val proto = ProtoFile.newBuilder()
             .setFileEntry(serializeFileEntry(file.fileEntry))
             .addAllFqName(serializeFqName(file.fqName.asString()))
             .addAllAnnotation(serializeAnnotations(file.annotations))
+            .setHasNoInlineFunctions(hasNoInlineFunctions)
 
         file.declarations.forEach {
             if (skipExpects && it.descriptor.isExpectMember && !it.descriptor.isSerializableExpectClass) {

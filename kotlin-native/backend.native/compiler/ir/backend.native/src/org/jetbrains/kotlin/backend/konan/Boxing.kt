@@ -49,7 +49,7 @@ internal val Context.getBoxFunction: (IrClass) -> IrSimpleFunction by Context.la
         classes.add(parent)
         parent = parent.parent
     }
-    require(parent is IrFile) { "Local inline classes are not supported" }
+    require(parent is IrPackageFragment) { "Local inline classes are not supported" }
 
     val symbols = ir.symbols
 
@@ -108,7 +108,7 @@ internal val Context.getUnboxFunction: (IrClass) -> IrSimpleFunction by Context.
         classes.add(parent)
         parent = parent.parent
     }
-    require(parent is IrFile) { "Local inline classes are not supported" }
+    require(parent is IrPackageFragment) { "Local inline classes are not supported" }
 
     val symbols = ir.symbols
 

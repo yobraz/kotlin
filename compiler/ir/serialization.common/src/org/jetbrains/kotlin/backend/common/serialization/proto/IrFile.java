@@ -145,6 +145,11 @@ public final class IrFile extends
             actuals_.add(input.readMessage(org.jetbrains.kotlin.backend.common.serialization.proto.Actual.PARSER, extensionRegistry));
             break;
           }
+          case 56: {
+            bitField0_ |= 0x00000002;
+            hasNoInlineFunctions_ = input.readBool();
+            break;
+          }
         }
       }
     } catch (org.jetbrains.kotlin.protobuf.InvalidProtocolBufferException e) {
@@ -348,6 +353,21 @@ public final class IrFile extends
     return actuals_.get(index);
   }
 
+  public static final int HASNOINLINEFUNCTIONS_FIELD_NUMBER = 7;
+  private boolean hasNoInlineFunctions_;
+  /**
+   * <code>optional bool hasNoInlineFunctions = 7 [default = true];</code>
+   */
+  public boolean hasHasNoInlineFunctions() {
+    return ((bitField0_ & 0x00000002) == 0x00000002);
+  }
+  /**
+   * <code>optional bool hasNoInlineFunctions = 7 [default = true];</code>
+   */
+  public boolean getHasNoInlineFunctions() {
+    return hasNoInlineFunctions_;
+  }
+
   private void initFields() {
     declarationId_ = java.util.Collections.emptyList();
     fileEntry_ = org.jetbrains.kotlin.backend.common.serialization.proto.FileEntry.getDefaultInstance();
@@ -355,6 +375,7 @@ public final class IrFile extends
     annotation_ = java.util.Collections.emptyList();
     explicitlyExportedToCompiler_ = java.util.Collections.emptyList();
     actuals_ = java.util.Collections.emptyList();
+    hasNoInlineFunctions_ = true;
   }
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
@@ -419,6 +440,9 @@ public final class IrFile extends
     for (int i = 0; i < actuals_.size(); i++) {
       output.writeMessage(6, actuals_.get(i));
     }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      output.writeBool(7, hasNoInlineFunctions_);
+    }
     output.writeRawBytes(unknownFields);
   }
 
@@ -481,6 +505,10 @@ public final class IrFile extends
     for (int i = 0; i < actuals_.size(); i++) {
       size += org.jetbrains.kotlin.protobuf.CodedOutputStream
         .computeMessageSize(6, actuals_.get(i));
+    }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      size += org.jetbrains.kotlin.protobuf.CodedOutputStream
+        .computeBoolSize(7, hasNoInlineFunctions_);
     }
     size += unknownFields.size();
     memoizedSerializedSize = size;
@@ -588,6 +616,8 @@ public final class IrFile extends
       bitField0_ = (bitField0_ & ~0x00000010);
       actuals_ = java.util.Collections.emptyList();
       bitField0_ = (bitField0_ & ~0x00000020);
+      hasNoInlineFunctions_ = true;
+      bitField0_ = (bitField0_ & ~0x00000040);
       return this;
     }
 
@@ -640,6 +670,10 @@ public final class IrFile extends
         bitField0_ = (bitField0_ & ~0x00000020);
       }
       result.actuals_ = actuals_;
+      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+        to_bitField0_ |= 0x00000002;
+      }
+      result.hasNoInlineFunctions_ = hasNoInlineFunctions_;
       result.bitField0_ = to_bitField0_;
       return result;
     }
@@ -698,6 +732,9 @@ public final class IrFile extends
           actuals_.addAll(other.actuals_);
         }
         
+      }
+      if (other.hasHasNoInlineFunctions()) {
+        setHasNoInlineFunctions(other.getHasNoInlineFunctions());
       }
       setUnknownFields(
           getUnknownFields().concat(other.unknownFields));
@@ -1252,6 +1289,38 @@ public final class IrFile extends
       ensureActualsIsMutable();
       actuals_.remove(index);
 
+      return this;
+    }
+
+    private boolean hasNoInlineFunctions_ = true;
+    /**
+     * <code>optional bool hasNoInlineFunctions = 7 [default = true];</code>
+     */
+    public boolean hasHasNoInlineFunctions() {
+      return ((bitField0_ & 0x00000040) == 0x00000040);
+    }
+    /**
+     * <code>optional bool hasNoInlineFunctions = 7 [default = true];</code>
+     */
+    public boolean getHasNoInlineFunctions() {
+      return hasNoInlineFunctions_;
+    }
+    /**
+     * <code>optional bool hasNoInlineFunctions = 7 [default = true];</code>
+     */
+    public Builder setHasNoInlineFunctions(boolean value) {
+      bitField0_ |= 0x00000040;
+      hasNoInlineFunctions_ = value;
+      
+      return this;
+    }
+    /**
+     * <code>optional bool hasNoInlineFunctions = 7 [default = true];</code>
+     */
+    public Builder clearHasNoInlineFunctions() {
+      bitField0_ = (bitField0_ & ~0x00000040);
+      hasNoInlineFunctions_ = true;
+      
       return this;
     }
 

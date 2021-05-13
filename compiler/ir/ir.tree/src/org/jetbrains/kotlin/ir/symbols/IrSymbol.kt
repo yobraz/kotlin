@@ -27,10 +27,10 @@ import org.jetbrains.kotlin.types.model.TypeParameterMarker
 interface IrSymbol {
     val owner: IrSymbolOwner
 
-    @ObsoleteDescriptorBasedAPI
+//    @ObsoleteDescriptorBasedAPI
     val descriptor: DeclarationDescriptor
 
-    @ObsoleteDescriptorBasedAPI
+//    @ObsoleteDescriptorBasedAPI
     val hasDescriptor: Boolean
 
     val isBound: Boolean

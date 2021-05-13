@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.impl.IrPropertySymbolImpl
 import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.util.DeclarationStubGenerator
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.util.parentAsClass
@@ -66,7 +67,8 @@ class FakeOverrideBuilder(
     val symbolTable: SymbolTable,
     val signaturer: IdSignatureSerializer,
     irBuiltIns: IrBuiltIns,
-    val platformSpecificClassFilter: FakeOverrideClassFilter = DefaultFakeOverrideClassFilter
+    val platformSpecificClassFilter: FakeOverrideClassFilter = DefaultFakeOverrideClassFilter,
+    val stubGenerator: DeclarationStubGenerator? = null
 ) : FakeOverrideBuilderStrategy() {
     private val haveFakeOverrides = mutableSetOf<IrClass>()
 
@@ -81,7 +83,20 @@ class FakeOverrideBuilder(
         fakeOverrideClassQueue.add(clazz)
     }
 
-    private fun buildFakeOverrideChainsForClass(clazz: IrClass) {
+    private inline fun <reified T> temporarySwitch(action: () -> T): T {
+        if (stubGenerator == null) {
+            return action()
+        }
+        val old = stubGenerator.unboundSymbolGeneration
+        try {
+            stubGenerator.unboundSymbolGeneration = true
+            return action()
+        } finally {
+            stubGenerator.unboundSymbolGeneration = old
+        }
+    }
+
+    private fun buildFakeOverrideChainsForClass(clazz: IrClass): Unit = temporarySwitch {
         if (haveFakeOverrides.contains(clazz)) return
         if (!platformSpecificClassFilter.needToConstructFakeOverrides(clazz)) return
 

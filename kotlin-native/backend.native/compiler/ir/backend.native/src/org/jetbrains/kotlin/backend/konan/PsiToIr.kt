@@ -169,7 +169,8 @@ internal fun Context.psiToIr(
             // referenceExpectsForUsedActuals() appears to be quadratic in time because of
             // how ExpectedActualResolver is implemented.
             // Need to fix ExpectActualResolver to either cache expects or somehow reduce the member scope searches.
-            expectDescriptorToSymbol = if (expectActualLinker) expectDescriptorToSymbol else null
+            expectDescriptorToSymbol = if (expectActualLinker) expectDescriptorToSymbol else null,
+            konan = config.cachedLibraries.hasStaticCaches
     ).toKonanModule()
 
     irDeserializer.postProcess()

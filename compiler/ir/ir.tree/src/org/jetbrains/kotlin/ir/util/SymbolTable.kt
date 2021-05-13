@@ -1117,6 +1117,20 @@ val SymbolTable.allUnbound: Set<IrSymbol>
         return r.filter { !it.isBound }.toSet()
     }
 
+val SymbolTable.konanUnbound: Set<IrSymbol>
+    get() {
+        val r = mutableSetOf<IrSymbol>()
+        r.addAll(unboundClasses)
+        r.addAll(unboundConstructors)
+        r.addAll(unboundEnumEntries)
+        r.addAll(unboundFields)
+        r.addAll(unboundSimpleFunctions)
+        r.addAll(unboundProperties)
+        r.addAll(unboundTypeAliases)
+        r.addAll(unboundTypeParameters)
+        return r.filter { !it.isBound && (!it.hasDescriptor || (it.descriptor as? FunctionDescriptor)?.isInline == true) }.toSet()
+    }
+
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 fun SymbolTable.noUnboundLeft(message: String) {
     val unbound = this.allUnbound

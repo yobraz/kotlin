@@ -82,4 +82,13 @@ public interface IrFileOrBuilder extends
    * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.proto.Actual actuals = 6;</code>
    */
   int getActualsCount();
+
+  /**
+   * <code>optional bool hasNoInlineFunctions = 7 [default = true];</code>
+   */
+  boolean hasHasNoInlineFunctions();
+  /**
+   * <code>optional bool hasNoInlineFunctions = 7 [default = true];</code>
+   */
+  boolean getHasNoInlineFunctions();
 }

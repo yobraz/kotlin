@@ -16,10 +16,7 @@ import org.jetbrains.kotlin.ir.util.file
 // This file contains some IR utilities which actually use descriptors.
 // TODO: port this code to IR.
 
-internal val IrDeclaration.llvmSymbolOrigin get() = when (this) {
-    is IrLazyDeclarationBase -> descriptor.llvmSymbolOrigin
-    else -> file.packageFragmentDescriptor.llvmSymbolOrigin
-}
+internal val IrDeclaration.llvmSymbolOrigin get() = descriptor.llvmSymbolOrigin
 
 internal fun IrType.isObjCObjectType() = this.toKotlinType().isObjCObjectType()
 
