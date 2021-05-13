@@ -16,6 +16,10 @@ public object Debugging {
         get() = Debugging_isThreadStateRunnable()
 }
 
+@GCUnsafeCall("Kotlin_Debugging_isGlobalConstant")
+@InternalForKotlinNative
+public external fun Any.isGlobalConstant() : Boolean
+
 @GCUnsafeCall("Kotlin_Debugging_getForceCheckedShutdown")
 private external fun Debugging_getForceCheckedShutdown(): Boolean
 
