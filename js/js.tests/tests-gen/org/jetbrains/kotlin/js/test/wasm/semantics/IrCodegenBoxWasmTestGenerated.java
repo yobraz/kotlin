@@ -8814,31 +8814,6 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
             public void testAllFilesPresentInPrivateSignatures() throws Exception {
                 KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/ir/privateSignatures"), Pattern.compile("^([^_](.+))\\.kt$"), null, TargetBackend.WASM, true);
             }
-
-            @TestMetadata("deepLocalClassProperties.kt")
-            public void testDeepLocalClassProperties() throws Exception {
-                runTest("compiler/testData/codegen/box/ir/privateSignatures/deepLocalClassProperties.kt");
-            }
-
-            @TestMetadata("deepLocalClassProperties2.kt")
-            public void testDeepLocalClassProperties2() throws Exception {
-                runTest("compiler/testData/codegen/box/ir/privateSignatures/deepLocalClassProperties2.kt");
-            }
-
-            @TestMetadata("deepLocalDefaultArgumentWithLocalClass.kt")
-            public void testDeepLocalDefaultArgumentWithLocalClass() throws Exception {
-                runTest("compiler/testData/codegen/box/ir/privateSignatures/deepLocalDefaultArgumentWithLocalClass.kt");
-            }
-
-            @TestMetadata("deepLocalFakeOverride.kt")
-            public void testDeepLocalFakeOverride() throws Exception {
-                runTest("compiler/testData/codegen/box/ir/privateSignatures/deepLocalFakeOverride.kt");
-            }
-
-            @TestMetadata("topLevelPrivateDelegate.kt")
-            public void testTopLevelPrivateDelegate() throws Exception {
-                runTest("compiler/testData/codegen/box/ir/privateSignatures/topLevelPrivateDelegate.kt");
-            }
         }
 
         @TestMetadata("compiler/testData/codegen/box/ir/serializationRegressions")
