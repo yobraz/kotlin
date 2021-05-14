@@ -27165,6 +27165,12 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
         }
 
         @Test
+        @TestMetadata("rawTypeWithNestedClass.kt")
+        public void testRawTypeWithNestedClass() throws Exception {
+            runTest("compiler/testData/codegen/box/platformTypes/rawTypeWithNestedClass.kt");
+        }
+
+        @Test
         @TestMetadata("specializedMapFull.kt")
         public void testSpecializedMapFull() throws Exception {
             runTest("compiler/testData/codegen/box/platformTypes/specializedMapFull.kt");
@@ -27174,6 +27180,12 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
         @TestMetadata("specializedMapPut.kt")
         public void testSpecializedMapPut() throws Exception {
             runTest("compiler/testData/codegen/box/platformTypes/specializedMapPut.kt");
+        }
+
+        @Test
+        @TestMetadata("stopComputingOnInterdependentTypeParameters.kt")
+        public void testStopComputingOnInterdependentTypeParameters() throws Exception {
+            runTest("compiler/testData/codegen/box/platformTypes/stopComputingOnInterdependentTypeParameters.kt");
         }
 
         @Test
