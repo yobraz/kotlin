@@ -111,16 +111,13 @@ class ClassGenerator(
         generateFakeOverrideMemberDeclarations(irClass, ktClassOrObject)
 
         if (irClass.isInline && ktClassOrObject is KtClassOrObject) {
+            val representation = classDescriptor.inlineClassRepresentation
+                ?: error("Unknown representation for inline class: $classDescriptor")
+            irClass.inlineClassRepresentation = representation.mapUnderlyingType { type ->
+                type.toIrType() as? IrSimpleType ?: error("Inline class underlying type is not a simple type: $classDescriptor")
+            }
             generateAdditionalMembersForInlineClasses(irClass, ktClassOrObject)
         }
-            if (irClass.isInline && ktClassOrObject is KtClassOrObject) {
-                val representation = classDescriptor.inlineClassRepresentation
-                    ?: error("Unknown representation for inline class: $classDescriptor")
-                irClass.inlineClassRepresentation = representation.mapUnderlyingType { type ->
-                    type.toIrType() as? IrSimpleType ?: error("Inline class underlying type is not a simple type: $classDescriptor")
-                }
-                generateAdditionalMembersForInlineClasses(irClass, ktClassOrObject)
-            }
 
         if (irClass.isData && ktClassOrObject is KtClassOrObject) {
             generateAdditionalMembersForDataClass(irClass, ktClassOrObject)

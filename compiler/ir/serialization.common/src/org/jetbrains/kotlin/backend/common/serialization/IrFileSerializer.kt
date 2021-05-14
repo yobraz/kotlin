@@ -9,8 +9,8 @@ import org.jetbrains.kotlin.backend.common.ir.ir2string
 import org.jetbrains.kotlin.backend.common.serialization.encodings.*
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.InlineClassRepresentation
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
-import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrFileEntry
 import org.jetbrains.kotlin.ir.declarations.*
@@ -1197,7 +1197,7 @@ open class IrFileSerializer(
 
         val representation = clazz.inlineClassRepresentation
         if (representation != null) {
-            proto.inlineClassRepresentation = serializeInlineClassRepresentation(representation)
+            inlineClassRepresentation = serializeInlineClassRepresentation(representation)
         }
 
         if (!skipMutableState) {
