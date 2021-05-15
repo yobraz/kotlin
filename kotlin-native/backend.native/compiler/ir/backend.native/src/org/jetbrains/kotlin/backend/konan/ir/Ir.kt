@@ -13,6 +13,8 @@ import org.jetbrains.kotlin.backend.konan.descriptors.enumEntries
 import org.jetbrains.kotlin.backend.konan.descriptors.kotlinNativeInternal
 import org.jetbrains.kotlin.backend.konan.llvm.findMainEntryPoint
 import org.jetbrains.kotlin.backend.konan.lower.TestProcessor
+import org.jetbrains.kotlin.backend.konan.serialization.KonanIdSignaturer
+import org.jetbrains.kotlin.backend.konan.serialization.KonanManglerDesc
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.builtins.UnsignedType
@@ -52,18 +54,18 @@ internal class KonanSymbols(
         val functionIrClassFactory: BuiltInFictitiousFunctionIrClassFactory
 ): Symbols<Context>(context, irBuiltIns, symbolTable) {
 
+    private val signaturer = KonanIdSignaturer(KonanManglerDesc)
+
     val entryPoint = findMainEntryPoint(context)?.let { symbolTable.referenceSimpleFunction(it) }
 
     override val externalSymbolTable = lazySymbolTable
 
     val nothing = symbolTable.referenceClass(builtIns.nothing)
     val throwable = symbolTable.referenceClass(builtIns.throwable)
-    val enum = symbolTable.referenceClass(builtIns.enum)
-    val nativePtr = symbolTable.referenceClass(context.nativePtr)
+    val enumSignature = getSignature(builtIns.enum)
+    private val nativePtr = symbolTable.referenceClass(context.nativePtr)
     val nativePointed = symbolTable.referenceClass(context.interopBuiltIns.nativePointed)
     val nativePtrType = nativePtr.typeWith(arguments = emptyList())
-    val nonNullNativePtr = symbolTable.referenceClass(context.nonNullNativePtr)
-    val nonNullNativePtrType = nonNullNativePtr.typeWith(arguments = emptyList())
 
     val immutableBlobOf = symbolTable.referenceSimpleFunction(context.immutableBlobOf)
 
@@ -137,72 +139,71 @@ internal class KonanSymbols(
     val interopCValueRead = symbolTable.referenceSimpleFunction(context.interopBuiltIns.cValueRead)
     val interopAllocType = symbolTable.referenceSimpleFunction(context.interopBuiltIns.allocType)
 
-    val interopTypeOf = symbolTable.referenceSimpleFunction(context.interopBuiltIns.typeOf)
+//    val interopTypeOf = symbolTable.referenceSimpleFunction(context.interopBuiltIns.typeOf)
+    val interopTypeOfSignature = getSignature(context.interopBuiltIns.typeOf)
 
     val interopCPointerGetRawValue = symbolTable.referenceSimpleFunction(context.interopBuiltIns.cPointerGetRawValue)
 
     val interopAllocObjCObject = symbolTable.referenceSimpleFunction(context.interopBuiltIns.allocObjCObject)
 
-    val interopForeignObjCObject = interopClass("ForeignObjCObject")
+    val interopForeignObjCObject by lazy { interopClass("ForeignObjCObject") }
 
-    // These are possible supertypes of forward declarations - we need to reference them explicitly to force their deserialization.
-    // TODO: Do it lazily.
-    val interopCOpaque = symbolTable.referenceClass(context.interopBuiltIns.cOpaque)
-    val interopObjCObject = symbolTable.referenceClass(context.interopBuiltIns.objCObject)
-    val interopObjCObjectBase = symbolTable.referenceClass(context.interopBuiltIns.objCObjectBase)
+    val interopObjCRelease by lazy { interopFunction("objc_release") }
 
-    val interopObjCRelease = interopFunction("objc_release")
+    val interopObjCRetain by lazy { interopFunction("objc_retain") }
 
-    val interopObjCRetain = interopFunction("objc_retain")
+    val interopObjcRetainAutoreleaseReturnValue by lazy { interopFunction("objc_retainAutoreleaseReturnValue") }
 
-    val interopObjcRetainAutoreleaseReturnValue = interopFunction("objc_retainAutoreleaseReturnValue")
+    val interopCreateObjCObjectHolder by lazy { interopFunction("createObjCObjectHolder") }
 
-    val interopCreateObjCObjectHolder = interopFunction("createObjCObjectHolder")
+    val interopCreateKotlinObjectHolder by lazy { interopFunction("createKotlinObjectHolder") }
+    val interopUnwrapKotlinObjectHolderImpl by lazy { interopFunction("unwrapKotlinObjectHolderImpl") }
 
-    val interopCreateKotlinObjectHolder = interopFunction("createKotlinObjectHolder")
-    val interopUnwrapKotlinObjectHolderImpl = interopFunction("unwrapKotlinObjectHolderImpl")
+    val interopCreateObjCSuperStruct by lazy { interopFunction("createObjCSuperStruct") }
 
-    val interopCreateObjCSuperStruct = interopFunction("createObjCSuperStruct")
+    val interopGetMessenger by lazy { interopFunction("getMessenger") }
+    val interopGetMessengerStret by lazy { interopFunction("getMessengerStret") }
 
-    val interopGetMessenger = interopFunction("getMessenger")
-    val interopGetMessengerStret = interopFunction("getMessengerStret")
+    val interopGetObjCClass by lazy { symbolTable.referenceSimpleFunction(context.interopBuiltIns.getObjCClass) }
 
-    val interopGetObjCClass = symbolTable.referenceSimpleFunction(context.interopBuiltIns.getObjCClass)
+    val interopObjCObjectSuperInitCheck by lazy {
+        symbolTable.referenceSimpleFunction(context.interopBuiltIns.objCObjectSuperInitCheck)
+    }
 
-    val interopObjCObjectSuperInitCheck =
-            symbolTable.referenceSimpleFunction(context.interopBuiltIns.objCObjectSuperInitCheck)
+    val interopObjCObjectInitBy by lazy {
+        symbolTable.referenceSimpleFunction(context.interopBuiltIns.objCObjectInitBy)
+    }
 
-    val interopObjCObjectInitBy = symbolTable.referenceSimpleFunction(context.interopBuiltIns.objCObjectInitBy)
+    val interopObjCObjectRawValueGetter by lazy {
+        symbolTable.referenceSimpleFunction(context.interopBuiltIns.objCObjectRawPtr)
+    }
 
-    val interopObjCObjectRawValueGetter =
-            symbolTable.referenceSimpleFunction(context.interopBuiltIns.objCObjectRawPtr)
-
-    val interopNativePointedRawPtrGetter =
-            symbolTable.referenceSimpleFunction(context.interopBuiltIns.nativePointedRawPtrGetter)
+    val interopNativePointedRawPtrGetter by lazy {
+        symbolTable.referenceSimpleFunction(context.interopBuiltIns.nativePointedRawPtrGetter)
+    }
 
     val interopCPointerRawValue =
-            symbolTable.referenceProperty(context.interopBuiltIns.cPointerRawValue)
+        symbolTable.referenceProperty(context.interopBuiltIns.cPointerRawValue)
 
-    val interopInterpretObjCPointer =
-            symbolTable.referenceSimpleFunction(context.interopBuiltIns.interpretObjCPointer)
+    val interopInterpretObjCPointer by lazy {
+        symbolTable.referenceSimpleFunction(context.interopBuiltIns.interpretObjCPointer)
+    }
 
-    val interopInterpretObjCPointerOrNull =
-            symbolTable.referenceSimpleFunction(context.interopBuiltIns.interpretObjCPointerOrNull)
+    val interopInterpretObjCPointerOrNull by lazy {
+        symbolTable.referenceSimpleFunction(context.interopBuiltIns.interpretObjCPointerOrNull)
+    }
 
-    val interopInterpretNullablePointed =
-            symbolTable.referenceSimpleFunction(context.interopBuiltIns.interpretNullablePointed)
+    val interopInterpretNullablePointed by lazy {
+        symbolTable.referenceSimpleFunction(context.interopBuiltIns.interpretNullablePointed)
+    }
 
-    val interopInterpretCPointer =
-            symbolTable.referenceSimpleFunction(context.interopBuiltIns.interpretCPointer)
-
-    val interopCreateNSStringFromKString =
-            symbolTable.referenceSimpleFunction(context.interopBuiltIns.CreateNSStringFromKString)
+    val interopInterpretCPointer by lazy {
+        symbolTable.referenceSimpleFunction(context.interopBuiltIns.interpretCPointer)
+    }
 
     val createForeignException = interopFunction("CreateForeignException")
 
-    val interopObjCGetSelector = interopFunction("objCGetSelector")
-
-    val interopCEnumVar = interopClass("CEnumVar")
+    val interopCEnumVarSignature = interopClassSignature("CEnumVar")
 
     val nativeMemUtils = symbolTable.referenceClass(context.interopBuiltIns.nativeMemUtils)
 
@@ -219,10 +220,10 @@ internal class KonanSymbols(
                     NoLookupLocation.FROM_BACKEND
             ).single())
 
-    val objCExportResumeContinuation = internalFunction("resumeContinuation")
-    val objCExportResumeContinuationWithException = internalFunction("resumeContinuationWithException")
-    val objCExportGetCoroutineSuspended = internalFunction("getCoroutineSuspended")
-    val objCExportInterceptedContinuation = internalFunction("interceptedContinuation")
+    val objCExportResumeContinuation by lazy { internalFunction("resumeContinuation") }
+    val objCExportResumeContinuationWithException by lazy { internalFunction("resumeContinuationWithException") }
+    val objCExportGetCoroutineSuspended by lazy { internalFunction("getCoroutineSuspended") }
+    val objCExportInterceptedContinuation by lazy { internalFunction("interceptedContinuation") }
 
     val getNativeNullPtr = symbolTable.referenceSimpleFunction(context.getNativeNullPtr)
 
@@ -246,7 +247,7 @@ internal class KonanSymbols(
                     .single()
     )
 
-    val createCleaner = symbolTable.referenceSimpleFunction(
+    val createCleanerSignature = getSignature(
             builtIns.builtInsModule.getPackage(FqName("kotlin.native.internal")).memberScope
                     .getContributedFunctions(Name.identifier("createCleaner"), NoLookupLocation.FROM_BACKEND)
                     .single()
@@ -283,7 +284,6 @@ internal class KonanSymbols(
     val throwInvalidReceiverTypeException = internalFunction("ThrowInvalidReceiverTypeException")
     val throwIllegalStateException = internalFunction("ThrowIllegalStateException")
     val throwIllegalStateExceptionWithMessage = internalFunction("ThrowIllegalStateExceptionWithMessage")
-    val throwIllegalArgumentException = internalFunction("ThrowIllegalArgumentException")
     val throwIllegalArgumentExceptionWithMessage = internalFunction("ThrowIllegalArgumentExceptionWithMessage")
 
 
@@ -298,11 +298,6 @@ internal class KonanSymbols(
     override val defaultConstructorMarker = symbolTable.referenceClass(
             context.getKonanInternalClass("DefaultConstructorMarker")
     )
-
-    val checkProgressionStep = context.getKonanInternalFunctions("checkProgressionStep")
-            .map { Pair(it.returnType, symbolTable.referenceSimpleFunction(it)) }.toMap()
-    val getProgressionLast = context.getKonanInternalFunctions("getProgressionLast")
-            .map { Pair(it.returnType, symbolTable.referenceSimpleFunction(it)) }.toMap()
 
     val arrayContentToString = arrays.associateBy(
             { it },
@@ -329,12 +324,6 @@ internal class KonanSymbols(
     }
     override val copyRangeTo get() = TODO()
 
-    fun getNoParamFunction(name: Name, receiverType: KotlinType): IrFunctionSymbol {
-        val descriptor = receiverType.memberScope.getContributedFunctions(name, NoLookupLocation.FROM_BACKEND)
-                .first { it.valueParameters.isEmpty() }
-        return symbolTable.referenceFunction(descriptor)
-    }
-    
     val copyInto = arrays.map { symbol ->
         val packageViewDescriptor = builtIns.builtInsModule.getPackage(StandardNames.COLLECTIONS_PACKAGE_FQ_NAME)
         val functionDescriptor = packageViewDescriptor.memberScope
@@ -376,11 +365,6 @@ internal class KonanSymbols(
             builtInsPackage("kotlin", "io").getContributedFunctions(
                     Name.identifier("println"), NoLookupLocation.FROM_BACKEND)
                     .single { it.valueParameters.singleOrNull()?.type == builtIns.stringType })
-
-    val anyNToString = symbolTable.referenceSimpleFunction(
-            builtInsPackage("kotlin").getContributedFunctions(
-                    Name.identifier("toString"), NoLookupLocation.FROM_BACKEND)
-                    .single { it.extensionReceiverParameter?.type == builtIns.nullableAnyType})
 
     override val getContinuation = internalFunction("getContinuation")
 
@@ -552,6 +536,14 @@ internal class KonanSymbols(
             context.interopBuiltIns.packageScope
                     .getContributedClassifier(Name.identifier(name), NoLookupLocation.FROM_BACKEND) as ClassDescriptor
     )
+
+    private fun interopClassSignature(name: String) = getSignature(
+            context.interopBuiltIns.packageScope
+                    .getContributedClassifier(Name.identifier(name), NoLookupLocation.FROM_BACKEND) as ClassDescriptor
+    )
+
+    private fun getSignature(declarationDescriptor: DeclarationDescriptor): IdSignature? =
+        signaturer.composeSignature(declarationDescriptor)
 
     override fun functionN(n: Int) = functionIrClassFactory.functionN(n).symbol
 

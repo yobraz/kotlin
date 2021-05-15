@@ -44,7 +44,7 @@ val IrSymbol.isPublicApi: Boolean
 interface IrBindableSymbol<out D : DeclarationDescriptor, B : IrSymbolOwner> : IrSymbol {
     override val owner: B
 
-    @ObsoleteDescriptorBasedAPI
+//    @ObsoleteDescriptorBasedAPI
     override val descriptor: D
 
     fun bind(owner: B)
@@ -88,7 +88,7 @@ interface IrValueParameterSymbol : IrValueSymbol, IrBindableSymbol<ParameterDesc
 interface IrVariableSymbol : IrValueSymbol, IrBindableSymbol<VariableDescriptor, IrVariable>
 
 interface IrReturnTargetSymbol : IrSymbol {
-    @ObsoleteDescriptorBasedAPI
+//    @ObsoleteDescriptorBasedAPI
     override val descriptor: FunctionDescriptor
 
     override val owner: IrReturnTarget

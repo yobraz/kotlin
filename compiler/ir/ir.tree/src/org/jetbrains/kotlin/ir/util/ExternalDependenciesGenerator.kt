@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.linkage.IrProvider
 import org.jetbrains.kotlin.ir.linkage.KotlinIrLinkerInternalException
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 class ExternalDependenciesGenerator(
@@ -38,6 +39,7 @@ class ExternalDependenciesGenerator(
         /*
             Deserializing a reference may lead to new unbound references, so we loop until none are left.
          */
+//        var counter = 0
         var unbound = setOf<IrSymbol>()
         lateinit var prevUnbound: Set<IrSymbol>
         try {
@@ -48,6 +50,12 @@ class ExternalDependenciesGenerator(
                 for (symbol in unbound) {
                     // Symbol could get bound as a side effect of deserializing other symbols.
                     if (!symbol.isBound) {
+//                        counter++
+//                        when {
+//                            symbol.signature != null -> println("Deserializing ${symbol.signature}")
+//                            symbol.hasDescriptor -> println("Deserializing ${symbol.descriptor.fqNameSafe}")
+//                            else -> println("Deserializing $symbol")
+//                        }
                         irProviders.getDeclaration(symbol)
                     }
                 }
@@ -56,6 +64,7 @@ class ExternalDependenciesGenerator(
         } catch (ex: KotlinIrLinkerInternalException) {
             throw CompilationErrorException()
         }
+//        println("Deserialized $counter symbols")
     }
 }
 

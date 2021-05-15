@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.psi2ir
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.linkage.IrDeserializer
@@ -26,6 +27,8 @@ import org.jetbrains.kotlin.ir.linkage.IrProvider
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.util.noUnboundLeft
+import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
+import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi2ir.generators.GeneratorContext
 import org.jetbrains.kotlin.psi2ir.generators.GeneratorExtensions
@@ -74,7 +77,8 @@ class Psi2IrTranslator(
         irProviders: List<IrProvider>,
         linkerExtensions: Collection<IrDeserializer.IrLinkerExtension>,
         expectDescriptorToSymbol: MutableMap<DeclarationDescriptor, IrSymbol>? = null,
-        konan: Boolean = false
+        konan: Boolean = false,
+        secondPhase: (() -> List<IrProvider>)? = null
     ): IrModuleFragment {
         val moduleGenerator = ModuleGenerator(context, expectDescriptorToSymbol)
         val irModule = moduleGenerator.generateModuleFragment(ktFiles)
@@ -82,16 +86,19 @@ class Psi2IrTranslator(
         val deserializers = irProviders.filterIsInstance<IrDeserializer>()
         deserializers.forEach { it.init(irModule, linkerExtensions) }
 
+//        println("Phase 1: Inline function and their closure")
         moduleGenerator.generateUnboundSymbolsAsDependencies(irProviders, konan)
 
         deserializers.forEach { it.postProcess() }
-        context.symbolTable.noUnboundLeft("Unbound symbols not allowed\n")
+//        context.symbolTable.noUnboundLeft("Unbound symbols not allowed\n")
 
         postprocessingSteps.forEach { it.invoke(irModule) }
 //        assert(context.symbolTable.allUnbound.isEmpty()) // TODO: fix IrPluginContext to make it not produce additional external reference
 
         // TODO: remove it once plugin API improved
-        moduleGenerator.generateUnboundSymbolsAsDependencies(irProviders, konan)
+//        println("Phase 2: The rest")
+        moduleGenerator.generateUnboundSymbolsAsDependencies(secondPhase?.invoke() ?: irProviders, false)
+
         deserializers.forEach { it.postProcess() }
 
         return irModule

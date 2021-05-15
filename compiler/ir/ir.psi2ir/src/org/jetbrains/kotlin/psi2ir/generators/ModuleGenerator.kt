@@ -69,11 +69,13 @@ class ModuleGenerator(
 
     fun generateUnboundSymbolsAsDependencies(irProviders: List<IrProvider>, konan: Boolean = false) {
         val symbols = when {
-            konan -> context.symbolTable::konanUnbound
+            konan -> context.symbolTable::allUnbound
             else -> context.symbolTable::allUnbound
         }
+        if (konan) context.symbolTable.startCollecting()
         ExternalDependenciesGenerator(symbols, irProviders)
             .generateUnboundSymbolsAsDependencies()
+        if (konan) context.symbolTable.stopCollecting()
     }
 
     private fun generateSingleFile(irDeclarationGenerator: DeclarationGenerator, ktFile: KtFile, module: IrModuleFragment): IrFileImpl {

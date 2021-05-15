@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.symbols.impl.*
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.isEffectivelyExternal
 import org.jetbrains.kotlin.utils.threadLocal
 
@@ -66,13 +67,66 @@ class SymbolTable(
     val nameProvider: NameProvider = NameProvider.DEFAULT,
 ) : ReferenceSymbolTable {
 
+    var collect: Boolean = false
+
+    fun startCollecting() {
+        collect = true
+        classSymbolTable.startCollecting()
+        constructorSymbolTable.startCollecting()
+        enumEntrySymbolTable.startCollecting()
+        fieldSymbolTable.startCollecting()
+        simpleFunctionSymbolTable.run {
+            collection.addAll(main.filter { it.hasDescriptor && it.descriptor.isInline })
+            main.removeAll(collection)
+        }
+        simpleFunctionSymbolTable.startCollecting()
+        propertySymbolTable.startCollecting()
+        typeAliasSymbolTable.startCollecting()
+        globalTypeParameterSymbolTable.startCollecting()
+    }
+
+    fun stopCollecting() {
+        collect = false
+        classSymbolTable.stopCollecting()
+        constructorSymbolTable.stopCollecting()
+        enumEntrySymbolTable.stopCollecting()
+        fieldSymbolTable.stopCollecting()
+        simpleFunctionSymbolTable.stopCollecting()
+        propertySymbolTable.stopCollecting()
+        typeAliasSymbolTable.stopCollecting()
+        globalTypeParameterSymbolTable.stopCollecting()
+    }
+
     val lock = IrLock()
 
     @Suppress("LeakingThis")
     val lazyWrapper = IrLazySymbolTable(this)
 
     private abstract class SymbolTableBase<D : DeclarationDescriptor, B : IrSymbolOwner, S : IrBindableSymbol<D, B>>(val lock: IrLock) {
-        val unboundSymbols = linkedSetOf<S>()
+        val main = linkedSetOf<S>()
+
+        val unboundSymbols: LinkedHashSet<S>
+            get() = if (collect) collection else main
+
+        val collection = linkedSetOf<S>()
+
+        private var collect = false
+
+        fun startCollecting() {
+            collect = true
+//            println("Root-set")
+//            unboundSymbols.forEach { symbol ->
+//                when {
+//                    symbol.signature != null -> println("${symbol.signature}")
+//                    symbol.hasDescriptor -> println("${symbol.descriptor.fqNameSafe}")
+//                    else -> println("$symbol")
+//                }
+//            }
+        }
+
+        fun stopCollecting() {
+            collect = false
+        }
 
         abstract fun get(d: D): S?
         abstract fun set(s: S)
@@ -1120,14 +1174,7 @@ val SymbolTable.allUnbound: Set<IrSymbol>
 val SymbolTable.konanUnbound: Set<IrSymbol>
     get() {
         val r = mutableSetOf<IrSymbol>()
-        r.addAll(unboundClasses)
-        r.addAll(unboundConstructors)
-        r.addAll(unboundEnumEntries)
-        r.addAll(unboundFields)
         r.addAll(unboundSimpleFunctions)
-        r.addAll(unboundProperties)
-        r.addAll(unboundTypeAliases)
-        r.addAll(unboundTypeParameters)
         return r.filter { !it.isBound && (!it.hasDescriptor || (it.descriptor as? FunctionDescriptor)?.isInline == true) }.toSet()
     }
 

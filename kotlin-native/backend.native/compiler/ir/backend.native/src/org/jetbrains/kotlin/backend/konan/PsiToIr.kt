@@ -17,11 +17,15 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.konan.DeserializedKlibModuleOrigin
 import org.jetbrains.kotlin.descriptors.konan.KlibModuleOrigin
 import org.jetbrains.kotlin.descriptors.konan.isNativeStdlib
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.builders.TranslationPluginContext
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.linkage.IrDeserializer
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
+import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi2ir.Psi2IrConfiguration
@@ -170,7 +174,20 @@ internal fun Context.psiToIr(
             // how ExpectedActualResolver is implemented.
             // Need to fix ExpectActualResolver to either cache expects or somehow reduce the member scope searches.
             expectDescriptorToSymbol = if (expectActualLinker) expectDescriptorToSymbol else null,
-            konan = config.cachedLibraries.hasStaticCaches
+            konan = config.cachedLibraries.hasStaticCaches,
+            secondPhase = {
+                println("Switching to Lazy IR generation")
+                stubGenerator.unboundSymbolGeneration = true
+
+                listOf(
+                        object : IrDeserializer {
+                            override fun getDeclaration(symbol: IrSymbol) = stubGenerator.getDeclaration(symbol)
+                            override fun resolveBySignatureInModule(signature: IdSignature, kind: IrDeserializer.TopLevelSymbolKind, moduleName: Name): IrSymbol {
+                                error("Should not be called")
+                            }
+                        }
+                )
+            }
     ).toKonanModule()
 
     irDeserializer.postProcess()
@@ -178,7 +195,7 @@ internal fun Context.psiToIr(
     // Enable lazy IR genration for newly-created symbols inside BE
     stubGenerator.unboundSymbolGeneration = true
 
-    symbolTable.noUnboundLeft("Unbound symbols left after linker")
+//    symbolTable.noUnboundLeft("Unbound symbols left after linker")
 
     mainModule.acceptVoid(ManglerChecker(KonanManglerIr, Ir2DescriptorManglerAdapter(KonanManglerDesc)))
 
@@ -213,4 +230,12 @@ internal fun Context.psiToIr(
     originalBindingContext.clear()
 
     this.bindingContext = BindingContext.EMPTY
+}
+
+private fun analyzeUsages(module: IrModuleFragment) {
+    module.acceptChildrenVoid(object: IrElementVisitorVoid {
+        override fun visitElement(element: IrElement) {
+            element.acceptChildrenVoid(this)
+        }
+    })
 }
