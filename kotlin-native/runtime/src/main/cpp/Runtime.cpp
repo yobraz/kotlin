@@ -379,8 +379,8 @@ KBoolean Kotlin_Debugging_isThreadStateNative() {
 }
 
 
-KBoolean Kotlin_Debugging_isGlobalConstant(KRef obj) {
-    return obj->permanent() && !obj->local();
+KBoolean Kotlin_Debugging_isPermanent(KRef obj) {
+    return obj->permanent();
 }
 
 }  // extern "C"
