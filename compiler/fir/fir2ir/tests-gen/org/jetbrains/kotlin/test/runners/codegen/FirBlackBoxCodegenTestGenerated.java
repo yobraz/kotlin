@@ -18633,6 +18633,12 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
         }
 
         @Test
+        @TestMetadata("unboxResultParameterWhenCapturingToCrossinlineLambda.kt")
+        public void testUnboxResultParameterWhenCapturingToCrossinlineLambda() throws Exception {
+            runTest("compiler/testData/codegen/box/inlineClasses/unboxResultParameterWhenCapturingToCrossinlineLambda.kt");
+        }
+
+        @Test
         @TestMetadata("unboxValueFromPlatformType.kt")
         public void testUnboxValueFromPlatformType() throws Exception {
             runTest("compiler/testData/codegen/box/inlineClasses/unboxValueFromPlatformType.kt");
