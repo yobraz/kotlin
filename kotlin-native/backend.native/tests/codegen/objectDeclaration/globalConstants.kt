@@ -11,7 +11,7 @@ import kotlin.native.internal.*
 object EmptyClass {}
 
 @Test fun checkEmptyClass() {
-    assertTrue(EmptyClass.isGlobalConstant())
+    assertTrue(EmptyClass.isPermanent())
 }
 
 
@@ -26,7 +26,7 @@ object ClassWithConstants {
 }
 
 @Test fun checkInit() {
-    assertTrue(ClassWithConstants.isGlobalConstant())
+    assertTrue(ClassWithConstants.isPermanent())
     assertEquals(1, ClassWithConstants.A)
     assertEquals(2, ClassWithConstants.B)
     assertEquals(3.0, ClassWithConstants.C)
@@ -60,7 +60,7 @@ object ClassWithConstructor {
     assertEquals(1, ClassWithConstructorInitialized)
     assertEquals(1, ClassWithConstructor.A)
     assertEquals(1, ClassWithConstructorInitialized)
-    assertFalse(ClassWithConstructor.isGlobalConstant())
+    assertFalse(ClassWithConstructor.isPermanent())
 }
 
 object ClassWithField {
@@ -68,7 +68,7 @@ object ClassWithField {
 }
 
 @Test fun checkField() {
-    assertFalse(ClassWithField.isGlobalConstant())
+    assertFalse(ClassWithField.isPermanent())
 }
 
 object ClassWithComputedField {
@@ -77,5 +77,5 @@ object ClassWithComputedField {
 }
 
 @Test fun checkComputedField() {
-    assertTrue(ClassWithComputedField.isGlobalConstant())
+    assertTrue(ClassWithComputedField.isPermanent())
 }
