@@ -34,7 +34,16 @@ object ClassWithConstants {
     assertEquals(ClassWithConstants.E, 5)
     assertEquals(ClassWithConstants.F, 6)
     assertEquals(ClassWithConstants.G, "8")
+
+    assertEquals((ClassWithConstants::A)(), 1)
+    assertEquals((ClassWithConstants::B)(), 2)
+    assertEquals((ClassWithConstants::C)(), 3.0)
+    assertEquals((ClassWithConstants::D)(), 4.0f)
+    assertEquals((ClassWithConstants::E)(), 5)
+    assertEquals((ClassWithConstants::F)(), 6)
+    assertEquals((ClassWithConstants::G)(), "8")
 }
+
 
 var ClassWithConstructorInitialized = 0
 
