@@ -27,21 +27,21 @@ object ClassWithConstants {
 
 @Test fun checkInit() {
     assertTrue(ClassWithConstants.isGlobalConstant())
-    assertEquals(ClassWithConstants.A, 1)
-    assertEquals(ClassWithConstants.B, 2)
-    assertEquals(ClassWithConstants.C, 3.0)
-    assertEquals(ClassWithConstants.D, 4.0f)
-    assertEquals(ClassWithConstants.E, 5)
-    assertEquals(ClassWithConstants.F, 6)
-    assertEquals(ClassWithConstants.G, "8")
+    assertEquals(1, ClassWithConstants.A)
+    assertEquals(2, ClassWithConstants.B)
+    assertEquals(3.0, ClassWithConstants.C)
+    assertEquals(4.0f, ClassWithConstants.D)
+    assertEquals(5, ClassWithConstants.E)
+    assertEquals(6, ClassWithConstants.F)
+    assertEquals("8", ClassWithConstants.G)
 
-    assertEquals((ClassWithConstants::A)(), 1)
-    assertEquals((ClassWithConstants::B)(), 2)
-    assertEquals((ClassWithConstants::C)(), 3.0)
-    assertEquals((ClassWithConstants::D)(), 4.0f)
-    assertEquals((ClassWithConstants::E)(), 5)
-    assertEquals((ClassWithConstants::F)(), 6)
-    assertEquals((ClassWithConstants::G)(), "8")
+    assertEquals(1, (ClassWithConstants::A)())
+    assertEquals(2, (ClassWithConstants::B)())
+    assertEquals(3.0, (ClassWithConstants::C)())
+    assertEquals(4.0f, (ClassWithConstants::D)())
+    assertEquals(5, (ClassWithConstants::E)())
+    assertEquals(6, (ClassWithConstants::F)())
+    assertEquals("8", (ClassWithConstants::G)())
 }
 
 
@@ -55,11 +55,11 @@ object ClassWithConstructor {
 }
 
 @Test fun checkConstructor() {
-    assertEquals(ClassWithConstructorInitialized, 0)
-    assertEquals(ClassWithConstructor.A, 1)
-    assertEquals(ClassWithConstructorInitialized, 1)
-    assertEquals(ClassWithConstructor.A, 1)
-    assertEquals(ClassWithConstructorInitialized, 1)
+    assertEquals(0, ClassWithConstructorInitialized)
+    assertEquals(1, ClassWithConstructor.A)
+    assertEquals(1, ClassWithConstructorInitialized)
+    assertEquals(1, ClassWithConstructor.A)
+    assertEquals(1, ClassWithConstructorInitialized)
     assertFalse(ClassWithConstructor.isGlobalConstant())
 }
 
