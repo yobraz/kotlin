@@ -455,6 +455,7 @@ class MingwLinker(targetProperties: MingwConfigurables)
                 HostManager.hostIsMingw -> Command(linker)
                 else -> Command("wine64", "$linker.exe")
         }.apply {
+            +listOf("--sysroot", absoluteTargetSysRoot)
             +listOf("-o", executable)
             +objectFiles
             // --gc-sections flag may affect profiling.
@@ -468,7 +469,7 @@ class MingwLinker(targetProperties: MingwConfigurables)
             +linkerArgs
             +linkerKonanFlags
             if (mimallocEnabled) +mimallocLinkerDependencies
-            +"-fuse-ld="
+            +"-fuse-ld=${absoluteLlvmHome}/bin/ld.lld"
         })
     }
 }
