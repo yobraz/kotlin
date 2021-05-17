@@ -120,9 +120,9 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
             d.acceptVoid(this)
         }
 
-        override fun reset(resetContainer: Boolean) {
-            super.reset(resetContainer)
-            if (containerSig != null) container = containerSig
+        override fun initialReset() {
+            reset()
+            container = containerSig
         }
 
 //        init {
@@ -147,13 +147,16 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
         }
 
         private fun collectParents(declaration: IrDeclarationWithName, isLocal: Boolean) {
-            declaration.parent.acceptVoid(this)
 
             if (isLocal) {
-                createContainer()
+                if (containerSig == null) {
+                    declaration.parent.acceptVoid(this)
+                    createContainer()
+                }
                 val localName = resolveLocalName(declaration)
                 classFqnSegments.add(localName)
             } else {
+                declaration.parent.acceptVoid(this)
                 classFqnSegments.add(declaration.name.asString())
             }
 

@@ -36,7 +36,9 @@ abstract class IdSignatureBuilder<D> {
 
     protected abstract fun accept(d: D)
 
-    protected open fun reset(resetContainer: Boolean = true) {
+    protected open fun initialReset() { reset() }
+
+    protected fun reset(resetContainer: Boolean = true) {
         this.packageFqn = FqName.ROOT
         this.classFqnSegments.clear()
         this.hashId = null
@@ -126,7 +128,7 @@ abstract class IdSignatureBuilder<D> {
     protected open fun isKotlinPackage(descriptor: PackageFragmentDescriptor): Boolean = true
 
     fun buildSignature(declaration: D): IdSignature {
-        reset()
+        initialReset()
 
         accept(declaration)
 
