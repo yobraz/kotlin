@@ -299,6 +299,10 @@ public class K2JSCompiler extends CLICompiler<K2JSCompilerArguments> {
             checkDuplicateSourceFileNames(messageCollector, sourcesFiles, config);
         }
 
+        if (arguments.getInterceptLambdasWith() != "") {
+            config.getConfiguration().put(JSConfigurationKeys.LAMBDA_INTERCEPTOR, arguments.getInterceptLambdasWith());
+        }
+
         MainCallParameters mainCallParameters = createMainCallParameters(arguments.getMain());
         TranslationResult translationResult;
 

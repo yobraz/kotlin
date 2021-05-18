@@ -184,6 +184,9 @@ class K2JSCompilerArguments : CommonCompilerArguments() {
     @Argument(value = "-Xwasm", description = "Use experimental WebAssembly compiler backend")
     var wasm: Boolean by FreezableVar(false)
 
+    @Argument(value = "-Xintercept-lambdas-with", description = "Lambda functions are passed as argument")
+    var interceptLambdasWith: String by FreezableVar("")
+
     override fun checkIrSupport(languageVersionSettings: LanguageVersionSettings, collector: MessageCollector) {
         if (!isIrBackendEnabled()) return
 

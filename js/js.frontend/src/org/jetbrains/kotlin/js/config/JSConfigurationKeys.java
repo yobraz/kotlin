@@ -89,4 +89,8 @@ public class JSConfigurationKeys {
 
     public static final CompilerConfigurationKey<ErrorTolerancePolicy> ERROR_TOLERANCE_POLICY =
             CompilerConfigurationKey.create("set up policy to ignore compilation errors");
+
+    public static final CompilerConfigurationKey<String> LAMBDA_INTERCEPTOR =
+            CompilerConfigurationKey.create("What to wrap lambda functions with");
+
 }
