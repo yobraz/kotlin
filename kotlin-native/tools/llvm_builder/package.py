@@ -1,9 +1,10 @@
-import argparse, subprocess, shutil, os, sys, platform
+import argparse, subprocess, shutil, os, sys
 from pathlib import Path
-import abc
-from typing import List, Dict
-from functools import reduce
+from typing import List
 import hashlib
+
+
+vsdevcmd = None
 
 
 def absolute_path(path):
@@ -31,187 +32,82 @@ class Host:
     def llvm_target():
         return "Native"
 
-
-def cmake_bool_flag(flag):
-    return "On" if flag else "Off"
-
-
-class HostSpecificCMakeFlags:
-    @abc.abstractmethod
-    def build(self) -> Dict[str, str]:
-        pass
-
-    @abc.abstractmethod
-    def cmake_executables(self, bootstrap_llvm_path: str) -> Dict[str, str]:
-        pass
-
     @staticmethod
-    def create():
-        if Host.is_darwin():
-            return DarwinCMakeFlags()
-        elif Host.is_windows():
-            return WindowsCMakeFlags()
-        else:
-            return LinuxCMakeFlags()
-
-
-class WindowsCMakeFlags(HostSpecificCMakeFlags):
-    def __init__(self):
-        self.crt_release = "MT"
-        self.crt_debug = "MT"
-        self.install_ucrt_libraries = True
-        self.msvc_runtime_library = "MultiThreaded"
-        self.enable_dia_sdk = False
-
-    def cmake_executables(self, bootstrap_llvm_path: str) -> Dict[str, str]:
-        if bootstrap_llvm_path:
-            return {
-                "CMAKE_CXX_COMPILER": f"{bootstrap_llvm_path}/bin/clang-cl.exe".replace('\\', '/'),
-                "CMAKE_C_COMPILER": f"{bootstrap_llvm_path}/bin/clang-cl.exe".replace('\\', '/'),
-                "CMAKE_LINKER": f"{bootstrap_llvm_path}/bin/lld-link.exe".replace('\\', '/'),
-                "CMAKE_AR": f"{bootstrap_llvm_path}/bin/llvm-lib.exe".replace('\\', '/'),
-            }
-        else:
-            return {}
-
-    def build(self) -> Dict[str, str]:
-        return {
-            "LLVM_USE_CRT_RELEASE": self.crt_release,
-            "LLVM_USE_CRT_DEBUG": self.crt_debug,
-            "CMAKE_INSTALL_UCRT_LIBRARIES": cmake_bool_flag(self.install_ucrt_libraries),
-            "CMAKE_MSVC_RUNTIME_LIBRARY": self.msvc_runtime_library,
-            "LLVM_ENABLE_DIA_SDK": cmake_bool_flag(self.enable_dia_sdk),
-        }
-
-
-class LinuxCMakeFlags(HostSpecificCMakeFlags):
-    def __init__(self):
-        self.enable_terminfo = False
-
-    def build(self) -> Dict[str, str]:
-        return {
-            "LLVM_ENABLE_TERMINFO": cmake_bool_flag(self.enable_terminfo)
-        }
-
-    def cmake_executables(self, bootstrap_llvm_path: str) -> Dict[str, str]:
-        if bootstrap_llvm_path:
-            return {
-                "CMAKE_CXX_COMPILER": f"{bootstrap_llvm_path}/bin/clang++",
-                "CMAKE_C_COMPILER": f"{bootstrap_llvm_path}/bin/clang",
-                "CMAKE_LINKER": f"{bootstrap_llvm_path}/bin/ld.lld",
-                "CMAKE_AR": f"{bootstrap_llvm_path}/bin/llvm-ar",
-            }
-        else:
-            return {}
-
-
-class DarwinCMakeFlags(HostSpecificCMakeFlags):
-    def __init__(self):
-        self.build_llvm_c_dylib = False
-
-    def build(self) -> Dict[str, str]:
-        return {
-            "LLVM_BUILD_LLVM_C_DYLIB": cmake_bool_flag(self.build_llvm_c_dylib)
-        }
-
-    def cmake_executables(self, bootstrap_llvm_path: str) -> Dict[str, str]:
-        if bootstrap_llvm_path:
-            return {
-                "CMAKE_CXX_COMPILER": f"{bootstrap_llvm_path}/bin/clang++",
-                "CMAKE_C_COMPILER": f"{bootstrap_llvm_path}/bin/clang",
-                "CMAKE_LINKER": f"{bootstrap_llvm_path}/bin/ld64.lld",
-                "CMAKE_AR": f"{bootstrap_llvm_path}/bin/llvm-ar",
-            }
-        else:
-            return {}
-
-
-class Environment:
-    @abc.abstractmethod
-    def execute_subprocess(self, commands: List[str]) -> subprocess.Popen:
-        pass
-
-    @abc.abstractmethod
-    def create_distribution_archive(self, input_path: str, output_path: str) -> bool:
-        pass
-
-    @staticmethod
-    def create(args):
+    def default_compression():
         if Host.is_windows():
-            return WindowsEnvironment(args.vsdevcmd)
+            return "zip"
         else:
-            return PosixEnvironment()
+            return "gztar"
 
 
-class WindowsEnvironment(Environment):
-    def __init__(self, vsdevcmd):
-        self.vsdevcmd = vsdevcmd
+def construct_cmake_flags(
+        bootstrap_llvm_path: str = None,
+        install_path: str = None,
+        subprojects: List[str] = None,
+        targets: List[str] = None
+) -> List[str]:
+    c_compiler, cxx_compiler, linker, ar = None, None, None, None
+    if bootstrap_llvm_path is not None:
+        if Host.is_windows():
+            # CMake is not tolerant to backslashes
+            c_compiler = f"{bootstrap_llvm_path}/bin/clang-cl.exe".replace('\\', '/')
+            cxx_compiler = f"{bootstrap_llvm_path}/bin/clang-cl.exe".replace('\\', '/')
+            linker = f"{bootstrap_llvm_path}/bin/lld-link.exe".replace('\\', '/')
+            ar = f"{bootstrap_llvm_path}/bin/llvm-lib.exe".replace('\\', '/')
+        elif Host.is_linux():
+            c_compiler = f"{bootstrap_llvm_path}/bin/clang"
+            cxx_compiler = f"{bootstrap_llvm_path}/bin/clang++"
+            linker = f"{bootstrap_llvm_path}/bin/ld.lld"
+            ar = f"{bootstrap_llvm_path}/bin/llvm-ar"
+        elif Host.is_darwin():
+            c_compiler = f"{bootstrap_llvm_path}/bin/clang"
+            cxx_compiler = f"{bootstrap_llvm_path}/bin/clang++"
+            linker = None
+            ar = f"{bootstrap_llvm_path}/bin/llvm-ar"
 
-    def build_vsdevcmd_call(self):
-        return ["call", f"\"{self.vsdevcmd}\"", "-arch=amd64"]
+    cmake_args = [
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DLLVM_ENABLE_ASSERTIONS=OFF",
+        "-DLLVM_ENABLE_TERMINFO=OFF",
+        "-DLLVM_INCLUDE_GO_TESTS=OFF"
+    ]
 
-    def execute_subprocess(self, commands: List[str]) -> subprocess.Popen:
-        vsdevcmd = ' '.join(self.build_vsdevcmd_call())
-        return subprocess.Popen(" & ".join([vsdevcmd, *commands]), shell=True)
+    if install_path is not None:
+        cmake_args.append("-DCMAKE_INSTALL_PREFIX=" + install_path)
+    if targets is not None:
+        cmake_args.append("-DLLVM_TARGETS_TO_BUILD=" + ";".join(targets))
+    if subprojects is not None:
+        cmake_args.append("-DLLVM_ENABLE_PROJECTS=" + ";".join(subprojects))
+    if c_compiler is not None:
+        cmake_args.append('-DCMAKE_C_COMPILER=' + c_compiler)
+    if cxx_compiler is not None:
+        cmake_args.append('-DCMAKE_CXX_COMPILER=' + cxx_compiler)
+    if linker is not None:
+        cmake_args.append('-DCMAKE_LINKER=' + linker)
+    if c_compiler is not None:
+        cmake_args.append('-DCMAKE_AR=' + ar)
 
-    def create_distribution_archive(self, input_path: str, output_path: str) -> bool:
-        shutil.make_archive(output_path, 'zip', input_path)
-        return True
+    if Host.is_windows():
+        cmake_args.append("-DLLVM_USE_CRT_RELEASE=MT")
+        cmake_args.append("-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded")
+        cmake_args.append("-DLLVM_ENABLE_DIA_SDK=OFF")
+        cmake_args.append("-DCMAKE_INSTALL_UCRT_LIBRARIES=OFF")
 
+    if not Host.is_windows():
+        cmake_args.append("-LLVM_BUILD_LLVM_DYLIB=ON")
+        cmake_args.append("-DLLVM_LINK_LLVM_DYLIB=ON")
 
-class PosixEnvironment(Environment):
-    def __init__(self):
-        if Host.is_darwin():
-            self.build_llvm_c_dylib = False
-        if Host.is_linux():
-            self.enable_terminfo = False
-
-    def execute_subprocess(self, commands: List[str]) -> subprocess.Popen:
-        return subprocess.Popen("; ".join(commands), shell=True)
-
-    def create_distribution_archive(self, input_path: str, output_path: str) -> bool:
-        shutil.make_archive(output_path, 'gztar', input_path)
-        return True
-
-
-class CommonCMakeFlags:
-    def __init__(self, install_prefix):
-        self.build_type = "Release"
-        self.subprojects = ["clang", "lld", "libcxx", "libcxxabi"]
-        self.install_prefix = install_prefix
-        self.with_assertions = False
-        # LLVM_BUILD_LLVM_C_DYLIB is not working for msvc
-        self.build_llvm_dylib = not Host.is_windows()
-        self.link_llvm_dylib = not Host.is_windows()
-        self.llvm_targets = None
-
-    def build(self) -> Dict[str, str]:
-        common_flags = {
-            "CMAKE_BUILD_TYPE": self.build_type,
-            "LLVM_ENABLE_ASSERTIONS": cmake_bool_flag(self.with_assertions),
-            "LLVM_ENABLE_PROJECTS": f"\"{';'.join(self.subprojects)}\"",
-            "CMAKE_INSTALL_PREFIX": self.install_prefix,
-            "LLVM_BUILD_LLVM_DYLIB": cmake_bool_flag(self.build_llvm_dylib),
-            "LLVM_LINK_LLVM_DYLIB": cmake_bool_flag(self.link_llvm_dylib),
-        }
-        if self.llvm_targets is not None:
-            common_flags["LLVM_TARGETS_TO_BUILD"] = f"\"{';'.join(self.llvm_targets)}\""
-        return {**common_flags}
+    return cmake_args
 
 
-def build_cmake_call(cmake_flags, ninja_flags, llvm_src):
-    llvm_src_absolute = Path(llvm_src)
-    return ["cmake", *ninja_flags, *[f"-D{k}={v}" for k, v in cmake_flags.items()], str(llvm_src_absolute / "llvm")]
-
-
-class LlvmBuilderArguments:
-    def __init__(self, install_path, bootstrap_path, llvm_src, targets, ninja_target, subprojects=None):
-        self.subprojects = subprojects
-        self.ninja_target = ninja_target
-        self.llvm_src = llvm_src
-        self.bootstrap_path = bootstrap_path
-        self.install_path = install_path
-        self.targets = targets
+def run_command(command):
+    if Host.is_windows() and vsdevcmd is None:
+        raise Exception("vsdevcmd is not set!")
+    if Host.is_windows():
+        command = [vsdevcmd, "-arch=amd64", "&&"] + command
+    # TODO: Handle exit code
+    print("Running command: " + ' '.join(command))
+    subprocess.run(command, shell=True, check=True)
 
 
 def force_create_directory(parent, name) -> Path:
@@ -223,25 +119,12 @@ def force_create_directory(parent, name) -> Path:
     return build_path
 
 
-def llvm_build_commands(args: LlvmBuilderArguments) -> List[str]:
-    def construct_cmake_flags():
-        common_flags = CommonCMakeFlags(args.install_path)
-        if args.targets is not None:
-            common_flags.llvm_targets = args.targets
-        if args.subprojects is not None:
-            common_flags.subprojects = args.subprojects
-        host_flags = HostSpecificCMakeFlags.create()
-
-        return reduce(lambda a, b: {**a, **b}, [
-            common_flags.build(),
-            host_flags.build(),
-            host_flags.cmake_executables(args.bootstrap_path)
-        ])
-
-    cmake_flags = construct_cmake_flags()
-    ninja_flags = ["-G", "Ninja"]
-    cmake_command = ' '.join(build_cmake_call(cmake_flags, ninja_flags, args.llvm_src))
-    ninja_command = ' '.join(["ninja", args.ninja_target])
+def llvm_build_commands(
+        install_path, bootstrap_path, llvm_src, targets, ninja_target, subprojects
+) -> List[List[str]]:
+    cmake_flags = construct_cmake_flags(bootstrap_path, install_path, subprojects, targets)
+    cmake_command = ["cmake", "-G", "Ninja"] + cmake_flags + [llvm_src + "/llvm"]
+    ninja_command = ["ninja", ninja_target]
     return [cmake_command, ninja_command]
 
 
@@ -279,7 +162,6 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def build_distribution(args):
-    environment = Environment.create(args)
     current_dir = Path().absolute()
     num_stages = args.num_stages
     bootstrap_path = args.stage0
@@ -296,27 +178,28 @@ def build_distribution(args):
         else:
             install_path = force_create_directory(current_dir, f"llvm-stage-{stage}")
 
-        stage_llvm_args = LlvmBuilderArguments(
-            install_path=install_path,
-            bootstrap_path=bootstrap_path,
+        build_dir = force_create_directory(current_dir, f"llvm-stage-{stage}-build")
+        commands = llvm_build_commands(
+            install_path=absolute_path(install_path),
+            bootstrap_path=absolute_path(bootstrap_path),
             llvm_src=absolute_path(args.llvm_src),
             targets=targets,
             ninja_target="install",
+            subprojects=["clang", "lld", "libcxx", "libcxxabi"]
         )
-        build_dir = force_create_directory(current_dir, f"llvm-stage-{stage}-build")
-        commands = llvm_build_commands(stage_llvm_args)
 
         os.chdir(build_dir)
-        p = environment.execute_subprocess(commands)
-        p.wait()
+        for command in commands:
+            run_command(command)
         os.chdir(current_dir)
         bootstrap_path = install_path
 
     return args.install_path
 
 
-def create_archive(args, input_directory, output_path) -> bool:
-    return Environment.create(args).create_distribution_archive(input_directory, output_path)
+def create_archive(input_directory, output_path, compression=Host.default_compression()) -> str:
+    print("Creating archive " + output_path + " from " + input_directory)
+    return shutil.make_archive(output_path, compression, input_directory)
 
 
 def create_checksum_file(algorithm, input_path, output_path):
@@ -324,7 +207,7 @@ def create_checksum_file(algorithm, input_path, output_path):
     if algorithm == "sha256":
         checksum = hashlib.sha256()
         with open(input_path, "rb") as input_contents:
-            for chunk in iter(lambda _: input_contents.read(chunk_size), b""):
+            for chunk in iter(lambda: input_contents.read(chunk_size), b""):
                 checksum.update(chunk)
     else:
         print(f"{algorithm} is not supported for checksum file")
@@ -336,21 +219,21 @@ def create_checksum_file(algorithm, input_path, output_path):
 def main():
     parser = build_parser()
     args = parser.parse_args()
+    if args.vsdevcmd:
+        global vsdevcmd
+        vsdevcmd = args.vsdevcmd
     if args.llvm_src is None:
         print("Downloading LLVM sources...")
         args.llvm_src = absolute_path(clone_llvm_repository(args.repo, args.branch))
     final_dist = build_distribution(args)
     if args.archive_path is not None:
-        if not create_archive(args, final_dist, args.archive_path):
-            print("Failed to create distribution archive")
-            return False
-        if not create_checksum_file('sha256', args.archive_path, f"{args.archive_path}.sha256"):
+        archive = create_archive(final_dist, args.archive_path)
+        if not create_checksum_file("sha256", archive, f"{archive}.sha256"):
             print("Failed to create checksum file")
             return False
 
 
 # TODO:
-# 1. Add two-stage bootstrap build
 # 3. Add distribution naming
 # 5. Compute checksum.
 # 6. Clone llvm at specific directory
