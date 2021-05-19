@@ -4,8 +4,8 @@ from typing import List
 import hashlib
 import shlex
 
-
 vsdevcmd = None
+isysroot = None
 
 ninja = 'ninja'
 cmake = 'cmake'
@@ -53,7 +53,7 @@ def default_xcode_sdk_path():
 def construct_cmake_flags(
         bootstrap_llvm_path: str = None,
         install_path: str = None,
-        subprojects: List[str] = None,
+        projects: List[str] = None,
         runtimes: List[str] = None,
         targets: List[str] = None
 ) -> List[str]:
@@ -92,6 +92,7 @@ def construct_cmake_flags(
         "-DLLVM_INCLUDE_GO_TESTS=OFF",
         "-DLLVM_ENABLE_Z3_SOLVER=OFF",
         "-DCLANG_PLUGIN_SUPPORT=OFF",
+        "-DLLVM_INCLUDE_TESTS=OFF"
     ]
 
     if Host.is_darwin():
@@ -102,6 +103,7 @@ def construct_cmake_flags(
             '-DLIBCXX_ENABLE_STATIC=OFF',
             '-DLIBCXX_INCLUDE_TESTS=OFF',
             '-DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=OFF',
+            '-DLIBCXXABI_LINK_TESTS_WITH_SHARED_LIBCXX=ON'
         ])
         if building_bootstrap:
             cmake_args.extend([
@@ -125,8 +127,8 @@ def construct_cmake_flags(
         cmake_args.append("-DCMAKE_INSTALL_PREFIX=" + install_path)
     if targets is not None:
         cmake_args.append('-DLLVM_TARGETS_TO_BUILD=' + ";".join(targets))
-    if subprojects is not None:
-        cmake_args.append('-DLLVM_ENABLE_PROJECTS=' + ";".join(subprojects))
+    if projects is not None:
+        cmake_args.append('-DLLVM_ENABLE_PROJECTS=' + ";".join(projects))
     if runtimes is not None:
         cmake_args.append('-DLLVM_ENABLE_RUNTIMES=' + ";".join(runtimes))
     if c_compiler is not None:
@@ -168,8 +170,8 @@ def run_command(command: List[str]):
     command = [shlex.quote(arg) for arg in command]
     if not Host.is_windows():
         command = ' '.join(command)
-    # TODO: Handle exit code
     print("Running command: " + command)
+
     subprocess.run(command, shell=True, check=True)
 
 
@@ -183,15 +185,18 @@ def force_create_directory(parent, name) -> Path:
 
 
 def llvm_build_commands(
-        install_path, bootstrap_path, llvm_src, targets, ninja_target, subprojects, runtimes
+        install_path, bootstrap_path, llvm_src, targets, ninja_target, projects, runtimes
 ) -> List[List[str]]:
-    cmake_flags = construct_cmake_flags(bootstrap_path, install_path, subprojects, runtimes, targets)
+    cmake_flags = construct_cmake_flags(bootstrap_path, install_path, projects, runtimes, targets)
     cmake_command = [cmake, "-G", "Ninja"] + cmake_flags + [llvm_src + "/llvm"]
     ninja_command = [ninja, ninja_target]
     return [cmake_command, ninja_command]
 
 
-def clone_llvm_repository(repo, branch):
+def clone_llvm_repository(repo, branch, llvm_repo_destination):
+    """
+    Downloads a single commit from the given repository.
+    """
     if Host.is_darwin():
         default_repo, default_branch = "https://github.com/apple/llvm-project", "apple/stable/20200108"
     else:
@@ -199,65 +204,95 @@ def clone_llvm_repository(repo, branch):
     repo = default_repo if repo is None else repo
     branch = default_branch if branch is None else branch
     # Download only single commit because we don't need whole history just for building LLVM.
-    subprocess.run([git, "clone", repo, "--branch", branch, "--depth", "1", "llvm-project"])
-    return absolute_path("llvm-project")
+    run_command([git, "clone", repo, "--branch", branch, "--depth", "1", "llvm-project"])
+    return absolute_path(llvm_repo_destination)
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Build LLVM toochain for Kotlin/Native")
-    parser.add_argument("--llvm-sources", dest="llvm_src", type=str, default=None,
-                        help="Location of LLVM sources")
     parser.add_argument("--install-path", type=str, default="dist", required=True,
                         help="Where final LLVM distribution will be installed")
-    parser.add_argument("--stage0", type=str, default=None,
-                        help="Path to existing toolchain")
     parser.add_argument("--archive-path", default=None,
                         help="Create an archive and its sha256 for final distribution at given path")
-    parser.add_argument("--vsdevcmd", type=str, default=None, required=Host.is_windows(),
-                        help="(Windows only) Path to VsDevCmd.bat")
+
+    parser.add_argument("--stage0", type=str, default=None,
+                        help="Path to existing toolchain")
     parser.add_argument("--num-stages", type=int, default=2,
                         help="Number of stages in bootstrap.\n"
                              "Default is 2 meaning that we build LLVM and then use it to build itself.")
-    parser.add_argument("--repo", type=str, default=None)
-    # TODO: Use commit instead
-    parser.add_argument("--branch", type=str, default=None)
 
+    parser.add_argument("--save-temporary-files", type=bool, default=True,
+                        help="Should intermediate build results be saved?")
+
+    parser.add_argument("--llvm-sources", dest="llvm_src", type=str, default=None,
+                        help="Location of LLVM sources")
+    parser.add_argument("--repo", type=str, default=None)
+    parser.add_argument("--branch", type=str, default=None)
+    parser.add_argument("--llvm-repo-destination", type=str, default="llvm-project",
+                        help="Where LLVM repository should be downloaded.")
+
+    parser.add_argument("--vsdevcmd", type=str, default=None, required=Host.is_windows(),
+                        help="(Windows only) Path to VsDevCmd.bat")
     parser.add_argument("--ninja", type=str, default=None,
                         help="Override path to ninja")
     parser.add_argument("--cmake", type=str, default=None,
                         help="Override path to cmake")
     parser.add_argument("--git", type=str, default=None,
                         help="Override path to git")
+    parser.add_argument("--isysroot", type=str, default=None,
+                        help="Override path to macOS SDK")
 
     return parser
 
 
 def build_distribution(args):
+    """
+    Performs (probably multistage) build of LLVM
+    and returns path to the final distribution.
+    """
     current_dir = Path().absolute()
     num_stages = args.num_stages
     bootstrap_path = args.stage0
+    intermediate_build_results = []
+    # Most likely, num_stages will be 1 or 2.
+    # 2 means bootstrap build: we build LLVM distribution (stage 1)
+    # that then compiles sources once again (stage 2). Thus, resulting
+    # distribution is (almost) independent from environment, which means
+    # reproducibility and less bugs.
+    #
+    # Sometimes it makes sense to generate yet another distribution to check
+    # that it is the same as built at stage 2 (so there is no non-determinism in LLVM).
     for stage in range(1, num_stages + 1):
-        if num_stages > 1 and stage == 1:
-            # We only need host target to start a bootstrap.
+        building_bootstrap = num_stages > 1 and stage == 1
+        building_final = stage == num_stages
+
+        if building_bootstrap:
+            # We only need a host target to start a bootstrap.
             targets = [Host.llvm_target()]
         else:
-            # None targets means all targets.
+            # None targets means all available targets.
             targets = None
 
-        if stage == num_stages:
+        if building_final:
             install_path = args.install_path
         else:
             install_path = force_create_directory(current_dir, f"llvm-stage-{stage}")
+            intermediate_build_results.append(install_path)
+
+        projects = ["clang", "lld", "libcxx", "libcxxabi", "compiler-rt"]
+        runtimes = None
+        ninja_target = "install"
 
         build_dir = force_create_directory(current_dir, f"llvm-stage-{stage}-build")
+        intermediate_build_results.append(build_dir)
         commands = llvm_build_commands(
             install_path=absolute_path(install_path),
             bootstrap_path=absolute_path(bootstrap_path),
             llvm_src=absolute_path(args.llvm_src),
             targets=targets,
-            ninja_target="install",
-            subprojects=["clang", "lld", "libcxx", "libcxxabi", "compiler-rt"],
-            runtimes=None
+            ninja_target=ninja_target,
+            projects=projects,
+            runtimes=runtimes
         )
 
         os.chdir(build_dir)
@@ -266,63 +301,74 @@ def build_distribution(args):
         os.chdir(current_dir)
         bootstrap_path = install_path
 
+    if not args.save_temporary_files:
+        print("Cleaning up")
+        for dir in intermediate_build_results:
+            print(f"Removing {dir}")
+            shutil.rmtree(dir)
+
     return args.install_path
 
 
 def create_archive(input_directory, output_path, compression=host_default_compression()) -> str:
     print("Creating archive " + output_path + " from " + input_directory)
-    return shutil.make_archive(output_path, compression, input_directory)
+    base_directory = os.path.basename(os.path.normpath(input_directory))
+    return shutil.make_archive(output_path, compression, input_directory, base_directory)
 
 
-def create_checksum_file(algorithm, input_path, output_path):
+def create_checksum_file(input_path, output_path):
     chunk_size = 4096
-    if algorithm == "sha256":
-        checksum = hashlib.sha256()
-        with open(input_path, "rb") as input_contents:
-            for chunk in iter(lambda: input_contents.read(chunk_size), b""):
-                checksum.update(chunk)
-    else:
-        print(f"{algorithm} is not supported for checksum file")
-        return False
+    checksum = hashlib.sha256()
+    with open(input_path, "rb") as input_contents:
+        for chunk in iter(lambda: input_contents.read(chunk_size), b""):
+            checksum.update(chunk)
     print(checksum.hexdigest(), file=open(output_path, "w"))
     return True
+
+
+def setup_environment(args):
+    """
+    Setup globals that store information about script execution environment.
+    """
+    global vsdevcmd, ninja, cmake, git, isysroot
+    if args.ninja:
+        ninja = args.ninja
+    if args.cmake:
+        cmake = args.cmake
+    if args.git:
+        git = args.git
+    if Host.is_windows():
+        if args.vsdevcmd:
+            vsdevcmd = args.vsdevcmd
+    elif Host.is_darwin():
+        if args.isysroot:
+            isysroot = args.isysroot
+        else:
+            isysroot = default_xcode_sdk_path()
+
+
+def check_args_consistency(args):
+    should_use_existing_sources = args.llvm_src is not None
+    should_download_llvm = args.llvm_repo_destination is not None or args.repo is not None or args.branch is not None
+    if should_use_existing_sources and should_download_llvm:
+        raise Exception("Cannot download LLVM and use existing sources at the same time!")
 
 
 def main():
     parser = build_parser()
     args = parser.parse_args()
-    if args.vsdevcmd:
-        global vsdevcmd
-        vsdevcmd = args.vsdevcmd
-    if args.ninja:
-        global ninja
-        ninja = args.ninja
-    if args.cmake:
-        global cmake
-        cmake = args.cmake
-    if args.git:
-        global git
-        git = args.git
+    check_args_consistency(args)
+    setup_environment(args)
     if args.llvm_src is None:
-        print("Downloading LLVM sources...")
-        args.llvm_src = absolute_path(clone_llvm_repository(args.repo, args.branch))
+        args.llvm_src = clone_llvm_repository(args.repo, args.branch, args.llvm_repo_destination)
     final_dist = build_distribution(args)
     if args.archive_path is not None:
         archive = create_archive(final_dist, args.archive_path)
-        if not create_checksum_file("sha256", archive, f"{archive}.sha256"):
-            print("Failed to create checksum file")
-            return False
+        create_checksum_file(archive, f"{archive}.sha256")
 
 
 # TODO:
 # 3. Add distribution naming
-# 5. Compute checksum.
-# 6. Clone llvm at specific directory
-# 7. Add cleanup of build directories
-# 8. Resolve logic duplication in program arguments
-# 9. Build compiler-rt and libcxx as runtimes, not projects
-# 11. Xcode sysroot as optional program argument
-# 12. Use commit instead of branch
+# * Check that dependencies in path
 if __name__ == "__main__":
-    if not main():
-        sys.exit(1)
+    main()
