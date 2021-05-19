@@ -101,7 +101,7 @@ internal class KonanIrLinker(
         if (klib is KotlinLibrary && klib.isInteropLibrary()) {
             // See https://youtrack.jetbrains.com/issue/KT-43517.
             // Disabling this flag forces linker to generate IR.
-            val isCached = false //cachedLibraries.isLibraryCached(klib)
+            val isCached = cachedLibraries.isLibraryCached(klib)
             return KonanInteropModuleDeserializer(moduleDescriptor, isCached)
         }
 
@@ -128,13 +128,22 @@ internal class KonanIrLinker(
                 moduleDescriptor, KonanManglerDesc,
                 DescriptorByIdSignatureFinder.LookupMode.MODULE_ONLY
         )
+
+        private val descriptorCache: MutableMap<IdSignature, DeclarationDescriptor> =
+                mutableMapOf()
+
         private fun IdSignature.isInteropSignature(): Boolean = IdSignature.Flags.IS_NATIVE_INTEROP_LIBRARY.test()
 
         override fun contains(idSig: IdSignature): Boolean {
             if (idSig.isPublic) {
                 if (idSig.isInteropSignature()) {
                     // TODO: add descriptor cache??
-                    return descriptorByIdSignatureFinder.findDescriptorBySignature(idSig) != null
+                    val descriptor = descriptorByIdSignatureFinder.findDescriptorBySignature(idSig)
+                    if (descriptor != null) {
+                        descriptorCache[idSig] = descriptor
+                        return true
+                    }
+                    return false
                 }
             }
 
@@ -157,7 +166,7 @@ internal class KonanIrLinker(
         }
 
         override fun deserializeIrSymbol(idSig: IdSignature, symbolKind: BinarySymbolData.SymbolKind): IrSymbol {
-            val descriptor = descriptorByIdSignatureFinder.findDescriptorBySignature(idSig) ?: error("Expecting descriptor for $idSig")
+            val descriptor = descriptorCache.getValue(idSig)
             // If library is cached we don't need to create an IrClass for struct or enum.
             if (!isLibraryCached && descriptor.isCEnumsOrCStruct()) return resolveCEnumsOrStruct(descriptor, idSig, symbolKind)
 
