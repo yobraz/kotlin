@@ -282,14 +282,14 @@ internal class PropertyDelegationLowering(val context: Context) : FileLoweringPa
 
     private fun isKMutablePropertyType(type: IrType): Boolean {
         if (type !is IrSimpleType) return false
-        val expectedClass = when (type.arguments.size) {
+        val expectedClassSignature = when (type.arguments.size) {
             0 -> return false
-            1 -> context.ir.symbols.kMutableProperty0
-            2 -> context.ir.symbols.kMutableProperty1
-            3 -> context.ir.symbols.kMutableProperty2
+            1 -> context.ir.symbols.kMutableProperty0Signature
+            2 -> context.ir.symbols.kMutableProperty1Signature
+            3 -> context.ir.symbols.kMutableProperty2Signature
             else -> throw AssertionError("More than 2 receivers is not allowed")
         }
-        return type.classifier == expectedClass
+        return type.classifier.signature == expectedClassSignature
     }
 
     private object DECLARATION_ORIGIN_KPROPERTIES_FOR_DELEGATION :

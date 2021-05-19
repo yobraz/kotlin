@@ -628,8 +628,8 @@ private class InteropLoweringPart1(val context: Context) : BaseInteropIrTransfor
             }
         }
 
-        return when (callee.symbol) {
-            symbols.interopTypeOf -> {
+        return when (callee.symbol.signature) {
+            symbols.interopTypeOfSignature -> {
                 val typeArgument = expression.getSingleTypeArgument()
                 val classSymbol = typeArgument.classifierOrNull as? IrClassSymbol
 

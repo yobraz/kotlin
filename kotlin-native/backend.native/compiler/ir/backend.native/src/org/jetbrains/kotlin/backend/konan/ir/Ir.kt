@@ -13,6 +13,8 @@ import org.jetbrains.kotlin.backend.konan.descriptors.enumEntries
 import org.jetbrains.kotlin.backend.konan.descriptors.kotlinNativeInternal
 import org.jetbrains.kotlin.backend.konan.llvm.findMainEntryPoint
 import org.jetbrains.kotlin.backend.konan.lower.TestProcessor
+import org.jetbrains.kotlin.backend.konan.serialization.KonanIdSignaturer
+import org.jetbrains.kotlin.backend.konan.serialization.KonanManglerDesc
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.builtins.UnsignedType
@@ -34,6 +36,7 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.calls.components.isVararg
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.Variance
@@ -52,18 +55,25 @@ internal class KonanSymbols(
         val functionIrClassFactory: BuiltInFictitiousFunctionIrClassFactory
 ): Symbols<Context>(context, irBuiltIns, symbolTable) {
 
+    private val signaturer = KonanIdSignaturer(KonanManglerDesc)
+
+    private fun computeSignature(descriptor: DeclarationDescriptor): IdSignature {
+        return signaturer.composeSignature(descriptor)
+                ?: error("Can't compute signature for ${descriptor.fqNameSafe}")
+    }
+
     val entryPoint = findMainEntryPoint(context)?.let { symbolTable.referenceSimpleFunction(it) }
 
     override val externalSymbolTable = lazySymbolTable
 
     val nothing = symbolTable.referenceClass(builtIns.nothing)
     val throwable = symbolTable.referenceClass(builtIns.throwable)
-    val enum = symbolTable.referenceClass(builtIns.enum)
+    val enumSignature = computeSignature(builtIns.enum)
     val nativePtr = symbolTable.referenceClass(context.nativePtr)
     val nativePointed = symbolTable.referenceClass(context.interopBuiltIns.nativePointed)
     val nativePtrType = nativePtr.typeWith(arguments = emptyList())
 
-    val immutableBlobOf = symbolTable.referenceSimpleFunction(context.immutableBlobOf)
+    val immutableBlobOfSignature = computeSignature(context.immutableBlobOf)
 
     private fun unsignedClass(unsignedType: UnsignedType): IrClassSymbol = classById(unsignedType.classId)
 
@@ -135,7 +145,7 @@ internal class KonanSymbols(
     val interopCValueRead = symbolTable.referenceSimpleFunction(context.interopBuiltIns.cValueRead)
     val interopAllocType = symbolTable.referenceSimpleFunction(context.interopBuiltIns.allocType)
 
-    val interopTypeOf = symbolTable.referenceSimpleFunction(context.interopBuiltIns.typeOf)
+    val interopTypeOfSignature = computeSignature(context.interopBuiltIns.typeOf)
 
     val interopCPointerGetRawValue = symbolTable.referenceSimpleFunction(context.interopBuiltIns.cPointerGetRawValue)
 
@@ -189,7 +199,7 @@ internal class KonanSymbols(
 
     val createForeignException = interopFunction("CreateForeignException")
 
-    val interopCEnumVar = interopClass("CEnumVar")
+    val interopCEnumVarSignature = interopSignature("CEnumVar")
 
     val nativeMemUtils = symbolTable.referenceClass(context.interopBuiltIns.nativeMemUtils)
 
@@ -233,7 +243,7 @@ internal class KonanSymbols(
                     .single()
     )
 
-    val createCleaner = symbolTable.referenceSimpleFunction(
+    val createCleanerSignature = computeSignature(
             builtIns.builtInsModule.getPackage(FqName("kotlin.native.internal")).memberScope
                     .getContributedFunctions(Name.identifier("createCleaner"), NoLookupLocation.FROM_BACKEND)
                     .single()
@@ -414,9 +424,9 @@ internal class KonanSymbols(
     val kFunctionImpl =  symbolTable.referenceClass(context.reflectionTypes.kFunctionImpl)
     val kSuspendFunctionImpl =  symbolTable.referenceClass(context.reflectionTypes.kSuspendFunctionImpl)
 
-    val kMutableProperty0 = symbolTable.referenceClass(context.reflectionTypes.kMutableProperty0)
-    val kMutableProperty1 = symbolTable.referenceClass(context.reflectionTypes.kMutableProperty1)
-    val kMutableProperty2 = symbolTable.referenceClass(context.reflectionTypes.kMutableProperty2)
+    val kMutableProperty0Signature = computeSignature(context.reflectionTypes.kMutableProperty0)
+    val kMutableProperty1Signature = computeSignature(context.reflectionTypes.kMutableProperty1)
+    val kMutableProperty2Signature = computeSignature(context.reflectionTypes.kMutableProperty2)
 
     val kProperty0Impl = symbolTable.referenceClass(context.reflectionTypes.kProperty0Impl)
     val kProperty1Impl = symbolTable.referenceClass(context.reflectionTypes.kProperty1Impl)
@@ -519,6 +529,11 @@ internal class KonanSymbols(
     )
 
     private fun interopClass(name: String) = symbolTable.referenceClass(
+            context.interopBuiltIns.packageScope
+                    .getContributedClassifier(Name.identifier(name), NoLookupLocation.FROM_BACKEND) as ClassDescriptor
+    )
+
+    private fun interopSignature(name: String) = computeSignature(
             context.interopBuiltIns.packageScope
                     .getContributedClassifier(Name.identifier(name), NoLookupLocation.FROM_BACKEND) as ClassDescriptor
     )

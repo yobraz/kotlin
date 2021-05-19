@@ -466,12 +466,12 @@ private class BackendChecker(val context: Context, val irFile: IrFile) : IrEleme
                     reportBoundFunctionReferenceError(expression, callee, captures)
             }
             else -> when {
-                callee.symbol == symbols.createCleaner -> {
+                callee.symbol.signature == symbols.createCleanerSignature -> {
                     val (function, captures) = getUnboundReferencedFunction(expression.getValueArgument(1)!!)
                     if (function == null)
                         reportBoundFunctionReferenceError(expression, callee, captures)
                 }
-                callee.symbol == symbols.immutableBlobOf -> {
+                callee.symbol.signature == symbols.immutableBlobOfSignature -> {
                     val args = expression.getValueArgument(0)
                             ?: reportError(expression, "expected at least one element")
                     val elements = (args as IrVararg).elements

@@ -82,7 +82,7 @@ internal class EnumUsageLowering(val context: Context)
 
         val irClassSymbol = expression.getTypeArgument(0)!!.classifierOrNull as? IrClassSymbol
 
-        if (irClassSymbol == null || irClassSymbol == context.ir.symbols.enum) {
+        if (irClassSymbol == null || irClassSymbol.signature == context.ir.symbols.enumSignature) {
             // Either a type parameter or a type parameter erased to 'Enum'.
             return data.irCall(context.ir.symbols.throwIllegalStateException)
         }

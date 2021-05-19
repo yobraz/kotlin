@@ -72,7 +72,7 @@ internal class PostInlineLowering(val context: Context) : BodyLoweringPass {
                 // Function inlining is changing function symbol at callsite
                 // and unbound symbol replacement is happening later.
                 // So we compare descriptors for now.
-                if (expression.symbol == symbols.immutableBlobOf) {
+                if (expression.symbol.signature == symbols.immutableBlobOfSignature) {
                     // Convert arguments of the binary blob to special IrConst<String> structure, so that
                     // vararg lowering will not affect it.
                     val args = expression.getValueArgument(0) as? IrVararg

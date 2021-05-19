@@ -103,7 +103,7 @@ internal fun IrType.isCStructFieldSupportedReferenceType(symbols: KonanSymbols):
  */
 internal fun IrFunction.isCEnumVarValueAccessor(symbols: KonanSymbols): Boolean {
     val parent = parent as? IrClass ?: return false
-    return if (symbols.interopCEnumVar in parent.superClasses && isPropertyAccessor) {
+    return if (symbols.interopCEnumVarSignature in parent.superClasses.map { it.signature } && isPropertyAccessor) {
         (propertyIfAccessor as IrProperty).name.asString() == "value"
     } else {
         false
