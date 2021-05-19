@@ -2,9 +2,14 @@ import argparse, subprocess, shutil, os, sys
 from pathlib import Path
 from typing import List
 import hashlib
+import shlex
 
 
 vsdevcmd = None
+
+ninja = 'ninja'
+cmake = 'cmake'
+git = 'git'
 
 
 def absolute_path(path):
@@ -32,22 +37,31 @@ class Host:
     def llvm_target():
         return "Native"
 
-    @staticmethod
-    def default_compression():
-        if Host.is_windows():
-            return "zip"
-        else:
-            return "gztar"
+
+def host_default_compression():
+    if Host.is_windows():
+        return "zip"
+    else:
+        return "gztar"
+
+
+def default_xcode_sdk_path():
+    return subprocess.check_output(['xcrun', '--show-sdk-path'],
+                                   universal_newlines=True).rstrip()
 
 
 def construct_cmake_flags(
         bootstrap_llvm_path: str = None,
         install_path: str = None,
         subprojects: List[str] = None,
+        runtimes: List[str] = None,
         targets: List[str] = None
 ) -> List[str]:
+    building_bootstrap = bootstrap_llvm_path is None
+
     c_compiler, cxx_compiler, linker, ar = None, None, None, None
-    if bootstrap_llvm_path is not None:
+    c_flags, cxx_flags, linker_flags = None, None, None
+    if not building_bootstrap:
         if Host.is_windows():
             # CMake is not tolerant to backslashes
             c_compiler = f"{bootstrap_llvm_path}/bin/clang-cl.exe".replace('\\', '/')
@@ -62,22 +76,59 @@ def construct_cmake_flags(
         elif Host.is_darwin():
             c_compiler = f"{bootstrap_llvm_path}/bin/clang"
             cxx_compiler = f"{bootstrap_llvm_path}/bin/clang++"
+            # ld64.lld is not that good yet.
             linker = None
             ar = f"{bootstrap_llvm_path}/bin/llvm-ar"
+            # TODO: Allow sysroot as program argument
+            isysroot = default_xcode_sdk_path()
+            c_flags = ['-isysroot', isysroot]
+            cxx_flags = ['-isysroot', isysroot, '-stdlib=libc++']
+            linker_flags = ['-stdlib=libc++']
 
     cmake_args = [
         "-DCMAKE_BUILD_TYPE=Release",
         "-DLLVM_ENABLE_ASSERTIONS=OFF",
         "-DLLVM_ENABLE_TERMINFO=OFF",
-        "-DLLVM_INCLUDE_GO_TESTS=OFF"
+        "-DLLVM_INCLUDE_GO_TESTS=OFF",
+        "-DLLVM_ENABLE_Z3_SOLVER=OFF",
+        "-DCLANG_PLUGIN_SUPPORT=OFF",
     ]
+
+    if Host.is_darwin():
+        cmake_args.append('-DLLVM_ENABLE_LIBCXX=ON')
+        cmake_args.append('-DCOMPILER_RT_BUILD_BUILTINS=ON')
+        cmake_args.extend([
+            '-DLIBCXX_ENABLE_SHARED=OFF',
+            '-DLIBCXX_ENABLE_STATIC=OFF',
+            '-DLIBCXX_INCLUDE_TESTS=OFF',
+            '-DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=OFF',
+        ])
+        if building_bootstrap:
+            cmake_args.extend([
+                '-DCOMPILER_RT_BUILD_BUILTINS=ON',
+                '-DCOMPILER_RT_BUILD_CRT=OFF',
+                '-DCOMPILER_RT_BUILD_LIBFUZZER=OFF',
+                '-DCOMPILER_RT_BUILD_MEMPROF=OFF',
+                '-DCOMPILER_RT_BUILD_ORC=OFF',
+                '-DCOMPILER_RT_BUILD_SANITIZERS=OFF',
+                '-DCOMPILER_RT_BUILD_XRAY=OFF',
+                '-DCOMPILER_RT_ENABLE_IOS=OFF',
+                '-DCOMPILER_RT_ENABLE_WATCHOS=OFF',
+                '-DCOMPILER_RT_ENABLE_TVOS=OFF',
+            ])
+        else:
+            cmake_args.append('-DLIBCXX_USE_COMPILER_RT=ON')
+    else:
+        cmake_args.append('-DCOMPILER_RT_BUILD_BUILTINS=OFF')
 
     if install_path is not None:
         cmake_args.append("-DCMAKE_INSTALL_PREFIX=" + install_path)
     if targets is not None:
-        cmake_args.append("-DLLVM_TARGETS_TO_BUILD=" + ";".join(targets))
+        cmake_args.append('-DLLVM_TARGETS_TO_BUILD=' + ";".join(targets))
     if subprojects is not None:
-        cmake_args.append("-DLLVM_ENABLE_PROJECTS=" + ";".join(subprojects))
+        cmake_args.append('-DLLVM_ENABLE_PROJECTS=' + ";".join(subprojects))
+    if runtimes is not None:
+        cmake_args.append('-DLLVM_ENABLE_RUNTIMES=' + ";".join(runtimes))
     if c_compiler is not None:
         cmake_args.append('-DCMAKE_C_COMPILER=' + c_compiler)
     if cxx_compiler is not None:
@@ -86,6 +137,15 @@ def construct_cmake_flags(
         cmake_args.append('-DCMAKE_LINKER=' + linker)
     if c_compiler is not None:
         cmake_args.append('-DCMAKE_AR=' + ar)
+
+    if c_flags is not None:
+        cmake_args.append("-DCMAKE_C_FLAGS=" + ' '.join(c_flags))
+    if cxx_flags is not None:
+        cmake_args.append("-DCMAKE_CXX_FLAGS=" + ' '.join(cxx_flags))
+    if linker_flags is not None:
+        cmake_args.append('-DCMAKE_EXE_LINKER_FLAGS=' + ' '.join(linker_flags))
+        cmake_args.append('-DCMAKE_MODULE_LINKER_FLAGS=' + ' '.join(linker_flags))
+        cmake_args.append('-DCMAKE_SHARED_LINKER_FLAGS=' + ' '.join(linker_flags))
 
     if Host.is_windows():
         cmake_args.append("-DLLVM_USE_CRT_RELEASE=MT")
@@ -100,31 +160,34 @@ def construct_cmake_flags(
     return cmake_args
 
 
-def run_command(command):
+def run_command(command: List[str]):
     if Host.is_windows() and vsdevcmd is None:
         raise Exception("vsdevcmd is not set!")
     if Host.is_windows():
         command = [vsdevcmd, "-arch=amd64", "&&"] + command
+    command = [shlex.quote(arg) for arg in command]
+    if not Host.is_windows():
+        command = ' '.join(command)
     # TODO: Handle exit code
-    print("Running command: " + ' '.join(command))
+    print("Running command: " + command)
     subprocess.run(command, shell=True, check=True)
 
 
 def force_create_directory(parent, name) -> Path:
     build_path = parent / name
+    print(f"Force-creating directory {build_path}")
     if build_path.exists():
-        print("Removing existing build directory")
         shutil.rmtree(build_path)
     os.mkdir(build_path)
     return build_path
 
 
 def llvm_build_commands(
-        install_path, bootstrap_path, llvm_src, targets, ninja_target, subprojects
+        install_path, bootstrap_path, llvm_src, targets, ninja_target, subprojects, runtimes
 ) -> List[List[str]]:
-    cmake_flags = construct_cmake_flags(bootstrap_path, install_path, subprojects, targets)
-    cmake_command = ["cmake", "-G", "Ninja"] + cmake_flags + [llvm_src + "/llvm"]
-    ninja_command = ["ninja", ninja_target]
+    cmake_flags = construct_cmake_flags(bootstrap_path, install_path, subprojects, runtimes, targets)
+    cmake_command = [cmake, "-G", "Ninja"] + cmake_flags + [llvm_src + "/llvm"]
+    ninja_command = [ninja, ninja_target]
     return [cmake_command, ninja_command]
 
 
@@ -136,7 +199,7 @@ def clone_llvm_repository(repo, branch):
     repo = default_repo if repo is None else repo
     branch = default_branch if branch is None else branch
     # Download only single commit because we don't need whole history just for building LLVM.
-    subprocess.run(["git", "clone", repo, "--branch", branch, "--depth", "1", "llvm-project"])
+    subprocess.run([git, "clone", repo, "--branch", branch, "--depth", "1", "llvm-project"])
     return absolute_path("llvm-project")
 
 
@@ -149,7 +212,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--stage0", type=str, default=None,
                         help="Path to existing toolchain")
     parser.add_argument("--archive-path", default=None,
-                        help="Create an archive for final distribution at given path")
+                        help="Create an archive and its sha256 for final distribution at given path")
     parser.add_argument("--vsdevcmd", type=str, default=None, required=Host.is_windows(),
                         help="(Windows only) Path to VsDevCmd.bat")
     parser.add_argument("--num-stages", type=int, default=2,
@@ -158,6 +221,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--repo", type=str, default=None)
     # TODO: Use commit instead
     parser.add_argument("--branch", type=str, default=None)
+
+    parser.add_argument("--ninja", type=str, default=None,
+                        help="Override path to ninja")
+    parser.add_argument("--cmake", type=str, default=None,
+                        help="Override path to cmake")
+    parser.add_argument("--git", type=str, default=None,
+                        help="Override path to git")
+
     return parser
 
 
@@ -185,7 +256,8 @@ def build_distribution(args):
             llvm_src=absolute_path(args.llvm_src),
             targets=targets,
             ninja_target="install",
-            subprojects=["clang", "lld", "libcxx", "libcxxabi"]
+            subprojects=["clang", "lld", "libcxx", "libcxxabi", "compiler-rt"],
+            runtimes=None
         )
 
         os.chdir(build_dir)
@@ -197,7 +269,7 @@ def build_distribution(args):
     return args.install_path
 
 
-def create_archive(input_directory, output_path, compression=Host.default_compression()) -> str:
+def create_archive(input_directory, output_path, compression=host_default_compression()) -> str:
     print("Creating archive " + output_path + " from " + input_directory)
     return shutil.make_archive(output_path, compression, input_directory)
 
@@ -222,6 +294,15 @@ def main():
     if args.vsdevcmd:
         global vsdevcmd
         vsdevcmd = args.vsdevcmd
+    if args.ninja:
+        global ninja
+        ninja = args.ninja
+    if args.cmake:
+        global cmake
+        cmake = args.cmake
+    if args.git:
+        global git
+        git = args.git
     if args.llvm_src is None:
         print("Downloading LLVM sources...")
         args.llvm_src = absolute_path(clone_llvm_repository(args.repo, args.branch))
@@ -237,8 +318,11 @@ def main():
 # 3. Add distribution naming
 # 5. Compute checksum.
 # 6. Clone llvm at specific directory
-# 7. Add cleanup
+# 7. Add cleanup of build directories
 # 8. Resolve logic duplication in program arguments
+# 9. Build compiler-rt and libcxx as runtimes, not projects
+# 11. Xcode sysroot as optional program argument
+# 12. Use commit instead of branch
 if __name__ == "__main__":
     if not main():
         sys.exit(1)
