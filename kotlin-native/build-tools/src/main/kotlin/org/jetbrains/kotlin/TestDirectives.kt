@@ -35,12 +35,7 @@ fun buildCompileList(
     // Remove diagnostic parameters in external tests.
     val srcText = srcFile.readText().replace(Regex("<!.*?!>(.*?)<!>")) { match -> match.groupValues[1] }
 
-    var supportModule: TestModule? = null
-    if (srcText.contains("// WITH_COROUTINES")) {
-        supportModule = TestModule.support()
-        result.add(TestFile("helpers.kt", "$outputDirectory/helpers.kt",
-                createTextForHelpers(), supportModule))
-    }
+    var supportModule: TestModule? = if (srcText.contains("// WITH_COROUTINES")) TestModule.support() else null
 
     val moduleMatcher = MODULE_PATTERN.matcher(srcText)
     val fileMatcher = FILE_PATTERN.matcher(srcText)

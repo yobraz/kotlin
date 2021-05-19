@@ -523,6 +523,11 @@ fun runTest() {
                     compileList.addAll(createTestFiles(src, defaultModule))
                 }
             }
+            if (compileList.any { it.module.dependencies.contains("support") }) {
+                def supportModule = TestModule.support()
+                compileList.add(new TestFile("helpers.kt", "$outputDirectory/helpers.kt",
+                        CoroutineTestUtilKt.createTextForHelpers(), supportModule))
+            }
             compileList*.writeTextToFile()
             try {
                 if (enableTwoStageCompilation) {
