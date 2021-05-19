@@ -30146,6 +30146,11 @@ public class DiagnosisCompilerTestFE10TestdataTestGenerated extends AbstractDiag
                 runTest("compiler/testData/diagnostics/testsWithStdLib/experimental/incorrectUseExperimental.kt");
             }
 
+            @TestMetadata("interfaceUsages.kt")
+            public void testInterfaceUsages() throws Exception {
+                runTest("compiler/testData/diagnostics/testsWithStdLib/experimental/interfaceUsages.kt");
+            }
+
             @TestMetadata("kt37786.kt")
             public void testKt37786() throws Exception {
                 runTest("compiler/testData/diagnostics/testsWithStdLib/experimental/kt37786.kt");
