@@ -173,14 +173,6 @@ open class BuiltinSymbolsBase(protected val irBuiltIns: IrBuiltIns, protected va
                 it.valueParameters[0].isVararg
     }
 
-    val primitiveArrayOfByType = PrimitiveType.values().associate { type ->
-        val function = getSimpleFunction(Name.identifier(type.name.toLowerCaseAsciiOnly() + "ArrayOf")) {
-            it.extensionReceiverParameter == null && it.dispatchReceiverParameter == null && it.valueParameters.size == 1 &&
-                    it.valueParameters[0].isVararg
-        }
-        type to function
-    }
-
     val arrayOfNulls = getSimpleFunction(Name.identifier("arrayOfNulls")) {
         it.extensionReceiverParameter == null && it.dispatchReceiverParameter == null && it.valueParameters.size == 1 &&
                 KotlinBuiltIns.isInt(it.valueParameters[0].type)
