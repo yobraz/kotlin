@@ -62,8 +62,6 @@ internal class KonanSymbols(
     val nativePtr = symbolTable.referenceClass(context.nativePtr)
     val nativePointed = symbolTable.referenceClass(context.interopBuiltIns.nativePointed)
     val nativePtrType = nativePtr.typeWith(arguments = emptyList())
-    val nonNullNativePtr = symbolTable.referenceClass(context.nonNullNativePtr)
-    val nonNullNativePtrType = nonNullNativePtr.typeWith(arguments = emptyList())
 
     val immutableBlobOf = symbolTable.referenceSimpleFunction(context.immutableBlobOf)
 
@@ -145,12 +143,6 @@ internal class KonanSymbols(
 
     val interopForeignObjCObject = interopClass("ForeignObjCObject")
 
-    // These are possible supertypes of forward declarations - we need to reference them explicitly to force their deserialization.
-    // TODO: Do it lazily.
-    val interopCOpaque = symbolTable.referenceClass(context.interopBuiltIns.cOpaque)
-    val interopObjCObject = symbolTable.referenceClass(context.interopBuiltIns.objCObject)
-    val interopObjCObjectBase = symbolTable.referenceClass(context.interopBuiltIns.objCObjectBase)
-
     val interopObjCRelease = interopFunction("objc_release")
 
     val interopObjCRetain = interopFunction("objc_retain")
@@ -195,12 +187,7 @@ internal class KonanSymbols(
     val interopInterpretCPointer =
             symbolTable.referenceSimpleFunction(context.interopBuiltIns.interpretCPointer)
 
-    val interopCreateNSStringFromKString =
-            symbolTable.referenceSimpleFunction(context.interopBuiltIns.CreateNSStringFromKString)
-
     val createForeignException = interopFunction("CreateForeignException")
-
-    val interopObjCGetSelector = interopFunction("objCGetSelector")
 
     val interopCEnumVar = interopClass("CEnumVar")
 
@@ -283,7 +270,6 @@ internal class KonanSymbols(
     val throwInvalidReceiverTypeException = internalFunction("ThrowInvalidReceiverTypeException")
     val throwIllegalStateException = internalFunction("ThrowIllegalStateException")
     val throwIllegalStateExceptionWithMessage = internalFunction("ThrowIllegalStateExceptionWithMessage")
-    val throwIllegalArgumentException = internalFunction("ThrowIllegalArgumentException")
     val throwIllegalArgumentExceptionWithMessage = internalFunction("ThrowIllegalArgumentExceptionWithMessage")
 
 
@@ -298,11 +284,6 @@ internal class KonanSymbols(
     override val defaultConstructorMarker = symbolTable.referenceClass(
             context.getKonanInternalClass("DefaultConstructorMarker")
     )
-
-    val checkProgressionStep = context.getKonanInternalFunctions("checkProgressionStep")
-            .map { Pair(it.returnType, symbolTable.referenceSimpleFunction(it)) }.toMap()
-    val getProgressionLast = context.getKonanInternalFunctions("getProgressionLast")
-            .map { Pair(it.returnType, symbolTable.referenceSimpleFunction(it)) }.toMap()
 
     val arrayContentToString = arrays.associateBy(
             { it },
@@ -328,12 +309,6 @@ internal class KonanSymbols(
         return symbolTable.referenceSimpleFunction(functionDescriptor)
     }
     override val copyRangeTo get() = TODO()
-
-    fun getNoParamFunction(name: Name, receiverType: KotlinType): IrFunctionSymbol {
-        val descriptor = receiverType.memberScope.getContributedFunctions(name, NoLookupLocation.FROM_BACKEND)
-                .first { it.valueParameters.isEmpty() }
-        return symbolTable.referenceFunction(descriptor)
-    }
     
     val copyInto = arrays.map { symbol ->
         val packageViewDescriptor = builtIns.builtInsModule.getPackage(StandardNames.COLLECTIONS_PACKAGE_FQ_NAME)
@@ -376,11 +351,6 @@ internal class KonanSymbols(
             builtInsPackage("kotlin", "io").getContributedFunctions(
                     Name.identifier("println"), NoLookupLocation.FROM_BACKEND)
                     .single { it.valueParameters.singleOrNull()?.type == builtIns.stringType })
-
-    val anyNToString = symbolTable.referenceSimpleFunction(
-            builtInsPackage("kotlin").getContributedFunctions(
-                    Name.identifier("toString"), NoLookupLocation.FROM_BACKEND)
-                    .single { it.extensionReceiverParameter?.type == builtIns.nullableAnyType})
 
     override val getContinuation = internalFunction("getContinuation")
 
