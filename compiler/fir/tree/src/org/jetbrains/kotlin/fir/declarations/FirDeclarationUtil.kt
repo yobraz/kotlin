@@ -20,6 +20,8 @@ import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.fir.types.ConeFlexibleType
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.coneTypeSafe
+import org.jetbrains.kotlin.metadata.ProtoBuf
+import org.jetbrains.kotlin.metadata.deserialization.NameResolver
 
 fun FirTypeParameterBuilder.addDefaultBoundIfNecessary(isFlexible: Boolean = false) {
     if (bounds.isEmpty()) {
@@ -178,6 +180,12 @@ fun FirRegularClass.addDeclaration(declaration: FirDeclaration) {
 private object SourceElementKey : FirDeclarationDataKey()
 
 var FirRegularClass.sourceElement: SourceElement? by FirDeclarationDataRegistry.data(SourceElementKey)
+
+private object ClassProtoKey : FirDeclarationDataKey()
+
+class FirClassProto(val classProto: ProtoBuf.Class, val nameResolver: NameResolver)
+
+var FirRegularClass.proto: FirClassProto? by FirDeclarationDataRegistry.data(ClassProtoKey)
 
 var FirTypeAlias.sourceElement: SourceElement? by FirDeclarationDataRegistry.data(SourceElementKey)
 
