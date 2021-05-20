@@ -79,7 +79,6 @@ def construct_cmake_flags(
             # ld64.lld is not that good yet.
             linker = None
             ar = f"{bootstrap_llvm_path}/bin/llvm-ar"
-            # TODO: Allow sysroot as program argument
             isysroot = default_xcode_sdk_path()
             c_flags = ['-isysroot', isysroot]
             cxx_flags = ['-isysroot', isysroot, '-stdlib=libc++']
@@ -91,8 +90,6 @@ def construct_cmake_flags(
         "-DLLVM_ENABLE_TERMINFO=OFF",
         "-DLLVM_INCLUDE_GO_TESTS=OFF",
         "-DLLVM_ENABLE_Z3_SOLVER=OFF",
-        "-DCLANG_PLUGIN_SUPPORT=OFF",
-        "-DLLVM_INCLUDE_TESTS=OFF"
     ]
 
     if Host.is_darwin():
@@ -103,15 +100,11 @@ def construct_cmake_flags(
             '-DLIBCXX_ENABLE_STATIC=OFF',
             '-DLIBCXX_INCLUDE_TESTS=OFF',
             '-DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=OFF',
-            '-DLIBCXXABI_LINK_TESTS_WITH_SHARED_LIBCXX=ON'
         ])
         if building_bootstrap:
             cmake_args.extend([
-                '-DCOMPILER_RT_BUILD_BUILTINS=ON',
                 '-DCOMPILER_RT_BUILD_CRT=OFF',
                 '-DCOMPILER_RT_BUILD_LIBFUZZER=OFF',
-                '-DCOMPILER_RT_BUILD_MEMPROF=OFF',
-                '-DCOMPILER_RT_BUILD_ORC=OFF',
                 '-DCOMPILER_RT_BUILD_SANITIZERS=OFF',
                 '-DCOMPILER_RT_BUILD_XRAY=OFF',
                 '-DCOMPILER_RT_ENABLE_IOS=OFF',
@@ -164,7 +157,7 @@ def construct_cmake_flags(
 
 def run_command(command: List[str]):
     if Host.is_windows() and vsdevcmd is None:
-        raise Exception("vsdevcmd is not set!")
+        sys.exit("'vsdevcmd' is not set!")
     if Host.is_windows():
         command = [vsdevcmd, "-arch=amd64", "&&"] + command
     command = [shlex.quote(arg) for arg in command]
@@ -210,27 +203,25 @@ def clone_llvm_repository(repo, branch, llvm_repo_destination):
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Build LLVM toochain for Kotlin/Native")
-    parser.add_argument("--install-path", type=str, default="dist", required=True,
+    # Output configuration.
+    parser.add_argument("--install-path", type=str, default="llvm-distribution", required=False,
                         help="Where final LLVM distribution will be installed")
     parser.add_argument("--archive-path", default=None,
                         help="Create an archive and its sha256 for final distribution at given path")
-
+    # Build configuration
     parser.add_argument("--stage0", type=str, default=None,
                         help="Path to existing toolchain")
     parser.add_argument("--num-stages", type=int, default=2,
                         help="Number of stages in bootstrap.\n"
                              "Default is 2 meaning that we build LLVM and then use it to build itself.")
-
-    parser.add_argument("--save-temporary-files", type=bool, default=True,
-                        help="Should intermediate build results be saved?")
-
+    # LLVM sources.
     parser.add_argument("--llvm-sources", dest="llvm_src", type=str, default=None,
                         help="Location of LLVM sources")
     parser.add_argument("--repo", type=str, default=None)
     parser.add_argument("--branch", type=str, default=None)
     parser.add_argument("--llvm-repo-destination", type=str, default="llvm-project",
                         help="Where LLVM repository should be downloaded.")
-
+    # Environment setup.
     parser.add_argument("--vsdevcmd", type=str, default=None, required=Host.is_windows(),
                         help="(Windows only) Path to VsDevCmd.bat")
     parser.add_argument("--ninja", type=str, default=None,
@@ -241,7 +232,9 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Override path to git")
     parser.add_argument("--isysroot", type=str, default=None,
                         help="Override path to macOS SDK")
-
+    # Misc.
+    parser.add_argument("--save-temporary-files", type=bool, default=True,
+                        help="Should intermediate build results be saved?")
     return parser
 
 
@@ -333,10 +326,16 @@ def setup_environment(args):
     global vsdevcmd, ninja, cmake, git, isysroot
     if args.ninja:
         ninja = args.ninja
+    elif shutil.which('ninja') is None:
+        sys.exit("'ninja' is not found. Install or provide via --ninja argument.")
     if args.cmake:
         cmake = args.cmake
+    elif shutil.which('cmake') is None:
+        sys.exit("'cmake' is not found. Install or provide via --cmake argument.")
     if args.git:
         git = args.git
+    elif shutil.which('git') is None:
+        sys.exit("'git' is not found. Install or provide via --git argument.")
     if Host.is_windows():
         if args.vsdevcmd:
             vsdevcmd = args.vsdevcmd
@@ -351,7 +350,7 @@ def check_args_consistency(args):
     should_use_existing_sources = args.llvm_src is not None
     should_download_llvm = args.llvm_repo_destination is not None or args.repo is not None or args.branch is not None
     if should_use_existing_sources and should_download_llvm:
-        raise Exception("Cannot download LLVM and use existing sources at the same time!")
+        sys.exit("Cannot download LLVM and use existing sources at the same time!")
 
 
 def main():
