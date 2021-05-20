@@ -305,8 +305,8 @@ def build_distribution(args):
 
 def create_archive(input_directory, output_path, compression=host_default_compression()) -> str:
     print("Creating archive " + output_path + " from " + input_directory)
-    base_directory = os.path.basename(os.path.normpath(input_directory))
-    return shutil.make_archive(output_path, compression, input_directory, base_directory)
+    base_directory, archive_prefix = os.path.split(os.path.normpath(input_directory))
+    return shutil.make_archive(output_path, compression, base_directory, archive_prefix)
 
 
 def create_checksum_file(input_path, output_path):
