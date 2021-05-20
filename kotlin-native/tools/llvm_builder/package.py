@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List
 import hashlib
 import shlex
+import urllib.request
 
 vsdevcmd = None
 isysroot = None
@@ -45,9 +46,32 @@ def host_default_compression():
         return "gztar"
 
 
-def default_xcode_sdk_path():
+def detect_xcode_sdk_path():
     return subprocess.check_output(['xcrun', '--show-sdk-path'],
                                    universal_newlines=True).rstrip()
+
+
+def detect_vsdevcmd():
+    """
+    Use vswhere (and download it, if needed) to 
+    :return: 
+    """
+    vswhere = shutil.which('vswhere')
+    if vswhere is None:
+        print("Downloading vswhere utility to detect path to vsdevcmd.bat automatically")
+        vswhere_url = "https://github.com/microsoft/vswhere/releases/download/2.8.4/vswhere.exe"
+        urllib.request.urlretrieve(vswhere_url, 'vswhere.exe')
+        vswhere = shutil.which('vswhere')
+        if vswhere is None:
+            sys.exit("Failed to retrieve vswhere utility. Please provide path to vsdevcmd.bat with --vsdevcmd")
+    vswhere_args = [vswhere, '-prerelease', '-latest', '-property', 'installationPath']
+    path_to_visual_studio = subprocess.check_output(vswhere_args, universal_newlines=True).rstrip()
+    vsdevcmd_path = os.path.join(path_to_visual_studio, "Common7", "Tools", "VsDevCmd.bat")
+    if not os.path.isfile(vsdevcmd_path):
+        sys.exit("vsdevcmd.bat is not found. Please provide path to vsdevcmd.bat with --vsdevcmd")
+    else:
+        print("Found vsdevcmd.bat: " + vsdevcmd_path)
+    return vsdevcmd_path
 
 
 def construct_cmake_flags(
@@ -79,7 +103,6 @@ def construct_cmake_flags(
             # ld64.lld is not that good yet.
             linker = None
             ar = f"{bootstrap_llvm_path}/bin/llvm-ar"
-            isysroot = default_xcode_sdk_path()
             c_flags = ['-isysroot', isysroot]
             cxx_flags = ['-isysroot', isysroot, '-stdlib=libc++']
             linker_flags = ['-stdlib=libc++']
@@ -156,14 +179,15 @@ def construct_cmake_flags(
 
 
 def run_command(command: List[str]):
-    if Host.is_windows() and vsdevcmd is None:
-        sys.exit("'vsdevcmd' is not set!")
     if Host.is_windows():
+        if vsdevcmd is None:
+            sys.exit("'VsDevCmd.bat' is not set!")
         command = [vsdevcmd, "-arch=amd64", "&&"] + command
-    command = [shlex.quote(arg) for arg in command]
-    if not Host.is_windows():
+        print("Running command: " + ' '.join(command))
+    else:
+        command = [shlex.quote(arg) for arg in command]
         command = ' '.join(command)
-    print("Running command: " + command)
+        print("Running command: " + command)
 
     subprocess.run(command, shell=True, check=True)
 
@@ -222,7 +246,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--llvm-repo-destination", type=str, default="llvm-project",
                         help="Where LLVM repository should be downloaded.")
     # Environment setup.
-    parser.add_argument("--vsdevcmd", type=str, default=None, required=Host.is_windows(),
+    parser.add_argument("--vsdevcmd", type=str, default=None,
                         help="(Windows only) Path to VsDevCmd.bat")
     parser.add_argument("--ninja", type=str, default=None,
                         help="Override path to ninja")
@@ -231,9 +255,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--git", type=str, default=None,
                         help="Override path to git")
     parser.add_argument("--isysroot", type=str, default=None,
-                        help="Override path to macOS SDK")
+                        help="(macOS only) Override path to macOS SDK")
     # Misc.
-    parser.add_argument("--save-temporary-files", type=bool, default=True,
+    parser.add_argument("--save-temporary-files", type=bool, default=False,
                         help="Should intermediate build results be saved?")
     return parser
 
@@ -339,11 +363,13 @@ def setup_environment(args):
     if Host.is_windows():
         if args.vsdevcmd:
             vsdevcmd = args.vsdevcmd
+        else:
+            vsdevcmd = detect_vsdevcmd()
     elif Host.is_darwin():
         if args.isysroot:
             isysroot = args.isysroot
         else:
-            isysroot = default_xcode_sdk_path()
+            isysroot = detect_xcode_sdk_path()
 
 
 def check_args_consistency(args):
