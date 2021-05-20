@@ -1,9 +1,17 @@
-import argparse, subprocess, shutil, os, sys
+#!/usr/bin/python3
+#
+# Copyright 2010-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
+
+import argparse
+import hashlib
+import os
+import shlex
+import shutil
+import subprocess
+import sys
+import urllib.request
 from pathlib import Path
 from typing import List
-import hashlib
-import shlex
-import urllib.request
 
 vsdevcmd = None
 isysroot = None
@@ -21,26 +29,24 @@ def absolute_path(path):
         return None
 
 
-class Host:
-    @staticmethod
-    def is_windows():
-        return sys.platform == "win32"
+def host_is_windows():
+    return sys.platform == "win32"
 
-    @staticmethod
-    def is_linux():
-        return sys.platform == "linux"
 
-    @staticmethod
-    def is_darwin():
-        return sys.platform == "darwin"
+def host_is_linux():
+    return sys.platform == "linux"
 
-    @staticmethod
-    def llvm_target():
-        return "Native"
+
+def host_is_darwin():
+    return sys.platform == "darwin"
+
+
+def host_llvm_target():
+    return "Native"
 
 
 def host_default_compression():
-    if Host.is_windows():
+    if host_is_windows():
         return "zip"
     else:
         return "gztar"
@@ -53,7 +59,7 @@ def detect_xcode_sdk_path():
 
 def detect_vsdevcmd():
     """
-    Use vswhere (and download it, if needed) to 
+    Use vswhere (and download it, if needed) utility to find path to vsdevcmd.bat.
     :return: 
     """
     vswhere = shutil.which('vswhere')
@@ -66,7 +72,7 @@ def detect_vsdevcmd():
             sys.exit("Failed to retrieve vswhere utility. Please provide path to vsdevcmd.bat with --vsdevcmd")
     vswhere_args = [vswhere, '-prerelease', '-latest', '-property', 'installationPath']
     path_to_visual_studio = subprocess.check_output(vswhere_args, universal_newlines=True).rstrip()
-    vsdevcmd_path = os.path.join(path_to_visual_studio, "Common7", "Tools", "VsDevCmd.bat")
+    vsdevcmd_path = os.path.join(path_to_visual_studio, "Common7", "Tools", "vsdevcmd.bat")
     if not os.path.isfile(vsdevcmd_path):
         sys.exit("vsdevcmd.bat is not found. Please provide path to vsdevcmd.bat with --vsdevcmd")
     else:
@@ -86,45 +92,40 @@ def construct_cmake_flags(
     c_compiler, cxx_compiler, linker, ar = None, None, None, None
     c_flags, cxx_flags, linker_flags = None, None, None
     if not building_bootstrap:
-        if Host.is_windows():
+        if host_is_windows():
             # CMake is not tolerant to backslashes
-            c_compiler = f"{bootstrap_llvm_path}/bin/clang-cl.exe".replace('\\', '/')
-            cxx_compiler = f"{bootstrap_llvm_path}/bin/clang-cl.exe".replace('\\', '/')
-            linker = f"{bootstrap_llvm_path}/bin/lld-link.exe".replace('\\', '/')
-            ar = f"{bootstrap_llvm_path}/bin/llvm-lib.exe".replace('\\', '/')
-        elif Host.is_linux():
-            c_compiler = f"{bootstrap_llvm_path}/bin/clang"
-            cxx_compiler = f"{bootstrap_llvm_path}/bin/clang++"
-            linker = f"{bootstrap_llvm_path}/bin/ld.lld"
-            ar = f"{bootstrap_llvm_path}/bin/llvm-ar"
-        elif Host.is_darwin():
-            c_compiler = f"{bootstrap_llvm_path}/bin/clang"
-            cxx_compiler = f"{bootstrap_llvm_path}/bin/clang++"
+            c_compiler = f'{bootstrap_llvm_path}/bin/clang-cl.exe'.replace('\\', '/')
+            cxx_compiler = f'{bootstrap_llvm_path}/bin/clang-cl.exe'.replace('\\', '/')
+            linker = f'{bootstrap_llvm_path}/bin/lld-link.exe'.replace('\\', '/')
+            ar = f'{bootstrap_llvm_path}/bin/llvm-lib.exe'.replace('\\', '/')
+        elif host_is_linux():
+            c_compiler = f'{bootstrap_llvm_path}/bin/clang'
+            cxx_compiler = f'{bootstrap_llvm_path}/bin/clang++'
+            linker = f'{bootstrap_llvm_path}/bin/ld.lld'
+            ar = f'{bootstrap_llvm_path}/bin/llvm-ar'
+        elif host_is_darwin():
+            c_compiler = f'{bootstrap_llvm_path}/bin/clang'
+            cxx_compiler = f'{bootstrap_llvm_path}/bin/clang++'
             # ld64.lld is not that good yet.
             linker = None
-            ar = f"{bootstrap_llvm_path}/bin/llvm-ar"
+            ar = f'{bootstrap_llvm_path}/bin/llvm-ar'
             c_flags = ['-isysroot', isysroot]
             cxx_flags = ['-isysroot', isysroot, '-stdlib=libc++']
             linker_flags = ['-stdlib=libc++']
 
     cmake_args = [
-        "-DCMAKE_BUILD_TYPE=Release",
-        "-DLLVM_ENABLE_ASSERTIONS=OFF",
-        "-DLLVM_ENABLE_TERMINFO=OFF",
-        "-DLLVM_INCLUDE_GO_TESTS=OFF",
-        "-DLLVM_ENABLE_Z3_SOLVER=OFF",
+        '-DCMAKE_BUILD_TYPE=Release',
+        '-DLLVM_ENABLE_ASSERTIONS=OFF',
+        '-DLLVM_ENABLE_TERMINFO=OFF',
+        '-DLLVM_INCLUDE_GO_TESTS=OFF',
+        '-DLLVM_ENABLE_Z3_SOLVER=OFF',
+        '-DCOMPILER_RT_BUILD_BUILTINS=ON'
     ]
 
-    if Host.is_darwin():
+    if host_is_darwin():
         cmake_args.append('-DLLVM_ENABLE_LIBCXX=ON')
-        cmake_args.append('-DCOMPILER_RT_BUILD_BUILTINS=ON')
-        cmake_args.extend([
-            '-DLIBCXX_ENABLE_SHARED=OFF',
-            '-DLIBCXX_ENABLE_STATIC=OFF',
-            '-DLIBCXX_INCLUDE_TESTS=OFF',
-            '-DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=OFF',
-        ])
         if building_bootstrap:
+            # Don't waste time by doing unnecessary work for throwaway toolchain.
             cmake_args.extend([
                 '-DCOMPILER_RT_BUILD_CRT=OFF',
                 '-DCOMPILER_RT_BUILD_LIBFUZZER=OFF',
@@ -136,11 +137,9 @@ def construct_cmake_flags(
             ])
         else:
             cmake_args.append('-DLIBCXX_USE_COMPILER_RT=ON')
-    else:
-        cmake_args.append('-DCOMPILER_RT_BUILD_BUILTINS=OFF')
 
     if install_path is not None:
-        cmake_args.append("-DCMAKE_INSTALL_PREFIX=" + install_path)
+        cmake_args.append('-DCMAKE_INSTALL_PREFIX=' + install_path)
     if targets is not None:
         cmake_args.append('-DLLVM_TARGETS_TO_BUILD=' + ";".join(targets))
     if projects is not None:
@@ -165,13 +164,18 @@ def construct_cmake_flags(
         cmake_args.append('-DCMAKE_MODULE_LINKER_FLAGS=' + ' '.join(linker_flags))
         cmake_args.append('-DCMAKE_SHARED_LINKER_FLAGS=' + ' '.join(linker_flags))
 
-    if Host.is_windows():
-        cmake_args.append("-DLLVM_USE_CRT_RELEASE=MT")
-        cmake_args.append("-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded")
-        cmake_args.append("-DLLVM_ENABLE_DIA_SDK=OFF")
-        cmake_args.append("-DCMAKE_INSTALL_UCRT_LIBRARIES=OFF")
+    if host_is_windows():
+        # Use MT to make distribution self-contained
+        # TODO: Consider -DCMAKE_INSTALL_UCRT_LIBRARIES=ON as an alternative
+        cmake_args.append('-DLLVM_USE_CRT_RELEASE=MT')
+        cmake_args.append('-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded')
+        # We don't support PDB, so no need fir DIA.
+        cmake_args.append('-DLLVM_ENABLE_DIA_SDK=OFF')
 
-    if not Host.is_windows():
+    # Make distribution much smaller by linking to dynamic library
+    # instead of static linkage.
+    # Not working for Windows yet.
+    if not host_is_windows():
         cmake_args.append("-LLVM_BUILD_LLVM_DYLIB=ON")
         cmake_args.append("-DLLVM_LINK_LLVM_DYLIB=ON")
 
@@ -179,7 +183,7 @@ def construct_cmake_flags(
 
 
 def run_command(command: List[str]):
-    if Host.is_windows():
+    if host_is_windows():
         if vsdevcmd is None:
             sys.exit("'VsDevCmd.bat' is not set!")
         command = [vsdevcmd, "-arch=amd64", "&&"] + command
@@ -205,7 +209,7 @@ def llvm_build_commands(
         install_path, bootstrap_path, llvm_src, targets, ninja_target, projects, runtimes
 ) -> List[List[str]]:
     cmake_flags = construct_cmake_flags(bootstrap_path, install_path, projects, runtimes, targets)
-    cmake_command = [cmake, "-G", "Ninja"] + cmake_flags + [llvm_src + "/llvm"]
+    cmake_command = [cmake, "-G", "Ninja"] + cmake_flags + [os.path.join(llvm_src, "llvm")]
     ninja_command = [ninja, ninja_target]
     return [cmake_command, ninja_command]
 
@@ -214,7 +218,7 @@ def clone_llvm_repository(repo, branch, llvm_repo_destination):
     """
     Downloads a single commit from the given repository.
     """
-    if Host.is_darwin():
+    if host_is_darwin():
         default_repo, default_branch = "https://github.com/apple/llvm-project", "apple/stable/20200108"
     else:
         default_repo, default_branch = "https://github.com/llvm/llvm-project", "release/11.x"
@@ -223,6 +227,15 @@ def clone_llvm_repository(repo, branch, llvm_repo_destination):
     # Download only single commit because we don't need whole history just for building LLVM.
     run_command([git, "clone", repo, "--branch", branch, "--depth", "1", "llvm-project"])
     return absolute_path(llvm_repo_destination)
+
+
+def default_num_stages():
+    if host_is_darwin():
+        # Bootstrap build is not working for https://github.com/apple/llvm-project + apple/stable/20200108.
+        # So use single phase for now.
+        return 1
+    else:
+        return 2
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -234,10 +247,9 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Create an archive and its sha256 for final distribution at given path")
     # Build configuration
     parser.add_argument("--stage0", type=str, default=None,
-                        help="Path to existing toolchain")
-    parser.add_argument("--num-stages", type=int, default=2,
-                        help="Number of stages in bootstrap.\n"
-                             "Default is 2 meaning that we build LLVM and then use it to build itself.")
+                        help="Path to existing LLVM toolchain")
+    parser.add_argument("--num-stages", type=int, default=default_num_stages(),
+                        help="Number of stages in bootstrap.")
     # LLVM sources.
     parser.add_argument("--llvm-sources", dest="llvm_src", type=str, default=None,
                         help="Location of LLVM sources")
@@ -285,7 +297,7 @@ def build_distribution(args):
 
         if building_bootstrap:
             # We only need a host target to start a bootstrap.
-            targets = [Host.llvm_target()]
+            targets = [host_llvm_target()]
         else:
             # None targets means all available targets.
             targets = None
@@ -319,12 +331,11 @@ def build_distribution(args):
         bootstrap_path = install_path
 
     if not args.save_temporary_files:
-        print("Cleaning up")
         for dir in intermediate_build_results:
-            print(f"Removing {dir}")
+            print(f"Removing temporary directory: {dir}")
             shutil.rmtree(dir)
 
-    return args.install_path
+    return absolute_path(args.install_path)
 
 
 def create_archive(input_directory, output_path, compression=host_default_compression()) -> str:
@@ -348,6 +359,7 @@ def setup_environment(args):
     Setup globals that store information about script execution environment.
     """
     global vsdevcmd, ninja, cmake, git, isysroot
+    # TODO: We probably can download some of these binaries ourselves.
     if args.ninja:
         ninja = args.ninja
     elif shutil.which('ninja') is None:
@@ -360,40 +372,34 @@ def setup_environment(args):
         git = args.git
     elif shutil.which('git') is None:
         sys.exit("'git' is not found. Install or provide via --git argument.")
-    if Host.is_windows():
+    if host_is_windows():
         if args.vsdevcmd:
             vsdevcmd = args.vsdevcmd
         else:
             vsdevcmd = detect_vsdevcmd()
-    elif Host.is_darwin():
+    elif host_is_darwin():
         if args.isysroot:
             isysroot = args.isysroot
         else:
             isysroot = detect_xcode_sdk_path()
 
 
-def check_args_consistency(args):
-    should_use_existing_sources = args.llvm_src is not None
-    should_download_llvm = args.llvm_repo_destination is not None or args.repo is not None or args.branch is not None
-    if should_use_existing_sources and should_download_llvm:
-        sys.exit("Cannot download LLVM and use existing sources at the same time!")
-
-
 def main():
     parser = build_parser()
     args = parser.parse_args()
-    check_args_consistency(args)
     setup_environment(args)
+    temporary_llvm_repo = None
     if args.llvm_src is None:
-        args.llvm_src = clone_llvm_repository(args.repo, args.branch, args.llvm_repo_destination)
+        temporary_llvm_repo = clone_llvm_repository(args.repo, args.branch, args.llvm_repo_destination)
+        args.llvm_src = temporary_llvm_repo
     final_dist = build_distribution(args)
     if args.archive_path is not None:
         archive = create_archive(final_dist, args.archive_path)
         create_checksum_file(archive, f"{archive}.sha256")
+    if not args.save_temporary_files and temporary_llvm_repo is not None:
+        print(f"Removing temporary directory: {temporary_llvm_repo}")
+        shutil.rmtree(temporary_llvm_repo)
 
 
-# TODO:
-# 3. Add distribution naming
-# * Check that dependencies in path
 if __name__ == "__main__":
     main()
