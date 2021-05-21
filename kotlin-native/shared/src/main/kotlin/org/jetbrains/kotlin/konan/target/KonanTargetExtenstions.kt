@@ -3,7 +3,8 @@ package org.jetbrains.kotlin.konan.target
 // TODO: This all needs to go to konan.properties
 
 fun KonanTarget.supportsCodeCoverage(): Boolean =
-        this == KonanTarget.MINGW_X64 ||
+        // TODO: Native LLVM has no compiler-rt for MinGW
+        // this == KonanTarget.MINGW_X64 ||
         this == KonanTarget.LINUX_X64 ||
         this == KonanTarget.MACOS_X64 ||
         this == KonanTarget.IOS_X64
