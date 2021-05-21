@@ -70,11 +70,12 @@ class DeserializedDescriptorResolver {
             kotlinClass.abiStability
         )
         return DeserializedPackageMemberScope(
-            descriptor, packageProto, nameResolver, kotlinClass.classHeader.metadataVersion, source, components
-        ) {
-            // All classes are included into Java scope
-            emptyList()
-        }
+            descriptor, packageProto, nameResolver, kotlinClass.classHeader.metadataVersion, source, components,
+            {
+                // All classes are included into Java scope
+                emptyList()
+            }
+        )
     }
 
     private val KotlinJvmBinaryClass.incompatibility: IncompatibleVersionErrorData<JvmMetadataVersion>?

@@ -53,7 +53,8 @@ abstract class DeserializedPackageFragmentImpl(
                 classDataFinder.allClassIds.filter { classId ->
                     !classId.isNestedClass && classId !in ClassDeserializer.BLACK_LIST
                 }.map { it.shortClassName }
-            }
+            },
+            debugName = "scope of $this"
         )
     }
 
