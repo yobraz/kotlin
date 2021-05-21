@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.resolve.calls.components.SuspendConversionStrategy
 import org.jetbrains.kotlin.resolve.calls.components.isVararg
 import org.jetbrains.kotlin.resolve.calls.context.BasicCallResolutionContext
 import org.jetbrains.kotlin.resolve.calls.context.ContextDependency
+import org.jetbrains.kotlin.resolve.calls.inference.BuilderInferenceSession
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutor
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.model.*
@@ -89,7 +90,20 @@ class ResolvedAtomCompleter(
             is ResolvedLambdaAtom -> completeLambda(resolvedAtom)
             is ResolvedCallAtom -> completeResolvedCall(resolvedAtom, emptyList())
             is ResolvedSubCallArgument -> completeSubCallArgument(resolvedAtom)
+            is ResolvedExpressionAtom -> completeExpression(resolvedAtom)
         }
+    }
+
+    // We run completion on expressions only for last statements of block expression to substitute freshly inferred stub types variables
+    fun completeExpression(resolvedAtom: ResolvedExpressionAtom) {
+        val argumentExpression = resolvedAtom.atom.psiExpression
+        val inferenceSession = topLevelCallContext.inferenceSession
+
+        if (argumentExpression !is KtBlockExpression || inferenceSession !is BuilderInferenceSession) return
+
+        val callableReference = argumentExpression.statements.lastOrNull() as? KtCallableReferenceExpression ?: return
+
+        inferenceSession.completeDoubleColonExpression(callableReference, inferenceSession.getNotFixedToInferredTypesSubstitutor())
     }
 
     fun completeAll(resolvedAtom: ResolvedAtom) {
