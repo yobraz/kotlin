@@ -203,7 +203,11 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
     val libclangXXArgs: List<String> =
             libclangSpecificArgs + clangXXArgs
 
-    val libclangArgsForJni: List<String> = libclangArgs
+    val libclangArgsForJni: List<String> = if (target != KonanTarget.MINGW_X64) {
+        libclangArgs
+    } else libclangSpecificArgs + mutableListOf<List<String>>().apply {
+        add(listOf("-target", "x86_64-pc-windows-msvc"))
+    }.flatten()
 
     private val targetClangCmd
             = listOf("${absoluteLlvmHome}/bin/clang") + clangArgs
