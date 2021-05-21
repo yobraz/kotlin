@@ -55,6 +55,7 @@ import org.jetbrains.kotlin.preloading.ClassCondition
 import org.jetbrains.kotlin.utils.KotlinPaths
 import org.jetbrains.kotlin.utils.KotlinPathsFromHomeDir
 import org.jetbrains.kotlin.utils.PathUtil
+import org.jetbrains.kotlin.utils.addIfNotNull
 import java.io.File
 import java.util.*
 import kotlin.collections.HashSet
@@ -237,6 +238,23 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
             val cache = incrementalCaches[target] ?: continue
             val dirtyFiles = dirtyFilesHolder.getDirtyFiles(target.jpsModuleBuildTarget).keys
             val removedFiles = dirtyFilesHolder.getRemovedFiles(target.jpsModuleBuildTarget)
+
+            if (cache is IncrementalJsCache) {
+                val filesToDelete = mutableListOf<String>()
+                for (file: File in removedFiles) {
+                    filesToDelete.addIfNotNull(cache.getKjsmBySource(file))
+                }
+                if (filesToDelete.isNotEmpty()) {
+                    val logger = context.loggingManager.projectBuilderLogger
+                    if (logger.isEnabled) {
+                        logger.logDeletedFiles(filesToDelete)
+                    }
+                    for (path in filesToDelete) {
+                        val file = File(path)
+                        if (file.exists()) file.delete()
+                    }
+                }
+            }
 
             val existingClasses = JpsKotlinCompilerRunner().classesFqNamesByFiles(environment, dirtyFiles)
             val previousClasses = cache.classesFqNamesBySources(dirtyFiles + removedFiles)
@@ -447,6 +465,15 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
         val kotlinTargets = kotlinContext.targetsBinding
         for ((target, outputItems) in generatedFiles) {
             val kotlinTarget = kotlinTargets[target] ?: error("Could not find Kotlin target for JPS target $target")
+            val cache = incrementalCaches[kotlinTarget] as? IncrementalJsCache
+
+            for (output in outputItems) {
+                if (output.outputFile.path.endsWith(".kjsm")) {
+                    for (source in output.sourceFiles) {
+                        cache?.setKjsmBySource(source, output.outputFile)
+                    }
+                }
+            }
             kotlinTarget.registerOutputItems(outputConsumer, outputItems)
         }
         kotlinChunk.saveVersions()

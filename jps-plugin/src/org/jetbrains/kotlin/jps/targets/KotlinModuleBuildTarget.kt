@@ -40,6 +40,7 @@ import org.jetbrains.kotlin.progress.CompilationCanceledException
 import org.jetbrains.kotlin.progress.CompilationCanceledStatus
 import org.jetbrains.kotlin.utils.addIfNotNull
 import java.io.File
+import java.util.*
 
 /**
  * Properties and actions for Kotlin test / production module build target.
@@ -211,7 +212,13 @@ abstract class KotlinModuleBuildTarget<BuildMetaInfoType : BuildMetaInfo> intern
 
     open fun registerOutputItems(outputConsumer: ModuleLevelBuilder.OutputConsumer, outputItems: List<GeneratedFile>) {
         for (output in outputItems) {
-            outputConsumer.registerOutputFile(jpsModuleBuildTarget, output.outputFile, output.sourceFiles.map { it.path })
+            if(output.outputFile.path.endsWith(".js") || output.outputFile.path.endsWith(".kjsm")) {
+                for (source in output.sourceFiles) {
+                    outputConsumer.registerOutputFile(jpsModuleBuildTarget, File("${source.path.hashCode()}"), listOf(source.path))
+                }
+            } else {
+                outputConsumer.registerOutputFile(jpsModuleBuildTarget, output.outputFile, output.sourceFiles.map { it.path })
+            }
         }
     }
 
