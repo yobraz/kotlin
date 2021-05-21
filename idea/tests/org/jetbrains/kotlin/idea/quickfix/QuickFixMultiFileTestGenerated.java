@@ -1963,6 +1963,11 @@ public class QuickFixMultiFileTestGenerated extends AbstractQuickFixMultiFileTes
                     runTest("idea/testData/quickfix/createFromUsage/createFunction/call/extensionFunOnTypeFromAnotherPackage.before.Main.kt");
                 }
 
+                @TestMetadata("funOnClassNoClassObject3.before.Main.kt")
+                public void testFunOnClassNoClassObject3() throws Exception {
+                    runTest("idea/testData/quickfix/createFromUsage/createFunction/call/funOnClassNoClassObject3.before.Main.kt");
+                }
+
                 @TestMetadata("funOnGroovyType.before.Main.kt")
                 public void testFunOnGroovyType() throws Exception {
                     runTest("idea/testData/quickfix/createFromUsage/createFunction/call/funOnGroovyType.before.Main.kt");
@@ -2405,6 +2410,11 @@ public class QuickFixMultiFileTestGenerated extends AbstractQuickFixMultiFileTes
                 @TestMetadata("staticVarOnJavaInterface.before.Main.kt")
                 public void testStaticVarOnJavaInterface() throws Exception {
                     runTest("idea/testData/quickfix/createFromUsage/createVariable/property/staticVarOnJavaInterface.before.Main.kt");
+                }
+
+                @TestMetadata("valOnClassNoClassObject3.before.Main.kt")
+                public void testValOnClassNoClassObject3() throws Exception {
+                    runTest("idea/testData/quickfix/createFromUsage/createVariable/property/valOnClassNoClassObject3.before.Main.kt");
                 }
 
                 @TestMetadata("valOnGroovyType.before.Main.kt")
