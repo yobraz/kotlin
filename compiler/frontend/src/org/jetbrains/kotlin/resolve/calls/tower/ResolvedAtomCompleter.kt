@@ -47,9 +47,7 @@ import org.jetbrains.kotlin.types.expressions.CoercionStrategy
 import org.jetbrains.kotlin.types.expressions.DoubleColonExpressionResolver
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingServices
 import org.jetbrains.kotlin.types.expressions.typeInfoFactory.createTypeInfo
-import org.jetbrains.kotlin.types.typeUtil.contains
-import org.jetbrains.kotlin.types.typeUtil.isUnit
-import org.jetbrains.kotlin.types.typeUtil.shouldBeUpdated
+import org.jetbrains.kotlin.types.typeUtil.*
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class ResolvedAtomCompleter(
@@ -154,6 +152,14 @@ class ResolvedAtomCompleter(
             // PARTIAL_CALL_RESOLUTION_CONTEXT has been written for the baseCall
             is PSIKotlinCallForInvoke -> atom.baseCall.psiCall
             else -> atom.psiKotlinCall.psiCall
+        }
+
+        val callElement = psiCallForResolutionContext.callElement
+        if (callElement is KtExpression) {
+            val recordedType = topLevelCallContext.trace.getType(callElement)
+            if ((recordedType.shouldBeUpdated()) && resolvedCall.resultingDescriptor.returnType != null) {
+                topLevelCallContext.trace.recordType(callElement, resolvedCall.resultingDescriptor.returnType)
+            }
         }
 
         val resolutionContextForPartialCall =
