@@ -203,11 +203,17 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
     val libclangXXArgs: List<String> =
             libclangSpecificArgs + clangXXArgs
 
+    val libclangArgsForJni: List<String> = libclangArgs
+
     private val targetClangCmd
             = listOf("${absoluteLlvmHome}/bin/clang") + clangArgs
 
     private val targetClangXXCmd
             = listOf("${absoluteLlvmHome}/bin/clang++") + clangXXArgs
+
+    private val targetClangXXForJniCmd = listOf("${absoluteLlvmHome}/bin/clang++") + mutableListOf<List<String>>().apply {
+        add(listOf("-target", "x86_64-pc-windows-msvc"))
+    }.flatten()
 
     private val targetArCmd
             = listOf("${absoluteLlvmHome}/bin/llvm-ar")
@@ -216,6 +222,8 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
     fun clangC(vararg userArgs: String) = targetClangCmd + userArgs.asList()
 
     fun clangCXX(vararg userArgs: String) = targetClangXXCmd + userArgs.asList()
+
+    fun clangCXXForJni(vararg userArgs: String) = targetClangXXForJniCmd + userArgs.asList()
 
     fun llvmAr(vararg userArgs: String) = targetArCmd + userArgs.asList()
 }

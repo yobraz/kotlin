@@ -35,7 +35,7 @@ native {
     )
     suffixes {
         (".cpp" to ".$obj") {
-            tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
+            tool(*platformManager.hostPlatform.clang.clangCXXForJni("").toTypedArray())
             flags(*cxxflags.toTypedArray(), "-c", "-o", ruleOut(), ruleInFirst())
         }
 
