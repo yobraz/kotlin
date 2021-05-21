@@ -28,8 +28,6 @@ val llvmDir = project.findProperty("llvmDir")
 
 native {
     val obj = if (HostManager.hostIsMingw) "obj" else "o"
-    val host = rootProject.project(":kotlin-native").extra["hostName"]
-    val hostLibffiDir = rootProject.project(":kotlin-native").extra["${host}LibffiDir"]
     val cxxflags = mutableListOf(
         "--std=c++17",
         "-I${llvmDir}/include",
