@@ -17,7 +17,7 @@ internal class ExpressionsSmartcastHighlightingVisitor(
     analysisSession: KtAnalysisSession,
     holder: AnnotationHolder
 ) : FirAfterResolveHighlightingVisitor(analysisSession, holder) {
-    override fun visitExpression(expression: KtExpression) = with(analysisSession) {
+    override fun visitExpression(expression: KtExpression) = withAnalysisSession {
         expression.getImplicitReceiverSmartCast().forEach { (type, kind) ->
             val receiverName = when (kind) {
                 ImplicitReceiverSmartcastKind.EXTENSION -> KotlinIdeaAnalysisBundle.message("extension.implicit.receiver")

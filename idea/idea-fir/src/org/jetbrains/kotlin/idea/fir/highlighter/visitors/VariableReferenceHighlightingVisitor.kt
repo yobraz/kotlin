@@ -42,7 +42,7 @@ internal class VariableReferenceHighlightingVisitor(
             return
         }
 
-        with(analysisSession) {
+        withAnalysisSession {
             val targetSymbol = expression.mainReference.resolveToSymbol()
             val target = expression.mainReference.resolve()
             when {

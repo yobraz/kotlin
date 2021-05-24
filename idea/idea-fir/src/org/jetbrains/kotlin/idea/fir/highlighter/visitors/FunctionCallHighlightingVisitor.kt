@@ -21,7 +21,7 @@ internal class FunctionCallHighlightingVisitor(
     analysisSession: KtAnalysisSession,
     holder: AnnotationHolder
 ) : FirAfterResolveHighlightingVisitor(analysisSession, holder) {
-    override fun visitBinaryExpression(expression: KtBinaryExpression) = with(analysisSession) {
+    override fun visitBinaryExpression(expression: KtBinaryExpression) = withAnalysisSession {
         val operationReference = expression.operationReference as? KtReferenceExpression ?: return
         if (operationReference.isAssignment()) return
         val call = expression.resolveCall() ?: return
@@ -36,7 +36,7 @@ internal class FunctionCallHighlightingVisitor(
     private fun KtReferenceExpression.isAssignment() =
         (this as? KtOperationReferenceExpression)?.operationSignTokenType == KtTokens.EQ
 
-    override fun visitCallExpression(expression: KtCallExpression) = with(analysisSession) {
+    override fun visitCallExpression(expression: KtCallExpression) = withAnalysisSession {
         expression.calleeExpression
             ?.takeUnless { it is KtLambdaExpression }
             ?.takeUnless { it is KtCallExpression /* KT-16159 */ }

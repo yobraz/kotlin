@@ -22,6 +22,8 @@ abstract class FirAfterResolveHighlightingVisitor(
             .also { annotation -> textAttributes?.let { annotation.textAttributes = textAttributes } }
     }
 
+    protected inline fun <T> withAnalysisSession(action: KtAnalysisSession.() -> T): T = analysisSession.action()
+
     companion object {
         fun createListOfVisitors(
             analysisSession: KtAnalysisSession,
