@@ -1,14 +1,14 @@
 interface A0<T : A0<T>>
-interface A1<T : A1<*>>
-interface A2<T : A2<out T>>
+interface A1<<!FINITE_BOUNDS_VIOLATION!>T : A1<*><!>>
+interface A2<<!FINITE_BOUNDS_VIOLATION!>T : A2<out T><!>>
 // StackOverflowError
 //interface A3<T : A3<in T>>
-interface A4<T : A4<*>?>
+interface A4<<!FINITE_BOUNDS_VIOLATION!>T : A4<*>?<!>>
 
-interface B0<T : B1<*>>
-interface B1<T : B0<*>>
+interface B0<<!FINITE_BOUNDS_VIOLATION!>T : B1<*><!>>
+interface B1<<!FINITE_BOUNDS_VIOLATION!>T : B0<*><!>>
 
-interface AA<T: AA<*>>
+interface AA<<!FINITE_BOUNDS_VIOLATION!>T: AA<*><!>>
 interface BB<S : List<AA<*>>>
 
 interface A<T: <!WRONG_NUMBER_OF_TYPE_ARGUMENTS!>List<T, T, T><!>>

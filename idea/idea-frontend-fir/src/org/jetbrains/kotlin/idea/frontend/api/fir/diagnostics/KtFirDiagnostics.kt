@@ -939,6 +939,15 @@ sealed class KtFirDiagnostic<PSI: PsiElement> : KtDiagnosticWithPsi<PSI> {
         abstract val typeB: KtType
     }
 
+    abstract class FiniteBoundsViolation : KtFirDiagnostic<PsiElement>() {
+        override val diagnosticClass get() = FiniteBoundsViolation::class
+    }
+
+    abstract class FiniteBoundsViolationInJava : KtFirDiagnostic<PsiElement>() {
+        override val diagnosticClass get() = FiniteBoundsViolationInJava::class
+        abstract val javaClassName: String
+    }
+
     abstract class ExtensionInClassReferenceNotAllowed : KtFirDiagnostic<KtExpression>() {
         override val diagnosticClass get() = ExtensionInClassReferenceNotAllowed::class
         abstract val referencedDeclaration: KtCallableSymbol

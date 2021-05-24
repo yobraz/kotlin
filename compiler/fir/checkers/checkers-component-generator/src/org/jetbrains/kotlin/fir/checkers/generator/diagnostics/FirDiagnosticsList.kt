@@ -436,6 +436,11 @@ object DIAGNOSTICS_LIST : DiagnosticList("FirErrors") {
             parameter<ConeKotlinType>("typeA")
             parameter<ConeKotlinType>("typeB")
         }
+
+        val FINITE_BOUNDS_VIOLATION by error<PsiElement>()
+        val FINITE_BOUNDS_VIOLATION_IN_JAVA by warning<PsiElement>() {
+            parameter<String>("javaClassName")
+        }
     }
 
     val REFLECTION by object : DiagnosticGroup("Reflection") {
