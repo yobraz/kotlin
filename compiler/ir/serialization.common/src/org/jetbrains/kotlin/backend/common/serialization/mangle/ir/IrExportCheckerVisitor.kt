@@ -44,6 +44,11 @@ abstract class IrExportCheckerVisitor(private val compatibleMode: Boolean) : Kot
             return declaration.parent.accept(this, data)
         }
 
+        override fun visitClass(declaration: IrClass, data: Nothing?): Boolean {
+            if (declaration.name == SpecialNames.NO_NAME_PROVIDED) return false
+            return super.visitClass(declaration, data)
+        }
+
         override fun visitPackageFragment(declaration: IrPackageFragment, data: Nothing?): Boolean = true
 
         override fun visitValueParameter(declaration: IrValueParameter, data: Nothing?): Boolean = false

@@ -273,6 +273,12 @@ open class IrFileSerializer(
 
     private fun protoIdSignature(declaration: IrDeclaration): Int {
         val idSig = declarationTable.signatureByDeclaration(declaration, compatibilityMode.oldSignatures)
+        if (idSig.isPubliclyVisible) {
+            val existedSig = declaration.symbol.signature
+            if (existedSig != idSig) {
+                error("EXISTED SIG: $existedSig, NEW SIG: $idSig")
+            }
+        }
         return protoIdSignature(idSig)
     }
 

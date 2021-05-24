@@ -25,7 +25,6 @@ class DeclarationStubGeneratorImpl(
     override val typeTranslator: TypeTranslator =
         TypeTranslatorImpl(
             lazyTable,
-            symbolTable.signaturer,
             languageVersionSettings,
             moduleDescriptor,
             { LazyScopedTypeParametersResolver(lazyTable) },

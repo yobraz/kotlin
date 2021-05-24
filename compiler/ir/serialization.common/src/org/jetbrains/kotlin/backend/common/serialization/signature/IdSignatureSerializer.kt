@@ -158,7 +158,13 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
         }
 
         override fun visitTypeParameter(declaration: IrTypeParameter) {
-            declaration.parent.accept(this, null)
+            val rawParent = declaration.parent
+
+            val parent = if (rawParent is IrSimpleFunction) {
+                rawParent.correspondingPropertySymbol?.owner ?: rawParent
+            } else rawParent
+
+            parent.accept(this, null)
             createContainer()
 
             classFqnSegments.add(MangleConstant.TYPE_PARAMETER_MARKER_NAME)

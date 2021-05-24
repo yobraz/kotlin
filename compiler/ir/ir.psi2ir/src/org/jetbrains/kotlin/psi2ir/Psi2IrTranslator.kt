@@ -55,8 +55,7 @@ class Psi2IrTranslator(
         symbolTable: SymbolTable,
         extensions: GeneratorExtensions = GeneratorExtensions()
     ): GeneratorContext {
-        val typeTranslator =
-            TypeTranslatorImpl(symbolTable, symbolTable.signaturer, languageVersionSettings, moduleDescriptor, extensions = extensions)
+        val typeTranslator = TypeTranslatorImpl(symbolTable, languageVersionSettings, moduleDescriptor, extensions = extensions)
         return GeneratorContext(
             configuration,
             moduleDescriptor,

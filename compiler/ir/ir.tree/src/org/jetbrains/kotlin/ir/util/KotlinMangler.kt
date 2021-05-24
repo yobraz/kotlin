@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
-import org.jetbrains.kotlin.types.KotlinType
 
 interface KotlinMangler<D : Any> {
 
@@ -35,8 +34,6 @@ interface KotlinMangler<D : Any> {
         fun ClassDescriptor.mangleEnumEntryString(): String
 
         fun PropertyDescriptor.mangleFieldString(): String
-
-        fun setupTypeApproximation(app: (KotlinType) -> (KotlinType))
     }
 
     interface IrMangler : KotlinMangler<IrDeclaration> {

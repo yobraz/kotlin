@@ -29,7 +29,6 @@ class StandaloneDeclarationGenerator(private val context: GeneratorContext) {
     private val typeTranslator = context.typeTranslator
     private val symbolTable = context.symbolTable
     private val irFactory = context.irFactory
-    private val signatirer = symbolTable.signaturer
 
     // TODO: use this generator in psi2ir too
 

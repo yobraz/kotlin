@@ -16,10 +16,9 @@ import org.jetbrains.kotlin.types.*
 
 class TypeTranslatorImpl(
     symbolTable: ReferenceSymbolTable,
-    signatureComposer: IdSignatureComposer,
     languageVersionSettings: LanguageVersionSettings,
     moduleDescriptor: ModuleDescriptor,
-    typeParametersResolverBuilder: () -> TypeParametersResolver = { ScopedTypeParametersResolver(signatureComposer) },
+    typeParametersResolverBuilder: () -> TypeParametersResolver = { ScopedTypeParametersResolver() },
     enterTableScope: Boolean = false,
     extensions: StubGeneratorExtensions = StubGeneratorExtensions.EMPTY,
 ) : TypeTranslator(symbolTable, languageVersionSettings, typeParametersResolverBuilder, enterTableScope, extensions) {
@@ -58,9 +57,5 @@ class TypeTranslatorImpl(
         currentFile = ktFile
         block()
         currentFile = null
-    }
-
-    init {
-        signatureComposer.setupTypeApproximation { approximate(it) }
     }
 }
