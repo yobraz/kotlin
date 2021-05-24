@@ -27,7 +27,7 @@ internal class FunctionCallHighlightingVisitor(
         val call = expression.resolveCall() ?: return
         if (call.isErrorCall) return
         if (call.isSuccessCallOf<KtFunctionSymbol> { it.isOperator }) return
-        getTextAttributesForCal(call)?.let { attributes ->
+        getTextAttributesForCall(call)?.let { attributes ->
             highlightName(operationReference, attributes)
         }
         super.visitBinaryExpression(expression)
@@ -42,7 +42,7 @@ internal class FunctionCallHighlightingVisitor(
             ?.takeUnless { it is KtCallExpression /* KT-16159 */ }
             ?.let { callee ->
                 expression.resolveCall()?.let { callInfo ->
-                    getTextAttributesForCal(callInfo)?.let { attributes ->
+                    getTextAttributesForCall(callInfo)?.let { attributes ->
                         highlightName(callee, attributes)
                     }
                 }
@@ -50,7 +50,7 @@ internal class FunctionCallHighlightingVisitor(
         super.visitCallExpression(expression)
     }
 
-    private fun getTextAttributesForCal(call: KtCall): TextAttributesKey? = when {
+    private fun getTextAttributesForCall(call: KtCall): TextAttributesKey? = when {
         call.isSuccessCallOf<KtFunctionSymbol> { it.isSuspend } -> Colors.SUSPEND_FUNCTION_CALL
         call is KtFunctionCall -> when (val function = call.targetFunction.getSuccessCallSymbolOrNull()) {
             is KtConstructorSymbol -> Colors.CONSTRUCTOR_CALL
