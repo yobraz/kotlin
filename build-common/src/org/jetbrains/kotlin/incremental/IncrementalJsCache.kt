@@ -98,7 +98,7 @@ open class IncrementalJsCache(
         }
     }
 
-    fun getKjsmBySource(sourceFile: File): String? {
+    fun getKjsmBySource(sourceFile: File): File? {
         return sourceToKjsmMap.get(sourceFile)
     }
 

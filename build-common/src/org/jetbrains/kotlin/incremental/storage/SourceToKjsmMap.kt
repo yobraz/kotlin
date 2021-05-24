@@ -15,8 +15,13 @@ class SourceToKjsmMap(storageFile: File, private val pathConverter: FileToPathCo
         storage[pathConverter.toPath(sourceFile)] = pathConverter.toPath(kjsmFile)
     }
 
-    fun get(sourceFile: File): String? =
-        storage[pathConverter.toPath(sourceFile)]
+    fun get(sourceFile: File): File? {
+        val relativePath = storage[pathConverter.toPath(sourceFile)]
+        if (relativePath != null) {
+            return pathConverter.toFile(relativePath)
+        }
+        return null
+    }
 
     fun remove(sourceFile: File) {
         storage.remove(pathConverter.toPath(sourceFile))

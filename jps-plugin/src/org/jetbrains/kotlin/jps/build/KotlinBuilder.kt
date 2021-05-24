@@ -240,18 +240,17 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
             val removedFiles = dirtyFilesHolder.getRemovedFiles(target.jpsModuleBuildTarget)
 
             if (cache is IncrementalJsCache) {
-                val filesToDelete = mutableListOf<String>()
-                for (file: File in removedFiles) {
-                    filesToDelete.addIfNotNull(cache.getKjsmBySource(file))
+                var filesToDelete = mutableListOf<File>()
+                for (file: File in dirtyFiles + removedFiles) {
+                    filesToDelete.addIfNotNull(cache.getKjsmBySource(file).takeIf { it !in filesToDelete })
                 }
                 if (filesToDelete.isNotEmpty()) {
                     val logger = context.loggingManager.projectBuilderLogger
                     if (logger.isEnabled) {
-                        logger.logDeletedFiles(filesToDelete)
+                        logger.logDeletedFiles(filesToDelete.map { it.path })
                     }
-                    for (path in filesToDelete) {
-                        val file = File(path)
-                        if (file.exists()) file.delete()
+                    for (kjsmFile in filesToDelete) {
+                        if (kjsmFile.exists()) kjsmFile.delete()
                     }
                 }
             }
