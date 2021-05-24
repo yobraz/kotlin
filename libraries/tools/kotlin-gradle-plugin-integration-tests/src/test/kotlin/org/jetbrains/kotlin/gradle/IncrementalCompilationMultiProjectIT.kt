@@ -242,8 +242,18 @@ open class A {
         //don't need to recompile app classes because lib's proto stays the same
         project.build("build") {
             assertSuccessful()
-            val affectedSources = project.projectDir.projectFile("JavaClass", "TrackedJavaClass", "useTrackedJavaClassSameModule.kt",
-            "A.kt","B.kt", "BarDummy.kt", "barUseA.kt", "barUseAB.kt", "barUseB.kt", "TestDataPath")
+            val affectedSources = project.projectDir.getFilesByNames(
+                "JavaClass",
+                "TrackedJavaClass",
+                "useTrackedJavaClassSameModule.kt",
+                "A.kt",
+                "B.kt",
+                "BarDummy.kt",
+                "barUseA.kt",
+                "barUseAB.kt",
+                "barUseB.kt",
+                "TestDataPath"
+            )
             val relativePaths = project.relativize(affectedSources)
             assertCompiledKotlinSources(relativePaths)
         }

@@ -22,7 +22,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.runner.RunWith
 import java.io.File
-import java.io.IOException
 import java.util.regex.Pattern
 import kotlin.test.*
 
@@ -270,20 +269,17 @@ abstract class BaseGradleIT {
         val gradleVersionRequirement: GradleVersionRequired = defaultGradleVersion,
         directoryPrefix: String? = null,
         val minLogLevel: LogLevel = LogLevel.DEBUG,
-        val addHeapDumpOptions: Boolean = true,
-        workingDirRelativePath: String? = null
+        val addHeapDumpOptions: Boolean = true
     ) {
         internal val testCase = this@BaseGradleIT
 
         val resourceDirName = if (directoryPrefix != null) "$directoryPrefix/$projectName" else projectName
         open val resourcesRoot = File(resourcesRootFile, "testProject/$resourceDirName")
-        val projectWorkingDir = workingDirRelativePath?.let{ it -> workingDir.resolve(it) } ?: workingDir
-        val projectDir = File(projectWorkingDir.canonicalFile, projectName)
+        val projectDir = File(workingDir.canonicalFile, projectName)
 
         open fun setupWorkingDir() {
-            if (!projectWorkingDir.mkdirs()) throw IOException("Could not create folder ${projectDir.absolutePath}")
             if (!projectDir.isDirectory || projectDir.listFiles().isEmpty()) {
-                copyRecursively(this.resourcesRoot, projectWorkingDir)
+                copyRecursively(this.resourcesRoot, workingDir)
                 if (addHeapDumpOptions) {
                     addHeapDumpOptionsToPropertiesFile()
                 }
@@ -405,7 +401,7 @@ abstract class BaseGradleIT {
     fun Project.build(
         vararg params: String,
         options: BuildOptions = defaultBuildOptions(),
-        projectDir: File = File(projectWorkingDir, projectName),
+        projectDir: File = File(workingDir, projectName),
         check: CompiledProject.() -> Unit
     ) {
         val wrapperVersion = chooseWrapperVersionOrFinishTest()
