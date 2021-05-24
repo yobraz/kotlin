@@ -33,7 +33,7 @@ import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
  * Generating synthetic members of inline class can use this as well, in particular, members from Any: equals, hashCode, and toString.
  */
 @OptIn(ObsoleteDescriptorBasedAPI::class)
-abstract class DataClassMembersGenerator<T : Any>(
+abstract class DataClassMembersGenerator(
     val context: IrGeneratorContext,
     val symbolTable: SymbolTable,
     val irClass: IrClass,

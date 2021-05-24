@@ -18,11 +18,7 @@ import org.jetbrains.kotlin.types.checker.SimpleClassicTypeSystemContext
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
-abstract class DescriptorMangleComputer(
-    protected val builder: StringBuilder,
-    private val mode: MangleMode,
-    protected val typeApproximation: (KotlinType) -> KotlinType
-) :
+abstract class DescriptorMangleComputer(protected val builder: StringBuilder, private val mode: MangleMode) :
     DeclarationDescriptorVisitor<Unit, Nothing?>, KotlinMangleComputer<DeclarationDescriptor> {
 
     override fun computeMangle(declaration: DeclarationDescriptor): String {

@@ -18,8 +18,7 @@ import org.jetbrains.kotlin.types.KotlinType
 abstract class AbstractKonanIrMangler(private val withReturnType: Boolean) : IrBasedKotlinManglerImpl() {
     override fun getExportChecker(compatibleMode: Boolean): IrExportCheckerVisitor = KonanIrExportChecker(compatibleMode)
 
-    override fun getMangleComputer(mode: MangleMode, app: (KotlinType) -> KotlinType): IrMangleComputer =
-            KonanIrManglerComputer(StringBuilder(256), mode, withReturnType)
+    override fun getMangleComputer(mode: MangleMode): IrMangleComputer = KonanIrManglerComputer(StringBuilder(256), mode, withReturnType)
 
     override fun IrDeclaration.isPlatformSpecificExport(): Boolean {
         if (this is IrSimpleFunction) if (isFakeOverride) return false
@@ -94,8 +93,7 @@ object KonanManglerIr : AbstractKonanIrMangler(false)
 abstract class AbstractKonanDescriptorMangler : DescriptorBasedKotlinManglerImpl() {
     override fun getExportChecker(compatibleMode: Boolean): KotlinExportChecker<DeclarationDescriptor> = KonanDescriptorExportChecker()
 
-    override fun getMangleComputer(mode: MangleMode, app: (KotlinType) -> KotlinType): DescriptorMangleComputer =
-            KonanDescriptorMangleComputer(StringBuilder(256), mode, app)
+    override fun getMangleComputer(mode: MangleMode): DescriptorMangleComputer = KonanDescriptorMangleComputer(StringBuilder(256), mode)
 
     private inner class KonanDescriptorExportChecker : DescriptorExportCheckerVisitor()
 
@@ -127,8 +125,8 @@ abstract class AbstractKonanDescriptorMangler : DescriptorBasedKotlinManglerImpl
         return false
     }
 
-    private class KonanDescriptorMangleComputer(builder: StringBuilder, mode: MangleMode, app: (KotlinType) -> KotlinType) : DescriptorMangleComputer(builder, mode, app) {
-        override fun copy(newMode: MangleMode): DescriptorMangleComputer = KonanDescriptorMangleComputer(builder, newMode, typeApproximation)
+    private class KonanDescriptorMangleComputer(builder: StringBuilder, mode: MangleMode) : DescriptorMangleComputer(builder, mode) {
+        override fun copy(newMode: MangleMode): DescriptorMangleComputer = KonanDescriptorMangleComputer(builder, newMode)
 
         override fun FunctionDescriptor.platformSpecificFunctionName(): String? {
             (if (this is ConstructorDescriptor && this.isObjCConstructor) this.getObjCInitMethod() else this)?.getObjCMethodInfo()

@@ -77,7 +77,7 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
         val lookupTag: ConeClassLikeLookupTag,
         val origin: IrDeclarationOrigin
     ) {
-        private val irDataClassMembersGenerator = object : DataClassMembersGenerator<KtElement>(
+        private val irDataClassMembersGenerator = object : DataClassMembersGenerator(
             IrGeneratorContextBase(components.irBuiltIns),
             components.symbolTable,
             irClass,

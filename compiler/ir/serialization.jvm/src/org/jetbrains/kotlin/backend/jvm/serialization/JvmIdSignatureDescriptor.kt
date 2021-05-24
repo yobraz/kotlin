@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.backend.jvm.serialization
 
+import org.jetbrains.kotlin.backend.common.serialization.mangle.SpecialDeclarationType
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureDescriptor
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
@@ -21,7 +22,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.cast
 
 class JvmIdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMangler) : IdSignatureDescriptor(mangler) {
 
-    private inner class JvmDescriptorBasedSignatureBuilder(mangler: KotlinMangler.DescriptorMangler) : DescriptorBasedSignatureBuilder(mangler) {
+    private inner class JvmDescriptorBasedSignatureBuilder(mangler: KotlinMangler.DescriptorMangler, type: SpecialDeclarationType) : DescriptorBasedSignatureBuilder(mangler, type) {
         override fun platformSpecificFunction(descriptor: FunctionDescriptor) {
             keepTrackOfOverridesForPossiblyClashingFakeOverride(descriptor)
         }
@@ -106,31 +107,31 @@ class JvmIdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMang
             }
     }
 
-    override fun createSignatureBuilder(): DescriptorBasedSignatureBuilder = JvmDescriptorBasedSignatureBuilder(mangler)
+    override fun createSignatureBuilder(type: SpecialDeclarationType): DescriptorBasedSignatureBuilder = JvmDescriptorBasedSignatureBuilder(mangler, type)
 
     /* In multi-threaded environment, we cannot afford to cache a signature builder, as in IdSignatureBuilder. */
 
     override fun composeSignature(descriptor: DeclarationDescriptor): IdSignature? {
         return if (mangler.run { descriptor.isExported(compatibleMode = false) }) {
-            val sig = createSignatureBuilder().buildSignature(descriptor)
+            val sig = createSignatureBuilder(SpecialDeclarationType.REGULAR).buildSignature(descriptor)
             sig
         } else null
     }
 
     override fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature? {
         return if (mangler.run { descriptor.isExported(compatibleMode = false) })
-            createSignatureBuilder().run { buildSignature(descriptor) }
+            createSignatureBuilder(SpecialDeclarationType.ENUM_ENTRY).run { buildSignature(descriptor) }
         else null
     }
 
     override fun composeAnonInitSignature(descriptor: ClassDescriptor): IdSignature? {
         return if (mangler.run { descriptor.isExported(compatibleMode = false) })
-        createSignatureBuilder().run { buildSignature(descriptor) }
+        createSignatureBuilder(SpecialDeclarationType.ANON_INIT).run { buildSignature(descriptor) }
         else null
     }
 
     override fun composeFieldSignature(descriptor: PropertyDescriptor): IdSignature? {
-        return if (mangler.run { descriptor.isExported(compatibleMode = false) }) createSignatureBuilder().run { buildSignature(descriptor) }
+        return if (mangler.run { descriptor.isExported(compatibleMode = false) }) createSignatureBuilder(SpecialDeclarationType.BACKING_FIELD).run { buildSignature(descriptor) }
         else null
     }
 }

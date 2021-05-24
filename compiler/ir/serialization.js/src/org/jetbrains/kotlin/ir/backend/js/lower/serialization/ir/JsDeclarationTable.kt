@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.backend.common.serialization.GlobalDeclarationTable
 import org.jetbrains.kotlin.backend.common.serialization.IdSignatureClashTracker
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
@@ -26,11 +25,7 @@ class JsUniqIdClashTracker : IdSignatureClashTracker {
             val clashedDeclaration = committedIdSignatures[signature]!!
             val parent = declaration.parent
             val clashedParent = clashedDeclaration.parent
-            if (declaration is IrTypeParameter && parent is IrSimpleFunction && parent.parent is IrProperty && parent !== clashedParent) {
-                // Check whether they are type parameters of the same extension property but different accessors
-                require(clashedParent is IrSimpleFunction)
-                require(clashedParent.correspondingPropertySymbol === parent.correspondingPropertySymbol)
-            } else {
+            if (declaration !is IrTypeParameter || parent !is IrSimpleFunction || clashedParent !is IrSimpleFunction || parent.correspondingPropertySymbol !== clashedParent.correspondingPropertySymbol) {
                 // TODO: handle clashes properly
                 error("IdSignature clash: $signature; Existed declaration ${clashedDeclaration.render()} clashed with new ${declaration.render()}")
             }

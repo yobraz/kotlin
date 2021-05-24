@@ -6,19 +6,22 @@
 package org.jetbrains.kotlin.backend.common.serialization.signature
 
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleConstant
+import org.jetbrains.kotlin.backend.common.serialization.mangle.SpecialDeclarationType
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.ir.descriptors.IrImplementingDelegateDescriptor
 import org.jetbrains.kotlin.ir.descriptors.IrPropertyDelegateDescriptor
 import org.jetbrains.kotlin.ir.symbols.IrFileSymbol
-import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.util.IdSignature
+import org.jetbrains.kotlin.ir.util.IdSignatureComposer
+import org.jetbrains.kotlin.ir.util.KotlinMangler
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
-import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.types.KotlinType
 
 open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMangler) : IdSignatureComposer {
 
-    protected open fun createSignatureBuilder(): DescriptorBasedSignatureBuilder = DescriptorBasedSignatureBuilder(mangler)
+    protected open fun createSignatureBuilder(type: SpecialDeclarationType): DescriptorBasedSignatureBuilder = DescriptorBasedSignatureBuilder(mangler, type)
 
-    protected open inner class DescriptorBasedSignatureBuilder(private val mangler: KotlinMangler.DescriptorMangler) :
+    protected open inner class DescriptorBasedSignatureBuilder(private val mangler: KotlinMangler.DescriptorMangler, private val type: SpecialDeclarationType) :
         IdSignatureBuilder<DeclarationDescriptor>(),
         DeclarationDescriptorVisitor<Unit, Nothing?> {
 
@@ -44,29 +47,10 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
             }
         }
 
-        private fun resolveLocalName(descriptor: DeclarationDescriptor): String {
-            val name = descriptor.name
-            return buildString {
-                if (!name.isAnonymous) append(name)
-                append(MangleConstant.LOCAL_DECLARATION_INDEX_PREFIX)
-                append(localScope?.declarationIndex(descriptor) ?: "0")
-            }
-        }
-
-        private fun collectParents(descriptor: DeclarationDescriptorNonRoot, isLocal: Boolean) {
+        private fun collectParents(descriptor: DeclarationDescriptorNonRoot) {
             descriptor.containingDeclaration.accept(this, null)
-
-            if (isLocal) {
-                createContainer()
-                val localName = resolveLocalName(descriptor)
-                classFqnSegments.add(localName)
-            } else {
-                classFqnSegments.add(descriptor.name.asString())
-            }
+            classFqnSegments.add(descriptor.name.asString())
         }
-
-        private val DeclarationDescriptorWithVisibility.isLocal: Boolean
-            get() = visibility == DescriptorVisibilities.LOCAL
 
         private val DeclarationDescriptorWithVisibility.isPrivate: Boolean
             get() = visibility == DescriptorVisibilities.PRIVATE
@@ -88,9 +72,9 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
         }
 
         override fun visitFunctionDescriptor(descriptor: FunctionDescriptor, data: Nothing?) {
-            collectParents(descriptor, descriptor.isLocal)
-            isTopLevelPrivate = descriptor.isTopLevelPrivate
+            collectParents(descriptor)
             hashId = mangler.run { descriptor.signatureMangle() }
+            isTopLevelPrivate = isTopLevelPrivate or descriptor.isTopLevelPrivate
             setDescription(descriptor)
             setExpected(descriptor.isExpect)
             platformSpecificFunction(descriptor)
@@ -106,16 +90,23 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
         }
 
         override fun visitClassDescriptor(descriptor: ClassDescriptor, data: Nothing?) {
-            collectParents(descriptor, descriptor.isLocal)
-            isTopLevelPrivate = descriptor.isTopLevelPrivate
+            collectParents(descriptor)
+            isTopLevelPrivate = isTopLevelPrivate or descriptor.isTopLevelPrivate
+
+            if (descriptor.kind == ClassKind.ENUM_ENTRY) {
+                if (type != SpecialDeclarationType.ENUM_ENTRY) {
+                    classFqnSegments.add(MangleConstant.ENUM_ENTRY_CLASS_NAME)
+                }
+            }
+
             setDescription(descriptor)
             setExpected(descriptor.isExpect)
             platformSpecificClass(descriptor)
         }
 
         override fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor, data: Nothing?) {
-            collectParents(descriptor, descriptor.isLocal)
-            isTopLevelPrivate = descriptor.isTopLevelPrivate
+            collectParents(descriptor)
+            isTopLevelPrivate = isTopLevelPrivate or descriptor.isTopLevelPrivate
             setExpected(descriptor.isExpect)
             platformSpecificAlias(descriptor)
         }
@@ -125,7 +116,7 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
         }
 
         override fun visitConstructorDescriptor(constructorDescriptor: ConstructorDescriptor, data: Nothing?) {
-            collectParents(constructorDescriptor, false.also { assert(!constructorDescriptor.isLocal) })
+            collectParents(constructorDescriptor)
             hashId = mangler.run { constructorDescriptor.signatureMangle() }
             platformSpecificConstructor(constructorDescriptor)
         }
@@ -134,18 +125,24 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
             visitClassDescriptor(scriptDescriptor, data)
 
         override fun visitPropertyDescriptor(descriptor: PropertyDescriptor, data: Nothing?) {
-            collectParents(descriptor, descriptor.isLocal)
             val actualDeclaration = if (descriptor is IrPropertyDelegateDescriptor) {
                 descriptor.correspondingProperty
             } else {
                 descriptor
             }
+            collectParents(actualDeclaration)
+            isTopLevelPrivate = isTopLevelPrivate or actualDeclaration.isTopLevelPrivate
 
-            isTopLevelPrivate = actualDeclaration.isTopLevelPrivate
 
             hashId = mangler.run { actualDeclaration.signatureMangle() }
             setExpected(actualDeclaration.isExpect)
             platformSpecificProperty(actualDeclaration)
+            if (type == SpecialDeclarationType.BACKING_FIELD) {
+                if (descriptor !is IrImplementingDelegateDescriptor) {
+                    createContainer()
+                    classFqnSegments.add(MangleConstant.BACKING_FIELD_NAME)
+                }
+            }
         }
 
         override fun visitValueParameterDescriptor(descriptor: ValueParameterDescriptor, data: Nothing?) {
@@ -176,62 +173,30 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
             get() = currentFileSignatureX
     }
 
-    private val composer: DescriptorBasedSignatureBuilder by lazy { createSignatureBuilder() }
 
     override fun composeSignature(descriptor: DeclarationDescriptor): IdSignature? {
-        val sig = if (mangler.run { descriptor.isExported(compatibleMode = false) }) composer.buildSignature(descriptor) else null
-        return sig
+        return if (mangler.run { descriptor.isExported(compatibleMode = false) })
+            createSignatureBuilder(SpecialDeclarationType.REGULAR).buildSignature(descriptor)
+        else null
     }
 
     override fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature? {
-        return if (mangler.run { descriptor.isExported(compatibleMode = false) }) composer.buildSignature(descriptor) else null
+        return if (mangler.run { descriptor.isExported(compatibleMode = false) })
+            createSignatureBuilder(SpecialDeclarationType.ENUM_ENTRY).buildSignature(descriptor)
+        else null
     }
 
     override fun composeFieldSignature(descriptor: PropertyDescriptor): IdSignature? {
-        return if (mangler.run { descriptor.isExported(compatibleMode = false) }) composer.buildSignature(descriptor) else null
+        return if (mangler.run { descriptor.isExported(compatibleMode = false) }) {
+            createSignatureBuilder(SpecialDeclarationType.BACKING_FIELD).buildSignature(descriptor)
+        } else null
     }
 
     override fun composeAnonInitSignature(descriptor: ClassDescriptor): IdSignature? {
-        return if (mangler.run { descriptor.isExported(compatibleMode = false) }) composer.buildSignature(descriptor) else null
+        return if (mangler.run { descriptor.isExported(compatibleMode = false) })
+            createSignatureBuilder(SpecialDeclarationType.ANON_INIT).buildSignature(descriptor)
+        else null
     }
-
-    private class LocalScope(val parent: LocalScope?) : SignatureScope<DeclarationDescriptor> {
-
-        private var classIndex = 0
-        private var functionIndex = 0
-        private var anonymousFunIndex = 0
-        private var anonymousClassIndex = 0
-
-
-        override fun commitLambda(descriptor: DeclarationDescriptor) {
-            assert(descriptor is FunctionDescriptor)
-            scopeDeclarationsIndexMap[descriptor] = anonymousFunIndex++
-        }
-
-        override fun commitLocalFunction(descriptor: DeclarationDescriptor) {
-            assert(descriptor is FunctionDescriptor)
-            scopeDeclarationsIndexMap[descriptor] = functionIndex++
-        }
-
-        override fun commitAnonymousObject(descriptor: DeclarationDescriptor) {
-            assert(descriptor is ClassDescriptor)
-            scopeDeclarationsIndexMap[descriptor] = anonymousClassIndex++
-        }
-
-        override fun commitLocalClass(descriptor: DeclarationDescriptor) {
-            assert(descriptor is ClassDescriptor)
-            scopeDeclarationsIndexMap[descriptor] = classIndex++
-        }
-
-        val scopeDeclarationsIndexMap: MutableMap<DeclarationDescriptor, Int> = mutableMapOf()
-
-        fun declarationIndex(descriptor: DeclarationDescriptor): Int? {
-            assert(DescriptorUtils.isLocal(descriptor))
-            return scopeDeclarationsIndexMap[descriptor] ?: parent?.declarationIndex(descriptor)
-        }
-    }
-
-    private var localScope: LocalScope? = null
 
     private var currentFileSignatureX: IdSignature.FileSignature? = null
 

@@ -675,7 +675,9 @@ class Fir2IrDeclarationStorage(
         type: IrType? = null
     ): IrField = convertCatching(property) {
         val inferredType = type ?: firInitializerExpression!!.typeRef.toIrType()
-        return declareIrField(null) { symbol ->
+        return symbolTable.declareField(
+            startOffset, endOffset, origin, descriptor, inferredType
+        ) { symbol ->
             irFactory.createField(
                 startOffset, endOffset, origin, symbol,
                 name, inferredType,

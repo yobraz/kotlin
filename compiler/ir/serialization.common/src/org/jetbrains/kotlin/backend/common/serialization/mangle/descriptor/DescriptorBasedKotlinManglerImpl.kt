@@ -17,17 +17,11 @@ import org.jetbrains.kotlin.types.KotlinType
 
 abstract class DescriptorBasedKotlinManglerImpl : AbstractKotlinMangler<DeclarationDescriptor>(), KotlinMangler.DescriptorMangler {
     private fun withMode(mode: MangleMode, descriptor: DeclarationDescriptor): String =
-        getMangleComputer(mode, approximator).computeMangle(descriptor)
+        getMangleComputer(mode).computeMangle(descriptor)
 
     override fun ClassDescriptor.mangleEnumEntryString(): String = withMode(MangleMode.FQNAME, this)
 
     override fun PropertyDescriptor.mangleFieldString(): String = mangleString()
-
-    private var approximator: (KotlinType) -> KotlinType = { it }
-
-    override fun setupTypeApproximation(app: (KotlinType) -> KotlinType) {
-        approximator = app
-    }
 
     override fun DeclarationDescriptor.mangleString(): String = withMode(MangleMode.FULL, this)
 
@@ -59,7 +53,7 @@ class Ir2DescriptorManglerAdapter(private val delegate: DescriptorBasedKotlinMan
 
     override fun IrDeclaration.fqnString(): String = delegate.run { descriptor.fqnString() }
 
-    override fun getMangleComputer(mode: MangleMode, app: (KotlinType) -> KotlinType): KotlinMangleComputer<IrDeclaration> =
+    override fun getMangleComputer(mode: MangleMode): KotlinMangleComputer<IrDeclaration> =
         error("Should not have been reached")
 
     override fun getExportChecker(compatibleMode: Boolean): KotlinExportChecker<IrDeclaration> {

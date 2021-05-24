@@ -204,6 +204,6 @@ private fun getIrBuiltIns(): IrBuiltIns {
     val moduleDescriptor = ModuleDescriptorImpl(Name.special("<test-module>"), LockBasedStorageManager(""), DefaultBuiltIns.Instance)
     val signaturer = IdSignatureDescriptor(JsManglerDesc)
     val symbolTable = SymbolTable(signaturer, IrFactoryImpl)
-    val typeTranslator = TypeTranslatorImpl(symbolTable, signaturer, languageSettings, moduleDescriptor)
+    val typeTranslator = TypeTranslatorImpl(symbolTable, languageSettings, moduleDescriptor)
     return IrBuiltIns(moduleDescriptor.builtIns, typeTranslator, symbolTable)
 }

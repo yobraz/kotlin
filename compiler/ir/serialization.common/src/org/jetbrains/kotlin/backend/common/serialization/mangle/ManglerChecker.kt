@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.backend.common.serialization.mangle
 
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.descriptors.IrBasedDeclarationDescriptor
 import org.jetbrains.kotlin.ir.util.KotlinMangler
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
@@ -23,14 +22,13 @@ class ManglerChecker(vararg _manglers: KotlinMangler<IrDeclaration>) : IrElement
         element.acceptChildrenVoid(this)
     }
 
-
     private val skipper = object : IrElementVisitor<Boolean, Nothing?> {
         override fun visitElement(element: IrElement, data: Nothing?): Boolean {
             error("unexpected element: ${element.render()}")
         }
 
         override fun visitDeclaration(declaration: IrDeclarationBase, data: Nothing?): Boolean {
-            return declaration.descriptor is IrBasedDeclarationDescriptor<*>
+            return !declaration.symbol.hasDescriptor
         }
         override fun visitAnonymousInitializer(declaration: IrAnonymousInitializer, data: Nothing?): Boolean = true
         override fun visitValueParameter(declaration: IrValueParameter, data: Nothing?): Boolean = true
