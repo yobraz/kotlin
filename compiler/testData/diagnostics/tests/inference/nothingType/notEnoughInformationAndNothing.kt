@@ -1,38 +1,13 @@
-// !LANGUAGE: +NewInference
-// !DIAGNOSTICS: -UNUSED_VARIABLE -UNUSED_PARAMETER
-// !CHECK_TYPE
+// FILE: OCNewFileActionBase.java
+public class OCNewFileActionBase<T extends OCNewFileActionBase<T>.CreateFileDialogBase> {
+    public class CreateFileDialogBase { }
 
-class Inv<I>
-fun <T> materialize(): Inv<T> = TODO()
-fun <K> id(arg: K) = arg
-fun <S> select(vararg args: S): S = TODO()
-
-fun test1(b: Boolean?) {
-    val v = when(b) {
-        true -> materialize()
-        false -> null
-        null -> materialize<String>()
-    }
-    v checkType { _<Inv<String>?>() }
+    static OCNewFileActionBase get() { return new OCNewFileActionBase(); }
 }
 
-fun test2() {
-    <!NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>select<!>(
-        <!NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>materialize<!>()
-    )
-    select(materialize(), materialize<String>())
-    select(materialize(), null, Inv<String>())
-    <!TYPE_MISMATCH!>select<!>(
-        materialize(),
-        null
-    )
-    <!NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>select<!>(
-        <!NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>materialize<!>(),
-        <!NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>materialize<!>()
-    )
-    select(
-        <!NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>materialize<!>(),
-        <!NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>materialize<!>(),
-        null
-    )
+// FILE: main.kt
+fun main() {
+    // Before changes in raw types computation: (OCNewFileActionBase<OCNewFileActionBase<*>.CreateFileDialogBase!>..OCNewFileActionBase<out OCNewFileActionBase<*>.CreateFileDialogBase!>?)
+    // After that: raw (OCNewFileActionBase<*>..OCNewFileActionBase<*>?)
+    val x = <!DEBUG_INFO_EXPRESSION_TYPE("raw (OCNewFileActionBase<*>..OCNewFileActionBase<*>?)")!>OCNewFileActionBase.get()<!>
 }
