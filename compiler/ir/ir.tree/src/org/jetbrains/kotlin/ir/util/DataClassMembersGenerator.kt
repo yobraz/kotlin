@@ -265,7 +265,7 @@ abstract class DataClassMembersGenerator(
         function: FunctionDescriptor,
         startOffset: Int = SYNTHETIC_OFFSET,
         endOffset: Int = SYNTHETIC_OFFSET,
-        crossinline body: MemberFunctionBuilder.(IrFunction) -> Unit
+        body: MemberFunctionBuilder.(IrFunction) -> Unit
     ) {
         MemberFunctionBuilder(startOffset, endOffset, declareSimpleFunction(startOffset, endOffset, function)).addToClass { irFunction ->
             irFunction.buildWithScope {
@@ -280,7 +280,7 @@ abstract class DataClassMembersGenerator(
         irFunction: IrFunction,
         startOffset: Int = SYNTHETIC_OFFSET,
         endOffset: Int = SYNTHETIC_OFFSET,
-        crossinline body: MemberFunctionBuilder.(IrFunction) -> Unit
+        body: MemberFunctionBuilder.(IrFunction) -> Unit
     ) {
         MemberFunctionBuilder(startOffset, endOffset, irFunction).build { function ->
             function.buildWithScope {

@@ -200,10 +200,6 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
 
     private var currentFileSignatureX: IdSignature.FileSignature? = null
 
-    override fun setupTypeApproximation(app: (KotlinType) -> KotlinType) {
-        mangler.setupTypeApproximation(app)
-    }
-
     override fun inFile(file: IrFileSymbol?, block: () -> Unit) {
         currentFileSignatureX = file?.let { IdSignature.FileSignature(it) }
 

@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.expressions.IrDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.expressions.impl.IrDelegatingConstructorCallImpl
-import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.impl.DescriptorlessExternalPackageFragmentSymbol
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.load.java.JvmAnnotationNames
@@ -182,12 +181,4 @@ open class JvmGeneratorExtensionsImpl(private val generateFacades: Boolean = tru
 
     override val rawTypeAnnotationConstructor: IrConstructor =
         rawTypeAnnotationClass.constructors.single()
-
-    private val localClassMappings = mutableMapOf<ClassDescriptor, IrClassSymbol>()
-
-    override fun referenceLocalClass(classDescriptor: ClassDescriptor): IrClassSymbol? = localClassMappings[classDescriptor]
-
-    override fun recordLocalClassSymbol(classDescriptor: ClassDescriptor, classSymbol: IrClassSymbol) {
-        localClassMappings[classDescriptor] = classSymbol
-    }
 }

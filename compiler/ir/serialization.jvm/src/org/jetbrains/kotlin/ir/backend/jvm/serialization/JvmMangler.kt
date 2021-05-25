@@ -27,10 +27,6 @@ import org.jetbrains.kotlin.load.java.lazy.descriptors.isJavaField
 
 abstract class AbstractJvmManglerIr : IrBasedKotlinManglerImpl() {
 
-    companion object {
-//        private val exportChecker = JvmIrExportChecker()
-    }
-
     private class JvmIrExportChecker(compatibleMode: Boolean) : IrExportCheckerVisitor(compatibleMode) {
         override fun IrDeclaration.isPlatformSpecificExported() = false
     }

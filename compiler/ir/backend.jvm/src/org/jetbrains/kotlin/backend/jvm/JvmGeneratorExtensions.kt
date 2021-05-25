@@ -15,6 +15,4 @@ interface JvmGeneratorExtensions {
     val classNameOverride: MutableMap<IrClass, JvmClassName>
 
     val rawTypeAnnotationConstructor: IrConstructor?
-
-    fun referenceLocalClass(classDescriptor: ClassDescriptor): IrClassSymbol?
 }

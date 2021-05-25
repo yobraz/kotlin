@@ -26,8 +26,6 @@ open class StubGeneratorExtensions {
 
     open fun isStaticFunction(descriptor: FunctionDescriptor): Boolean = false
 
-    open fun recordLocalClassSymbol(classDescriptor: ClassDescriptor, classSymbol: IrClassSymbol) {}
-
     open val enhancedNullability: EnhancedNullability
         get() = EnhancedNullability
 
