@@ -287,7 +287,7 @@ sealed class IdSignature {
         }
     }
 
-    class FileLocalSignature(val container: IdSignature, val id: Long) : IdSignature() {
+    class FileLocalSignature(val container: IdSignature, val id: Long, val description: String? = null) : IdSignature() {
         override val isPubliclyVisible: Boolean get() = false
 
         override fun packageFqName(): FqName = container.packageFqName()

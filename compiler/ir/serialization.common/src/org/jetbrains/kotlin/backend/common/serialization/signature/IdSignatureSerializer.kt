@@ -220,7 +220,8 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
                             mangler.run { declaration.signatureMangle() }
                         } else {
                             ++localCounter
-                        }
+                        },
+                        declaration.render()
                     )
                 }
                 is IrProperty -> {
@@ -232,11 +233,12 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
                             mangler.run { declaration.signatureMangle() }
                         } else {
                             ++localCounter
-                        }
+                        },
+                        declaration.render()
                     )
                 }
                 else -> {
-                    IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent, compatibleMode), ++localCounter)
+                    IdSignature.FileLocalSignature(composeContainerIdSignature(declaration.parent, compatibleMode), ++localCounter, declaration.render())
                 }
             }
         }

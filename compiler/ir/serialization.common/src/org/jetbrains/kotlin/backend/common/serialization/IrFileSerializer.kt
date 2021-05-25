@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.backend.common.serialization.proto.AccessorIdSignature as ProtoAccessorIdSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.Actual as ProtoActual
+import org.jetbrains.kotlin.backend.common.serialization.proto.CommonIdSignature as ProtoCommonIdSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.CompositeSignature as ProtoCompositeSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.FieldAccessCommon as ProtoFieldAccessCommon
 import org.jetbrains.kotlin.backend.common.serialization.proto.FileEntry as ProtoFileEntry
@@ -110,7 +111,6 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.LocalSignature as
 import org.jetbrains.kotlin.backend.common.serialization.proto.Loop as ProtoLoop
 import org.jetbrains.kotlin.backend.common.serialization.proto.MemberAccessCommon as ProtoMemberAccessCommon
 import org.jetbrains.kotlin.backend.common.serialization.proto.NullableIrExpression as ProtoNullableIrExpression
-import org.jetbrains.kotlin.backend.common.serialization.proto.CommonIdSignature as ProtoCommonIdSignature
 
 open class IrFileSerializer(
     val messageLogger: IrMessageLogger,
@@ -120,6 +120,7 @@ open class IrFileSerializer(
     private val bodiesOnlyForInlines: Boolean = false,
     private val skipExpects: Boolean = false,
     private val skipMutableState: Boolean = false, // required for JS IC caches
+    private val addDebugInfo: Boolean = true
 ) {
     private val loopIndex = mutableMapOf<IrLoop, Int>()
     private var currentLoopIndex = 0
@@ -142,6 +143,8 @@ open class IrFileSerializer(
     private val protoIdSignatureArray = arrayListOf<ProtoIdSignature>()
 
     private val protoBodyArray = mutableListOf<XStatementOrExpression>()
+
+    private val protoDebugInfoArray = arrayListOf<String>()
 
     sealed class XStatementOrExpression {
         abstract fun toByteArray(): ByteArray
@@ -190,6 +193,11 @@ open class IrFileSerializer(
         protoStringArray.size - 1
     }
 
+    private fun serializeDebugInfo(value: String): Int {
+        protoDebugInfoArray.add(value)
+        return protoDebugInfoArray.size - 1
+    }
+
     private fun serializeName(name: Name): Int = serializeString(name.toString())
 
     /* ------- IdSignature ------------------------------------------------------ */
@@ -227,6 +235,9 @@ open class IrFileSerializer(
 
         proto.container = protoIdSignature(signature.container)
         proto.localId = signature.id
+        if (addDebugInfo) {
+            signature.description?.let { proto.debugInfo = serializeDebugInfo(it) }
+        }
 
         return proto.build()
     }
@@ -250,7 +261,9 @@ open class IrFileSerializer(
 
         proto.addAllLocalFqName(serializeFqName(signature.localFqn))
         signature.hashSig?.let { proto.localHash = it }
-        signature.description?.let { proto.description = serializeString(it) }
+        if (addDebugInfo) {
+            signature.description?.let { proto.description = serializeDebugInfo(it) }
+        }
 
         return proto.build()
     }
@@ -1387,7 +1400,8 @@ open class IrFileSerializer(
             IrMemoryArrayWriter(protoIdSignatureArray.map { it.toByteArray() }).writeIntoMemory(),
             IrMemoryArrayWriter(protoStringArray.map { it.toByteArray() }).writeIntoMemory(),
             IrMemoryArrayWriter(protoBodyArray.map { it.toByteArray() }).writeIntoMemory(),
-            IrMemoryDeclarationWriter(topLevelDeclarations).writeIntoMemory()
+            IrMemoryDeclarationWriter(topLevelDeclarations).writeIntoMemory(),
+            debugInfo = null
         )
     }
 
@@ -1449,7 +1463,8 @@ open class IrFileSerializer(
             IrMemoryArrayWriter(protoIdSignatureArray.map { it.toByteArray() }).writeIntoMemory(),
             IrMemoryStringWriter(protoStringArray).writeIntoMemory(),
             IrMemoryArrayWriter(protoBodyArray.map { it.toByteArray() }).writeIntoMemory(),
-            IrMemoryDeclarationWriter(topLevelDeclarations).writeIntoMemory()
+            IrMemoryDeclarationWriter(topLevelDeclarations).writeIntoMemory(),
+            if (addDebugInfo) IrMemoryStringWriter(protoDebugInfoArray).writeIntoMemory() else null
         )
     }
 
