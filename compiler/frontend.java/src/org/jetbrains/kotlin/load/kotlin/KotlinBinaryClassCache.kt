@@ -23,9 +23,12 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiJavaModule
+import java.lang.ref.WeakReference
 import java.util.concurrent.CopyOnWriteArrayList
 
 class KotlinBinaryClassCache : Disposable {
+    private val requestCaches = CopyOnWriteArrayList<WeakReference<RequestCache>>()
+
     private class RequestCache {
         var virtualFile: VirtualFile? = null
         var modificationStamp: Long = 0
@@ -44,17 +47,20 @@ class KotlinBinaryClassCache : Disposable {
     }
 
     private val cache = object : ThreadLocal<RequestCache>() {
-        private val requestCaches = CopyOnWriteArrayList<RequestCache>()
-
         override fun initialValue(): RequestCache {
-            return RequestCache().also { requestCaches.add(it) }
+            return RequestCache().also {
+                requestCaches.add(WeakReference(it))
+            }
         }
 
         override fun remove() {
             for (cache in requestCaches) {
-                cache.result = null
-                cache.virtualFile = null
+                cache.get()?.run {
+                    result = null
+                    virtualFile = null
+                }
             }
+            requestCaches.clear()
             super.remove()
         }
     }
