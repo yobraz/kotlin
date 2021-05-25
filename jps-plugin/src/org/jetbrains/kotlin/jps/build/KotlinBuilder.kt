@@ -25,6 +25,7 @@ import org.jetbrains.jps.builders.java.JavaBuilderUtil
 import org.jetbrains.jps.builders.java.JavaSourceRootDescriptor
 import org.jetbrains.jps.builders.storage.BuildDataCorruptedException
 import org.jetbrains.jps.incremental.*
+import org.jetbrains.jps.incremental.BuildOperations.deleteRecursively
 import org.jetbrains.jps.incremental.ModuleLevelBuilder.ExitCode.*
 import org.jetbrains.jps.incremental.java.JavaBuilder
 import org.jetbrains.jps.model.JpsProject
@@ -425,18 +426,18 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
                 }
 
                 if (filesToDelete.isNotEmpty()) {
-                    val deletedFilePaths = mutableListOf<String>()
+                    val deletedForThisSource = mutableSetOf<String>()
+                    val parentDirs = mutableSetOf<File>()
 
                     for (kjsmFile in filesToDelete) {
-                        if (kjsmFile.exists()) {
-                            kjsmFile.delete()
-                            deletedFilePaths.add(kjsmFile.path)
-                        }
+                        deleteRecursively(kjsmFile.path, deletedForThisSource, parentDirs)
                     }
 
+                    FSOperations.pruneEmptyDirs(context, parentDirs)
+
                     val logger = context.loggingManager.projectBuilderLogger
-                    if (logger.isEnabled && deletedFilePaths.isNotEmpty()) {
-                        logger.logDeletedFiles(deletedFilePaths)
+                    if (logger.isEnabled && deletedForThisSource.isNotEmpty()) {
+                        logger.logDeletedFiles(deletedForThisSource)
                     }
                 }
             }
