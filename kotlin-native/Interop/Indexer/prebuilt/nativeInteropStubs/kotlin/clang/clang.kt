@@ -2979,15 +2979,15 @@ fun clang_Type_getModifiedType(T: CValue<CXType>): CValue<CXType> {
     }
 }
 
-fun clang_Type_getValueType(CT: CValue<CXType>): CValue<CXType> {
-    memScoped {
-        val kniRetVal = nativeHeap.alloc<CXType>()
-        try {
-            kniBridge183(CT.getPointer(memScope).rawValue, kniRetVal.rawPtr)
-            return kniRetVal.readValue()
-        } finally { nativeHeap.free(kniRetVal) }
-    }
-}
+//fun clang_Type_getValueType(CT: CValue<CXType>): CValue<CXType> {
+//    memScoped {
+//        val kniRetVal = nativeHeap.alloc<CXType>()
+//        try {
+//            kniBridge183(CT.getPointer(memScope).rawValue, kniRetVal.rawPtr)
+//            return kniRetVal.readValue()
+//        } finally { nativeHeap.free(kniRetVal) }
+//    }
+//}
 
 fun clang_Cursor_getOffsetOfField(C: CValue<CXCursor>): Long {
     memScoped {

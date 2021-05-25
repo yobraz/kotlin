@@ -43,8 +43,9 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
         KonanTarget.MACOS_ARM64 -> "$absoluteTargetToolchain/usr/bin"
         else -> throw TargetSupportException("Unexpected host platform")
     }
+
     // TODO: Use buildList
-    private val commonClangArgs: List<String> = mutableListOf<List<String>>().apply {
+    private fun getCommonClangArgs(forJni: Boolean = false): List<String> = mutableListOf<List<String>>().apply {
         add(listOf("-B$binDir", "-fno-stack-protector"))
         if (configurables is GccConfigurables) {
             add(listOf("--gcc-toolchain=${configurables.absoluteGccToolchain}"))
@@ -68,7 +69,12 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
             )
             add(listOf("-target", targetArg.toString()))
         } else {
-            add(listOf("-target", configurables.targetTriple.toString()))
+            val target = if (forJni && target == KonanTarget.MINGW_X64) {
+                "x86_64-pc-windows-msvc"
+            } else {
+                configurables.targetTriple.toString()
+            }
+            add(listOf("-target", target))
         }
         val hasCustomSysroot = configurables is ZephyrConfigurables
                 || configurables is WasmConfigurables
@@ -156,25 +162,30 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
 
     val hostCompilerArgsForJni = listOf("", HostManager.jniHostPlatformIncludeDir).map { "-I$jdkDir/include/$it" }.toTypedArray()
 
+    private fun getClangArgs(forJni: Boolean) =
+            getCommonClangArgs() + specificClangArgs
+    
     /**
      * Clang args for Objectice-C and plain C compilation.
      */
-    val clangArgs: Array<String> = (commonClangArgs + specificClangArgs).toTypedArray()
+    val clangArgs: Array<String> = getClangArgs(forJni = false).toTypedArray()
+
+    private fun getClangXXArgs(forJni: Boolean) = getClangArgs(forJni).toTypedArray() + when (configurables) {
+        is AppleConfigurables -> arrayOf(
+        "-stdlib=libc++",
+        // Starting from Xcode 12.5, platform SDKs contain C++ stdlib.
+        // It results in two c++ stdlib in search path (one from LLVM, another from SDK).
+        // We workaround this problem by explicitly specifying path to stdlib.
+        // TODO: Revise after LLVM update.
+        "-nostdinc++", "-isystem", "$absoluteLlvmHome/include/c++/v1"
+        )
+        else -> emptyArray()
+    }
 
     /**
      * Clang args for C++ compilation.
      */
-    val clangXXArgs: Array<String> = clangArgs + when (configurables) {
-        is AppleConfigurables -> arrayOf(
-                "-stdlib=libc++",
-                // Starting from Xcode 12.5, platform SDKs contain C++ stdlib.
-                // It results in two c++ stdlib in search path (one from LLVM, another from SDK).
-                // We workaround this problem by explicitly specifying path to stdlib.
-                // TODO: Revise after LLVM update.
-                "-nostdinc++", "-isystem", "$absoluteLlvmHome/include/c++/v1"
-        )
-        else -> emptyArray()
-    }
+    val clangXXArgs: Array<String> = getClangXXArgs(forJni = false)
 
     val clangArgsForKonanSources =
             clangXXArgs + clangArgsSpecificForKonanSources
@@ -201,13 +212,10 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
      * Note that it's different from [clangXXArgs].
      */
     val libclangXXArgs: List<String> =
-            libclangSpecificArgs + clangXXArgs
+            libclangSpecificArgs + getClangXXArgs(forJni = false)
 
-    val libclangArgsForJni: List<String> = if (target != KonanTarget.MINGW_X64) {
-        libclangArgs
-    } else libclangSpecificArgs + mutableListOf<List<String>>().apply {
-        add(listOf("-target", "x86_64-pc-windows-msvc"))
-    }.flatten()
+    val libclangArgsForJni: List<String> =
+            libclangSpecificArgs + getClangArgs(forJni = true)
 
     private val targetClangCmd
             = listOf("${absoluteLlvmHome}/bin/clang") + clangArgs
@@ -215,9 +223,8 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
     private val targetClangXXCmd
             = listOf("${absoluteLlvmHome}/bin/clang++") + clangXXArgs
 
-    private val targetClangXXForJniCmd = listOf("${absoluteLlvmHome}/bin/clang++") + mutableListOf<List<String>>().apply {
-        add(listOf("-target", "x86_64-pc-windows-msvc"))
-    }.flatten()
+    private val targetClangXXForJniCmd =
+            listOf("${absoluteLlvmHome}/bin/clang++") + getClangXXArgs(forJni = true).toList()
 
     private val targetArCmd
             = listOf("${absoluteLlvmHome}/bin/llvm-ar")

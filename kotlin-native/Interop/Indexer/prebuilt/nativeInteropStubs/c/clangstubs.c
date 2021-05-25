@@ -606,10 +606,10 @@ JNIEXPORT void JNICALL Java_clang_clang_kniBridge182 (JNIEnv* jniEnv, jclass jcl
     CXType kniStructResult = clang_Type_getModifiedType(*(CXType*)p0);
     memcpy(p1, &kniStructResult, sizeof(kniStructResult));
 }
-JNIEXPORT void JNICALL Java_clang_clang_kniBridge183 (JNIEnv* jniEnv, jclass jclss, jlong p0, jlong p1) {
-    CXType kniStructResult = clang_Type_getValueType(*(CXType*)p0);
-    memcpy(p1, &kniStructResult, sizeof(kniStructResult));
-}
+//JNIEXPORT void JNICALL Java_clang_clang_kniBridge183 (JNIEnv* jniEnv, jclass jclss, jlong p0, jlong p1) {
+//    CXType kniStructResult = clang_Type_getValueType(*(CXType*)p0);
+//    memcpy(p1, &kniStructResult, sizeof(kniStructResult));
+//}
 JNIEXPORT jlong JNICALL Java_clang_clang_kniBridge184 (JNIEnv* jniEnv, jclass jclss, jlong p0) {
     return (jlong)clang_Cursor_getOffsetOfField(*(CXCursor*)p0);
 }
