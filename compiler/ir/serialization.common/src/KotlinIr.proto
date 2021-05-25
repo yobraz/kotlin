@@ -23,7 +23,7 @@ message IrFile {
 
 /* ------ IdSignature -------------------------------------------- */
 
-message PublicIdSignature {
+message CommonIdSignature {
   repeated int32 package_fq_name = 1 [packed=true];
   repeated int32 declaration_fq_name = 2 [packed = true];
   optional int64 member_uniq_id = 3;
@@ -40,6 +40,7 @@ message AccessorIdSignature {
 message FileLocalIdSignature {
   required int32 container = 1;
   required int64 local_id = 2;
+  optional int32 debug_info = 3;
 }
 
 message CompositeSignature {
@@ -57,7 +58,7 @@ message FileSignature {}
 
 message IdSignature {
   oneof idsig {
-    PublicIdSignature public_sig = 1;
+    CommonIdSignature public_sig = 1;
     FileLocalIdSignature private_sig = 2;
     AccessorIdSignature accessor_sig = 3;
     int32 scoped_local_sig = 4;

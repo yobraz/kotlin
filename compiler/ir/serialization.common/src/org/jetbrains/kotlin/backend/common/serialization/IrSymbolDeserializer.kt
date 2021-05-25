@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.FileLocalIdSignat
 import org.jetbrains.kotlin.backend.common.serialization.proto.FileSignature as ProtoFileSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.IdSignature as ProtoIdSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.LocalSignature as ProtoLocalSignature
-import org.jetbrains.kotlin.backend.common.serialization.proto.PublicIdSignature as ProtoPublicIdSignature
+import org.jetbrains.kotlin.backend.common.serialization.proto.CommonIdSignature as ProtoCommonIdSignature
 
 class IrSymbolDeserializer(
     val symbolTable: ReferenceSymbolTable,
@@ -124,7 +124,7 @@ class IrSymbolDeserializer(
 
     // TODO: Think about isolating id signature related logic behind corresponding interface
 
-    private fun deserializePublicIdSignature(proto: ProtoPublicIdSignature): IdSignature.CommonSignature {
+    private fun deserializePublicIdSignature(proto: ProtoCommonIdSignature): IdSignature.CommonSignature {
         val pkg = fileReader.deserializeFqName(proto.packageFqNameList)
         val cls = fileReader.deserializeFqName(proto.declarationFqNameList)
         val memberId = if (proto.hasMemberUniqId()) proto.memberUniqId else null

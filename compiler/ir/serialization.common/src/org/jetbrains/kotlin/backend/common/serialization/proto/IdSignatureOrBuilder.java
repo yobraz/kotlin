@@ -8,13 +8,13 @@ public interface IdSignatureOrBuilder extends
     org.jetbrains.kotlin.protobuf.MessageLiteOrBuilder {
 
   /**
-   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.PublicIdSignature public_sig = 1;</code>
+   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.CommonIdSignature public_sig = 1;</code>
    */
   boolean hasPublicSig();
   /**
-   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.PublicIdSignature public_sig = 1;</code>
+   * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.CommonIdSignature public_sig = 1;</code>
    */
-  org.jetbrains.kotlin.backend.common.serialization.proto.PublicIdSignature getPublicSig();
+  org.jetbrains.kotlin.backend.common.serialization.proto.CommonIdSignature getPublicSig();
 
   /**
    * <code>optional .org.jetbrains.kotlin.backend.common.serialization.proto.FileLocalIdSignature private_sig = 2;</code>
