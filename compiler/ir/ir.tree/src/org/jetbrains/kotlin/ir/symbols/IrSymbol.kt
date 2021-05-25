@@ -39,7 +39,7 @@ interface IrSymbol {
 }
 
 val IrSymbol.isPublicApi: Boolean
-    get() = signature?.let { !it.isLocal } ?: false
+    get() = signature != null
 
 interface IrBindableSymbol<out D : DeclarationDescriptor, B : IrSymbolOwner> : IrSymbol {
     override val owner: B
