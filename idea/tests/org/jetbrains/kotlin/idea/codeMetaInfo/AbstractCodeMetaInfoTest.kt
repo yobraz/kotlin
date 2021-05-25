@@ -65,47 +65,6 @@ class CodeMetaInfoTestCase(
     val checkNoDiagnosticError: Boolean = false
 ) : DaemonAnalyzerTestCase() {
 
-    fun getDiagnosticCodeMetaInfos(
-        configuration: DiagnosticCodeMetaInfoRenderer = DiagnosticCodeMetaInfoRenderer(),
-        parseDirective: Boolean = true
-    ): List<CodeMetaInfo> {
-        val tempSourceKtFile = PsiManager.getInstance(project).findFile(file.virtualFile) as KtFile
-        val resolutionFacade = tempSourceKtFile.getResolutionFacade()
-        val (bindingContext, moduleDescriptor, _) = resolutionFacade.analyzeWithAllCompilerChecks(listOf(tempSourceKtFile))
-        val directives = KotlinTestUtils.parseDirectives(file.text)
-        val diagnosticsFilter = BaseDiagnosticsTest.parseDiagnosticFilterDirective(directives, allowUnderscoreUsage = false)
-        val diagnostics = CheckerTestUtil.getDiagnosticsIncludingSyntaxErrors(
-            bindingContext,
-            file,
-            markDynamicCalls = false,
-            dynamicCallDescriptors = mutableListOf(),
-            configuration = DiagnosticsRenderingConfiguration(
-                platform = null, // we don't need to attach platform-description string to diagnostic here
-                withNewInference = false,
-                languageVersionSettings = resolutionFacade.getLanguageVersionSettings(),
-            ),
-            dataFlowValueFactory = resolutionFacade.getDataFlowValueFactory(),
-            moduleDescriptor = moduleDescriptor as ModuleDescriptorImpl
-        ).map { it.diagnostic }.filter { !parseDirective || diagnosticsFilter.value(it) }
-        configuration.renderParams = directives.contains(BaseDiagnosticsTest.RENDER_DIAGNOSTICS_MESSAGES)
-        return getCodeMetaInfo(diagnostics, configuration)
-    }
-
-    fun getLineMarkerCodeMetaInfos(configuration: LineMarkerRenderer): Collection<CodeMetaInfo> {
-        if ("!CHECK_HIGHLIGHTING" in file.text)
-            return emptyList()
-
-        CodeInsightTestFixtureImpl.instantiateAndRun(file, editor, TIntArrayList().toNativeArray(), false)
-        val lineMarkers = DaemonCodeAnalyzerImpl.getLineMarkers(getDocument(file), project)
-        return getCodeMetaInfo(lineMarkers, configuration)
-    }
-
-    fun getHighlightingCodeMetaInfos(configuration: HighlightingRenderer): Collection<CodeMetaInfo> {
-        val infos = CodeInsightTestFixtureImpl.instantiateAndRun(file, editor, TIntArrayList().toNativeArray(), false)
-
-        return getCodeMetaInfo(infos, configuration)
-    }
-    
     fun checkFile(file: VirtualFile, expectedFile: File, project: Project) {
         myProject = project
         myPsiManager = PsiManager.getInstance(myProject) as PsiManagerImpl
@@ -113,7 +72,7 @@ class CodeMetaInfoTestCase(
         check(expectedFile)
     }
 
-    fun check(expectedFile: File) {
+    private fun check(expectedFile: File) {
         val codeMetaInfoForCheck = mutableListOf<CodeMetaInfo>()
         PsiDocumentManager.getInstance(myProject).commitAllDocuments()
 
@@ -176,6 +135,47 @@ class CodeMetaInfoTestCase(
                 diagnosticsErrors.isEmpty()
             )
         }
+    }
+
+    private fun getDiagnosticCodeMetaInfos(
+        configuration: DiagnosticCodeMetaInfoRenderer = DiagnosticCodeMetaInfoRenderer(),
+        parseDirective: Boolean = true
+    ): List<CodeMetaInfo> {
+        val tempSourceKtFile = PsiManager.getInstance(project).findFile(file.virtualFile) as KtFile
+        val resolutionFacade = tempSourceKtFile.getResolutionFacade()
+        val (bindingContext, moduleDescriptor, _) = resolutionFacade.analyzeWithAllCompilerChecks(listOf(tempSourceKtFile))
+        val directives = KotlinTestUtils.parseDirectives(file.text)
+        val diagnosticsFilter = BaseDiagnosticsTest.parseDiagnosticFilterDirective(directives, allowUnderscoreUsage = false)
+        val diagnostics = CheckerTestUtil.getDiagnosticsIncludingSyntaxErrors(
+            bindingContext,
+            file,
+            markDynamicCalls = false,
+            dynamicCallDescriptors = mutableListOf(),
+            configuration = DiagnosticsRenderingConfiguration(
+                platform = null, // we don't need to attach platform-description string to diagnostic here
+                withNewInference = false,
+                languageVersionSettings = resolutionFacade.getLanguageVersionSettings(),
+            ),
+            dataFlowValueFactory = resolutionFacade.getDataFlowValueFactory(),
+            moduleDescriptor = moduleDescriptor as ModuleDescriptorImpl
+        ).map { it.diagnostic }.filter { !parseDirective || diagnosticsFilter.value(it) }
+        configuration.renderParams = directives.contains(BaseDiagnosticsTest.RENDER_DIAGNOSTICS_MESSAGES)
+        return getCodeMetaInfo(diagnostics, configuration)
+    }
+
+    private fun getLineMarkerCodeMetaInfos(configuration: LineMarkerRenderer): Collection<CodeMetaInfo> {
+        if ("!CHECK_HIGHLIGHTING" in file.text)
+            return emptyList()
+
+        CodeInsightTestFixtureImpl.instantiateAndRun(file, editor, TIntArrayList().toNativeArray(), false)
+        val lineMarkers = DaemonCodeAnalyzerImpl.getLineMarkers(getDocument(file), project)
+        return getCodeMetaInfo(lineMarkers, configuration)
+    }
+
+    private fun getHighlightingCodeMetaInfos(configuration: HighlightingRenderer): Collection<CodeMetaInfo> {
+        val infos = CodeInsightTestFixtureImpl.instantiateAndRun(file, editor, TIntArrayList().toNativeArray(), false)
+
+        return getCodeMetaInfo(infos, configuration)
     }
 
     private fun checkHighlightErrorItemsInDiagnostics(
