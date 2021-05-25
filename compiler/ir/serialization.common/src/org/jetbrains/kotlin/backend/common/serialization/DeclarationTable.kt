@@ -69,37 +69,6 @@ open class DeclarationTable(globalTable: GlobalDeclarationTable) {
     }
 
 
-    private class LocalScopeBuilder : ScopeBuilder<IrDeclaration, IrElement> {
-        private class LocalIndexCollector(private val scope: SignatureScope<IrDeclaration>) : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
-                element.acceptChildrenVoid(this)
-            }
-
-            override fun visitClass(declaration: IrClass) {
-                if (declaration.kind == ClassKind.OBJECT) {
-                    // TODO: is that correct?
-                    scope.commitAnonymousObject(declaration)
-                } else {
-                    scope.commitLocalClass(declaration)
-                }
-            }
-
-            override fun visitSimpleFunction(declaration: IrSimpleFunction) {
-                if (declaration.visibility == DescriptorVisibilities.LOCAL) {
-                    scope.commitLocalFunction(declaration)
-                }
-            }
-
-            override fun visitFunctionExpression(expression: IrFunctionExpression) {
-                scope.commitLambda(expression.function)
-            }
-        }
-
-        override fun build(scope: SignatureScope<IrDeclaration>, element: IrElement?) {
-            element?.acceptChildrenVoid(LocalIndexCollector(scope))
-        }
-    }
-
     private fun IrDeclaration.isLocalDeclaration(compatibleMode: Boolean): Boolean {
         return !isExportedDeclaration(this, compatibleMode)
     }

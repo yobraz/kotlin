@@ -18,7 +18,6 @@ import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.deserialization.NameResolver
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedClassDescriptor
 
 class IrLazyClass(
@@ -43,9 +42,6 @@ class IrLazyClass(
     override val typeTranslator: TypeTranslator
 ) : IrClass(), IrLazyDeclarationBase {
     init {
-        if (DescriptorUtils.isLocal(descriptor)) {
-            println("deed")
-        }
         symbol.bind(this)
     }
 

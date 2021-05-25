@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.ir.symbols.IrFileSymbol
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
-import org.jetbrains.kotlin.types.KotlinType
 
 sealed class IdSignature {
 
@@ -338,24 +337,11 @@ sealed class IdSignature {
     }
 }
 
-interface SignatureScope<D> {
-    fun commitLambda(descriptor: D)
-    fun commitLocalFunction(descriptor: D)
-    fun commitAnonymousObject(descriptor: D)
-    fun commitLocalClass(descriptor: D)
-}
-
-interface ScopeBuilder<D, E> {
-    fun build(scope: SignatureScope<D>, element: E?)
-}
-
 interface IdSignatureComposer {
     fun composeSignature(descriptor: DeclarationDescriptor): IdSignature?
     fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature?
     fun composeFieldSignature(descriptor: PropertyDescriptor): IdSignature?
     fun composeAnonInitSignature(descriptor: ClassDescriptor): IdSignature?
-
-    fun setupTypeApproximation(app: (KotlinType) -> KotlinType)
 
     fun inFile(file: IrFileSymbol?, block: () -> Unit)
 }
