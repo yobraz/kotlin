@@ -105,16 +105,7 @@ class CodeMetaInfoTestCase(
 
         return getCodeMetaInfo(infos, configuration)
     }
-
-    fun checkFile(expectedFile: File, project: Project, editor: Editor) {
-        myProject = project
-        myPsiManager = PsiManager.getInstance(myProject) as PsiManagerImpl
-        runInEdtAndWait {
-            setActiveEditor(editor)
-            check(expectedFile)
-        }
-    }
-
+    
     fun checkFile(file: VirtualFile, expectedFile: File, project: Project) {
         myProject = project
         myPsiManager = PsiManager.getInstance(myProject) as PsiManagerImpl
