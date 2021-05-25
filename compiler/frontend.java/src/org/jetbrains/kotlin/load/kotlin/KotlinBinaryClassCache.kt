@@ -58,6 +58,7 @@ class KotlinBinaryClassCache : Disposable {
                 cache.get()?.run {
                     result = null
                     virtualFile = null
+                    remove()
                 }
             }
             requestCaches.clear()
