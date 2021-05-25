@@ -17,6 +17,8 @@
 package org.jetbrains.kotlin.incremental
 
 import com.intellij.util.io.DataExternalizer
+import org.jetbrains.kotlin.build.GeneratedFile
+import org.jetbrains.kotlin.build.isJsOutputFile
 import org.jetbrains.kotlin.incremental.js.IncrementalResultsConsumerImpl
 import org.jetbrains.kotlin.incremental.js.IrTranslationResultValue
 import org.jetbrains.kotlin.incremental.js.TranslationResultValue
@@ -48,7 +50,7 @@ open class IncrementalJsCache(
         private const val INLINE_FUNCTIONS = "inline-functions"
         private const val HEADER_FILE_NAME = "header.meta"
         private const val PACKAGE_META_FILE = "packages-meta"
-        private const val SOURCE_TO_OUTPUT = "source-to-output"
+        private const val SOURCE_TO_JS_OUTPUT = "source-to-js-output"
 
         fun hasHeaderFile(cachesDir: File) = File(cachesDir, HEADER_FILE_NAME).exists()
     }
@@ -61,7 +63,7 @@ open class IncrementalJsCache(
     private val irTranslationResults = registerMap(IrTranslationResultMap(IR_TRANSLATION_RESULT_MAP.storageFile, pathConverter))
     private val inlineFunctions = registerMap(InlineFunctionsMap(INLINE_FUNCTIONS.storageFile, pathConverter))
     private val packageMetadata = registerMap(PackageMetadataMap(PACKAGE_META_FILE.storageFile))
-    private val sourceToKjsmMap = registerMap(SourceToKjsmMap(SOURCE_TO_OUTPUT.storageFile, pathConverter))
+    private val sourceToJsOutputsMap = registerMap(SourceToJsOutputMap(SOURCE_TO_JS_OUTPUT.storageFile, pathConverter))
 
     private val dirtySources = hashSetOf<File>()
 
@@ -78,7 +80,7 @@ open class IncrementalJsCache(
     override fun markDirty(removedAndCompiledSources: Collection<File>) {
         removedAndCompiledSources.forEach { sourceFile ->
             // The common prefix of all FQN parents has to be the file package
-            sourceToKjsmMap.remove(sourceFile)
+            sourceToJsOutputsMap.remove(sourceFile)
             sourceToClassesMap[sourceFile].map { it.parentOrNull()?.asString() ?: "" }.minByOrNull { it.length }?.let {
                 packageMetadata.remove(it)
             }
@@ -98,12 +100,8 @@ open class IncrementalJsCache(
         }
     }
 
-    fun getKjsmBySource(sourceFile: File): File? {
-        return sourceToKjsmMap.get(sourceFile)
-    }
-
-    fun setKjsmBySource(sourceFile: File, kjsmFile: File) {
-        sourceToKjsmMap[sourceFile] = kjsmFile
+    fun getOutputsBySource(sourceFile: File): Collection<File> {
+        return sourceToJsOutputsMap.get(sourceFile)
     }
 
     fun compareAndUpdate(incrementalResults: IncrementalResultsConsumerImpl, changesCollector: ChangesCollector) {
@@ -186,6 +184,19 @@ open class IncrementalJsCache(
                 }
             }
         }
+
+    fun updateSourceToOutputMap(
+        generatedFiles: Iterable<GeneratedFile>,
+    ) {
+        for (generatedFile in generatedFiles) {
+            if (generatedFile.outputFile.isJsOutputFile()) {
+                for (source in generatedFile.sourceFiles) {
+                    if(dirtySources.contains(source))
+                        sourceToJsOutputsMap.add(source, generatedFile.outputFile)
+                }
+            }
+        }
+    }
 }
 
 private object TranslationResultValueExternalizer : DataExternalizer<TranslationResultValue> {

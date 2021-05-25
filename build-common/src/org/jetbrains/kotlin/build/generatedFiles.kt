@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.build
 
 import org.jetbrains.kotlin.incremental.LocalFileKotlinClass
 import org.jetbrains.kotlin.metadata.jvm.deserialization.ModuleMapping
+import org.jetbrains.kotlin.serialization.js.KotlinJavascriptSerializationUtil.CLASS_METADATA_FILE_EXTENSION
 import org.jetbrains.kotlin.utils.sure
 import java.io.File
 
@@ -40,3 +41,7 @@ class GeneratedJvmClass(
 }
 
 fun File.isModuleMappingFile() = extension == ModuleMapping.MAPPING_FILE_EXT && parentFile.name == "META-INF"
+fun File.isJsOutputFile() =
+    extension == CLASS_METADATA_FILE_EXTENSION
+            || extension == "js" && parentFile.name == nameWithoutExtension
+            || name.endsWith(".meta.js") && parentFile.name == this.name.substringBefore(".meta.js")

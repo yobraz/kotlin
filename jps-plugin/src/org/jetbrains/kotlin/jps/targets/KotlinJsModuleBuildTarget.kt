@@ -224,6 +224,7 @@ class KotlinJsModuleBuildTarget(kotlinContext: KotlinCompileContext, jpsModuleBu
         val jsCache = jpsIncrementalCache as IncrementalJsCache
         jsCache.header = incrementalResults.headerMetadata
 
+        jsCache.updateSourceToOutputMap(files)
         jsCache.compareAndUpdate(incrementalResults, changesCollector)
         jsCache.clearCacheForRemovedClasses(changesCollector)
     }

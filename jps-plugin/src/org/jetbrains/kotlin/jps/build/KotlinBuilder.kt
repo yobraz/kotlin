@@ -30,10 +30,12 @@ import org.jetbrains.jps.incremental.java.JavaBuilder
 import org.jetbrains.jps.model.JpsProject
 import org.jetbrains.kotlin.build.GeneratedFile
 import org.jetbrains.kotlin.build.GeneratedJvmClass
+import org.jetbrains.kotlin.build.report.ICReporterBase
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.*
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.ERROR
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.INFO
 import org.jetbrains.kotlin.cli.common.messages.MessageCollectorUtil
 import org.jetbrains.kotlin.compilerRunner.*
 import org.jetbrains.kotlin.config.IncrementalCompilation
@@ -43,7 +45,6 @@ import org.jetbrains.kotlin.daemon.common.isDaemonEnabled
 import org.jetbrains.kotlin.incremental.*
 import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
 import org.jetbrains.kotlin.incremental.components.LookupTracker
-import org.jetbrains.kotlin.build.report.ICReporterBase
 import org.jetbrains.kotlin.jps.incremental.JpsIncrementalCache
 import org.jetbrains.kotlin.jps.incremental.JpsLookupStorageManager
 import org.jetbrains.kotlin.jps.model.kotlinKind
@@ -55,7 +56,6 @@ import org.jetbrains.kotlin.preloading.ClassCondition
 import org.jetbrains.kotlin.utils.KotlinPaths
 import org.jetbrains.kotlin.utils.KotlinPathsFromHomeDir
 import org.jetbrains.kotlin.utils.PathUtil
-import org.jetbrains.kotlin.utils.addIfNotNull
 import java.io.File
 import java.util.*
 import kotlin.collections.HashSet
@@ -239,22 +239,6 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
             val dirtyFiles = dirtyFilesHolder.getDirtyFiles(target.jpsModuleBuildTarget).keys
             val removedFiles = dirtyFilesHolder.getRemovedFiles(target.jpsModuleBuildTarget)
 
-            if (cache is IncrementalJsCache) {
-                val filesToDelete = mutableListOf<File>()
-                for (file: File in dirtyFiles + removedFiles) {
-                    filesToDelete.addIfNotNull(cache.getKjsmBySource(file).takeIf { it !in filesToDelete })
-                }
-                if (filesToDelete.isNotEmpty()) {
-                    val logger = context.loggingManager.projectBuilderLogger
-                    if (logger.isEnabled) {
-                        logger.logDeletedFiles(filesToDelete.map { it.path })
-                    }
-                    for (kjsmFile in filesToDelete) {
-                        if (kjsmFile.exists()) kjsmFile.delete()
-                    }
-                }
-            }
-
             val existingClasses = JpsKotlinCompilerRunner().classesFqNamesByFiles(environment, dirtyFiles)
             val previousClasses = cache.classesFqNamesBySources(dirtyFiles + removedFiles)
             for (jvmClassName in previousClasses) {
@@ -427,6 +411,37 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
             kotlinDirtyFilesHolder.allRemovedFilesFiles
         )
 
+        // clean outputs for JS
+        for (target in kotlinChunk.targets) {
+            val cache = incrementalCaches[target] ?: continue
+
+            if (cache is IncrementalJsCache) {
+                val filesToDelete = mutableListOf<File>()
+                val dirtyFiles = kotlinDirtyFilesHolder.getDirtyFiles(target.jpsModuleBuildTarget).keys
+                val removedFiles = kotlinDirtyFilesHolder.getRemovedFiles(target.jpsModuleBuildTarget)
+
+                for (file: File in dirtyFiles + removedFiles) {
+                    filesToDelete.addAll(cache.getOutputsBySource(file).filter { it !in filesToDelete })
+                }
+
+                if (filesToDelete.isNotEmpty()) {
+                    val deletedFilePaths = mutableListOf<String>()
+
+                    for (kjsmFile in filesToDelete) {
+                        if (kjsmFile.exists()) {
+                            kjsmFile.delete()
+                            deletedFilePaths.add(kjsmFile.path)
+                        }
+                    }
+
+                    val logger = context.loggingManager.projectBuilderLogger
+                    if (logger.isEnabled && deletedFilePaths.isNotEmpty()) {
+                        logger.logDeletedFiles(deletedFilePaths)
+                    }
+                }
+            }
+        }
+
         if (LOG.isDebugEnabled) {
             LOG.debug("Compiling files: ${kotlinDirtyFilesHolder.allDirtyFiles}")
         }
@@ -464,15 +479,6 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
         val kotlinTargets = kotlinContext.targetsBinding
         for ((target, outputItems) in generatedFiles) {
             val kotlinTarget = kotlinTargets[target] ?: error("Could not find Kotlin target for JPS target $target")
-            val cache = incrementalCaches[kotlinTarget] as? IncrementalJsCache
-
-            for (output in outputItems) {
-                if (output.outputFile.path.endsWith(".kjsm")) {
-                    for (source in output.sourceFiles) {
-                        cache?.setKjsmBySource(source, output.outputFile)
-                    }
-                }
-            }
             kotlinTarget.registerOutputItems(outputConsumer, outputItems)
         }
         kotlinChunk.saveVersions()
