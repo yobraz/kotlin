@@ -187,7 +187,7 @@ internal class RTTIGenerator(override val context: Context) : ContextUtils {
     )
 
     private fun getElementType(irClass: IrClass): LLVMTypeRef? {
-        val signature = irClass.symbol.signature as? IdSignature.PublicSignature?
+        val signature = irClass.symbol.signature as? IdSignature.CommonSignature?
         return signature?.let { arrayClasses[it] }
     }
 

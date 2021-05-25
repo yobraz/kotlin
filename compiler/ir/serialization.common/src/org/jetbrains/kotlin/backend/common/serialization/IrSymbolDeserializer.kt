@@ -124,23 +124,23 @@ class IrSymbolDeserializer(
 
     // TODO: Think about isolating id signature related logic behind corresponding interface
 
-    private fun deserializePublicIdSignature(proto: ProtoPublicIdSignature): IdSignature.PublicSignature {
+    private fun deserializePublicIdSignature(proto: ProtoPublicIdSignature): IdSignature.CommonSignature {
         val pkg = fileReader.deserializeFqName(proto.packageFqNameList)
         val cls = fileReader.deserializeFqName(proto.declarationFqNameList)
         val memberId = if (proto.hasMemberUniqId()) proto.memberUniqId else null
 
-        return IdSignature.PublicSignature(pkg, cls, memberId, proto.flags)
+        return IdSignature.CommonSignature(pkg, cls, memberId, proto.flags)
     }
 
     private fun deserializeAccessorIdSignature(proto: ProtoAccessorIdSignature): IdSignature.AccessorSignature {
         val propertySignature = deserializeIdSignature(proto.propertySignature)
-        require(propertySignature is IdSignature.PublicSignature) { "For public accessor corresponding property supposed to be public as well" }
+        require(propertySignature is IdSignature.CommonSignature) { "For public accessor corresponding property supposed to be public as well" }
         val name = fileReader.deserializeString(proto.name)
         val hash = proto.accessorHashId
         val mask = proto.flags
 
         val accessorSignature =
-            IdSignature.PublicSignature(propertySignature.packageFqName, "${propertySignature.declarationFqName}.$name", hash, mask)
+            IdSignature.CommonSignature(propertySignature.packageFqName, "${propertySignature.declarationFqName}.$name", hash, mask)
 
         return IdSignature.AccessorSignature(propertySignature, accessorSignature)
     }

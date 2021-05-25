@@ -34,7 +34,7 @@ sealed class IdSignature {
 
     abstract fun packageFqName(): FqName
 
-    open fun asPublic(): PublicSignature? = null
+    open fun asPublic(): CommonSignature? = null
 
     abstract fun render(): String
 
@@ -49,7 +49,7 @@ sealed class IdSignature {
     override fun toString(): String =
         "${if (isLocal) "local " else ""}${render()}"
 
-    class PublicSignature(val packageFqName: String, val declarationFqName: String, val id: Long?, val mask: Long) : IdSignature() {
+    class CommonSignature(val packageFqName: String, val declarationFqName: String, val id: Long?, val mask: Long) : IdSignature() {
         override val isPubliclyVisible: Boolean get() = true
 
         override fun packageFqName(): FqName = FqName(packageFqName)
@@ -77,21 +77,21 @@ sealed class IdSignature {
             val adoptedMask = adaptMask(mask)
             if (nameSegments.size == 1 && mask == adoptedMask) return this
 
-            return PublicSignature(packageFqName, nameSegments.first(), null, adoptedMask)
+            return CommonSignature(packageFqName, nameSegments.first(), null, adoptedMask)
         }
 
         override fun isPackageSignature(): Boolean = id == null && declarationFqName.isEmpty()
 
-        override fun nearestPublicSig(): PublicSignature = this
+        override fun nearestPublicSig(): CommonSignature = this
 
         override fun flags(): Long = mask
 
         override fun render(): String = "$packageFqName/$declarationFqName|$id[${mask.toString(2)}]"
 
-        override fun asPublic(): PublicSignature? = this
+        override fun asPublic(): CommonSignature = this
 
         override fun equals(other: Any?): Boolean =
-            other is PublicSignature && packageFqName == other.packageFqName && declarationFqName == other.declarationFqName &&
+            other is CommonSignature && packageFqName == other.packageFqName && declarationFqName == other.declarationFqName &&
                     id == other.id && mask == other.mask
 
         override fun hashCode(): Int =
@@ -135,7 +135,7 @@ sealed class IdSignature {
 
     }
 
-    class AccessorSignature(val propertySignature: IdSignature, val accessorSignature: PublicSignature) : IdSignature() {
+    class AccessorSignature(val propertySignature: IdSignature, val accessorSignature: CommonSignature) : IdSignature() {
         override val isPubliclyVisible: Boolean get() = true
 
         override fun topLevelSignature(): IdSignature = propertySignature.topLevelSignature()
@@ -148,7 +148,7 @@ sealed class IdSignature {
 
         override fun flags(): Long = accessorSignature.mask
 
-        override fun asPublic(): PublicSignature? = accessorSignature
+        override fun asPublic(): CommonSignature = accessorSignature
 
         override fun equals(other: Any?): Boolean =
             if (other is AccessorSignature) accessorSignature == other.accessorSignature
@@ -295,7 +295,7 @@ sealed class IdSignature {
         override fun topLevelSignature(): IdSignature {
             val topLevelContainer = container.topLevelSignature()
             if (topLevelContainer === container) {
-                if (topLevelContainer is PublicSignature && topLevelContainer.declarationFqName.isEmpty()) {
+                if (topLevelContainer is CommonSignature && topLevelContainer.declarationFqName.isEmpty()) {
                     // private top level
                     return this
                 }

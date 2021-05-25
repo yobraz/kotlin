@@ -61,14 +61,12 @@ abstract class IdSignatureBuilder<D> {
                 return IdSignature.SpecialFakeOverrideSignature(memberSignature, overriddenSignatures)
             }
             isTopLevelPrivate -> {
-                val fileSig = currentFileSignature ?:
-                error("File expected to be not null")
+                val fileSig = currentFileSignature ?: error("File expected to be not null")
                 isTopLevelPrivate = false
                 IdSignature.CompositeSignature(fileSig, build())
             }
             errorIndex != null -> {
-                val fileSig = currentFileSignature ?:
-                error("File expected to be not null")
+                val fileSig = currentFileSignature ?: error("File expected to be not null")
                 IdSignature.CompositeSignature(fileSig, IdSignature.ScopeLocalDeclaration(errorIndex!!, description))
             }
             container != null -> {
@@ -78,10 +76,10 @@ abstract class IdSignatureBuilder<D> {
             }
 
             hashIdAcc == null -> {
-                IdSignature.PublicSignature(packageFqName, classFqName, hashId, mask)
+                IdSignature.CommonSignature(packageFqName, classFqName, hashId, mask)
             }
             else -> {
-                val accessorSignature = IdSignature.PublicSignature(packageFqName, classFqName, hashIdAcc, mask)
+                val accessorSignature = IdSignature.CommonSignature(packageFqName, classFqName, hashIdAcc, mask)
                 hashIdAcc = null
                 classFqnSegments.run { removeAt(lastIndex) }
                 val propertySignature = build()
