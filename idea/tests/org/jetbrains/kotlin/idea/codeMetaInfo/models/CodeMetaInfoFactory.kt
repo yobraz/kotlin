@@ -10,32 +10,32 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import org.jetbrains.kotlin.checkers.diagnostics.ActualDiagnostic
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderConfiguration
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.DiagnosticCodeMetaInfoRenderConfiguration
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.DiagnosticCodeMetaInfoRenderer
 import org.jetbrains.kotlin.diagnostics.Diagnostic
-import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.HighlightingRenderConfiguration
-import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.LineMarkerRenderConfiguration
+import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.HighlightingRenderer
+import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.LineMarkerRenderer
 import org.jetbrains.kotlin.idea.editor.fixers.end
 import org.jetbrains.kotlin.idea.editor.fixers.start
 
-fun createCodeMetaInfo(obj: Any, renderConfiguration: AbstractCodeMetaInfoRenderConfiguration): List<CodeMetaInfo> {
+fun createCodeMetaInfo(obj: Any, renderer: AbstractCodeMetaInfoRenderer): List<CodeMetaInfo> {
     fun errorMessage() = "Unexpected render configuration for object $obj"
     return when (obj) {
         is Diagnostic -> {
-            require(renderConfiguration is DiagnosticCodeMetaInfoRenderConfiguration, ::errorMessage)
-            obj.textRanges.map { DiagnosticCodeMetaInfo(it.start, it.end, renderConfiguration, obj) }
+            require(renderer is DiagnosticCodeMetaInfoRenderer, ::errorMessage)
+            obj.textRanges.map { DiagnosticCodeMetaInfo(it.start, it.end, renderer, obj) }
         }
         is ActualDiagnostic -> {
-            require(renderConfiguration is DiagnosticCodeMetaInfoRenderConfiguration, ::errorMessage)
-            obj.diagnostic.textRanges.map { DiagnosticCodeMetaInfo(it.start, it.end, renderConfiguration, obj.diagnostic) }
+            require(renderer is DiagnosticCodeMetaInfoRenderer, ::errorMessage)
+            obj.diagnostic.textRanges.map { DiagnosticCodeMetaInfo(it.start, it.end, renderer, obj.diagnostic) }
         }
         is HighlightInfo -> {
-            require(renderConfiguration is HighlightingRenderConfiguration, ::errorMessage)
-            listOf(HighlightingCodeMetaInfo(renderConfiguration, obj))
+            require(renderer is HighlightingRenderer, ::errorMessage)
+            listOf(HighlightingCodeMetaInfo(renderer, obj))
         }
         is LineMarkerInfo<*> -> {
-            require(renderConfiguration is LineMarkerRenderConfiguration, ::errorMessage)
-            listOf(LineMarkerCodeMetaInfo(renderConfiguration, obj))
+            require(renderer is LineMarkerRenderer, ::errorMessage)
+            listOf(LineMarkerCodeMetaInfo(renderer, obj))
         }
         else -> throw IllegalArgumentException("Unknown type for creating CodeMetaInfo object $obj")
     }
@@ -43,7 +43,7 @@ fun createCodeMetaInfo(obj: Any, renderConfiguration: AbstractCodeMetaInfoRender
 
 fun getCodeMetaInfo(
     objects: List<Any>,
-    renderConfiguration: AbstractCodeMetaInfoRenderConfiguration
+    renderer: AbstractCodeMetaInfoRenderer
 ): List<CodeMetaInfo> {
-    return objects.flatMap { createCodeMetaInfo(it, renderConfiguration) }
+    return objects.flatMap { createCodeMetaInfo(it, renderer) }
 }

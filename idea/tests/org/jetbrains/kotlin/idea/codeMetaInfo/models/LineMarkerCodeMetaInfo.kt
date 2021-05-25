@@ -7,10 +7,10 @@ package org.jetbrains.kotlin.idea.codeMetaInfo.models
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.LineMarkerRenderConfiguration
+import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.LineMarkerRenderer
 
 class LineMarkerCodeMetaInfo(
-    override val renderConfiguration: LineMarkerRenderConfiguration,
+    override val renderer: LineMarkerRenderer,
     val lineMarker: LineMarkerInfo<*>
 ) : CodeMetaInfo {
     override val start: Int
@@ -19,9 +19,9 @@ class LineMarkerCodeMetaInfo(
         get() = lineMarker.endOffset
 
     override val tag: String
-        get() = renderConfiguration.getTag()
+        get() = renderer.getTag()
 
     override val attributes: MutableList<String> = mutableListOf()
 
-    override fun asString(): String = renderConfiguration.asString(this)
+    override fun asString(): String = renderer.asString(this)
 }

@@ -6,14 +6,14 @@
 package org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations
 
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderConfiguration
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderer
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingCodeMetaInfo
 
-open class HighlightingRenderConfiguration(
+open class HighlightingRenderer(
     val renderDescription: Boolean = true,
     val renderTextAttributesKey: Boolean = true,
     val renderSeverity: Boolean = true
-) : AbstractCodeMetaInfoRenderConfiguration() {
+) : AbstractCodeMetaInfoRenderer() {
 
     override fun asString(codeMetaInfo: CodeMetaInfo): String {
         if (codeMetaInfo !is HighlightingCodeMetaInfo) return ""

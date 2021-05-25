@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.test.codeMetaInfo.model
 
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.ParsedCodeMetaInfoRenderConfiguration
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.ParsedCodeMetaInfoRenderer
 
 class ParsedCodeMetaInfo(
     override val start: Int,
@@ -14,9 +14,9 @@ class ParsedCodeMetaInfo(
     override val tag: String,
     val description: String?
 ) : CodeMetaInfo {
-    override val renderConfiguration = ParsedCodeMetaInfoRenderConfiguration
+    override val renderer = ParsedCodeMetaInfoRenderer
 
-    override fun asString(): String = renderConfiguration.asString(this)
+    override fun asString(): String = renderer.asString(this)
 
     override fun equals(other: Any?): Boolean {
         if (other == null || other !is CodeMetaInfo) return false

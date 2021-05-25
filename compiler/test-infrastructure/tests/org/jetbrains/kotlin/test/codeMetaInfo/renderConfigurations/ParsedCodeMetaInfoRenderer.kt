@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.ParsedCodeMetaInfo
 
-object ParsedCodeMetaInfoRenderConfiguration : AbstractCodeMetaInfoRenderConfiguration() {
+object ParsedCodeMetaInfoRenderer : AbstractCodeMetaInfoRenderer() {
     override fun asString(codeMetaInfo: CodeMetaInfo): String {
         require(codeMetaInfo is ParsedCodeMetaInfo)
         return super.asString(codeMetaInfo) + (codeMetaInfo.description?.let { "(\"$it\")" } ?: "")

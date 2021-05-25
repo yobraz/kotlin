@@ -38,16 +38,16 @@ import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoParser
 import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderConfiguration
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.DiagnosticCodeMetaInfoRenderConfiguration
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.DiagnosticCodeMetaInfoRenderer
 import org.jetbrains.kotlin.daemon.common.OSKind
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.AbstractDiagnostic
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.*
-import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.HighlightingRenderConfiguration
-import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.LineMarkerRenderConfiguration
+import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.HighlightingRenderer
+import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.LineMarkerRenderer
 import org.jetbrains.kotlin.idea.multiplatform.setupMppProjectFromTextFile
 import org.jetbrains.kotlin.idea.resolve.getDataFlowValueFactory
 import org.jetbrains.kotlin.idea.resolve.getLanguageVersionSettings
@@ -61,12 +61,12 @@ import java.nio.file.Paths
 
 @Ignore
 class CodeMetaInfoTestCase(
-    val codeMetaInfoTypes: Collection<AbstractCodeMetaInfoRenderConfiguration>,
+    val codeMetaInfoTypes: Collection<AbstractCodeMetaInfoRenderer>,
     val checkNoDiagnosticError: Boolean = false
 ) : DaemonAnalyzerTestCase() {
 
     fun getDiagnosticCodeMetaInfos(
-        configuration: DiagnosticCodeMetaInfoRenderConfiguration = DiagnosticCodeMetaInfoRenderConfiguration(),
+        configuration: DiagnosticCodeMetaInfoRenderer = DiagnosticCodeMetaInfoRenderer(),
         parseDirective: Boolean = true
     ): List<CodeMetaInfo> {
         val tempSourceKtFile = PsiManager.getInstance(project).findFile(file.virtualFile) as KtFile
@@ -91,7 +91,7 @@ class CodeMetaInfoTestCase(
         return getCodeMetaInfo(diagnostics, configuration)
     }
 
-    fun getLineMarkerCodeMetaInfos(configuration: LineMarkerRenderConfiguration): Collection<CodeMetaInfo> {
+    fun getLineMarkerCodeMetaInfos(configuration: LineMarkerRenderer): Collection<CodeMetaInfo> {
         if ("!CHECK_HIGHLIGHTING" in file.text)
             return emptyList()
 
@@ -100,7 +100,7 @@ class CodeMetaInfoTestCase(
         return getCodeMetaInfo(lineMarkers, configuration)
     }
 
-    fun getHighlightingCodeMetaInfos(configuration: HighlightingRenderConfiguration): Collection<CodeMetaInfo> {
+    fun getHighlightingCodeMetaInfos(configuration: HighlightingRenderer): Collection<CodeMetaInfo> {
         val infos = CodeInsightTestFixtureImpl.instantiateAndRun(file, editor, TIntArrayList().toNativeArray(), false)
 
         return getCodeMetaInfo(infos, configuration)
@@ -135,25 +135,25 @@ class CodeMetaInfoTestCase(
                 .getFilesWithWord("XXX", UsageSearchContext.IN_COMMENTS, GlobalSearchScope.allScope(myProject), true)
         }
 
-        for (configuration in codeMetaInfoTypes) {
-            when (configuration) {
-                is DiagnosticCodeMetaInfoRenderConfiguration -> {
-                    codeMetaInfoForCheck.addAll(getDiagnosticCodeMetaInfos(configuration))
+        for (renderer in codeMetaInfoTypes) {
+            when (renderer) {
+                is DiagnosticCodeMetaInfoRenderer -> {
+                    codeMetaInfoForCheck.addAll(getDiagnosticCodeMetaInfos(renderer))
                 }
-                is HighlightingRenderConfiguration -> {
-                    codeMetaInfoForCheck.addAll(getHighlightingCodeMetaInfos(configuration))
+                is HighlightingRenderer -> {
+                    codeMetaInfoForCheck.addAll(getHighlightingCodeMetaInfos(renderer))
                 }
-                is LineMarkerRenderConfiguration -> {
-                    codeMetaInfoForCheck.addAll(getLineMarkerCodeMetaInfos(configuration))
+                is LineMarkerRenderer -> {
+                    codeMetaInfoForCheck.addAll(getLineMarkerCodeMetaInfos(renderer))
                 }
-                else -> throw IllegalArgumentException("Unexpected code meta info configuration: $configuration")
+                else -> throw IllegalArgumentException("Unexpected code meta info configuration: $renderer")
             }
         }
-        if (codeMetaInfoTypes.any { it is DiagnosticCodeMetaInfoRenderConfiguration } &&
-            !codeMetaInfoTypes.any { it is HighlightingRenderConfiguration }
+        if (codeMetaInfoTypes.any { it is DiagnosticCodeMetaInfoRenderer } &&
+            !codeMetaInfoTypes.any { it is HighlightingRenderer }
         ) {
             checkHighlightErrorItemsInDiagnostics(
-                getDiagnosticCodeMetaInfos(DiagnosticCodeMetaInfoRenderConfiguration(), false).filterIsInstance<DiagnosticCodeMetaInfo>()
+                getDiagnosticCodeMetaInfos(DiagnosticCodeMetaInfoRenderer(), false).filterIsInstance<DiagnosticCodeMetaInfo>()
             )
         }
         val parsedMetaInfo = CodeMetaInfoParser.getCodeMetaInfoFromText(expectedFile.readText()).toMutableList()
@@ -181,7 +181,7 @@ class CodeMetaInfoTestCase(
             val diagnosticsErrors =
                 getDiagnosticCodeMetaInfos().filter { (it as DiagnosticCodeMetaInfo).diagnostic.severity == Severity.ERROR }
             assertTrue(
-                "Diagnostics with severity ERROR were found: ${diagnosticsErrors.joinToString { it.asString() }}",
+                "Diagnostics with severity ERROR were found: ${diagnosticsErrors.joinToString()}",
                 diagnosticsErrors.isEmpty()
             )
         }
@@ -191,7 +191,7 @@ class CodeMetaInfoTestCase(
         diagnostics: Collection<DiagnosticCodeMetaInfo>
     ) {
         val highlightItems: List<CodeMetaInfo> =
-            getHighlightingCodeMetaInfos(HighlightingRenderConfiguration()).filter { (it as HighlightingCodeMetaInfo).highlightingInfo.severity == HighlightSeverity.ERROR }
+            getHighlightingCodeMetaInfos(HighlightingRenderer()).filter { (it as HighlightingCodeMetaInfo).highlightingInfo.severity == HighlightSeverity.ERROR }
 
         highlightItems.forEach { highlightingCodeMetaInfo ->
             assert(
@@ -217,30 +217,30 @@ class CodeMetaInfoTestCase(
 }
 
 abstract class AbstractDiagnosticCodeMetaInfoTest : AbstractCodeMetaInfoTest() {
-    override fun getConfigurations() = listOf(
-        DiagnosticCodeMetaInfoRenderConfiguration(),
-        LineMarkerRenderConfiguration()
+    override fun getRenderers() = listOf(
+        DiagnosticCodeMetaInfoRenderer(),
+        LineMarkerRenderer()
     )
 }
 
 abstract class AbstractLineMarkerCodeMetaInfoTest : AbstractCodeMetaInfoTest() {
-    override fun getConfigurations() = listOf(
-        LineMarkerRenderConfiguration()
+    override fun getRenderers() = listOf(
+        LineMarkerRenderer()
     )
 }
 
 abstract class AbstractHighlightingCodeMetaInfoTest : AbstractCodeMetaInfoTest() {
-    override fun getConfigurations() = listOf(
-        HighlightingRenderConfiguration()
+    override fun getRenderers() = listOf(
+        HighlightingRenderer()
     )
 }
 
 abstract class AbstractCodeMetaInfoTest : AbstractMultiModuleTest() {
     open val checkNoDiagnosticError get() = false
-    open fun getConfigurations() = listOf(
-        DiagnosticCodeMetaInfoRenderConfiguration(),
-        LineMarkerRenderConfiguration(),
-        HighlightingRenderConfiguration()
+    open fun getRenderers() = listOf(
+        DiagnosticCodeMetaInfoRenderer(),
+        LineMarkerRenderer(),
+        HighlightingRenderer()
     )
 
     protected open fun setupProject(testDataPath: String) {
@@ -253,7 +253,7 @@ abstract class AbstractCodeMetaInfoTest : AbstractMultiModuleTest() {
 
     fun doTest(testDataPath: String) {
         val testRoot = File(testDataPath)
-        val checker = CodeMetaInfoTestCase(getConfigurations(), checkNoDiagnosticError)
+        val checker = CodeMetaInfoTestCase(getRenderers(), checkNoDiagnosticError)
         setupProject(testDataPath)
 
         for (module in ModuleManager.getInstance(project).modules) {

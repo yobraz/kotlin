@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations
 import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 
-abstract class AbstractCodeMetaInfoRenderConfiguration(var renderParams: Boolean = true) {
+abstract class AbstractCodeMetaInfoRenderer(var renderParams: Boolean = true) {
     private val clickOrPressRegex = "Click or press (.*)to navigate".toRegex() // We have different hotkeys on different platforms
     open fun asString(codeMetaInfo: CodeMetaInfo): String = codeMetaInfo.tag + getAttributesString(codeMetaInfo)
 

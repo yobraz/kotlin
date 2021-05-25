@@ -7,26 +7,26 @@ package org.jetbrains.kotlin.test.frontend.fir.handlers
 
 import com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderConfiguration
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderer
 import org.jetbrains.kotlin.fir.analysis.diagnostics.AbstractFirDiagnosticWithParametersRenderer
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDefaultErrorMessages
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnostic
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderer
 
 object FirMetaInfoUtils {
-    val renderDiagnosticNoArgs = FirDiagnosticCodeMetaRenderConfiguration().apply { renderParams = false }
-    val renderDiagnosticWithArgs = FirDiagnosticCodeMetaRenderConfiguration().apply { renderParams = true }
+    val renderDiagnosticNoArgs = FirDiagnosticCodeMetaRenderer().apply { renderParams = false }
+    val renderDiagnosticWithArgs = FirDiagnosticCodeMetaRenderer().apply { renderParams = true }
 }
 
 class FirDiagnosticCodeMetaInfo(
     val diagnostic: FirDiagnostic<*>,
-    renderConfiguration: FirDiagnosticCodeMetaRenderConfiguration
+    renderConfiguration: FirDiagnosticCodeMetaRenderer
 ) : CodeMetaInfo {
     private val textRangeFromClassicDiagnostic: TextRange = run {
         diagnostic.factory.positioningStrategy.markDiagnostic(diagnostic).first()
     }
 
-    override var renderConfiguration: FirDiagnosticCodeMetaRenderConfiguration = renderConfiguration
+    override var renderer: FirDiagnosticCodeMetaRenderer = renderConfiguration
         private set
 
     override val start: Int
@@ -36,20 +36,20 @@ class FirDiagnosticCodeMetaInfo(
         get() = textRangeFromClassicDiagnostic.endOffset
 
     override val tag: String
-        get() = renderConfiguration.getTag(this)
+        get() = renderer.getTag(this)
 
     override val attributes: MutableList<String> = mutableListOf()
 
-    override fun asString(): String = renderConfiguration.asString(this)
+    override fun asString(): String = renderer.asString(this)
 
-    fun replaceRenderConfiguration(renderConfiguration: FirDiagnosticCodeMetaRenderConfiguration) {
-        this.renderConfiguration = renderConfiguration
+    fun replaceRenderConfiguration(renderConfiguration: FirDiagnosticCodeMetaRenderer) {
+        this.renderer = renderConfiguration
     }
 }
 
-class FirDiagnosticCodeMetaRenderConfiguration(
+class FirDiagnosticCodeMetaRenderer(
     val renderSeverity: Boolean = false,
-) : AbstractCodeMetaInfoRenderConfiguration(renderParams = false) {
+) : AbstractCodeMetaInfoRenderer(renderParams = false) {
     private val crossPlatformLineBreak = """\r?\n""".toRegex()
 
     override fun asString(codeMetaInfo: CodeMetaInfo): String {

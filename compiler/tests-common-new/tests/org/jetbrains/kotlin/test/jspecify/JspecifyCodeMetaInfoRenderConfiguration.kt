@@ -6,9 +6,9 @@
 package org.jetbrains.kotlin.test.jspecify
 
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderConfiguration
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
 
-object JspecifyCodeMetaInfoRenderConfiguration : AbstractCodeMetaInfoRenderConfiguration() {
+object JspecifyCodeMetaInfoRenderConfiguration : AbstractCodeMetaInfoRenderer() {
     override fun asString(codeMetaInfo: CodeMetaInfo): String {
         if (codeMetaInfo !is JspecifyMarkerCodeMetaInfo) return ""
         return getTag(codeMetaInfo)

@@ -7,10 +7,10 @@ package org.jetbrains.kotlin.idea.codeMetaInfo.models
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.HighlightingRenderConfiguration
+import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.HighlightingRenderer
 
 class HighlightingCodeMetaInfo(
-    override val renderConfiguration: HighlightingRenderConfiguration,
+    override val renderer: HighlightingRenderer,
     val highlightingInfo: HighlightInfo
 ) : CodeMetaInfo {
     override val start: Int
@@ -19,9 +19,9 @@ class HighlightingCodeMetaInfo(
         get() = highlightingInfo.endOffset
 
     override val tag: String
-        get() = renderConfiguration.getTag()
+        get() = renderer.getTag()
 
     override val attributes: MutableList<String> = mutableListOf()
 
-    override fun asString(): String = renderConfiguration.asString(this)
+    override fun asString(): String = renderer.asString(this)
 }

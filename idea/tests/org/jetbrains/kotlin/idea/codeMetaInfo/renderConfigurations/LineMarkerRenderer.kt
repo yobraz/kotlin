@@ -6,10 +6,10 @@
 package org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations
 
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderConfiguration
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderer
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.LineMarkerCodeMetaInfo
 
-open class LineMarkerRenderConfiguration(var renderDescription: Boolean = true) : AbstractCodeMetaInfoRenderConfiguration() {
+open class LineMarkerRenderer(var renderDescription: Boolean = true) : AbstractCodeMetaInfoRenderer() {
     override fun asString(codeMetaInfo: CodeMetaInfo): String {
         if (codeMetaInfo !is LineMarkerCodeMetaInfo) return ""
         return getTag() + getParamsString(codeMetaInfo)

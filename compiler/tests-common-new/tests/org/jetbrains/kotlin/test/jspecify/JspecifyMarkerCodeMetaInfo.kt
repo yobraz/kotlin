@@ -17,11 +17,11 @@ class JspecifyMarkerCodeMetaInfo(
     override val tagPostfix = ""
     override val closingTag = ""
 
-    override val renderConfiguration = JspecifyCodeMetaInfoRenderConfiguration
+    override val renderer = JspecifyCodeMetaInfoRenderConfiguration
 
-    override val tag = renderConfiguration.getTag(this)
+    override val tag = renderer.getTag(this)
 
     override val attributes: MutableList<String> = mutableListOf()
 
-    override fun asString(): String = renderConfiguration.asString(this)
+    override fun asString(): String = renderer.asString(this)
 }

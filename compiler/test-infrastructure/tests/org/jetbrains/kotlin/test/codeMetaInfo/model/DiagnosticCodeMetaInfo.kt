@@ -6,32 +6,32 @@
 package org.jetbrains.kotlin.test.codeMetaInfo.model
 
 import com.intellij.openapi.util.TextRange
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.DiagnosticCodeMetaInfoRenderConfiguration
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.DiagnosticCodeMetaInfoRenderer
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 
 class DiagnosticCodeMetaInfo(
     override val start: Int,
     override val end: Int,
-    renderConfiguration: DiagnosticCodeMetaInfoRenderConfiguration,
+    renderConfiguration: DiagnosticCodeMetaInfoRenderer,
     val diagnostic: Diagnostic
 ) : CodeMetaInfo {
     constructor(
         range: TextRange,
-        renderConfiguration: DiagnosticCodeMetaInfoRenderConfiguration,
+        renderConfiguration: DiagnosticCodeMetaInfoRenderer,
         diagnostic: Diagnostic
     ) : this(range.startOffset, range.endOffset, renderConfiguration, diagnostic)
 
-    override var renderConfiguration: DiagnosticCodeMetaInfoRenderConfiguration = renderConfiguration
+    override var renderer: DiagnosticCodeMetaInfoRenderer = renderConfiguration
         private set
 
-    fun replaceRenderConfiguration(renderConfiguration: DiagnosticCodeMetaInfoRenderConfiguration) {
-        this.renderConfiguration = renderConfiguration
+    fun replaceRenderConfiguration(renderConfiguration: DiagnosticCodeMetaInfoRenderer) {
+        this.renderer = renderConfiguration
     }
 
     override val tag: String
-        get() = renderConfiguration.getTag(this)
+        get() = renderer.getTag(this)
 
     override val attributes: MutableList<String> = mutableListOf()
 
-    override fun asString(): String = renderConfiguration.asString(this)
+    override fun asString(): String = renderer.asString(this)
 }

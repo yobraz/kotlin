@@ -5,9 +5,9 @@
 
 package org.jetbrains.kotlin.test.frontend.classic.handlers
 
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.DiagnosticCodeMetaInfoRenderConfiguration
+import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.DiagnosticCodeMetaInfoRenderer
 
 object ClassicMetaInfoUtils {
-    val renderDiagnosticNoArgs = DiagnosticCodeMetaInfoRenderConfiguration().apply { renderParams = false }
-    val renderDiagnosticWithArgs = DiagnosticCodeMetaInfoRenderConfiguration().apply { renderParams = true }
+    val renderDiagnosticNoArgs = DiagnosticCodeMetaInfoRenderer().apply { renderParams = false }
+    val renderDiagnosticWithArgs = DiagnosticCodeMetaInfoRenderer().apply { renderParams = true }
 }
