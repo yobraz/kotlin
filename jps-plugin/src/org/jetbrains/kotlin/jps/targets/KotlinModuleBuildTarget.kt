@@ -212,13 +212,7 @@ abstract class KotlinModuleBuildTarget<BuildMetaInfoType : BuildMetaInfo> intern
 
     open fun registerOutputItems(outputConsumer: ModuleLevelBuilder.OutputConsumer, outputItems: List<GeneratedFile>) {
         for (output in outputItems) {
-            if(output.outputFile.path.endsWith(".js") || output.outputFile.path.endsWith(".kjsm")) {
-                for (source in output.sourceFiles) {
-                    outputConsumer.registerOutputFile(jpsModuleBuildTarget, File("${source.path.hashCode()}"), listOf(source.path))
-                }
-            } else {
-                outputConsumer.registerOutputFile(jpsModuleBuildTarget, output.outputFile, output.sourceFiles.map { it.path })
-            }
+            outputConsumer.registerOutputFile(jpsModuleBuildTarget, output.outputFile, output.sourceFiles.map { it.path })
         }
     }
 
