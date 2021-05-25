@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.test.codeMetaInfo.model
 
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
 
 interface CodeMetaInfo {
     val start: Int

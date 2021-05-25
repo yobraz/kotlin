@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations
 
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.LineMarkerCodeMetaInfo
 
 open class LineMarkerRenderer(var renderDescription: Boolean = true) : AbstractCodeMetaInfoRenderer() {

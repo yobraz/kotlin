@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.test.codeMetaInfo.model
 
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.ParsedCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.ParsedCodeMetaInfoRenderer
 
 class ParsedCodeMetaInfo(
     override val start: Int,

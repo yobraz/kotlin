@@ -3,7 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations
+package org.jetbrains.kotlin.test.codeMetaInfo.rendering
 
 import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo

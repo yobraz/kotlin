@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.test.codeMetaInfo.model
 
 import com.intellij.openapi.util.TextRange
-import org.jetbrains.kotlin.test.codeMetaInfo.renderConfigurations.DiagnosticCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.DiagnosticCodeMetaInfoRenderer
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 
 class DiagnosticCodeMetaInfo(
