@@ -21994,12 +21994,6 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
             public void testEnumEntryArguments() throws Exception {
                 runTest("compiler/testData/codegen/box/ir/privateSignatures/enumEntryArguments.kt");
             }
-
-            @Test
-            @TestMetadata("localFakeOverride.kt")
-            public void testLocalFakeOverride() throws Exception {
-                runTest("compiler/testData/codegen/box/ir/privateSignatures/localFakeOverride.kt");
-            }
         }
 
         @Nested
