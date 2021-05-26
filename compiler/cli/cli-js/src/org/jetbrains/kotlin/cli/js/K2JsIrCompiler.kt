@@ -287,7 +287,9 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
 
             val basicOutputSink = object : CompilerOutputSink {
                 override fun write(module: String, path: String, content: String) {
-                    outputFile.resolveSibling(path).writeText(content)
+                    val file = outputFile.resolveSibling(module).resolve(path)
+                    file.parentFile.mkdirs()
+                    file.writeText(content)
                 }
             }
 
