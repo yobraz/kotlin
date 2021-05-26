@@ -36,7 +36,7 @@ class FirDiagnosticCodeMetaInfo(
         get() = textRangeFromClassicDiagnostic.endOffset
 
     override val tag: String
-        get() = renderer.getTag(this)
+        get() = this.diagnostic.factory.name
 
     override val attributes: MutableList<String> = mutableListOf()
 
@@ -54,7 +54,7 @@ class FirDiagnosticCodeMetaRenderer(
 
     override fun asString(codeMetaInfo: CodeMetaInfo): String {
         if (codeMetaInfo !is FirDiagnosticCodeMetaInfo) return ""
-        return (getTag(codeMetaInfo)
+        return (codeMetaInfo.diagnostic.factory.name
                 + getAttributesString(codeMetaInfo)
                 + getParamsString(codeMetaInfo))
             .replace(crossPlatformLineBreak, "")
@@ -78,9 +78,5 @@ class FirDiagnosticCodeMetaRenderer(
         params.add(getAdditionalParams(codeMetaInfo))
 
         return "(\"${params.filter { it.isNotEmpty() }.joinToString("; ")}\")"
-    }
-
-    fun getTag(codeMetaInfo: FirDiagnosticCodeMetaInfo): String {
-        return codeMetaInfo.diagnostic.factory.name
     }
 }

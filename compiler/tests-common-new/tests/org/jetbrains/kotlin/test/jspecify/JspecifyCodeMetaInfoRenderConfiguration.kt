@@ -11,10 +11,6 @@ import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRend
 object JspecifyCodeMetaInfoRenderConfiguration : AbstractCodeMetaInfoRenderer() {
     override fun asString(codeMetaInfo: CodeMetaInfo): String {
         if (codeMetaInfo !is JspecifyMarkerCodeMetaInfo) return ""
-        return getTag(codeMetaInfo)
-    }
-
-    fun getTag(codeMetaInfo: JspecifyMarkerCodeMetaInfo): String {
-        return codeMetaInfo.name
+        return codeMetaInfo.tag
     }
 }

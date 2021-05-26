@@ -19,7 +19,7 @@ class LineMarkerCodeMetaInfo(
         get() = lineMarker.endOffset
 
     override val tag: String
-        get() = renderer.getTag()
+        get() = "LINE_MARKER"
 
     override val attributes: MutableList<String> = mutableListOf()
 

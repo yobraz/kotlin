@@ -19,7 +19,7 @@ open class DiagnosticCodeMetaInfoRenderer(
 
     override fun asString(codeMetaInfo: CodeMetaInfo): String {
         if (codeMetaInfo !is DiagnosticCodeMetaInfo) return ""
-        return (getTag(codeMetaInfo)
+        return (codeMetaInfo.diagnostic.factory.name
                 + getAttributesString(codeMetaInfo)
                 + getParamsString(codeMetaInfo))
             .replace(crossPlatformLineBreak, "")
@@ -46,9 +46,5 @@ open class DiagnosticCodeMetaInfoRenderer(
         params.add(getAdditionalParams(codeMetaInfo))
 
         return "(\"${params.filter { it.isNotEmpty() }.joinToString("; ")}\")"
-    }
-
-    fun getTag(codeMetaInfo: DiagnosticCodeMetaInfo): String {
-        return codeMetaInfo.diagnostic.factory.name
     }
 }

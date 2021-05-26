@@ -12,10 +12,8 @@ import org.jetbrains.kotlin.idea.codeMetaInfo.models.LineMarkerCodeMetaInfo
 open class LineMarkerCodeMetaInfoRenderer(var renderDescription: Boolean = true) : AbstractCodeMetaInfoRenderer() {
     override fun asString(codeMetaInfo: CodeMetaInfo): String {
         if (codeMetaInfo !is LineMarkerCodeMetaInfo) return ""
-        return getTag() + getParamsString(codeMetaInfo)
+        return codeMetaInfo.tag + getParamsString(codeMetaInfo)
     }
-
-    fun getTag() = "LINE_MARKER"
 
     private fun getParamsString(lineMarkerCodeMetaInfo: LineMarkerCodeMetaInfo): String {
         if (!renderParams) return ""

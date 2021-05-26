@@ -29,7 +29,7 @@ class DiagnosticCodeMetaInfo(
     }
 
     override val tag: String
-        get() = renderer.getTag(this)
+        get() = this.diagnostic.factory.name
 
     override val attributes: MutableList<String> = mutableListOf()
 

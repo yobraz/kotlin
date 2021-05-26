@@ -19,7 +19,7 @@ class JspecifyMarkerCodeMetaInfo(
 
     override val renderer = JspecifyCodeMetaInfoRenderConfiguration
 
-    override val tag = renderer.getTag(this)
+    override val tag = this.name
 
     override val attributes: MutableList<String> = mutableListOf()
 

@@ -17,10 +17,8 @@ open class HighlightingCodeMetaInfoRenderer(
 
     override fun asString(codeMetaInfo: CodeMetaInfo): String {
         if (codeMetaInfo !is HighlightingCodeMetaInfo) return ""
-        return getTag() + getParamsString(codeMetaInfo)
+        return codeMetaInfo.tag + getParamsString(codeMetaInfo)
     }
-
-    fun getTag() = "HIGHLIGHTING"
 
     private fun getParamsString(highlightingCodeMetaInfo: HighlightingCodeMetaInfo): String {
         if (!renderParams) return ""

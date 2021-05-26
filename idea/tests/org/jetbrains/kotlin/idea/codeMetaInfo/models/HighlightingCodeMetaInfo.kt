@@ -19,7 +19,7 @@ class HighlightingCodeMetaInfo(
         get() = highlightingInfo.endOffset
 
     override val tag: String
-        get() = renderer.getTag()
+        get() = "HIGHLIGHTING"
 
     override val attributes: MutableList<String> = mutableListOf()
 
