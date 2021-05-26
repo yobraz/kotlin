@@ -42,11 +42,8 @@ class FirMetaModularizedTest {
         manifest.mainAttributes.putValue(
             Attributes.Name.CLASS_PATH.toString(),
             runtimeBean.classPath.split(File.pathSeparator).joinToString(" ") {
-                if (File(it).isDirectory && !it.endsWith("/")) {
-                    "$it/"
-                } else {
-                    it
-                }
+                val f = File(it)
+                f.toURI().toString()
             }
         )
 
