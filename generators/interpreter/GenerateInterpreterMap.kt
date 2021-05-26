@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.generators.util.GeneratorsFileUtil
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
+import org.jetbrains.kotlin.ir.symbols.IrFileSymbol
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.IdSignatureComposer
@@ -203,6 +204,10 @@ private fun getIrBuiltIns(): IrBuiltIns {
         override fun composeSignature(descriptor: DeclarationDescriptor): IdSignature? = null
 
         override fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature? = null
+
+        override fun composeAnonInitSignature(descriptor: ClassDescriptor): IdSignature? = null
+
+        override fun composeFieldSignature(descriptor: PropertyDescriptor): IdSignature? = null
     }
     val symbolTable = SymbolTable(signaturer, IrFactoryImpl)
     val typeTranslator = TypeTranslatorImpl(symbolTable, languageSettings, moduleDescriptor)
