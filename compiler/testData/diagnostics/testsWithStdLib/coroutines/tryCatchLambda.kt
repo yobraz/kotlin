@@ -8,7 +8,7 @@ fun <T> genericBuilder(c: suspend () -> T): T = null!!
 fun foo() {
     var result = ""
     genericBuilder<String> {
-        <!TYPE_MISMATCH{NI}, TYPE_MISMATCH{NI}!>try {
+        <!TYPE_MISMATCH{NI}!>try {
             await("")
         } catch(e: Exception) {
             <!EXPECTED_TYPE_MISMATCH{OI}!>result = "fail"<!>

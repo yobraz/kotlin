@@ -27,7 +27,7 @@ val test5 = <!TYPE_INFERENCE_INCORPORATION_ERROR{OI}!>PL<!>(1, <!NULL_FOR_NONNUL
 class Foo<T>(val p: Pair<T, T>)
 typealias F<T> = Foo<T>
 
-fun testProjections1(x: Pair<in Int, out String>) = <!TYPE_INFERENCE_CONFLICTING_SUBSTITUTIONS{OI}!>F<!>(<!TYPE_MISMATCH{NI}, TYPE_MISMATCH{NI}, TYPE_MISMATCH{NI}!>x<!>)
-fun testProjections2(x: Pair<in Int, out Number>) = <!TYPE_INFERENCE_CONFLICTING_SUBSTITUTIONS{OI}!>F<!>(<!TYPE_MISMATCH{NI}, TYPE_MISMATCH{NI}, TYPE_MISMATCH{NI}!>x<!>)
+fun testProjections1(x: Pair<in Int, out String>) = <!TYPE_INFERENCE_CONFLICTING_SUBSTITUTIONS{OI}!>F<!>(<!TYPE_MISMATCH{NI}, TYPE_MISMATCH{NI}!>x<!>)
+fun testProjections2(x: Pair<in Int, out Number>) = <!TYPE_INFERENCE_CONFLICTING_SUBSTITUTIONS{OI}!>F<!>(<!TYPE_MISMATCH{NI}, TYPE_MISMATCH{NI}!>x<!>)
 fun testProjections3(x: Pair<in Number, out Int>) = <!TYPE_INFERENCE_CONFLICTING_SUBSTITUTIONS{OI}!>F<!>(<!TYPE_MISMATCH{NI}!>x<!>)
-fun testProjections4(x: Pair<in Int, in Int>) = <!TYPE_INFERENCE_CONFLICTING_SUBSTITUTIONS{OI}!>F<!>(<!TYPE_MISMATCH{NI}, TYPE_MISMATCH{NI}, TYPE_MISMATCH{NI}!>x<!>)
+fun testProjections4(x: Pair<in Int, in Int>) = <!TYPE_INFERENCE_CONFLICTING_SUBSTITUTIONS{OI}!>F<!>(<!TYPE_MISMATCH{NI}, TYPE_MISMATCH{NI}!>x<!>)

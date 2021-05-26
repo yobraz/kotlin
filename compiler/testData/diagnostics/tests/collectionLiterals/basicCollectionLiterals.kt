@@ -7,7 +7,7 @@ fun test() {
     val b: Array<Int> = []
     val c = [1, 2]
     val d: Array<Int> = [1, 2]
-    val e: Array<String> = <!TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH{OI}, TYPE_MISMATCH{NI}, TYPE_MISMATCH{NI}!>[1]<!>
+    val e: Array<String> = <!TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH{OI}, TYPE_MISMATCH{NI}!>[1]<!>
 
     val f: IntArray = [1, 2]
     val g = [f]

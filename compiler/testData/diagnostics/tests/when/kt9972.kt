@@ -21,7 +21,7 @@ fun test1(): Int {
 }
 
 fun test2(): Int {
-    val x: String = <!TYPE_MISMATCH{NI}, TYPE_MISMATCH{NI}!>when {
+    val x: String = <!TYPE_MISMATCH{NI}!>when {
                         true -> <!TYPE_MISMATCH{OI}!>Any()<!>
                         else -> null
                     } ?: return 0<!>

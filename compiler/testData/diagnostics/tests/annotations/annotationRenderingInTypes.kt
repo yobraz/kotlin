@@ -13,7 +13,7 @@ annotation class Ann
 fun <@Ann R : @Ann Any> f3(a: Array<@Ann R>): Array<@Ann R?> =  null!!
 
 fun test2(a: @Ann Array<in @Ann Int>) {
-    val r: Array<in Int?> = <!TYPE_INFERENCE_CANNOT_CAPTURE_TYPES{OI}("'R' cannot capture 'in Int'. Type parameter has an upper bound 'Any' that cannot be satisfied capturing 'in' projection")!>f3<!>(<!TYPE_MISMATCH{NI}("Any; Int"), TYPE_MISMATCH{NI}("Any; Int")!>a<!>)
+    val r: Array<in Int?> = <!TYPE_INFERENCE_CANNOT_CAPTURE_TYPES{OI}("'R' cannot capture 'in Int'. Type parameter has an upper bound 'Any' that cannot be satisfied capturing 'in' projection")!>f3<!>(<!TYPE_MISMATCH{NI}("Any; Int")!>a<!>)
 }
 
 

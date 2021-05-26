@@ -16,7 +16,7 @@ fun <T> checkItIsExactlyAny(t: T, l: MutableList<T>) {}
 fun <V : U, U> baz(v: V, u: MutableSet<U>) = u
 
 fun test(a: Any, s: MutableSet<String>) {
-    <!TYPE_INFERENCE_UPPER_BOUND_VIOLATED{OI}!>baz<!>(a, <!TYPE_MISMATCH{NI}, TYPE_MISMATCH{NI}!>s<!>)
+    <!TYPE_INFERENCE_UPPER_BOUND_VIOLATED{OI}!>baz<!>(a, <!TYPE_MISMATCH{NI}!>s<!>)
 }
 
 //from standard library
