@@ -165,9 +165,10 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
 
         val outputFile = File(outputFilePath)
 
+        val moduleName = arguments.irModuleName ?: FileUtil.getNameWithoutExtension(outputFile)
         configurationJs.put(
             CommonConfigurationKeys.MODULE_NAME,
-            arguments.irModuleName ?: FileUtil.getNameWithoutExtension(outputFile)
+            moduleName
         )
 
         // TODO: in this method at least 3 different compiler configurations are used (original, env.configuration, jsConfig.configuration)
@@ -209,7 +210,8 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
                 friendDependencies = friendDependencies,
                 irFactory = PersistentIrFactory(), // TODO IrFactoryImpl?
                 outputKlibPath = outputFile.path,
-                nopack = arguments.irProduceKlibDir
+                nopack = arguments.irProduceKlibDir,
+                jsOutputName = arguments.irPerModuleOutputName,
             )
         }
 
@@ -278,7 +280,9 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
                     messageCollector
                 ),
                 propertyLazyInitialization = arguments.irPropertyLazyInitialization,
-                granularity = granularity
+                granularity = granularity,
+                legacyPropertyAccess = arguments.irLegacyPropertyAccess,
+                baseClassIntoMetadata = arguments.irBaseClassInMetadata,
             )
 
             if (arguments.irDce) {

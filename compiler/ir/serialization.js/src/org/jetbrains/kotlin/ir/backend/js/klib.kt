@@ -104,7 +104,8 @@ fun generateKLib(
     friendDependencies: List<KotlinLibrary>,
     irFactory: IrFactory,
     outputKlibPath: String,
-    nopack: Boolean
+    nopack: Boolean,
+    jsOutputName: String?,
 ) {
     val incrementalDataProvider = configuration.get(JSConfigurationKeys.INCREMENTAL_DATA_PROVIDER)
     val errorPolicy = configuration.get(JSConfigurationKeys.ERROR_TOLERANCE_POLICY) ?: ErrorTolerancePolicy.DEFAULT
@@ -194,7 +195,8 @@ fun generateKLib(
         icData,
         nopack,
         perFile = false,
-        hasErrors
+        hasErrors,
+        jsOutputName
     )
 }
 
@@ -203,7 +205,8 @@ data class IrModuleInfo(
     val allDependencies: List<IrModuleFragment>,
     val bultins: IrBuiltIns,
     val symbolTable: SymbolTable,
-    val deserializer: JsIrLinker
+    val deserializer: JsIrLinker,
+    val moduleFragmentToUniqueName: Map<IrModuleFragment, String>,
 )
 
 private fun sortDependencies(dependencies: List<KotlinLibrary>, mapping: Map<KotlinLibrary, ModuleDescriptor>): Collection<KotlinLibrary> {
@@ -223,6 +226,7 @@ fun loadIr(
     allDependencies: KotlinLibraryResolveResult,
     friendDependencies: List<KotlinLibrary>,
     irFactory: IrFactory,
+    forceAllJs: Boolean = false,
 ): IrModuleInfo {
     val depsDescriptors = ModulesStructure(project, mainModule, analyzer, configuration, allDependencies, friendDependencies)
     val errorPolicy = configuration.get(JSConfigurationKeys.ERROR_TOLERANCE_POLICY) ?: ErrorTolerancePolicy.DEFAULT
@@ -238,9 +242,15 @@ fun loadIr(
             val feContext = psi2IrContext.run {
                 JsIrLinker.JsFePluginContext(moduleDescriptor, symbolTable, typeTranslator, irBuiltIns)
             }
-            val irLinker = JsIrLinker(psi2IrContext.moduleDescriptor, messageLogger, irBuiltIns, symbolTable, functionFactory, feContext, null)
-            val deserializedModuleFragments = sortDependencies(allDependencies.getFullList(), depsDescriptors.descriptors).map {
-                irLinker.deserializeIrModuleHeader(depsDescriptors.getModuleDescriptor(it), it)
+            val moduleFragmentToUniqueName = mutableMapOf<IrModuleFragment, String>()
+            val irLinker =
+                JsIrLinker(psi2IrContext.moduleDescriptor, messageLogger, irBuiltIns, symbolTable, functionFactory, feContext, null)
+            val deserializedModuleFragments = sortDependencies(allDependencies.getFullList(), depsDescriptors.descriptors).map { klib ->
+                irLinker.deserializeIrModuleHeader(depsDescriptors.getModuleDescriptor(klib), klib).also { moduleFragment ->
+                    klib.manifestProperties.getProperty(KLIB_PROPERTY_JS_OUTPUT_NAME)?.let {
+                        moduleFragmentToUniqueName[moduleFragment] = it
+                    }
+                }
             }
 
             val moduleFragment = psi2IrContext.generateModuleFragmentWithPlugins(project, mainModule.files, irLinker, messageLogger)
@@ -257,7 +267,7 @@ fun loadIr(
 
             irBuiltIns.knownBuiltins.forEach { it.acceptVoid(mangleChecker) }
 
-            return IrModuleInfo(moduleFragment, deserializedModuleFragments, irBuiltIns, symbolTable, irLinker)
+            return IrModuleInfo(moduleFragment, deserializedModuleFragments, irBuiltIns, symbolTable, irLinker, moduleFragmentToUniqueName)
         }
         is MainModule.Klib -> {
             val moduleDescriptor = depsDescriptors.getModuleDescriptor(mainModule.lib)
@@ -271,14 +281,20 @@ fun loadIr(
             val irLinker =
                 JsIrLinker(null, messageLogger, irBuiltIns, symbolTable, functionFactory, null, null)
 
-            val deserializedModuleFragments = sortDependencies(allDependencies.getFullList(), depsDescriptors.descriptors).map {
+            val moduleFragmentToUniqueName = mutableMapOf<IrModuleFragment, String>()
+
+            val deserializedModuleFragments = sortDependencies(allDependencies.getFullList(), depsDescriptors.descriptors).map { klib ->
                 val strategy =
-                    if (it == mainModule.lib)
+                    if (forceAllJs || klib == mainModule.lib)
                         DeserializationStrategy.ALL
                     else
                         DeserializationStrategy.EXPLICITLY_EXPORTED
 
-                irLinker.deserializeIrModuleHeader(depsDescriptors.getModuleDescriptor(it), it, strategy)
+                irLinker.deserializeIrModuleHeader(depsDescriptors.getModuleDescriptor(klib), klib, strategy).also { moduleFragment ->
+                    klib.manifestProperties.getProperty(KLIB_PROPERTY_JS_OUTPUT_NAME)?.let {
+                        moduleFragmentToUniqueName[moduleFragment] = it
+                    }
+                }
             }
             irBuiltIns.functionFactory = functionFactory
 
@@ -288,7 +304,7 @@ fun loadIr(
             ExternalDependenciesGenerator(symbolTable, listOf(irLinker)).generateUnboundSymbolsAsDependencies()
             irLinker.postProcess()
 
-            return IrModuleInfo(moduleFragment, deserializedModuleFragments, irBuiltIns, symbolTable, irLinker)
+            return IrModuleInfo(moduleFragment, deserializedModuleFragments, irBuiltIns, symbolTable, irLinker, moduleFragmentToUniqueName)
         }
     }
 }
@@ -304,7 +320,11 @@ private fun runAnalysisAndPreparePsi2Ir(
         Psi2IrConfiguration(errorIgnorancePolicy.allowErrors)
     )
     val symbolTable = SymbolTable(IdSignatureDescriptor(JsManglerDesc), irFactory)
-    return psi2Ir.createGeneratorContext(analysisResult.moduleDescriptor, analysisResult.bindingContext, symbolTable) to analysisResult.hasErrors
+    return psi2Ir.createGeneratorContext(
+        analysisResult.moduleDescriptor,
+        analysisResult.bindingContext,
+        symbolTable
+    ) to analysisResult.hasErrors
 }
 
 fun GeneratorContext.generateModuleFragmentWithPlugins(
@@ -475,7 +495,8 @@ fun serializeModuleIntoKlib(
     cleanFiles: List<KotlinFileSerializedData>,
     nopack: Boolean,
     perFile: Boolean,
-    containsErrorCode: Boolean = false
+    containsErrorCode: Boolean = false,
+    jsOutputName: String?,
 ) {
     assert(files.size == moduleFragment.files.size)
 
@@ -531,7 +552,8 @@ fun serializeModuleIntoKlib(
 
     val serializedMetadata =
         metadataSerializer.serializedMetadata(
-            compiledKotlinFiles.groupBy { it.irData.fqName }.map { (fqn, data) -> fqn to data.sortedBy { it.irData.path }.map { it.metadata } }.toMap(),
+            compiledKotlinFiles.groupBy { it.irData.fqName }
+                .map { (fqn, data) -> fqn to data.sortedBy { it.irData.path }.map { it.metadata } }.toMap(),
             header
         )
 
@@ -545,11 +567,14 @@ fun serializeModuleIntoKlib(
         irVersion = KlibIrVersion.INSTANCE.toString()
     )
 
-    val properties = if (containsErrorCode) {
-        Properties().also {
-            it.setProperty(KLIB_PROPERTY_CONTAINS_ERROR_CODE, "true")
+    val properties = Properties().also { p ->
+        if (jsOutputName != null) {
+            p.setProperty(KLIB_PROPERTY_JS_OUTPUT_NAME, jsOutputName)
         }
-    } else null
+        if (containsErrorCode) {
+            p.setProperty(KLIB_PROPERTY_CONTAINS_ERROR_CODE, "true")
+        }
+    }
 
     buildKotlinLibrary(
         linkDependencies = dependencies,
@@ -565,6 +590,8 @@ fun serializeModuleIntoKlib(
         builtInsPlatform = BuiltInsPlatform.JS
     )
 }
+
+const val KLIB_PROPERTY_JS_OUTPUT_NAME = "jsOutputName"
 
 private fun KlibMetadataIncrementalSerializer.serializeScope(
     ktFile: KtFile,
@@ -595,11 +622,12 @@ private fun compareMetadataAndGoToNextICRoundIfNeeded(
     if (nextRoundChecker.shouldGoToNextRound()) throw IncrementalNextRoundException()
 }
 
-private fun KlibMetadataIncrementalSerializer(configuration: CompilerConfiguration, project: Project, allowErrors: Boolean) = KlibMetadataIncrementalSerializer(
-    languageVersionSettings = configuration.languageVersionSettings,
-    metadataVersion = configuration.metadataVersion,
-    project = project,
-    exportKDoc = false,
-    skipExpects = !configuration.expectActualLinker,
-    allowErrorTypes = allowErrors
-)
+private fun KlibMetadataIncrementalSerializer(configuration: CompilerConfiguration, project: Project, allowErrors: Boolean) =
+    KlibMetadataIncrementalSerializer(
+        languageVersionSettings = configuration.languageVersionSettings,
+        metadataVersion = configuration.metadataVersion,
+        project = project,
+        exportKDoc = false,
+        skipExpects = !configuration.expectActualLinker,
+        allowErrorTypes = allowErrors
+    )

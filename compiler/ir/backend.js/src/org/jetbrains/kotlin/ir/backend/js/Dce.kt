@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.backend.js.export.isExported
 import org.jetbrains.kotlin.ir.backend.js.ir.JsIrBuilder
+import org.jetbrains.kotlin.ir.backend.js.lower.ClassReferenceLowering
 import org.jetbrains.kotlin.ir.backend.js.utils.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
@@ -91,6 +92,11 @@ private fun buildRoots(modules: Iterable<IrModuleFragment>, context: JsIrBackend
     val dceRuntimeDiagnostic = context.dceRuntimeDiagnostic
     if (dceRuntimeDiagnostic != null) {
         rootDeclarations += dceRuntimeDiagnostic.unreachableDeclarationMethod(context).owner
+    }
+
+    if (context.legacyPropertyAccess) {
+        rootDeclarations += context.intrinsics.safePropertyGet.owner
+        rootDeclarations += context.intrinsics.safePropertySet.owner
     }
 
     JsMainFunctionDetector.getMainFunctionOrNull(modules.last())?.let { mainFunction ->
@@ -385,6 +391,21 @@ fun usefulDeclarations(roots: Iterable<IrDeclaration>, context: JsIrBackendConte
                             val ref = expression.getTypeArgument(0)!!.classifierOrFail.owner as IrDeclaration
                             ref.enqueue("intrinsic: jsClass")
                             referencedJsClasses += ref
+                            // When class reference provided as parameter to external function
+                            // It can be instantiated by external JS script
+                            // Need to leave constructor for this
+                            // https://youtrack.jetbrains.com/issue/KT-46672
+                            // TODO: Possibly solution with origin is not so good
+                            //  There is option with applying this hack to jsGetKClass
+                            if (expression.origin == JsLoweredDeclarationOrigin.CLASS_REFERENCE) {
+                                // Maybe we need to filter primary constructor
+                                // Although at this time, we should have only primary constructor
+                                (ref as IrClass)
+                                    .constructors
+                                    .forEach {
+                                        it.enqueue("intrinsic: jsClass (constructor)")
+                                    }
+                            }
                         }
                         context.intrinsics.jsGetKClassFromExpression -> {
                             val ref = expression.getTypeArgument(0)?.classOrNull ?: context.irBuiltIns.anyClass

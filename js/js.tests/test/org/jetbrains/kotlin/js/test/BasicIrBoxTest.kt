@@ -209,7 +209,8 @@ abstract class BasicIrBoxTest(
                 friendDependencies = emptyList(),
                 irFactory = IrFactoryImpl,
                 outputKlibPath = actualOutputFile,
-                nopack = true
+                nopack = true,
+                jsOutputName = null
             )
 
             logger.logFile("Output klib", File(actualOutputFile))

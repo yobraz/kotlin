@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBrowserDsl
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
+import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import org.jetbrains.kotlin.gradle.targets.js.testing.karma.KotlinKarma
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
@@ -83,6 +84,7 @@ open class KotlinBrowserJsIr @Inject constructor(target: KotlinJsIrTarget) :
     ) {
         val project = compilation.target.project
         val nodeJs = NodeJsRootPlugin.apply(project.rootProject)
+        val npmProject = compilation.npmProject
 
         val commonRunTask = registerSubTargetTask<Task>(disambiguateCamelCased(RUN_TASK_NAME)) {}
 
@@ -102,7 +104,8 @@ open class KotlinBrowserJsIr @Inject constructor(target: KotlinJsIrTarget) :
                 ) { task ->
                     val entryFileProvider = binary.linkSyncTask.map {
                         it.destinationDir
-                            .resolve(binary.linkTask.get().outputFileProperty.get().name)
+                            .resolve(npmProject.name)
+                            .resolve("index.js")
                     }
 
                     webpackMajorVersion.choose(
@@ -152,6 +155,7 @@ open class KotlinBrowserJsIr @Inject constructor(target: KotlinJsIrTarget) :
     ) {
         val project = compilation.target.project
         val nodeJs = NodeJsRootPlugin.apply(project.rootProject)
+        val npmProject = compilation.npmProject
 
         val processResourcesTask = target.project.tasks.named(compilation.processResourcesTaskName)
 
@@ -183,7 +187,8 @@ open class KotlinBrowserJsIr @Inject constructor(target: KotlinJsIrTarget) :
                 ) { task ->
                     val entryFileProvider = binary.linkSyncTask.map {
                         it.destinationDir
-                            .resolve(binary.linkTask.get().outputFileProperty.get().name)
+                            .resolve(npmProject.name)
+                            .resolve("index.js")
                     }
 
                     task.description = "build webpack ${mode.name.toLowerCase()} bundle"

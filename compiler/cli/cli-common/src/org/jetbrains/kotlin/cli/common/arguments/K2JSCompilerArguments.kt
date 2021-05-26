@@ -151,11 +151,20 @@ class K2JSCompilerArguments : CommonCompilerArguments() {
     )
     var irModuleName: String? by NullableStringFreezableVar(null)
 
+    @Argument(value = "-Xir-legacy-property-access", description = "Force property access via JS properties (requires -Xir-export-all)")
+    var irLegacyPropertyAccess: Boolean by FreezableVar(false)
+
+    @Argument(value = "-Xir-base-class-in-metadata", description = "Write base class into metadata")
+    var irBaseClassInMetadata: Boolean by FreezableVar(false)
+
     @Argument(value = "-Xir-per-module", description = "Splits generated .js per-module")
     var irPerModule: Boolean by FreezableVar(false)
 
     @Argument(value = "-Xir-per-file", description = "Splits generated .js per-file")
     var irPerFile: Boolean by FreezableVar(false)
+
+    @Argument(value = "-Xir-per-module-output-name", description = "Adds a custom output name to the splitted js files")
+    var irPerModuleOutputName: String? by NullableStringFreezableVar(null)
 
     @Argument(
         value = "-Xinclude",

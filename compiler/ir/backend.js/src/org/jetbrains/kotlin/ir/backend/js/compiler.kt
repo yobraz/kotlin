@@ -54,10 +54,12 @@ fun compile(
     dceRuntimeDiagnostic: DceRuntimeDiagnostic? = null,
     es6mode: Boolean = false,
     propertyLazyInitialization: Boolean,
-    granularity: JsGenerationGranularity = JsGenerationGranularity.WHOLE_PROGRAM
+    granularity: JsGenerationGranularity = JsGenerationGranularity.WHOLE_PROGRAM,
+    legacyPropertyAccess: Boolean = false,
+    baseClassIntoMetadata: Boolean = false,
 ): LoweredIr {
 
-    val (moduleFragment: IrModuleFragment, dependencyModules, irBuiltIns, symbolTable, deserializer) =
+    val (moduleFragment: IrModuleFragment, dependencyModules, irBuiltIns, symbolTable, deserializer, moduleToName) =
         loadIr(project, mainModule, analyzer, configuration, allDependencies, friendDependencies, irFactory)
 
     val moduleDescriptor = moduleFragment.descriptor
@@ -77,7 +79,9 @@ fun compile(
         es6mode = es6mode,
         dceRuntimeDiagnostic = dceRuntimeDiagnostic,
         propertyLazyInitialization = propertyLazyInitialization,
-        granularity = granularity
+        granularity = granularity,
+        legacyPropertyAccess = legacyPropertyAccess,
+        baseClassIntoMetadata = baseClassIntoMetadata
     )
 
     // Load declarations referenced during `context` initialization

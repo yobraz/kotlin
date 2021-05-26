@@ -491,7 +491,8 @@ class GenerateIrRuntime {
             mutableMapOf(),
             emptyList(),
             true,
-            perFile
+            perFile,
+            jsOutputName = null
         )
 
         return tmpKlibDir
