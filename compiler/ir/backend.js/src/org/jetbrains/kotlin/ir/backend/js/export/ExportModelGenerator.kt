@@ -292,7 +292,7 @@ class ExportModelGenerator(
 
             classifier is IrClassSymbol -> {
                 val klass = classifier.owner
-                val name = klass.name.identifier
+                val name = klass.name.asString()
 
                 when (klass.kind) {
                     ClassKind.ANNOTATION_CLASS,
