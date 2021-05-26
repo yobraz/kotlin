@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingCodeMetaInfo
 
-open class HighlightingRenderer(
+open class HighlightingCodeMetaInfoRenderer(
     val renderDescription: Boolean = true,
     val renderTextAttributesKey: Boolean = true,
     val renderSeverity: Boolean = true

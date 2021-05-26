@@ -13,8 +13,8 @@ import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.codeMetaInfo.rendering.DiagnosticCodeMetaInfoRenderer
 import org.jetbrains.kotlin.diagnostics.Diagnostic
-import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.HighlightingRenderer
-import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.LineMarkerRenderer
+import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.HighlightingCodeMetaInfoRenderer
+import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.LineMarkerCodeMetaInfoRenderer
 import org.jetbrains.kotlin.idea.editor.fixers.end
 import org.jetbrains.kotlin.idea.editor.fixers.start
 
@@ -30,11 +30,11 @@ fun createCodeMetaInfo(obj: Any, renderer: AbstractCodeMetaInfoRenderer): List<C
             obj.diagnostic.textRanges.map { DiagnosticCodeMetaInfo(it.start, it.end, renderer, obj.diagnostic) }
         }
         is HighlightInfo -> {
-            require(renderer is HighlightingRenderer, ::errorMessage)
+            require(renderer is HighlightingCodeMetaInfoRenderer, ::errorMessage)
             listOf(HighlightingCodeMetaInfo(renderer, obj))
         }
         is LineMarkerInfo<*> -> {
-            require(renderer is LineMarkerRenderer, ::errorMessage)
+            require(renderer is LineMarkerCodeMetaInfoRenderer, ::errorMessage)
             listOf(LineMarkerCodeMetaInfo(renderer, obj))
         }
         else -> throw IllegalArgumentException("Unknown type for creating CodeMetaInfo object $obj")

@@ -7,10 +7,10 @@ package org.jetbrains.kotlin.idea.codeMetaInfo.models
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.LineMarkerRenderer
+import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.LineMarkerCodeMetaInfoRenderer
 
 class LineMarkerCodeMetaInfo(
-    override val renderer: LineMarkerRenderer,
+    override val renderer: LineMarkerCodeMetaInfoRenderer,
     val lineMarker: LineMarkerInfo<*>
 ) : CodeMetaInfo {
     override val start: Int
