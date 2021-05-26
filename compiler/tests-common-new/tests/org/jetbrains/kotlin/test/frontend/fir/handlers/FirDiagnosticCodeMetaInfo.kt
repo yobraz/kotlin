@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.AbstractFirDiagnosticWithPa
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDefaultErrorMessages
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnostic
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer.Companion.getAttributesString
 import org.jetbrains.kotlin.test.directives.DiagnosticsDirectives
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
@@ -35,7 +36,7 @@ class FirDiagnosticCodeMetaInfo(
     override val attributes: MutableList<String> = mutableListOf()
 }
 
-object FirDiagnosticCodeMetaRenderer : AbstractCodeMetaInfoRenderer() {
+object FirDiagnosticCodeMetaRenderer : AbstractCodeMetaInfoRenderer {
     private val crossPlatformLineBreak = """\r?\n""".toRegex()
 
     override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {

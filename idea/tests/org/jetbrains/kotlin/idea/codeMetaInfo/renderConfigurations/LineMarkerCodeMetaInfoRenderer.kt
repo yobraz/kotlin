@@ -9,9 +9,10 @@ import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.LineMarkerCodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer.Companion.sanitizeLineBreaks
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
-object LineMarkerCodeMetaInfoRenderer : AbstractCodeMetaInfoRenderer() {
+object LineMarkerCodeMetaInfoRenderer : AbstractCodeMetaInfoRenderer {
     private val clickOrPressRegex = "Click or press (.*)to navigate".toRegex() // We have different hotkeys on different platforms
 
     override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {

@@ -9,9 +9,9 @@ import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.ParsedCodeMetaInfo
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
-object ParsedCodeMetaInfoRenderer : AbstractCodeMetaInfoRenderer() {
+object ParsedCodeMetaInfoRenderer : AbstractCodeMetaInfoRenderer {
     override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
         if (codeMetaInfo !is ParsedCodeMetaInfo) return ""
-        return super.asString(codeMetaInfo, registeredDirectives) + (codeMetaInfo.description?.let { "(\"$it\")" } ?: "")
+        return codeMetaInfo.tag + AbstractCodeMetaInfoRenderer.getAttributesString(codeMetaInfo) + (codeMetaInfo.description?.let { "(\"$it\")" } ?: "")
     }
 }

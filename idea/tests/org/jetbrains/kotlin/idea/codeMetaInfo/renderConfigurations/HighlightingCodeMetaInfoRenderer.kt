@@ -12,9 +12,10 @@ import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingDirectives
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingDirectives.RENDER_DESCRIPTION
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingDirectives.RENDER_SEVERITY
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingDirectives.RENDER_TEXT_ATTRIBUTE_KEY
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer.Companion.sanitizeLineBreaks
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
-object HighlightingCodeMetaInfoRenderer : AbstractCodeMetaInfoRenderer() {
+object HighlightingCodeMetaInfoRenderer : AbstractCodeMetaInfoRenderer {
 
     override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
         if (codeMetaInfo !is HighlightingCodeMetaInfo) return ""

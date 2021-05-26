@@ -9,20 +9,22 @@ import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
-abstract class AbstractCodeMetaInfoRenderer {
-    open fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String =
+interface AbstractCodeMetaInfoRenderer {
+    fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String =
         codeMetaInfo.tag + getAttributesString(codeMetaInfo)
 
-    protected fun sanitizeLineBreaks(originalText: String): String {
-        var sanitizedText = originalText
-        sanitizedText = StringUtil.replace(sanitizedText, "\r\n", " ")
-        sanitizedText = StringUtil.replace(sanitizedText, "\n", " ")
-        sanitizedText = StringUtil.replace(sanitizedText, "\r", " ")
-        return sanitizedText
-    }
+    companion object {
+        fun sanitizeLineBreaks(originalText: String): String {
+            var sanitizedText = originalText
+            sanitizedText = StringUtil.replace(sanitizedText, "\r\n", " ")
+            sanitizedText = StringUtil.replace(sanitizedText, "\n", " ")
+            sanitizedText = StringUtil.replace(sanitizedText, "\r", " ")
+            return sanitizedText
+        }
 
-    protected fun getAttributesString(codeMetaInfo: CodeMetaInfo): String {
-        if (codeMetaInfo.attributes.isEmpty()) return ""
-        return "{${codeMetaInfo.attributes.joinToString(";")}}"
+        fun getAttributesString(codeMetaInfo: CodeMetaInfo): String {
+            if (codeMetaInfo.attributes.isEmpty()) return ""
+            return "{${codeMetaInfo.attributes.joinToString(";")}}"
+        }
     }
 }
