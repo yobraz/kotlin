@@ -6,16 +6,15 @@
 package org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations
 
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingCodeMetaInfo
-import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingDirectives
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingDirectives.RENDER_DESCRIPTION
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingDirectives.RENDER_SEVERITY
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingDirectives.RENDER_TEXT_ATTRIBUTE_KEY
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer.Companion.sanitizeLineBreaks
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer.Companion.sanitizeLineBreaks
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
-object HighlightingCodeMetaInfoRenderer : AbstractCodeMetaInfoRenderer {
+object HighlightingCodeMetaInfoRenderer : CodeMetaInfoRenderer {
 
     override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
         if (codeMetaInfo !is HighlightingCodeMetaInfo) return ""

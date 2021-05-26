@@ -10,7 +10,7 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import org.jetbrains.kotlin.checkers.diagnostics.ActualDiagnostic
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.codeMetaInfo.rendering.DiagnosticCodeMetaInfoRenderer
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.HighlightingCodeMetaInfoRenderer
@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.LineMarkerCod
 import org.jetbrains.kotlin.idea.editor.fixers.end
 import org.jetbrains.kotlin.idea.editor.fixers.start
 
-fun createCodeMetaInfo(obj: Any, renderer: AbstractCodeMetaInfoRenderer): List<CodeMetaInfo> {
+fun createCodeMetaInfo(obj: Any, renderer: CodeMetaInfoRenderer): List<CodeMetaInfo> {
     fun errorMessage() = "Unexpected render configuration for object $obj"
     return when (obj) {
         is Diagnostic -> {
@@ -43,7 +43,7 @@ fun createCodeMetaInfo(obj: Any, renderer: AbstractCodeMetaInfoRenderer): List<C
 
 fun getCodeMetaInfo(
     objects: List<Any>,
-    renderer: AbstractCodeMetaInfoRenderer
+    renderer: CodeMetaInfoRenderer
 ): List<CodeMetaInfo> {
     return objects.flatMap { createCodeMetaInfo(it, renderer) }
 }

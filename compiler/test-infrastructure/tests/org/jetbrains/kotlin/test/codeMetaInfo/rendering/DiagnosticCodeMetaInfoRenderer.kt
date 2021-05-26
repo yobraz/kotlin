@@ -10,11 +10,11 @@ import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.rendering.*
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer.Companion.getAttributesString
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer.Companion.getAttributesString
 import org.jetbrains.kotlin.test.directives.DiagnosticsDirectives
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
-object DiagnosticCodeMetaInfoRenderer : AbstractCodeMetaInfoRenderer {
+object DiagnosticCodeMetaInfoRenderer : CodeMetaInfoRenderer {
     private val crossPlatformLineBreak = """\r?\n""".toRegex()
 
     override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {

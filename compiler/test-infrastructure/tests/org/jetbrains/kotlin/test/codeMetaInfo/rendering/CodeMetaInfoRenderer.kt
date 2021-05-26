@@ -9,7 +9,7 @@ import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
-interface AbstractCodeMetaInfoRenderer {
+interface CodeMetaInfoRenderer {
     fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String =
         codeMetaInfo.tag + getAttributesString(codeMetaInfo)
 

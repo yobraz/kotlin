@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.test.frontend.classic.handlers
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.ErrorsJvm
 import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.directives.ForeignAnnotationsDirectives
 import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontendOutputArtifact
 import org.jetbrains.kotlin.test.jspecify.JspecifyCodeMetaInfoRenderConfiguration
@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.utils.ReportLevel
 
 // Not that this diagnostic handler should be included only with `ClassicDiagnosticsHandler` and go after it
 class JspecifyDiagnosticComplianceHandler(testServices: TestServices) : ClassicFrontendAnalysisHandler(testServices) {
-    override val codeMetaInfoRenderers: List<AbstractCodeMetaInfoRenderer>
+    override val codeMetaInfoRenderers: List<CodeMetaInfoRenderer>
         get() = listOf(JspecifyCodeMetaInfoRenderConfiguration)
 
     override fun processModule(module: TestModule, info: ClassicFrontendOutputArtifact) {

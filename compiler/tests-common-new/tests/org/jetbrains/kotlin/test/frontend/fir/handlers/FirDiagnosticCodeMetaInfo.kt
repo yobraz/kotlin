@@ -7,12 +7,12 @@ package org.jetbrains.kotlin.test.frontend.fir.handlers
 
 import com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer
 import org.jetbrains.kotlin.fir.analysis.diagnostics.AbstractFirDiagnosticWithParametersRenderer
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDefaultErrorMessages
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnostic
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderer
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer.Companion.getAttributesString
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer.Companion.getAttributesString
 import org.jetbrains.kotlin.test.directives.DiagnosticsDirectives
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
@@ -36,7 +36,7 @@ class FirDiagnosticCodeMetaInfo(
     override val attributes: MutableList<String> = mutableListOf()
 }
 
-object FirDiagnosticCodeMetaRenderer : AbstractCodeMetaInfoRenderer {
+object FirDiagnosticCodeMetaRenderer : CodeMetaInfoRenderer {
     private val crossPlatformLineBreak = """\r?\n""".toRegex()
 
     override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {

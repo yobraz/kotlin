@@ -51,7 +51,7 @@ import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoParser
 import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoRenderingUtils
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.codeMetaInfo.rendering.DiagnosticCodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.directives.DiagnosticsDirectives
 import org.jetbrains.kotlin.test.directives.model.ComposedDirectivesContainer
@@ -64,7 +64,7 @@ import java.nio.file.Paths
 
 @Ignore
 class CodeMetaInfoTestCase(
-    val codeMetaInfoTypes: Collection<AbstractCodeMetaInfoRenderer>,
+    val codeMetaInfoTypes: Collection<CodeMetaInfoRenderer>,
     val checkNoDiagnosticError: Boolean = false,
     val registeredDirectives: RegisteredDirectives,
 ) : DaemonAnalyzerTestCase() {
@@ -217,14 +217,14 @@ class CodeMetaInfoTestCase(
 }
 
 abstract class AbstractDiagnosticCodeMetaInfoTest : AbstractCodeMetaInfoTest() {
-    override fun getRenderers(registeredDirectives: RegisteredDirectives): List<AbstractCodeMetaInfoRenderer> = listOf(
+    override fun getRenderers(registeredDirectives: RegisteredDirectives): List<CodeMetaInfoRenderer> = listOf(
         DiagnosticCodeMetaInfoRenderer,
         LineMarkerCodeMetaInfoRenderer,
     )
 }
 
 abstract class AbstractLineMarkerCodeMetaInfoTest : AbstractCodeMetaInfoTest() {
-    override fun getRenderers(registeredDirectives: RegisteredDirectives): List<AbstractCodeMetaInfoRenderer> = listOf(
+    override fun getRenderers(registeredDirectives: RegisteredDirectives): List<CodeMetaInfoRenderer> = listOf(
         LineMarkerCodeMetaInfoRenderer,
     )
 }
@@ -232,7 +232,7 @@ abstract class AbstractLineMarkerCodeMetaInfoTest : AbstractCodeMetaInfoTest() {
 abstract class AbstractCodeMetaInfoTest : AbstractMultiModuleTest() {
     open val checkNoDiagnosticError get() = false
 
-    open fun getRenderers(registeredDirectives: RegisteredDirectives): List<AbstractCodeMetaInfoRenderer> = listOf(
+    open fun getRenderers(registeredDirectives: RegisteredDirectives): List<CodeMetaInfoRenderer> = listOf(
         DiagnosticCodeMetaInfoRenderer,
         LineMarkerCodeMetaInfoRenderer,
         HighlightingCodeMetaInfoRenderer

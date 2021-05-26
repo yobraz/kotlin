@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.test.model
 
 
 import org.jetbrains.kotlin.test.Assertions
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.directives.model.DirectivesContainer
 import org.jetbrains.kotlin.test.services.ServiceRegistrationData
 import org.jetbrains.kotlin.test.services.TestServices
@@ -27,7 +27,7 @@ abstract class AnalysisHandler<A : ResultingArtifact<A>>(
     open val additionalServices: List<ServiceRegistrationData>
         get() = emptyList()
 
-    open val codeMetaInfoRenderers: List<AbstractCodeMetaInfoRenderer>
+    open val codeMetaInfoRenderers: List<CodeMetaInfoRenderer>
         get() = emptyList()
 
     abstract val artifactKind: TestArtifactKind<A>

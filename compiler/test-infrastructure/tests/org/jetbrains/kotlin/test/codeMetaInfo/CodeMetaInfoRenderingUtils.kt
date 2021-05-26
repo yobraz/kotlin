@@ -6,16 +6,15 @@
 package org.jetbrains.kotlin.test.codeMetaInfo
 
 import com.intellij.util.containers.Stack
-import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoParser
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 import java.io.File
 
 object CodeMetaInfoRenderingUtils {
     fun renderTagsToText(
         codeMetaInfos: List<CodeMetaInfo>,
-        renderers: Collection<AbstractCodeMetaInfoRenderer>,
+        renderers: Collection<CodeMetaInfoRenderer>,
         registeredDirectives: RegisteredDirectives,
         originalText: String
     ): StringBuilder {
@@ -27,7 +26,7 @@ object CodeMetaInfoRenderingUtils {
     fun renderTagsToText(
         builder: StringBuilder,
         codeMetaInfos: List<CodeMetaInfo>,
-        renderers: Collection<AbstractCodeMetaInfoRenderer>,
+        renderers: Collection<CodeMetaInfoRenderer>,
         registeredDirectives: RegisteredDirectives,
         originalText: String
     ) {
@@ -54,7 +53,7 @@ object CodeMetaInfoRenderingUtils {
 
     private fun processMetaInfosStartedAtOffset(
         offset: Int,
-        renderers: Collection<AbstractCodeMetaInfoRenderer>,
+        renderers: Collection<CodeMetaInfoRenderer>,
         sortedMetaInfos: Map<Int, List<CodeMetaInfo>>,
         registeredDirectives: RegisteredDirectives,
         opened: Stack<CodeMetaInfo>,
@@ -91,10 +90,10 @@ object CodeMetaInfoRenderingUtils {
 
     @Suppress("UnnecessaryVariable")
     private fun CodeMetaInfo.renderWithSuitableRenderer(
-        renderers: Collection<AbstractCodeMetaInfoRenderer>,
+        renderers: Collection<CodeMetaInfoRenderer>,
         registeredDirectives: RegisteredDirectives
     ): String {
-        val relevantRenderersToRenderedStrings: List<Pair<AbstractCodeMetaInfoRenderer, String>> = renderers
+        val relevantRenderersToRenderedStrings: List<Pair<CodeMetaInfoRenderer, String>> = renderers
             .map { renderer -> renderer to renderer.asString(this, registeredDirectives) }
             .filter { (_, renderedMetaInfo) -> renderedMetaInfo.isNotEmpty() }
 

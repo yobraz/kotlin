@@ -32,7 +32,7 @@ import org.jetbrains.kotlin.fir.visitors.FirDefaultVisitorVoid
 import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.resolve.AnalyzingUtils
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.codeMetaInfo.rendering.ParsedCodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.directives.AdditionalFilesDirectives
 import org.jetbrains.kotlin.test.directives.DiagnosticsDirectives
@@ -67,7 +67,7 @@ class FirDiagnosticsHandler(testServices: TestServices) : FirAnalysisHandler(tes
     override val additionalServices: List<ServiceRegistrationData> =
         listOf(service(::DiagnosticsService))
 
-    override val codeMetaInfoRenderers: List<AbstractCodeMetaInfoRenderer>
+    override val codeMetaInfoRenderers: List<CodeMetaInfoRenderer>
         get() = listOf(FirDiagnosticCodeMetaRenderer, ParsedCodeMetaInfoRenderer)
 
     override fun processModule(module: TestModule, info: FirOutputArtifact) {

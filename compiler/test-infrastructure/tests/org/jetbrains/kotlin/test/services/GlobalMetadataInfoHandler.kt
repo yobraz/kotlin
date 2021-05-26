@@ -9,14 +9,14 @@ import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoParser
 import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoRenderingUtils
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.ParsedCodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.model.TestFile
 import org.jetbrains.kotlin.test.model.TestModule
 
 class GlobalMetadataInfoHandler(
     private val testServices: TestServices,
     private val processors: List<AdditionalMetaInfoProcessor>,
-    private val renderers: Collection<AbstractCodeMetaInfoRenderer>
+    private val renderers: Collection<CodeMetaInfoRenderer>
 ) : TestService {
     private lateinit var existingInfosPerFile: Map<TestFile, List<ParsedCodeMetaInfo>>
 
