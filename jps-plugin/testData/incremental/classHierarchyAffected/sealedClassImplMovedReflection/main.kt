@@ -1,0 +1,14 @@
+fun main() {
+  val things = Thing::class.sealedSubclasses
+  println("Things: $things")
+  val thingsGeneric = ThingGeneric::class.sealedSubclasses
+  println("ThingsGeneric: $thingsGeneric")
+
+  require(thingsGeneric.size == things.size) { "thingsGeneric.size == things.size" }
+  require(thingsGeneric.size == 4) { "thingsGeneric.size == 4" }
+  require(things.size == 4) { "things.size == 4" }
+}
+
+object ComputerGeneric : ThingGeneric<Int>(1010101)
+
+

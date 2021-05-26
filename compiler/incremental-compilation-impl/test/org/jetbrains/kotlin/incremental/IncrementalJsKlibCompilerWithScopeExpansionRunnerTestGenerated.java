@@ -819,6 +819,11 @@ public class IncrementalJsKlibCompilerWithScopeExpansionRunnerTestGenerated exte
             runTest("jps-plugin/testData/incremental/classHierarchyAffected/sealedClassImplAdded/");
         }
 
+        @TestMetadata("sealedClassImplMovedReflection")
+        public void testSealedClassImplMovedReflection() throws Exception {
+            runTest("jps-plugin/testData/incremental/classHierarchyAffected/sealedClassImplMovedReflection/");
+        }
+
         @TestMetadata("sealedClassIndirectImplAdded")
         public void testSealedClassIndirectImplAdded() throws Exception {
             runTest("jps-plugin/testData/incremental/classHierarchyAffected/sealedClassIndirectImplAdded/");

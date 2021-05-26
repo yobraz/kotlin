@@ -1,0 +1,33 @@
+================ Step #1 =================
+
+Cleaning output files:
+  out/production/module/Computer.class
+  out/production/module/ComputerGeneric.class
+  out/production/module/META-INF/module.kotlin_module
+  out/production/module/MainKt.class
+  out/production/module/Thing.class
+  out/production/module/ThingGeneric.class
+End of files
+Compiling files:
+  src/Base.kt
+  src/Thing.kt
+  src/main.kt
+End of files
+Marked as dirty by Kotlin:
+  src/Things.kt
+Exit code: ADDITIONAL_PASS_REQUIRED
+------------------------------------------
+Cleaning output files:
+  out/production/module/Cat.class
+  out/production/module/CatGeneric.class
+  out/production/module/Dog.class
+  out/production/module/DogGeneric.class
+  out/production/module/META-INF/module.kotlin_module
+  out/production/module/Mouse.class
+  out/production/module/MouseGeneric.class
+End of files
+Compiling files:
+  src/Things.kt
+End of files
+Exit code: OK
+------------------------------------------

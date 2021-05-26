@@ -3171,6 +3171,11 @@ public class IncrementalJvmJpsTestGenerated extends AbstractIncrementalJvmJpsTes
             runTest("jps-plugin/testData/incremental/classHierarchyAffected/sealedClassImplAdded/");
         }
 
+        @TestMetadata("sealedClassImplMovedReflection")
+        public void testSealedClassImplMovedReflection() throws Exception {
+            runTest("jps-plugin/testData/incremental/classHierarchyAffected/sealedClassImplMovedReflection/");
+        }
+
         @TestMetadata("sealedClassIndirectImplAdded")
         public void testSealedClassIndirectImplAdded() throws Exception {
             runTest("jps-plugin/testData/incremental/classHierarchyAffected/sealedClassIndirectImplAdded/");
@@ -3632,6 +3637,19 @@ public class IncrementalJvmJpsTestGenerated extends AbstractIncrementalJvmJpsTes
 
             public void testAllFilesPresentInSealedClassImplAdded() throws Exception {
                 KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("jps-plugin/testData/incremental/classHierarchyAffected/sealedClassImplAdded"), Pattern.compile("^([^\\.]+)$"), null, TargetBackend.JVM_IR, true);
+            }
+        }
+
+        @TestMetadata("jps-plugin/testData/incremental/classHierarchyAffected/sealedClassImplMovedReflection")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class SealedClassImplMovedReflection extends AbstractIncrementalJvmJpsTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM_IR, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInSealedClassImplMovedReflection() throws Exception {
+                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("jps-plugin/testData/incremental/classHierarchyAffected/sealedClassImplMovedReflection"), Pattern.compile("^([^\\.]+)$"), null, TargetBackend.JVM_IR, true);
             }
         }
 
