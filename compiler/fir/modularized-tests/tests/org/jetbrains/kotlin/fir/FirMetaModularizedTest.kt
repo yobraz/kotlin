@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir
 
+import com.intellij.openapi.util.SystemInfo
 import org.junit.Test
 import java.io.File
 import java.lang.management.ManagementFactory
@@ -17,7 +18,11 @@ class FirMetaModularizedTest {
     @Test
     fun doTest() {
         val runtimeBean = ManagementFactory.getRuntimeMXBean()
-        val jvmCommand = System.getProperty("java.home") + "/bin/java"
+        val javaExePath = when {
+            SystemInfo.isWindows -> "/bin/java.exe"
+            else -> "/bin/java"
+        }
+        val jvmCommand = System.getProperty("java.home") + javaExePath
 
         val runCount = System.getProperty("fir.bench.multirun.count").toInt()
 
