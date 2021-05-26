@@ -125,6 +125,13 @@ internal class InsertImplicitCasts(
         }
     }
 
+    override fun visitFile(declaration: IrFile): IrFile {
+        symbolTable.signaturer.inFile(file.symbol) {
+            declaration.transformChildrenVoid()
+        }
+        return declaration
+    }
+
     private fun IrMemberAccessExpression<*>.transformReceiverArguments(substitutedDescriptor: CallableDescriptor) {
         dispatchReceiver = dispatchReceiver?.cast(getEffectiveDispatchReceiverType(substitutedDescriptor))
         val extensionReceiverType = substitutedDescriptor.extensionReceiverParameter?.type

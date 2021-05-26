@@ -1,5 +1,6 @@
 package org.jetbrains.kotlin.backend.konan.serialization
 
+import org.jetbrains.kotlin.backend.common.serialization.mangle.SpecialDeclarationType
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureDescriptor
 import org.jetbrains.kotlin.backend.konan.descriptors.isFromInteropLibrary
 import org.jetbrains.kotlin.descriptors.*
@@ -9,18 +10,14 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 
 class KonanIdSignaturer(private val mangler: KotlinMangler.DescriptorMangler) : IdSignatureDescriptor(mangler) {
 
-    override fun createSignatureBuilder(): DescriptorBasedSignatureBuilder =
-            KonanDescriptorBasedSignatureBuilder(mangler)
+    override fun createSignatureBuilder(type: SpecialDeclarationType): DescriptorBasedSignatureBuilder =
+            KonanDescriptorBasedSignatureBuilder(mangler, type)
 
-    private class KonanDescriptorBasedSignatureBuilder(
-            mangler: KotlinMangler.DescriptorMangler
-    ) : DescriptorBasedSignatureBuilder(mangler) {
+    private inner class KonanDescriptorBasedSignatureBuilder(
+            mangler: KotlinMangler.DescriptorMangler,
+            type: SpecialDeclarationType
+    ) : DescriptorBasedSignatureBuilder(mangler, type) {
 
-        /**
-         * We need a way to distinguish interop declarations from usual ones
-         * to be able to link against them. We do it by marking them with
-         * [IdSignature.Flags.IS_NATIVE_INTEROP_LIBRARY] flag.
-         */
         private fun markInteropDeclaration(descriptor: DeclarationDescriptor) {
             if (descriptor.module.isFromInteropLibrary()) {
                 mask = mask or IdSignature.Flags.IS_NATIVE_INTEROP_LIBRARY.encode(true)

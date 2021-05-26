@@ -116,7 +116,9 @@ open class JvmIrCodegenFactory(
             }
         }
 
-        SourceDeclarationsPreprocessor(psi2irContext).run(files)
+        val (irFiles, moduleFragment) = psi2ir.createFiles(psi2irContext, files)
+
+        SourceDeclarationsPreprocessor(psi2irContext).run(files, irFiles)
 
         for (extension in pluginExtensions) {
             psi2ir.addPostprocessingStep { module ->
@@ -143,7 +145,15 @@ open class JvmIrCodegenFactory(
         }
         val irProviders = listOf(irLinker)
 
-        val irModuleFragment = psi2ir.generateModuleFragment(psi2irContext, files, irProviders, pluginExtensions, expectDescriptorToSymbol = null)
+        val irModuleFragment = psi2ir.generateModuleFragment(
+            psi2irContext,
+            files,
+            irProviders,
+            pluginExtensions,
+            expectDescriptorToSymbol = null,
+            irFilesMap = irFiles,
+            moduleFragment = moduleFragment
+        )
         irLinker.postProcess()
 
         stubGenerator.unboundSymbolGeneration = true
