@@ -94,6 +94,12 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
             // See KT-43502.
             add(listOf("-fPIC"))
         }
+
+        // FIXME:
+        if (target == KonanTarget.LINUX_X64) {
+            add(listOf("-mavx"))
+        }
+
     }.flatten()
 
     private val specificClangArgs: List<String> = when (target) {
@@ -163,7 +169,7 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
     val hostCompilerArgsForJni = listOf("", HostManager.jniHostPlatformIncludeDir).map { "-I$jdkDir/include/$it" }.toTypedArray()
 
     private fun getClangArgs(forJni: Boolean) =
-            getCommonClangArgs() + specificClangArgs
+            getCommonClangArgs(forJni) + specificClangArgs
     
     /**
      * Clang args for Objectice-C and plain C compilation.
