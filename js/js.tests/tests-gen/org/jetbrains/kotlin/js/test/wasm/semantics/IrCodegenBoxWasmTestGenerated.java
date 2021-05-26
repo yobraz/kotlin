@@ -6368,6 +6368,11 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
                 KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/inference/builderInference"), Pattern.compile("^([^_](.+))\\.kt$"), null, TargetBackend.WASM, true);
             }
 
+            @TestMetadata("specialCallsWithCallableReferencesNonStrictOnlyInputTypes.kt")
+            public void testSpecialCallsWithCallableReferencesNonStrictOnlyInputTypes() throws Exception {
+                runTest("compiler/testData/codegen/box/inference/builderInference/specialCallsWithCallableReferencesNonStrictOnlyInputTypes.kt");
+            }
+
             @TestMetadata("substituteStubTypeIntolambdaParameterDescriptor.kt")
             public void testSubstituteStubTypeIntolambdaParameterDescriptor() throws Exception {
                 runTest("compiler/testData/codegen/box/inference/builderInference/substituteStubTypeIntolambdaParameterDescriptor.kt");

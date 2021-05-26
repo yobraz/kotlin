@@ -12058,16 +12058,6 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
                 runTest("compiler/testData/codegen/box/inference/builderInference/capturedTypes.kt");
             }
 
-            @TestMetadata("commonSuperTypeContravariant.kt")
-            public void testCommonSuperTypeContravariant() throws Exception {
-                runTest("compiler/testData/codegen/box/inference/builderInference/commonSuperTypeContravariant.kt");
-            }
-
-            @TestMetadata("commonSuperTypeInvariant.kt")
-            public void testCommonSuperTypeInvariant() throws Exception {
-                runTest("compiler/testData/codegen/box/inference/builderInference/commonSuperTypeInvariant.kt");
-            }
-
             @TestMetadata("kt41164.kt")
             public void testKt41164() throws Exception {
                 runTest("compiler/testData/codegen/box/inference/builderInference/kt41164.kt");
