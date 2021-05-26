@@ -6,22 +6,29 @@
 package org.jetbrains.kotlin.test.codeMetaInfo
 
 import com.intellij.util.containers.Stack
+import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoParser
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 import java.io.File
 
 object CodeMetaInfoRenderingUtils {
     fun renderTagsToText(
         codeMetaInfos: List<CodeMetaInfo>,
+        renderers: Collection<AbstractCodeMetaInfoRenderer>,
+        registeredDirectives: RegisteredDirectives,
         originalText: String
     ): StringBuilder {
         return StringBuilder().apply {
-            renderTagsToText(this, codeMetaInfos, originalText)
+            renderTagsToText(this, codeMetaInfos, renderers, registeredDirectives, originalText)
         }
     }
 
     fun renderTagsToText(
         builder: StringBuilder,
         codeMetaInfos: List<CodeMetaInfo>,
+        renderers: Collection<AbstractCodeMetaInfoRenderer>,
+        registeredDirectives: RegisteredDirectives,
         originalText: String
     ) {
         if (codeMetaInfos.isEmpty()) {
@@ -32,14 +39,14 @@ object CodeMetaInfoRenderingUtils {
         val opened = Stack<CodeMetaInfo>()
 
         for ((i, c) in originalText.withIndex()) {
-            processMetaInfosStartedAtOffset(i, sortedMetaInfos, opened, builder)
+            processMetaInfosStartedAtOffset(i, renderers, sortedMetaInfos, registeredDirectives, opened, builder)
             builder.append(c)
         }
         val lastSymbolIsNewLine = builder.last() == '\n'
         if (lastSymbolIsNewLine) {
             builder.deleteCharAt(builder.length - 1)
         }
-        processMetaInfosStartedAtOffset(originalText.length, sortedMetaInfos, opened, builder)
+        processMetaInfosStartedAtOffset(originalText.length, renderers, sortedMetaInfos, registeredDirectives, opened, builder)
         if (lastSymbolIsNewLine) {
             builder.appendLine()
         }
@@ -47,7 +54,9 @@ object CodeMetaInfoRenderingUtils {
 
     private fun processMetaInfosStartedAtOffset(
         offset: Int,
+        renderers: Collection<AbstractCodeMetaInfoRenderer>,
         sortedMetaInfos: Map<Int, List<CodeMetaInfo>>,
+        registeredDirectives: RegisteredDirectives,
         opened: Stack<CodeMetaInfo>,
         builder: StringBuilder
     ) {
@@ -62,7 +71,7 @@ object CodeMetaInfoRenderingUtils {
             while (current != null) {
                 val next: CodeMetaInfo? = if (iterator.hasNext()) iterator.next() else null
                 opened.push(current)
-                builder.append(current.asString())
+                builder.append(current.renderWithSuitableRenderer(renderers, registeredDirectives))
                 when {
                     next == null ->
                         builder.append(current.tagPostfix)
@@ -78,6 +87,33 @@ object CodeMetaInfoRenderingUtils {
         }
         // Here we need to handle meta infos which has start == end and close them immediately
         checkOpenedAndCloseStringIfNeeded(opened, offset, builder)
+    }
+
+    @Suppress("UnnecessaryVariable")
+    private fun CodeMetaInfo.renderWithSuitableRenderer(
+        renderers: Collection<AbstractCodeMetaInfoRenderer>,
+        registeredDirectives: RegisteredDirectives
+    ): String {
+        val relevantRenderersToRenderedStrings: List<Pair<AbstractCodeMetaInfoRenderer, String>> = renderers
+            .map { renderer -> renderer to renderer.asString(this, registeredDirectives) }
+            .filter { (_, renderedMetaInfo) -> renderedMetaInfo.isNotEmpty() }
+
+        val unambiguousRenderedString = when (relevantRenderersToRenderedStrings.size) {
+            1 -> relevantRenderersToRenderedStrings.single().second
+
+            0 -> error(
+                "Can't find the suitable RenderConfiguration for CodeMetaInto $this.\n" +
+                        "Available RenderConfigurations: ${renderers.joinToString()}"
+            )
+
+            // >1
+            else -> error(
+                "Ambiguity while rendering CodeMetaInfo $this.\n" +
+                        "Applicable RenderConfigurations: ${relevantRenderersToRenderedStrings.joinToString { it.first.toString() }}"
+            )
+        }
+
+        return unambiguousRenderedString
     }
 
     private val metaInfoComparator = (compareBy<CodeMetaInfo> { it.start } then compareByDescending { it.end }) then compareBy { it.tag }

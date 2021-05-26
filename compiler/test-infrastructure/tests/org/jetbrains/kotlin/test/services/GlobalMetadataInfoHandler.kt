@@ -9,12 +9,14 @@ import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoParser
 import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoRenderingUtils
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.ParsedCodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.model.TestFile
 import org.jetbrains.kotlin.test.model.TestModule
 
 class GlobalMetadataInfoHandler(
     private val testServices: TestServices,
-    private val processors: List<AdditionalMetaInfoProcessor>
+    private val processors: List<AdditionalMetaInfoProcessor>,
+    private val renderers: Collection<AbstractCodeMetaInfoRenderer>
 ) : TestService {
     private lateinit var existingInfosPerFile: Map<TestFile, List<ParsedCodeMetaInfo>>
 
@@ -46,6 +48,11 @@ class GlobalMetadataInfoHandler(
         }
     }
 
+    fun hasParametersRenderedInExpectedTestdata(diagnosticCodeMetaInfo: CodeMetaInfo, file: TestFile): Boolean {
+        val existing = getExistingMetaInfosForActualMetadata(file, diagnosticCodeMetaInfo)
+        return existing.any { it.description != null }
+    }
+
     fun addMetadataInfosForFile(file: TestFile, codeMetaInfos: List<CodeMetaInfo>) {
         val infos = infosPerFile.getOrPut(file) { mutableListOf() }
         infos += codeMetaInfos
@@ -64,6 +71,8 @@ class GlobalMetadataInfoHandler(
                 CodeMetaInfoRenderingUtils.renderTagsToText(
                     fileBuilder,
                     codeMetaInfos,
+                    renderers,
+                    module.directives,
                     testServices.sourceFileProvider.getContentOfSourceFile(file)
                 )
                 builder.append(fileBuilder.stripAdditionalEmptyLines(file))

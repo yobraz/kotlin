@@ -15,12 +15,12 @@ interface A {
 
 @An
 interface B : A {
-    override val p1: <!PROPERTY_TYPE_MISMATCH_ON_OVERRIDE!>Int<!>
+    override val p1: <!PROPERTY_TYPE_MISMATCH_ON_OVERRIDE("p1; p1")!>Int<!>
     @An
-    override <!VAR_OVERRIDDEN_BY_VAL!>val<!> p2: @An String
-    override fun test(arg: String): <!RETURN_TYPE_MISMATCH_ON_OVERRIDE!>Int<!>
+    override <!VAR_OVERRIDDEN_BY_VAL("public abstract override val /B.p2: R|kotlin/String|    public get(): R|kotlin/String|; public abstract var /A.p2: R|kotlin/String|    public get(): R|kotlin/String|    public set(value: R|kotlin/String|): R|kotlin/Unit|")!>val<!> p2: @An String
+    override fun test(arg: String): <!RETURN_TYPE_MISMATCH_ON_OVERRIDE("test; test")!>Int<!>
 }
 
 interface C : A {
-    override var p2: <!VAR_TYPE_MISMATCH_ON_OVERRIDE!>Int<!>
+    override var p2: <!VAR_TYPE_MISMATCH_ON_OVERRIDE("p2; p2")!>Int<!>
 }

@@ -5,24 +5,40 @@
 
 package org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations
 
+import com.intellij.openapi.util.text.StringUtil
+import org.jetbrains.kotlin.idea.codeMetaInfo.models.LineMarkerCodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
-import org.jetbrains.kotlin.idea.codeMetaInfo.models.LineMarkerCodeMetaInfo
+import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
-open class LineMarkerCodeMetaInfoRenderer(var renderDescription: Boolean = true) : AbstractCodeMetaInfoRenderer() {
-    override fun asString(codeMetaInfo: CodeMetaInfo): String {
+object LineMarkerCodeMetaInfoRenderer : AbstractCodeMetaInfoRenderer() {
+    private val clickOrPressRegex = "Click or press (.*)to navigate".toRegex() // We have different hotkeys on different platforms
+
+    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
         if (codeMetaInfo !is LineMarkerCodeMetaInfo) return ""
-        return codeMetaInfo.tag + getParamsString(codeMetaInfo)
+        return codeMetaInfo.tag + getParamsString(codeMetaInfo, registeredDirectives)
     }
 
-    private fun getParamsString(lineMarkerCodeMetaInfo: LineMarkerCodeMetaInfo): String {
-        if (!renderParams) return ""
+    private fun getParamsString(lineMarkerCodeMetaInfo: LineMarkerCodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
+        // NB: line markers always render their description because they don't have unique
+        //     tags like diagnostics, and without description all line markers would've been
+        //     rendered just as <!LINE_MARKER!>
         val params = mutableListOf<String>()
 
-        if (renderDescription && lineMarkerCodeMetaInfo.lineMarker.lineMarkerTooltip != null)
+        if (lineMarkerCodeMetaInfo.lineMarker.lineMarkerTooltip != null) {
             params.add("descr='${sanitizeLineMarkerTooltip(lineMarkerCodeMetaInfo.lineMarker.lineMarkerTooltip)}'")
+        }
 
         val paramsString = params.filter { it.isNotEmpty() }.joinToString("; ")
         return if (paramsString.isEmpty()) "" else "(\"$paramsString\")"
+    }
+
+    private fun sanitizeLineMarkerTooltip(originalText: String?): String {
+        if (originalText == null) return "null"
+        val noHtmlTags = StringUtil.removeHtmlTags(originalText)
+            .replace(" ", "")
+            .replace(clickOrPressRegex, "")
+            .trim()
+        return sanitizeLineBreaks(noHtmlTags)
     }
 }

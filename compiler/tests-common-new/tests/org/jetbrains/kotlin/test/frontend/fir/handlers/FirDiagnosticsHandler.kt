@@ -9,7 +9,6 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.checkers.diagnostics.factories.DebugInfoDiagnosticFactory1
 import org.jetbrains.kotlin.checkers.utils.TypeOfCall
-import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.diagnostics.rendering.Renderers
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.diagnostics.*
@@ -33,6 +32,8 @@ import org.jetbrains.kotlin.fir.visitors.FirDefaultVisitorVoid
 import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.resolve.AnalyzingUtils
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.ParsedCodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.directives.AdditionalFilesDirectives
 import org.jetbrains.kotlin.test.directives.DiagnosticsDirectives
 import org.jetbrains.kotlin.test.directives.FirDiagnosticsDirectives
@@ -65,6 +66,9 @@ class FirDiagnosticsHandler(testServices: TestServices) : FirAnalysisHandler(tes
 
     override val additionalServices: List<ServiceRegistrationData> =
         listOf(service(::DiagnosticsService))
+
+    override val codeMetaInfoRenderers: List<AbstractCodeMetaInfoRenderer>
+        get() = listOf(FirDiagnosticCodeMetaRenderer, ParsedCodeMetaInfoRenderer)
 
     override fun processModule(module: TestModule, info: FirOutputArtifact) {
         val diagnosticsPerFile = info.firAnalyzerFacade.runCheckers()
@@ -99,15 +103,14 @@ class FirDiagnosticsHandler(testServices: TestServices) : FirAnalysisHandler(tes
         lightTreeComparingModeEnabled: Boolean,
         forceRenderArguments: Boolean = false
     ): FirDiagnosticCodeMetaInfo {
-        val metaInfo = FirDiagnosticCodeMetaInfo(this, FirMetaInfoUtils.renderDiagnosticNoArgs)
-        val shouldRenderArguments = forceRenderArguments || globalMetadataInfoHandler.getExistingMetaInfosForActualMetadata(file, metaInfo)
-            .any { it.description != null }
-        if (shouldRenderArguments) {
-            metaInfo.replaceRenderConfiguration(FirMetaInfoUtils.renderDiagnosticWithArgs)
-        }
+        val metaInfo = FirDiagnosticCodeMetaInfo(this)
+        metaInfo.forceRenderParameters = forceRenderArguments
+                || globalMetadataInfoHandler.hasParametersRenderedInExpectedTestdata(metaInfo, file)
+
         if (lightTreeComparingModeEnabled) {
             metaInfo.attributes += if (lightTreeEnabled) PsiLightTreeMetaInfoProcessor.LT else PsiLightTreeMetaInfoProcessor.PSI
         }
+
         return metaInfo
     }
 

@@ -12,22 +12,16 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.AbstractFirDiagnosticWithPa
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDefaultErrorMessages
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnostic
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderer
-
-object FirMetaInfoUtils {
-    val renderDiagnosticNoArgs = FirDiagnosticCodeMetaRenderer().apply { renderParams = false }
-    val renderDiagnosticWithArgs = FirDiagnosticCodeMetaRenderer().apply { renderParams = true }
-}
+import org.jetbrains.kotlin.test.directives.DiagnosticsDirectives
+import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
 class FirDiagnosticCodeMetaInfo(
     val diagnostic: FirDiagnostic<*>,
-    renderConfiguration: FirDiagnosticCodeMetaRenderer
+    var forceRenderParameters: Boolean = false // TODO NOW: :sadfrog: can't remove it, see org.jetbrains.kotlin.test.frontend.fir.handlers.FirDiagnosticsHandler.toMetaInfo
 ) : CodeMetaInfo {
     private val textRangeFromClassicDiagnostic: TextRange = run {
         diagnostic.factory.positioningStrategy.markDiagnostic(diagnostic).first()
     }
-
-    override var renderer: FirDiagnosticCodeMetaRenderer = renderConfiguration
-        private set
 
     override val start: Int
         get() = textRangeFromClassicDiagnostic.startOffset
@@ -39,29 +33,21 @@ class FirDiagnosticCodeMetaInfo(
         get() = this.diagnostic.factory.name
 
     override val attributes: MutableList<String> = mutableListOf()
-
-    override fun asString(): String = renderer.asString(this)
-
-    fun replaceRenderConfiguration(renderConfiguration: FirDiagnosticCodeMetaRenderer) {
-        this.renderer = renderConfiguration
-    }
 }
 
-class FirDiagnosticCodeMetaRenderer(
-    val renderSeverity: Boolean = false,
-) : AbstractCodeMetaInfoRenderer(renderParams = false) {
+object FirDiagnosticCodeMetaRenderer : AbstractCodeMetaInfoRenderer() {
     private val crossPlatformLineBreak = """\r?\n""".toRegex()
 
-    override fun asString(codeMetaInfo: CodeMetaInfo): String {
+    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
         if (codeMetaInfo !is FirDiagnosticCodeMetaInfo) return ""
         return (codeMetaInfo.diagnostic.factory.name
                 + getAttributesString(codeMetaInfo)
-                + getParamsString(codeMetaInfo))
+                + getParamsString(codeMetaInfo, registeredDirectives))
             .replace(crossPlatformLineBreak, "")
     }
 
-    private fun getParamsString(codeMetaInfo: FirDiagnosticCodeMetaInfo): String {
-        if (!renderParams) return ""
+    private fun getParamsString(codeMetaInfo: FirDiagnosticCodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
+        if (!registeredDirectives.contains(DiagnosticsDirectives.RENDER_DIAGNOSTICS_MESSAGES) && !codeMetaInfo.forceRenderParameters) return ""
         val params = mutableListOf<String>()
 
         val diagnostic = codeMetaInfo.diagnostic
@@ -72,7 +58,7 @@ class FirDiagnosticCodeMetaRenderer(
             renderer.renderParameters(diagnostic).mapTo(params, Any?::toString)
         }
 
-        if (renderSeverity)
+        if (DiagnosticsDirectives.RENDER_SEVERITY in registeredDirectives)
             params.add("severity='${diagnostic.severity}'")
 
         return "(\"${params.filter { it.isNotEmpty() }.joinToString("; ")}\")"

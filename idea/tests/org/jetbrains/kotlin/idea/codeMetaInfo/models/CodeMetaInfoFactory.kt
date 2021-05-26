@@ -23,19 +23,19 @@ fun createCodeMetaInfo(obj: Any, renderer: AbstractCodeMetaInfoRenderer): List<C
     return when (obj) {
         is Diagnostic -> {
             require(renderer is DiagnosticCodeMetaInfoRenderer, ::errorMessage)
-            obj.textRanges.map { DiagnosticCodeMetaInfo(it.start, it.end, renderer, obj) }
+            obj.textRanges.map { DiagnosticCodeMetaInfo(it.start, it.end, obj) }
         }
         is ActualDiagnostic -> {
             require(renderer is DiagnosticCodeMetaInfoRenderer, ::errorMessage)
-            obj.diagnostic.textRanges.map { DiagnosticCodeMetaInfo(it.start, it.end, renderer, obj.diagnostic) }
+            obj.diagnostic.textRanges.map { DiagnosticCodeMetaInfo(it.start, it.end, obj.diagnostic) }
         }
         is HighlightInfo -> {
             require(renderer is HighlightingCodeMetaInfoRenderer, ::errorMessage)
-            listOf(HighlightingCodeMetaInfo(renderer, obj))
+            listOf(HighlightingCodeMetaInfo(obj))
         }
         is LineMarkerInfo<*> -> {
             require(renderer is LineMarkerCodeMetaInfoRenderer, ::errorMessage)
-            listOf(LineMarkerCodeMetaInfo(renderer, obj))
+            listOf(LineMarkerCodeMetaInfo(obj))
         }
         else -> throw IllegalArgumentException("Unknown type for creating CodeMetaInfo object $obj")
     }

@@ -7,19 +7,11 @@ package org.jetbrains.kotlin.test.codeMetaInfo.rendering
 
 import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
+import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
-abstract class AbstractCodeMetaInfoRenderer(var renderParams: Boolean = true) {
-    private val clickOrPressRegex = "Click or press (.*)to navigate".toRegex() // We have different hotkeys on different platforms
-    open fun asString(codeMetaInfo: CodeMetaInfo): String = codeMetaInfo.tag + getAttributesString(codeMetaInfo)
-
-    protected fun sanitizeLineMarkerTooltip(originalText: String?): String {
-        if (originalText == null) return "null"
-        val noHtmlTags = StringUtil.removeHtmlTags(originalText)
-            .replace(" ", "")
-            .replace(clickOrPressRegex, "")
-            .trim()
-        return sanitizeLineBreaks(noHtmlTags)
-    }
+abstract class AbstractCodeMetaInfoRenderer {
+    open fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String =
+        codeMetaInfo.tag + getAttributesString(codeMetaInfo)
 
     protected fun sanitizeLineBreaks(originalText: String): String {
         var sanitizedText = originalText

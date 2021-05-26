@@ -91,6 +91,11 @@ class TestConfigurationImpl(
         }
     }
 
+    private val analysisHandlers: Map<TestArtifactKind<*>, List<AnalysisHandler<*>>> =
+        analysisHandlers.map { it.invoke(testServices).also(this::registerDirectivesAndServices) }
+            .groupBy { it.artifactKind }
+            .withDefault { emptyList() }
+
     init {
         testServices.apply {
             @OptIn(ExperimentalStdlibApi::class)
@@ -109,7 +114,13 @@ class TestConfigurationImpl(
             register(DefaultRegisteredDirectivesProvider::class, DefaultRegisteredDirectivesProvider(defaultRegisteredDirectives))
 
             val metaInfoProcessors = additionalMetaInfoProcessors.map { it.invoke(this) }
-            register(GlobalMetadataInfoHandler::class, GlobalMetadataInfoHandler(this, metaInfoProcessors))
+            val allAnalysisHandlers = this@TestConfigurationImpl.analysisHandlers.values.flatten()
+            val metadataInfoHandler = GlobalMetadataInfoHandler(
+                this,
+                metaInfoProcessors,
+                allAnalysisHandlers.flatMap { it -> it.codeMetaInfoRenderers }
+            )
+            register(GlobalMetadataInfoHandler::class, metadataInfoHandler)
         }
     }
 
@@ -122,12 +133,6 @@ class TestConfigurationImpl(
                     it.value.singleOrNull() ?: manyFacadesError("converters", "$frontendKind -> ${it.key}")
                 }
             }
-
-
-    private val analysisHandlers: Map<TestArtifactKind<*>, List<AnalysisHandler<*>>> =
-        analysisHandlers.map { it.invoke(testServices).also(this::registerDirectivesAndServices) }
-            .groupBy { it.artifactKind }
-            .withDefault { emptyList() }
 
     private fun manyFacadesError(name: String, kinds: String): Nothing {
         error("Too many $name passed for $kinds configuration")

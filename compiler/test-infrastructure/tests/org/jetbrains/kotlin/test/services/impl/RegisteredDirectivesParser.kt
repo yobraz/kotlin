@@ -15,6 +15,16 @@ class RegisteredDirectivesParser(private val container: DirectivesContainer, pri
         private const val NAME_GROUP = 1
         private const val VALUES_GROUP = 3
 
+        fun parseAllDirectivesFromSingleModuleTest(
+            lines: List<String>,
+            supportedDirectives: DirectivesContainer,
+            assertions: Assertions
+        ): RegisteredDirectives {
+            val parser = RegisteredDirectivesParser(supportedDirectives, assertions)
+            lines.forEach { parser.parse(it) }
+            return parser.build()
+        }
+
         fun parseDirective(line: String): RawDirective? {
             val result = DIRECTIVE_PATTERN.matchEntire(line)?.groupValues ?: return null
             val name = result.getOrNull(NAME_GROUP) ?: return null

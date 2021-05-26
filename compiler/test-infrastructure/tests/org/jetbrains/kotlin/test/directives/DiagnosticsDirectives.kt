@@ -70,4 +70,10 @@ object DiagnosticsDirectives : SimpleDirectivesContainer() {
             Render diagnostics arguments additionally to ID of diagnostic itself
         """.trimIndent()
     )
+
+    val RENDER_SEVERITY by directive(
+        description = """
+            Render severity of a diagnostic
+        """.trimIndent()
+    )
 }

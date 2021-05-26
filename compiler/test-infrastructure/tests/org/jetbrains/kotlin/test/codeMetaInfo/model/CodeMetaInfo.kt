@@ -5,18 +5,13 @@
 
 package org.jetbrains.kotlin.test.codeMetaInfo.model
 
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
-
 interface CodeMetaInfo {
     val start: Int
     val end: Int
     val tag: String
-    val renderer: AbstractCodeMetaInfoRenderer
     val attributes: MutableList<String>
 
     val tagPrefix: String get() = "<!"
     val tagPostfix: String get() = "!>"
     val closingTag: String get() = "<!>"
-
-    fun asString(): String
 }

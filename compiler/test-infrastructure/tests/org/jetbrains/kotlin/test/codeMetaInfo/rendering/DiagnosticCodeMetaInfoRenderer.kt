@@ -10,23 +10,22 @@ import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.rendering.*
+import org.jetbrains.kotlin.test.directives.DiagnosticsDirectives
+import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
-open class DiagnosticCodeMetaInfoRenderer(
-    val withNewInference: Boolean = true,
-    val renderSeverity: Boolean = false
-) : AbstractCodeMetaInfoRenderer() {
+object DiagnosticCodeMetaInfoRenderer : AbstractCodeMetaInfoRenderer() {
     private val crossPlatformLineBreak = """\r?\n""".toRegex()
 
-    override fun asString(codeMetaInfo: CodeMetaInfo): String {
+    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
         if (codeMetaInfo !is DiagnosticCodeMetaInfo) return ""
         return (codeMetaInfo.diagnostic.factory.name
                 + getAttributesString(codeMetaInfo)
-                + getParamsString(codeMetaInfo))
+                + getParamsString(codeMetaInfo, registeredDirectives))
             .replace(crossPlatformLineBreak, "")
     }
 
-    private fun getParamsString(codeMetaInfo: DiagnosticCodeMetaInfo): String {
-        if (!renderParams) return ""
+    private fun getParamsString(codeMetaInfo: DiagnosticCodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
+        if (DiagnosticsDirectives.RENDER_DIAGNOSTICS_MESSAGES !in registeredDirectives && !codeMetaInfo.forceParametersRendering) return ""
         val params = mutableListOf<String>()
 
         @Suppress("UNCHECKED_CAST")
@@ -37,10 +36,12 @@ open class DiagnosticCodeMetaInfoRenderer(
             ) as DiagnosticRenderer<Diagnostic>
             else -> DefaultErrorMessages.getRendererForDiagnostic(codeMetaInfo.diagnostic)
         }
+
         if (renderer is AbstractDiagnosticWithParametersRenderer) {
             renderer.renderParameters(codeMetaInfo.diagnostic).mapTo(params, Any?::toString)
         }
-        if (renderSeverity)
+
+        if (DiagnosticsDirectives.RENDER_SEVERITY in registeredDirectives)
             params.add("severity='${codeMetaInfo.diagnostic.severity}'")
 
         return "(\"${params.filter { it.isNotEmpty() }.joinToString("; ")}\")"

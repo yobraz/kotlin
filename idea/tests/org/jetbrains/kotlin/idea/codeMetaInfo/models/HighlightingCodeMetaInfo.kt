@@ -7,12 +7,8 @@ package org.jetbrains.kotlin.idea.codeMetaInfo.models
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations.HighlightingCodeMetaInfoRenderer
 
-class HighlightingCodeMetaInfo(
-    override val renderer: HighlightingCodeMetaInfoRenderer,
-    val highlightingInfo: HighlightInfo
-) : CodeMetaInfo {
+class HighlightingCodeMetaInfo(val highlightingInfo: HighlightInfo) : CodeMetaInfo {
     override val start: Int
         get() = highlightingInfo.startOffset
     override val end: Int
@@ -22,6 +18,4 @@ class HighlightingCodeMetaInfo(
         get() = "HIGHLIGHTING"
 
     override val attributes: MutableList<String> = mutableListOf()
-
-    override fun asString(): String = renderer.asString(this)
 }

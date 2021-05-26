@@ -32,12 +32,6 @@ import org.jetbrains.kotlin.checkers.diagnostics.SyntaxErrorDiagnostic
 import org.jetbrains.kotlin.checkers.diagnostics.factories.DebugInfoDiagnosticFactory0
 import org.jetbrains.kotlin.checkers.utils.CheckerTestUtil
 import org.jetbrains.kotlin.checkers.utils.DiagnosticsRenderingConfiguration
-import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoParser
-import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoRenderingUtils
-import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
-import org.jetbrains.kotlin.test.codeMetaInfo.rendering.DiagnosticCodeMetaInfoRenderer
 import org.jetbrains.kotlin.daemon.common.OSKind
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.AbstractDiagnostic
@@ -53,6 +47,17 @@ import org.jetbrains.kotlin.idea.stubs.AbstractMultiModuleTest
 import org.jetbrains.kotlin.idea.util.sourceRoots
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.KotlinTestUtils
+import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoParser
+import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoRenderingUtils
+import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.DiagnosticCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.directives.DiagnosticsDirectives
+import org.jetbrains.kotlin.test.directives.model.ComposedDirectivesContainer
+import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
+import org.jetbrains.kotlin.test.services.impl.RegisteredDirectivesParser
+import org.jetbrains.kotlin.test.util.JUnit4Assertions
 import org.junit.Ignore
 import java.io.File
 import java.nio.file.Paths
@@ -60,7 +65,8 @@ import java.nio.file.Paths
 @Ignore
 class CodeMetaInfoTestCase(
     val codeMetaInfoTypes: Collection<AbstractCodeMetaInfoRenderer>,
-    val checkNoDiagnosticError: Boolean = false
+    val checkNoDiagnosticError: Boolean = false,
+    val registeredDirectives: RegisteredDirectives,
 ) : DaemonAnalyzerTestCase() {
 
     fun checkFile(file: VirtualFile, expectedFile: File, project: Project) {
@@ -119,7 +125,12 @@ class CodeMetaInfoTestCase(
                 it
             )
         }
-        val textWithCodeMetaInfo = CodeMetaInfoRenderingUtils.renderTagsToText(codeMetaInfoForCheck, myEditor.document.text)
+        val textWithCodeMetaInfo = CodeMetaInfoRenderingUtils.renderTagsToText(
+            codeMetaInfoForCheck,
+            codeMetaInfoTypes,
+            registeredDirectives,
+            myEditor.document.text
+        )
         KotlinTestUtils.assertEqualsToFile(
             expectedFile,
             textWithCodeMetaInfo.toString()
@@ -127,7 +138,7 @@ class CodeMetaInfoTestCase(
 
         if (checkNoDiagnosticError) {
             val diagnosticsErrors =
-                getDiagnosticCodeMetaInfos().filter { (it as DiagnosticCodeMetaInfo).diagnostic.severity == Severity.ERROR }
+                codeMetaInfoForCheck.filterIsInstance<DiagnosticCodeMetaInfo>().filter { it.diagnostic.severity == Severity.ERROR }
             assertTrue(
                 "Diagnostics with severity ERROR were found: ${diagnosticsErrors.joinToString()}",
                 diagnosticsErrors.isEmpty()
@@ -180,7 +191,7 @@ class CodeMetaInfoTestCase(
         diagnostics: Collection<DiagnosticCodeMetaInfo>
     ) {
         val highlightItems: List<CodeMetaInfo> =
-            getHighlightingCodeMetaInfos(HighlightingCodeMetaInfoRenderer()).filter { (it as HighlightingCodeMetaInfo).highlightingInfo.severity == HighlightSeverity.ERROR }
+            getHighlightingCodeMetaInfos(HighlightingCodeMetaInfoRenderer).filter { (it as HighlightingCodeMetaInfo).highlightingInfo.severity == HighlightSeverity.ERROR }
 
         highlightItems.forEach { highlightingCodeMetaInfo ->
             assert(
@@ -206,30 +217,25 @@ class CodeMetaInfoTestCase(
 }
 
 abstract class AbstractDiagnosticCodeMetaInfoTest : AbstractCodeMetaInfoTest() {
-    override fun getRenderers() = listOf(
-        DiagnosticCodeMetaInfoRenderer(),
-        LineMarkerCodeMetaInfoRenderer()
+    override fun getRenderers(registeredDirectives: RegisteredDirectives): List<AbstractCodeMetaInfoRenderer> = listOf(
+        DiagnosticCodeMetaInfoRenderer,
+        LineMarkerCodeMetaInfoRenderer,
     )
 }
 
 abstract class AbstractLineMarkerCodeMetaInfoTest : AbstractCodeMetaInfoTest() {
-    override fun getRenderers() = listOf(
-        LineMarkerCodeMetaInfoRenderer()
-    )
-}
-
-abstract class AbstractHighlightingCodeMetaInfoTest : AbstractCodeMetaInfoTest() {
-    override fun getRenderers() = listOf(
-        HighlightingCodeMetaInfoRenderer()
+    override fun getRenderers(registeredDirectives: RegisteredDirectives): List<AbstractCodeMetaInfoRenderer> = listOf(
+        LineMarkerCodeMetaInfoRenderer,
     )
 }
 
 abstract class AbstractCodeMetaInfoTest : AbstractMultiModuleTest() {
     open val checkNoDiagnosticError get() = false
-    open fun getRenderers() = listOf(
-        DiagnosticCodeMetaInfoRenderer(),
-        LineMarkerCodeMetaInfoRenderer(),
-        HighlightingCodeMetaInfoRenderer()
+
+    open fun getRenderers(registeredDirectives: RegisteredDirectives): List<AbstractCodeMetaInfoRenderer> = listOf(
+        DiagnosticCodeMetaInfoRenderer,
+        LineMarkerCodeMetaInfoRenderer,
+        HighlightingCodeMetaInfoRenderer
     )
 
     protected open fun setupProject(testDataPath: String) {
@@ -242,15 +248,22 @@ abstract class AbstractCodeMetaInfoTest : AbstractMultiModuleTest() {
 
     fun doTest(testDataPath: String) {
         val testRoot = File(testDataPath)
-        val checker = CodeMetaInfoTestCase(getRenderers(), checkNoDiagnosticError)
         setupProject(testDataPath)
 
         for (module in ModuleManager.getInstance(project).modules) {
             for (sourceRoot in module.sourceRoots) {
                 VfsUtilCore.processFilesRecursively(sourceRoot) { file ->
                     if (file.isDirectory) return@processFilesRecursively true
+                    val expectedFile = file.findCorrespondingFileInTestDir(sourceRoot, testRoot)
 
-                    checker.checkFile(file, file.findCorrespondingFileInTestDir(sourceRoot, testRoot), project)
+                    val directives: RegisteredDirectives = RegisteredDirectivesParser.parseAllDirectivesFromSingleModuleTest(
+                        expectedFile.readLines(),
+                        ComposedDirectivesContainer(HighlightingDirectives, DiagnosticsDirectives),
+                        JUnit4Assertions
+                    )
+                    val checker = CodeMetaInfoTestCase(getRenderers(directives), checkNoDiagnosticError, directives)
+
+                    checker.checkFile(file, expectedFile, project)
                     true
                 }
             }

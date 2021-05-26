@@ -8,29 +8,30 @@ package org.jetbrains.kotlin.idea.codeMetaInfo.renderConfigurations
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
 import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingCodeMetaInfo
+import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingDirectives
+import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingDirectives.RENDER_DESCRIPTION
+import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingDirectives.RENDER_SEVERITY
+import org.jetbrains.kotlin.idea.codeMetaInfo.models.HighlightingDirectives.RENDER_TEXT_ATTRIBUTE_KEY
+import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
-open class HighlightingCodeMetaInfoRenderer(
-    val renderDescription: Boolean = true,
-    val renderTextAttributesKey: Boolean = true,
-    val renderSeverity: Boolean = true
-) : AbstractCodeMetaInfoRenderer() {
+object HighlightingCodeMetaInfoRenderer : AbstractCodeMetaInfoRenderer() {
 
-    override fun asString(codeMetaInfo: CodeMetaInfo): String {
+    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
         if (codeMetaInfo !is HighlightingCodeMetaInfo) return ""
-        return codeMetaInfo.tag + getParamsString(codeMetaInfo)
+        return codeMetaInfo.tag + getParamsString(codeMetaInfo, registeredDirectives)
     }
 
-    private fun getParamsString(highlightingCodeMetaInfo: HighlightingCodeMetaInfo): String {
-        if (!renderParams) return ""
-
+    private fun getParamsString(highlightingCodeMetaInfo: HighlightingCodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
         val params = mutableListOf<String>()
-        if (renderSeverity)
+        if (RENDER_SEVERITY in registeredDirectives)
             params.add("severity='${highlightingCodeMetaInfo.highlightingInfo.severity}'")
-        if (renderDescription)
+
+        if (RENDER_DESCRIPTION in registeredDirectives)
             params.add("descr='${
                 highlightingCodeMetaInfo.highlightingInfo.description?.let { sanitizeLineBreaks(highlightingCodeMetaInfo.highlightingInfo.description) }
             }'")
-        if (renderTextAttributesKey)
+
+        if (RENDER_TEXT_ATTRIBUTE_KEY in registeredDirectives)
             params.add("textAttributesKey='${highlightingCodeMetaInfo.highlightingInfo.forcedTextAttributesKey}'")
 
         val paramsString = params.filter { it.isNotEmpty() }.joinToString("; ")

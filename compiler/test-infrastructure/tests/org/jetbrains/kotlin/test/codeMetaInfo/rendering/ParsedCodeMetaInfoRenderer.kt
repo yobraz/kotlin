@@ -7,10 +7,11 @@ package org.jetbrains.kotlin.test.codeMetaInfo.rendering
 
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.ParsedCodeMetaInfo
+import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
 object ParsedCodeMetaInfoRenderer : AbstractCodeMetaInfoRenderer() {
-    override fun asString(codeMetaInfo: CodeMetaInfo): String {
-        require(codeMetaInfo is ParsedCodeMetaInfo)
-        return super.asString(codeMetaInfo) + (codeMetaInfo.description?.let { "(\"$it\")" } ?: "")
+    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
+        if (codeMetaInfo !is ParsedCodeMetaInfo) return ""
+        return super.asString(codeMetaInfo, registeredDirectives) + (codeMetaInfo.description?.let { "(\"$it\")" } ?: "")
     }
 }

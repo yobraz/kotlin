@@ -58,7 +58,7 @@ class ClassicDiagnosticReporter(private val testServices: TestServices) {
         newInferenceEnabled: Boolean,
         withNewInferenceModeEnabled: Boolean
     ): List<DiagnosticCodeMetaInfo> = textRanges.map { range ->
-        val metaInfo = DiagnosticCodeMetaInfo(range, ClassicMetaInfoUtils.renderDiagnosticNoArgs, this)
+        val metaInfo = DiagnosticCodeMetaInfo(range, this)
         if (withNewInferenceModeEnabled) {
             metaInfo.attributes += if (newInferenceEnabled) OldNewInferenceMetaInfoProcessor.NI else OldNewInferenceMetaInfoProcessor.OI
         }
@@ -72,10 +72,9 @@ class ClassicDiagnosticReporter(private val testServices: TestServices) {
                 else -> error("Should not be here")
             }
         }
-        val existing = globalMetadataInfoHandler.getExistingMetaInfosForActualMetadata(file, metaInfo)
-        if (existing.any { it.description != null }) {
-            metaInfo.replaceRenderConfiguration(ClassicMetaInfoUtils.renderDiagnosticWithArgs)
-        }
+
+        metaInfo.forceParametersRendering = globalMetadataInfoHandler.hasParametersRenderedInExpectedTestdata(metaInfo, file)
+
         metaInfo
     }
 }
