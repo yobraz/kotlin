@@ -9,7 +9,7 @@ import com.intellij.util.containers.Stack
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import java.io.File
 
-object CodeMetaInfoRenderer {
+object CodeMetaInfoRenderingUtils {
     fun renderTagsToText(
         codeMetaInfos: List<CodeMetaInfo>,
         originalText: String

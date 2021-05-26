@@ -9,7 +9,6 @@ import com.intellij.codeInsight.daemon.DaemonAnalyzerTestCase
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -25,7 +24,6 @@ import com.intellij.psi.impl.source.tree.TreeUtil
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.UsageSearchContext
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
-import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.io.exists
 import gnu.trove.TIntArrayList
 import org.jetbrains.kotlin.checkers.BaseDiagnosticsTest
@@ -35,7 +33,7 @@ import org.jetbrains.kotlin.checkers.diagnostics.factories.DebugInfoDiagnosticFa
 import org.jetbrains.kotlin.checkers.utils.CheckerTestUtil
 import org.jetbrains.kotlin.checkers.utils.DiagnosticsRenderingConfiguration
 import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoParser
-import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoRenderingUtils
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.rendering.AbstractCodeMetaInfoRenderer
@@ -121,7 +119,7 @@ class CodeMetaInfoTestCase(
                 it
             )
         }
-        val textWithCodeMetaInfo = CodeMetaInfoRenderer.renderTagsToText(codeMetaInfoForCheck, myEditor.document.text)
+        val textWithCodeMetaInfo = CodeMetaInfoRenderingUtils.renderTagsToText(codeMetaInfoForCheck, myEditor.document.text)
         KotlinTestUtils.assertEqualsToFile(
             expectedFile,
             textWithCodeMetaInfo.toString()

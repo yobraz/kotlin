@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.test.services
 
 import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoParser
-import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoRenderingUtils
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.ParsedCodeMetaInfo
 import org.jetbrains.kotlin.test.model.TestFile
@@ -61,7 +61,7 @@ class GlobalMetadataInfoHandler(
                 processors.forEach { it.processMetaInfos(module, file) }
                 val codeMetaInfos = infosPerFile.getValue(file)
                 val fileBuilder = StringBuilder()
-                CodeMetaInfoRenderer.renderTagsToText(
+                CodeMetaInfoRenderingUtils.renderTagsToText(
                     fileBuilder,
                     codeMetaInfos,
                     testServices.sourceFileProvider.getContentOfSourceFile(file)
