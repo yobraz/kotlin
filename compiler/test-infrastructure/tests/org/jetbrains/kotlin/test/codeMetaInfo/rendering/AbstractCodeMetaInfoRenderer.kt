@@ -12,8 +12,6 @@ abstract class AbstractCodeMetaInfoRenderer(var renderParams: Boolean = true) {
     private val clickOrPressRegex = "Click or press (.*)to navigate".toRegex() // We have different hotkeys on different platforms
     open fun asString(codeMetaInfo: CodeMetaInfo): String = codeMetaInfo.tag + getAttributesString(codeMetaInfo)
 
-    open fun getAdditionalParams(codeMetaInfo: CodeMetaInfo) = ""
-
     protected fun sanitizeLineMarkerTooltip(originalText: String?): String {
         if (originalText == null) return "null"
         val noHtmlTags = StringUtil.removeHtmlTags(originalText)

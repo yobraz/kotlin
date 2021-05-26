@@ -22,8 +22,6 @@ open class LineMarkerCodeMetaInfoRenderer(var renderDescription: Boolean = true)
         if (renderDescription && lineMarkerCodeMetaInfo.lineMarker.lineMarkerTooltip != null)
             params.add("descr='${sanitizeLineMarkerTooltip(lineMarkerCodeMetaInfo.lineMarker.lineMarkerTooltip)}'")
 
-        params.add(getAdditionalParams(lineMarkerCodeMetaInfo))
-
         val paramsString = params.filter { it.isNotEmpty() }.joinToString("; ")
         return if (paramsString.isEmpty()) "" else "(\"$paramsString\")"
     }

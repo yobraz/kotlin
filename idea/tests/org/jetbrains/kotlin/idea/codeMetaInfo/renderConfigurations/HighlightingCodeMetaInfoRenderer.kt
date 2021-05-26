@@ -33,7 +33,6 @@ open class HighlightingCodeMetaInfoRenderer(
         if (renderTextAttributesKey)
             params.add("textAttributesKey='${highlightingCodeMetaInfo.highlightingInfo.forcedTextAttributesKey}'")
 
-        params.add(getAdditionalParams(highlightingCodeMetaInfo))
         val paramsString = params.filter { it.isNotEmpty() }.joinToString("; ")
 
         return if (paramsString.isEmpty()) "" else "(\"$paramsString\")"

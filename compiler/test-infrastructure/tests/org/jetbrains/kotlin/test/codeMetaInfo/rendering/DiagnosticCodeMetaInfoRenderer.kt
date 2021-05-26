@@ -43,8 +43,6 @@ open class DiagnosticCodeMetaInfoRenderer(
         if (renderSeverity)
             params.add("severity='${codeMetaInfo.diagnostic.severity}'")
 
-        params.add(getAdditionalParams(codeMetaInfo))
-
         return "(\"${params.filter { it.isNotEmpty() }.joinToString("; ")}\")"
     }
 }

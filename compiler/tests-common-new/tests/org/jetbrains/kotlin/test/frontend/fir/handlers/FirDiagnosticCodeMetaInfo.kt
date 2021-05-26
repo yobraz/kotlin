@@ -75,8 +75,6 @@ class FirDiagnosticCodeMetaRenderer(
         if (renderSeverity)
             params.add("severity='${diagnostic.severity}'")
 
-        params.add(getAdditionalParams(codeMetaInfo))
-
         return "(\"${params.filter { it.isNotEmpty() }.joinToString("; ")}\")"
     }
 }
