@@ -6,9 +6,15 @@
 package org.jetbrains.kotlin.fir
 
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.io.FileUtil
 import org.junit.Test
 import java.io.File
 import java.lang.management.ManagementFactory
+import java.nio.file.Files
+import java.util.jar.Attributes
+import java.util.jar.JarFile
+import java.util.jar.JarOutputStream
+import java.util.jar.Manifest
 import kotlin.test.assertEquals
 
 class FirMetaModularizedTest {
@@ -28,15 +34,34 @@ class FirMetaModularizedTest {
 
 
         val startTimestamp = System.currentTimeMillis()
+        val file = FileUtil.createTempFile("classpath_container", ".jar")
+        file.deleteOnExit()
+        val manifest = Manifest()
+        manifest.mainAttributes.putValue(Attributes.Name.MANIFEST_VERSION.toString(), "1.0")
+        manifest.mainAttributes.putValue(Attributes.Name.MAIN_CLASS.toString(), StandaloneModularizedTestRunner::class.java.canonicalName)
+        manifest.mainAttributes.putValue(
+            Attributes.Name.CLASS_PATH.toString(),
+            runtimeBean.classPath.split(File.pathSeparator).joinToString(" ") {
+                if (File(it).isDirectory && !it.endsWith("/")) {
+                    "$it/"
+                } else {
+                    it
+                }
+            }
+        )
+
+
+        JarOutputStream(file.outputStream(), manifest).close()
+
 
         for (i in 0 until runCount) {
             val pb = ProcessBuilder()
                 .inheritIO()
                 .command(
-                    jvmCommand, "-cp", runtimeBean.classPath,
+                    jvmCommand,
                     *runtimeBean.inputArguments.filterArguments().toTypedArray(),
                     "-Dfir.bench.report.timestamp=$startTimestamp",
-                    StandaloneModularizedTestRunner::class.java.canonicalName
+                    "-jar", file.toString()
                 )
                 .directory(File("").absoluteFile)
 
