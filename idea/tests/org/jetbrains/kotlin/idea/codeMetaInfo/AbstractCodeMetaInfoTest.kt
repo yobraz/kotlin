@@ -103,13 +103,9 @@ class CodeMetaInfoTestCase(
                 else -> throw IllegalArgumentException("Unexpected code meta info configuration: $renderer")
             }
         }
-        if (codeMetaInfoTypes.any { it is DiagnosticCodeMetaInfoRenderer } &&
-            !codeMetaInfoTypes.any { it is HighlightingCodeMetaInfoRenderer }
-        ) {
-            checkHighlightErrorItemsInDiagnostics(
-                getDiagnosticCodeMetaInfos(DiagnosticCodeMetaInfoRenderer(), false).filterIsInstance<DiagnosticCodeMetaInfo>()
-            )
-        }
+
+        checkDiagnosticsAnHighlightingConsistency()
+
         val parsedMetaInfo = CodeMetaInfoParser.getCodeMetaInfoFromText(expectedFile.readText()).toMutableList()
         codeMetaInfoForCheck.forEach { codeMetaInfo ->
             val correspondingParsed = parsedMetaInfo.firstOrNull { it == codeMetaInfo }
@@ -146,13 +142,40 @@ class CodeMetaInfoTestCase(
         }
     }
 
+    // Checks that ERROR-highlighting are in 1:1 correspondence with ERROR-diagnostics
+    private fun checkDiagnosticsAnHighlightingConsistency() {
+        val diagnosticsRendererIfAny = codeMetaInfoTypes.filterIsInstance<DiagnosticCodeMetaInfoRenderer>().singleOrNull()
+
+        // If no diagnostics requested then we're not performing check
+        // Also we don't perform the check if there are both diagnostics and highlightings rendered: we assume that
+        // in such case any discrepancies will be visible
+        if (diagnosticsRendererIfAny == null || codeMetaInfoTypes.any { it is HighlightingCodeMetaInfoRenderer }) return
+
+        val allDiagnostics = getDiagnosticCodeMetaInfos(
+            diagnosticsRendererIfAny,
+            ignoreDiagnosticsFilter = true // force to collect ALL diagnostics
+        ).filterIsInstance<DiagnosticCodeMetaInfo>()
+
+        val errorHighlightings: List<CodeMetaInfo> =
+            getHighlightingCodeMetaInfos(HighlightingCodeMetaInfoRenderer).filter {
+                (it as HighlightingCodeMetaInfo).highlightingInfo.severity == HighlightSeverity.ERROR
+            }
+
+        errorHighlightings.forEach { highlightingCodeMetaInfo ->
+            JUnit4Assertions.assertNotNull(
+                findDiagnosticCorrespondingToHighlighting(allDiagnostics, highlightingCodeMetaInfo),
+            ) { "Could not find DIAGNOSTIC for ${(highlightingCodeMetaInfo as HighlightingCodeMetaInfo).highlightingInfo}" }
+        }
+    }
+
     private fun getDiagnosticCodeMetaInfos(
-        configuration: DiagnosticCodeMetaInfoRenderer = DiagnosticCodeMetaInfoRenderer(),
-        parseDirective: Boolean = true
+        renderer: DiagnosticCodeMetaInfoRenderer,
+        ignoreDiagnosticsFilter: Boolean = false
     ): List<CodeMetaInfo> {
         val tempSourceKtFile = PsiManager.getInstance(project).findFile(file.virtualFile) as KtFile
         val resolutionFacade = tempSourceKtFile.getResolutionFacade()
         val (bindingContext, moduleDescriptor, _) = resolutionFacade.analyzeWithAllCompilerChecks(listOf(tempSourceKtFile))
+        // TODO NOW: don't parse anything here
         val directives = KotlinTestUtils.parseDirectives(file.text)
         val diagnosticsFilter = BaseDiagnosticsTest.parseDiagnosticFilterDirective(directives, allowUnderscoreUsage = false)
         val diagnostics = CheckerTestUtil.getDiagnosticsIncludingSyntaxErrors(
@@ -167,52 +190,55 @@ class CodeMetaInfoTestCase(
             ),
             dataFlowValueFactory = resolutionFacade.getDataFlowValueFactory(),
             moduleDescriptor = moduleDescriptor as ModuleDescriptorImpl
-        ).map { it.diagnostic }.filter { !parseDirective || diagnosticsFilter.value(it) }
-        configuration.renderParams = directives.contains(BaseDiagnosticsTest.RENDER_DIAGNOSTICS_MESSAGES)
-        return getCodeMetaInfo(diagnostics, configuration)
+        ).map { it.diagnostic }.filter { ignoreDiagnosticsFilter || diagnosticsFilter.value(it) }
+        return getCodeMetaInfo(diagnostics, renderer)
     }
 
-    private fun getLineMarkerCodeMetaInfos(configuration: LineMarkerCodeMetaInfoRenderer): Collection<CodeMetaInfo> {
+    private fun getLineMarkerCodeMetaInfos(renderer: LineMarkerCodeMetaInfoRenderer): Collection<CodeMetaInfo> {
         if ("!CHECK_HIGHLIGHTING" in file.text)
             return emptyList()
 
         CodeInsightTestFixtureImpl.instantiateAndRun(file, editor, TIntArrayList().toNativeArray(), false)
         val lineMarkers = DaemonCodeAnalyzerImpl.getLineMarkers(getDocument(file), project)
-        return getCodeMetaInfo(lineMarkers, configuration)
+        return getCodeMetaInfo(lineMarkers, renderer)
     }
 
-    private fun getHighlightingCodeMetaInfos(configuration: HighlightingCodeMetaInfoRenderer): Collection<CodeMetaInfo> {
+    private fun getHighlightingCodeMetaInfos(renderer: HighlightingCodeMetaInfoRenderer): Collection<CodeMetaInfo> {
         val infos = CodeInsightTestFixtureImpl.instantiateAndRun(file, editor, TIntArrayList().toNativeArray(), false)
 
-        return getCodeMetaInfo(infos, configuration)
+        return getCodeMetaInfo(infos, renderer)
     }
 
-    private fun checkHighlightErrorItemsInDiagnostics(
-        diagnostics: Collection<DiagnosticCodeMetaInfo>
-    ) {
-        val highlightItems: List<CodeMetaInfo> =
-            getHighlightingCodeMetaInfos(HighlightingCodeMetaInfoRenderer).filter { (it as HighlightingCodeMetaInfo).highlightingInfo.severity == HighlightSeverity.ERROR }
+    private fun findDiagnosticCorrespondingToHighlighting(
+        diagnostics: Collection<DiagnosticCodeMetaInfo>,
+        highlightingCodeMetaInfo: CodeMetaInfo
+    ): DiagnosticCodeMetaInfo? {
+        val highlightingDescription = (highlightingCodeMetaInfo as HighlightingCodeMetaInfo).highlightingInfo.description
 
-        highlightItems.forEach { highlightingCodeMetaInfo ->
-            assert(
-                diagnostics.any { diagnosticCodeMetaInfo ->
-                    diagnosticCodeMetaInfo.start == highlightingCodeMetaInfo.start &&
-                            when (val diagnostic = diagnosticCodeMetaInfo.diagnostic) {
-                                is SyntaxErrorDiagnostic -> {
-                                    (highlightingCodeMetaInfo as HighlightingCodeMetaInfo).highlightingInfo.description in (diagnostic.psiElement as PsiErrorElementImpl).errorDescription
-                                }
-                                is AbstractDiagnostic<*> -> {
-                                    diagnostic.factory.toString() in (highlightingCodeMetaInfo as HighlightingCodeMetaInfo).highlightingInfo.description
-                                }
-                                is DebugInfoDiagnostic -> {
-                                    diagnostic.factory == DebugInfoDiagnosticFactory0.MISSING_UNRESOLVED &&
-                                            "[DEBUG] Reference is not resolved to anything, but is not marked unresolved" in (highlightingCodeMetaInfo as HighlightingCodeMetaInfo).highlightingInfo.description
-                                }
-                                else -> throw java.lang.IllegalArgumentException("Unknown diagnostic type: ${diagnosticCodeMetaInfo.diagnostic}")
-                            }
-                },
-            ) { "Could not find DIAGNOSTIC for ${(highlightingCodeMetaInfo as HighlightingCodeMetaInfo).highlightingInfo}" }
+        for (diagnosticCodeMetaInfo in diagnostics) {
+            if (diagnosticCodeMetaInfo.start != highlightingCodeMetaInfo.start) continue
+
+            val descriptionsMatch = when (val diagnostic = diagnosticCodeMetaInfo.diagnostic) {
+                is SyntaxErrorDiagnostic -> {
+                    highlightingDescription in (diagnostic.psiElement as PsiErrorElementImpl).errorDescription
+                }
+
+                is AbstractDiagnostic<*> -> {
+                    diagnostic.factory.toString() in highlightingDescription
+                }
+
+                is DebugInfoDiagnostic -> {
+                    diagnostic.factory == DebugInfoDiagnosticFactory0.MISSING_UNRESOLVED &&
+                            "[DEBUG] Reference is not resolved to anything, but is not marked unresolved" in highlightingDescription
+                }
+
+                else -> throw java.lang.IllegalArgumentException("Unknown diagnostic type: ${diagnosticCodeMetaInfo.diagnostic}")
+            }
+
+            if (descriptionsMatch) return diagnosticCodeMetaInfo
         }
+
+        return null
     }
 }
 
