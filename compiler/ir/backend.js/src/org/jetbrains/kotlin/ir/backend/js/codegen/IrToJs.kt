@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.backend.js.codegen.JsGenerationGranularity.*
 import org.jetbrains.kotlin.ir.backend.js.export.*
 import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.IrFileToJsTransformer
 import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.processClassModels
+import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.safeName
 import org.jetbrains.kotlin.ir.backend.js.utils.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.types.classOrNull
@@ -42,6 +43,7 @@ class IrToJs(
     private val granularity: JsGenerationGranularity,
     private val mainModuleName: String,
     private val options: JsGenerationOptions,
+    private val moduleToName: Map<IrModuleFragment, String>,
 ) {
     val indexFileName = "index.${options.jsExtension}"
 
@@ -54,7 +56,7 @@ class IrToJs(
         module: IrModuleFragment,
     ) : CodegenUnitReference() {
         // Path to entry point of other module from "top-level", e.g. directory which contains all other modules
-        val importPath = "./" + module.jsModuleName + "/" + indexFileName
+        val importPath = "./" + module.jsModuleName(moduleToName) + "/" + indexFileName
     }
 
     abstract class CodegenUnit {
@@ -121,7 +123,7 @@ class IrToJs(
     private fun fileJsRootModuleName(file: IrFile): String =
         when (granularity) {
             WHOLE_PROGRAM -> mainModuleName
-            PER_MODULE, PER_FILE -> file.module.jsModuleName
+            PER_MODULE, PER_FILE -> file.module.jsModuleName(moduleToName)
         }
 
     private fun fileJsSubModulePath(file: IrFile): String =
@@ -327,7 +329,7 @@ class IrToJs(
         mainModule: IrModuleFragment,
         allModules: List<IrModuleFragment>,
     ) {
-        val moduleName = mainModule.jsModuleName
+        val moduleName = mainModule.jsModuleName(moduleToName)
         val indexJsStatements = mutableListOf<JsStatement>()
         val exportedDeclarations = mutableListOf<ExportedDeclaration>()
 
@@ -349,7 +351,7 @@ class IrToJs(
                     exportedDeclarations += generatedUnit.exportedDeclarations
 
                     outputSink.write(
-                        file.module.jsModuleName,
+                        file.module.jsModuleName(moduleToName),
                         pathToSubModule,
                         "// Kotlin file: ${file.path}\n" + generatedUnit.jsStatements.toJsCodeString()
                     )
@@ -408,8 +410,8 @@ class IrToJs(
     }
 }
 
-private val IrModuleFragment.jsModuleName: String
-    get() = name.asString().dropWhile { it == '<' }.dropLastWhile { it == '>' }
+private fun IrModuleFragment.jsModuleName(moduleToName: Map<IrModuleFragment, String>): String =
+    moduleToName[this] ?: safeName
 
 private fun List<JsStatement>.toJsCodeString(): String =
     JsGlobalBlock().also { it.statements += this }.toString()
@@ -439,6 +441,15 @@ fun generateEsModules(
         return "${name}_GUID_${number}"
     }
 
-    val ir2js = IrToJs(ir.context, ::guid, outputSink, mainArguments, granularity, ir.mainModule.jsModuleName, options)
+    val ir2js = IrToJs(
+        ir.context,
+        ::guid,
+        outputSink,
+        mainArguments,
+        granularity,
+        ir.mainModule.jsModuleName(ir.moduleToName),
+        options,
+        ir.moduleToName,
+    )
     ir2js.generateModules(ir.mainModule, ir.allModules)
 }

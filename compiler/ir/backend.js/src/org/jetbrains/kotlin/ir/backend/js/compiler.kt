@@ -37,7 +37,8 @@ class JsCode(val mainModule: String, val dependencies: Iterable<Pair<String, Str
 class LoweredIr(
     val context: JsIrBackendContext,
     val mainModule: IrModuleFragment,
-    val allModules: List<IrModuleFragment>
+    val allModules: List<IrModuleFragment>,
+    val moduleToName: Map<IrModuleFragment, String>
 )
 
 fun compile(
@@ -113,7 +114,7 @@ fun compile(
         jsPhases.invokeToplevel(phaseConfig, context, allModules)
     }
 
-    return LoweredIr(context, moduleFragment, allModules)
+    return LoweredIr(context, moduleFragment, allModules, moduleToName)
 }
 
 fun generateJsCode(

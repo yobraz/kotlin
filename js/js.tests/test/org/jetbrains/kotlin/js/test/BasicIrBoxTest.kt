@@ -163,7 +163,7 @@ abstract class BasicIrBoxTest(
                 logger.logFile("ES module test file", esmTestFile)
                 val defaultTestModule =
                     """                     
-                                import { box } from './${moduleName}/index.js';
+                                import { box } from './kotlin_${moduleName}/index.js';
                                 let res = box();
                                 if (res !== "OK") {
                                     throw "Wrong result: " + String(res);
