@@ -86,7 +86,7 @@ abstract class KotlinIrLinker(
 
     protected abstract fun createModuleDeserializer(
         moduleDescriptor: ModuleDescriptor,
-        klib: IrLibrary?,
+        klib: KotlinLibrary?,
         strategy: DeserializationStrategy,
     ): IrModuleDeserializer
 
