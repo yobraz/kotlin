@@ -56,7 +56,7 @@ class GradleDaemonMemoryIT : BaseGradleIT() {
             val maxGrowth = totalMaximum - establishedMaximum
             assertTrue(
                 maxGrowth <= MEMORY_MAX_GROWTH_LIMIT_KB,
-                "Maximum used memory over series of builds growth $maxGrowth (from $establishedMaximum to $totalMaximum) kb > $MEMORY_MAX_GROWTH_LIMIT_KB kb"
+                "Maximum used memory over series of builds growth $maxGrowth (from $establishedMaximum to $totalMaximum) kb > $MEMORY_MAX_GROWTH_LIMIT_KB kb. Amounts of used memory: ${usedMemory}"
             )
 
             // testing that nothing remains locked by daemon, see KT-9440
