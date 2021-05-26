@@ -19,7 +19,7 @@ class FirMetaModularizedTest {
     fun doTest() {
         val runtimeBean = ManagementFactory.getRuntimeMXBean()
         val javaExePath = when {
-            SystemInfo.isWindows -> "/bin/java.exe"
+            SystemInfo.isWindows -> "\\bin\\java.exe"
             else -> "/bin/java"
         }
         val jvmCommand = System.getProperty("java.home") + javaExePath
