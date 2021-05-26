@@ -116,6 +116,7 @@ open class IrFileSerializer(
     val messageLogger: IrMessageLogger,
     private val declarationTable: DeclarationTable,
     private val expectDescriptorToSymbol: MutableMap<DeclarationDescriptor, IrSymbol>,
+    private val compatibilityMode: CompatibilityMode,
     private val bodiesOnlyForInlines: Boolean = false,
     private val skipExpects: Boolean = false,
     private val skipMutableState: Boolean = false, // required for JS IC caches
@@ -273,7 +274,7 @@ open class IrFileSerializer(
     }
 
     private fun protoIdSignature(declaration: IrDeclaration): Int {
-        val idSig = declarationTable.signatureByDeclaration(declaration)
+        val idSig = declarationTable.signatureByDeclaration(declaration, compatibilityMode.oldSignatures)
         return protoIdSignature(idSig)
     }
 
@@ -1357,7 +1358,7 @@ open class IrFileSerializer(
 
         for (declaration in declarations) {
             val byteArray = serializeDeclaration(declaration).toByteArray()
-            val idSig = declarationTable.signatureByDeclaration(declaration)
+            val idSig = declarationTable.signatureByDeclaration(declaration, compatibleMode = false)
 
             // TODO: keep order similar
             // ^ TODO what does that mean?
@@ -1408,8 +1409,8 @@ open class IrFileSerializer(
             }
 
             val byteArray = serializeDeclaration(it).toByteArray()
-            val idSig = declarationTable.signatureByDeclaration(it)
-            require(idSig === idSig.topLevelSignature()) { "IdSig: $idSig\ntopLevel: ${idSig.topLevelSignature()}" }
+            val idSig = declarationTable.signatureByDeclaration(it, compatibilityMode.oldSignatures)
+            require(idSig == idSig.topLevelSignature()) { "IdSig: $idSig\ntopLevel: ${idSig.topLevelSignature()}" }
             require(!idSig.isPackageSignature()) { "IsSig: $idSig\nDeclaration: ${it.render()}" }
 
             // TODO: keep order similar
