@@ -58,7 +58,6 @@ dependencies {
     compileOnly(project(":kotlin-gradle-build-metrics"))
     embedded(project(":kotlin-gradle-build-metrics"))
 
-    compileOnly("khttp:khttp:1.0.0")
     implementation("com.google.code.gson:gson:${rootProject.extra["versions.jar.gson"]}")
     implementation("com.google.guava:guava:${rootProject.extra["versions.jar.guava"]}")
     implementation("de.undercouch:gradle-download-task:4.1.1")
