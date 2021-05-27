@@ -226,24 +226,27 @@ abstract class IrMangleComputer(protected val builder: StringBuilder, private va
     }
 
     override fun visitProperty(declaration: IrProperty) {
-        val accessor = declaration.run { getter ?: setter ?: error("Expected at least one accessor for property ${render()}") }
+        val accessor = declaration.run { getter ?: setter }
+        require(accessor != null || declaration.backingField != null) {
+            "Expected at least one accessor or backing field for property ${declaration.render()}"
+        }
 
         isRealExpect = isRealExpect or declaration.isExpect
         typeParameterContainer.add(declaration)
         declaration.parent.acceptVoid(this)
 
-        val isStaticProperty = accessor.dispatchReceiverParameter == null && declaration.parent !is IrPackageFragment
+        val isStaticProperty = accessor != null && accessor.dispatchReceiverParameter == null && declaration.parent !is IrPackageFragment
 
         if (isStaticProperty) {
             builder.appendSignature(MangleConstant.STATIC_MEMBER_MARK)
         }
 
-        accessor.extensionReceiverParameter?.let {
+        accessor?.extensionReceiverParameter?.let {
             builder.appendSignature(MangleConstant.EXTENSION_RECEIVER_PREFIX)
             mangleValueParameter(builder, it)
         }
 
-        val typeParameters = accessor.typeParameters
+        val typeParameters = accessor?.typeParameters ?: emptyList()
 
         typeParameters.collectForMangler(builder, MangleConstant.TYPE_PARAMETERS) { mangleTypeParameter(this, it) }
 
