@@ -281,11 +281,6 @@ LLVMValueRef LLVMBuilderGetCurrentFunction(LLVMBuilderRef builder) {
   return llvm::wrap(llvm::unwrap(builder)->GetInsertBlock()->getParent());
 }
 
-const char* LLVMBuilderGetCurrentBbName(LLVMBuilderRef builder) {
-  return llvm::unwrap(builder)->GetInsertBlock()->getName().str().c_str();
-}
-
-
 const char *DIGetSubprogramLinkName(DISubprogramRef sp) {
   return llvm::unwrap(sp)->getLinkageName().str().c_str();
 }
