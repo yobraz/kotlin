@@ -41,7 +41,7 @@ object FirDiagnosticCodeMetaRenderer : CodeMetaInfoRenderer {
 
     override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
         if (codeMetaInfo !is FirDiagnosticCodeMetaInfo) return ""
-        return (codeMetaInfo.diagnostic.factory.name
+        return (codeMetaInfo.tag
                 + getAttributesString(codeMetaInfo)
                 + getParamsString(codeMetaInfo, registeredDirectives))
             .replace(crossPlatformLineBreak, "")
