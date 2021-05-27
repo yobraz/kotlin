@@ -39,8 +39,8 @@ class FirDiagnosticCodeMetaInfo(
 object FirDiagnosticCodeMetaRenderer : CodeMetaInfoRenderer {
     private val crossPlatformLineBreak = """\r?\n""".toRegex()
 
-    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
-        if (codeMetaInfo !is FirDiagnosticCodeMetaInfo) return ""
+    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String? {
+        if (codeMetaInfo !is FirDiagnosticCodeMetaInfo) return null
         return (codeMetaInfo.tag
                 + getAttributesString(codeMetaInfo)
                 + getParamsString(codeMetaInfo, registeredDirectives))

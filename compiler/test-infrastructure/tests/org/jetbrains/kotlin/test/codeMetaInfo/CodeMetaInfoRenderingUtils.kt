@@ -94,8 +94,7 @@ object CodeMetaInfoRenderingUtils {
         registeredDirectives: RegisteredDirectives
     ): String {
         val relevantRenderersToRenderedStrings: List<Pair<CodeMetaInfoRenderer, String>> = renderers
-            .map { renderer -> renderer to renderer.asString(this, registeredDirectives) }
-            .filter { (_, renderedMetaInfo) -> renderedMetaInfo.isNotEmpty() }
+            .mapNotNull { renderer -> renderer.asString(this, registeredDirectives)?.let { renderer to it } }
 
         val unambiguousRenderedString = when (relevantRenderersToRenderedStrings.size) {
             1 -> relevantRenderersToRenderedStrings.single().second

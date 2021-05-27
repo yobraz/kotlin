@@ -15,8 +15,8 @@ import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 object LineMarkerCodeMetaInfoRenderer : CodeMetaInfoRenderer {
     private val clickOrPressRegex = "Click or press (.*)to navigate".toRegex() // We have different hotkeys on different platforms
 
-    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
-        if (codeMetaInfo !is LineMarkerCodeMetaInfo) return ""
+    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String? {
+        if (codeMetaInfo !is LineMarkerCodeMetaInfo) return null
         return codeMetaInfo.tag + getParamsString(codeMetaInfo, registeredDirectives)
     }
 

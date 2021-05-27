@@ -10,8 +10,8 @@ import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
 object JspecifyCodeMetaInfoRenderConfiguration : CodeMetaInfoRenderer {
-    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
-        if (codeMetaInfo !is JspecifyMarkerCodeMetaInfo) return ""
+    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String? {
+        if (codeMetaInfo !is JspecifyMarkerCodeMetaInfo) return null
         return codeMetaInfo.tag
     }
 }

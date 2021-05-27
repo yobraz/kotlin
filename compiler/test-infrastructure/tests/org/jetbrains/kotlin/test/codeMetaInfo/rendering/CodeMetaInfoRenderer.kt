@@ -10,8 +10,11 @@ import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
 interface CodeMetaInfoRenderer {
-    fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String =
-        codeMetaInfo.tag + getAttributesString(codeMetaInfo)
+    /**
+     * Renderer implementations should be prepared to receive CodeMetaInfo of irrelevant types and
+     * should return 'null' in such cases.
+     */
+    fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String?
 
     companion object {
         fun sanitizeLineBreaks(originalText: String): String {

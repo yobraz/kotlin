@@ -16,8 +16,8 @@ import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 
 object HighlightingCodeMetaInfoRenderer : CodeMetaInfoRenderer {
 
-    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
-        if (codeMetaInfo !is HighlightingCodeMetaInfo) return ""
+    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String? {
+        if (codeMetaInfo !is HighlightingCodeMetaInfo) return null
         return codeMetaInfo.tag + getParamsString(codeMetaInfo, registeredDirectives)
     }
 

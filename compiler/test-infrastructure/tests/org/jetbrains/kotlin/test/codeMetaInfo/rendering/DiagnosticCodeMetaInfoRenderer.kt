@@ -17,8 +17,8 @@ import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
 object DiagnosticCodeMetaInfoRenderer : CodeMetaInfoRenderer {
     private val crossPlatformLineBreak = """\r?\n""".toRegex()
 
-    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String {
-        if (codeMetaInfo !is DiagnosticCodeMetaInfo) return ""
+    override fun asString(codeMetaInfo: CodeMetaInfo, registeredDirectives: RegisteredDirectives): String? {
+        if (codeMetaInfo !is DiagnosticCodeMetaInfo) return null
         return (codeMetaInfo.tag
                 + getAttributesString(codeMetaInfo)
                 + getParamsString(codeMetaInfo, registeredDirectives))
