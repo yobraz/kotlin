@@ -5,7 +5,7 @@ package org.jetbrains.kotlin.konan.target
 fun KonanTarget.supportsCodeCoverage(): Boolean =
         // TODO: Native LLVM has no compiler-rt for MinGW
         // this == KonanTarget.MINGW_X64 ||
-        this == KonanTarget.LINUX_X64 ||
+//        this == KonanTarget.LINUX_X64 ||
         this == KonanTarget.MACOS_X64 ||
         this == KonanTarget.IOS_X64
 
