@@ -10,13 +10,14 @@ import org.jetbrains.kotlin.test.codeMetaInfo.CodeMetaInfoRenderingUtils
 import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.ParsedCodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.ParsedCodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.model.TestFile
 import org.jetbrains.kotlin.test.model.TestModule
 
 class GlobalMetadataInfoHandler(
     private val testServices: TestServices,
     private val processors: List<AdditionalMetaInfoProcessor>,
-    private val renderers: Collection<CodeMetaInfoRenderer>
+    additionalRenderers: Collection<CodeMetaInfoRenderer>
 ) : TestService {
     private lateinit var existingInfosPerFile: Map<TestFile, List<ParsedCodeMetaInfo>>
 
@@ -24,6 +25,8 @@ class GlobalMetadataInfoHandler(
         mutableMapOf<TestFile, MutableList<CodeMetaInfo>>().withDefault { mutableListOf() }
 
     private val existingInfosPerFilePerInfoCache = mutableMapOf<Pair<TestFile, CodeMetaInfo>, List<ParsedCodeMetaInfo>>()
+
+    private val renderers: Collection<CodeMetaInfoRenderer> = additionalRenderers + ParsedCodeMetaInfoRenderer
 
     @OptIn(ExperimentalStdlibApi::class)
     fun parseExistingMetadataInfosFromAllSources() {

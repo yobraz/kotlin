@@ -68,7 +68,7 @@ class FirDiagnosticsHandler(testServices: TestServices) : FirAnalysisHandler(tes
         listOf(service(::DiagnosticsService))
 
     override val codeMetaInfoRenderers: List<CodeMetaInfoRenderer>
-        get() = listOf(FirDiagnosticCodeMetaRenderer, ParsedCodeMetaInfoRenderer)
+        get() = listOf(FirDiagnosticCodeMetaRenderer)
 
     override fun processModule(module: TestModule, info: FirOutputArtifact) {
         val diagnosticsPerFile = info.firAnalyzerFacade.runCheckers()
