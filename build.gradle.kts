@@ -1234,3 +1234,12 @@ if (disableVerificationTasks) {
         }
     }
 }
+
+
+gradle.afterProject {
+    val ext = this.rootProject.extensions.findByType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>()
+    if (ext != null) {
+        println("Updated")
+        ext.nodeVersion = "16.2.0"
+    }
+}
