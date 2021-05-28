@@ -4,6 +4,6 @@ sealed class <!LINE_MARKER("descr='Is subclassed by Derived PlatfromDerived'")!>
 
 class Derived : Base()
 
-fun test_1(b: Base) = <!NO_ELSE_IN_WHEN{JVM}!>when<!> (b) {
+fun test_1(b: Base) = when (b) {
     is Derived -> 1
 }

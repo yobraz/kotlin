@@ -45,6 +45,8 @@ enum class OSKind {
                 else -> Unknown
             }
         }
+
+        val namesSet: Set<String> = values().mapTo(mutableSetOf()) { it.name }
     }
 }
 

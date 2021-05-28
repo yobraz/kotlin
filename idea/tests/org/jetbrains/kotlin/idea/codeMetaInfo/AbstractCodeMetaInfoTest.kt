@@ -81,7 +81,7 @@ class CodeMetaInfoTestCase(
     }
 
     private fun check(expectedFile: File) {
-        val codeMetaInfoForCheck = mutableListOf<CodeMetaInfo>()
+        val actualMetaInfo = mutableListOf<CodeMetaInfo>()
         PsiDocumentManager.getInstance(myProject).commitAllDocuments()
 
         //to load text
@@ -96,15 +96,15 @@ class CodeMetaInfoTestCase(
         for (renderer in codeMetaInfoTypes) {
             when (renderer) {
                 is DiagnosticCodeMetaInfoRenderer -> {
-                    codeMetaInfoForCheck.addAll(getDiagnosticCodeMetaInfos(renderer))
+                    actualMetaInfo.addAll(getDiagnosticCodeMetaInfos(renderer))
                 }
 
                 is HighlightingCodeMetaInfoRenderer -> {
-                    codeMetaInfoForCheck.addAll(getHighlightingCodeMetaInfos(renderer))
+                    actualMetaInfo.addAll(getHighlightingCodeMetaInfos(renderer))
                 }
 
                 is LineMarkerCodeMetaInfoRenderer -> {
-                    codeMetaInfoForCheck.addAll(getLineMarkerCodeMetaInfos(renderer))
+                    actualMetaInfo.addAll(getLineMarkerCodeMetaInfos(renderer))
                 }
 
                 is ParsedCodeMetaInfoRenderer -> { }
@@ -116,20 +116,20 @@ class CodeMetaInfoTestCase(
         checkDiagnosticsAnHighlightingConsistency()
 
         val parsedMetaInfo = CodeMetaInfoParser.getCodeMetaInfoFromText(expectedFile.readText()).toMutableList()
-        codeMetaInfoForCheck.forEach { codeMetaInfo ->
+        actualMetaInfo.forEach { codeMetaInfo ->
             val correspondingParsed = parsedMetaInfo.firstOrNull { it == codeMetaInfo }
             if (correspondingParsed != null) {
                 parsedMetaInfo.remove(correspondingParsed)
                 codeMetaInfo.attributes.addAll(correspondingParsed.attributes)
-                if (correspondingParsed.attributes.isNotEmpty() && OSKind.current.toString() !in correspondingParsed.attributes)
+                if (correspondingParsed.isHostSpecific() && OSKind.current.toString() !in correspondingParsed.attributes)
                     codeMetaInfo.attributes.add(OSKind.current.toString())
             }
         }
         parsedMetaInfo.forEach {
-            if (it.attributes.isNotEmpty() && OSKind.current.toString() !in it.attributes) codeMetaInfoForCheck.add(it)
+            if (it.isHostSpecific() && OSKind.current.toString() !in it.attributes) actualMetaInfo.add(it)
         }
         val textWithCodeMetaInfo = CodeMetaInfoRenderingUtils.renderTagsToText(
-            codeMetaInfoForCheck,
+            actualMetaInfo,
             codeMetaInfoTypes,
             registeredDirectives,
             myEditor.document.text
@@ -141,7 +141,7 @@ class CodeMetaInfoTestCase(
 
         if (checkNoDiagnosticError) {
             val diagnosticsErrors =
-                codeMetaInfoForCheck.filterIsInstance<DiagnosticCodeMetaInfo>().filter { it.diagnostic.severity == Severity.ERROR }
+                actualMetaInfo.filterIsInstance<DiagnosticCodeMetaInfo>().filter { it.diagnostic.severity == Severity.ERROR }
             assertTrue(
                 "Diagnostics with severity ERROR were found: ${diagnosticsErrors.joinToString()}",
                 diagnosticsErrors.isEmpty()
@@ -247,6 +247,8 @@ class CodeMetaInfoTestCase(
 
         return null
     }
+
+    private fun CodeMetaInfo.isHostSpecific(): Boolean = attributes.any { it in OSKind.namesSet }
 }
 
 abstract class AbstractDiagnosticCodeMetaInfoTest : AbstractCodeMetaInfoTest() {
