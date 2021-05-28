@@ -118,7 +118,7 @@ class TestConfigurationImpl(
             val metadataInfoHandler = GlobalMetadataInfoHandler(
                 this,
                 metaInfoProcessors,
-                allAnalysisHandlers.flatMap { it -> it.codeMetaInfoRenderers }
+                allAnalysisHandlers.flatMapTo(mutableSetOf()) { it.codeMetaInfoRenderers }
             )
             register(GlobalMetadataInfoHandler::class, metadataInfoHandler)
         }
