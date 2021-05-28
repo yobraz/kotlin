@@ -53,6 +53,7 @@ import org.jetbrains.kotlin.test.codeMetaInfo.model.CodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.model.DiagnosticCodeMetaInfo
 import org.jetbrains.kotlin.test.codeMetaInfo.rendering.CodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.codeMetaInfo.rendering.DiagnosticCodeMetaInfoRenderer
+import org.jetbrains.kotlin.test.codeMetaInfo.rendering.ParsedCodeMetaInfoRenderer
 import org.jetbrains.kotlin.test.directives.DiagnosticsDirectives
 import org.jetbrains.kotlin.test.directives.model.ComposedDirectivesContainer
 import org.jetbrains.kotlin.test.directives.model.RegisteredDirectives
@@ -64,10 +65,13 @@ import java.nio.file.Paths
 
 @Ignore
 class CodeMetaInfoTestCase(
-    val codeMetaInfoTypes: Collection<CodeMetaInfoRenderer>,
+    additionalCodeMetaInfoTypes: Collection<CodeMetaInfoRenderer>,
     val checkNoDiagnosticError: Boolean = false,
     val registeredDirectives: RegisteredDirectives,
 ) : DaemonAnalyzerTestCase() {
+    // ParsedCodeMetaInfoRenderer is needed for platform-specific CMIs: on foreign hosts they are just parsed to ParsedCodeMetaInfo
+    // and rendered back without any changes
+    private val codeMetaInfoTypes: Collection<CodeMetaInfoRenderer> = additionalCodeMetaInfoTypes.toSet() + ParsedCodeMetaInfoRenderer
 
     fun checkFile(file: VirtualFile, expectedFile: File, project: Project) {
         myProject = project
@@ -94,12 +98,17 @@ class CodeMetaInfoTestCase(
                 is DiagnosticCodeMetaInfoRenderer -> {
                     codeMetaInfoForCheck.addAll(getDiagnosticCodeMetaInfos(renderer))
                 }
+
                 is HighlightingCodeMetaInfoRenderer -> {
                     codeMetaInfoForCheck.addAll(getHighlightingCodeMetaInfos(renderer))
                 }
+
                 is LineMarkerCodeMetaInfoRenderer -> {
                     codeMetaInfoForCheck.addAll(getLineMarkerCodeMetaInfos(renderer))
                 }
+
+                is ParsedCodeMetaInfoRenderer -> { }
+
                 else -> throw IllegalArgumentException("Unexpected code meta info configuration: $renderer")
             }
         }
@@ -117,9 +126,7 @@ class CodeMetaInfoTestCase(
             }
         }
         parsedMetaInfo.forEach {
-            if (it.attributes.isNotEmpty() && OSKind.current.toString() !in it.attributes) codeMetaInfoForCheck.add(
-                it
-            )
+            if (it.attributes.isNotEmpty() && OSKind.current.toString() !in it.attributes) codeMetaInfoForCheck.add(it)
         }
         val textWithCodeMetaInfo = CodeMetaInfoRenderingUtils.renderTagsToText(
             codeMetaInfoForCheck,
