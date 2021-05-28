@@ -13,7 +13,6 @@ import java.lang.reflect.AnnotatedType
 import java.lang.reflect.TypeVariable
 import java.lang.reflect.AnnotatedParameterizedType
 import kotlin.reflect.jvm.javaMethod
-import kotlin.reflect.KClass
 import kotlin.test.fail
 
 @Target(AnnotationTarget.TYPE)
@@ -21,9 +20,6 @@ annotation class TypeAnn(val name: String)
 
 @Target(AnnotationTarget.TYPE_PARAMETER)
 annotation class TypeParameterAnn
-
-@Target(AnnotationTarget.TYPE_PARAMETER)
-annotation class TypeParameterAnnWithClass(val value: KClass<*>)
 
 @Target(AnnotationTarget.TYPE_PARAMETER)
 @Retention(AnnotationRetention.BINARY)
@@ -45,9 +41,6 @@ class InterfaceBoundGeneric<T : @TypeAnn("Generic") Generic<@TypeAnn("Simple") S
 class ClassBoundGeneric<T : @TypeAnn("GenericClass") GenericClass<@TypeAnn("SimpleClass") SimpleClass>>
 
 class TypeParameterAsBound<Y, @TypeParameterAnn T : @TypeAnn("Y as Bound") Y>
-
-class TypeParameterWithClass<@TypeParameterAnnWithClass(SimpleClass::class) T>
-
 
 fun box(): String {
 
@@ -140,15 +133,6 @@ fun box(): String {
 //        "@foo.TypeAnn(name=Y as Bound)",
 //        "typeParameterTypeParameterBound bound"
 //    )
-
-    //typeParameterWithClass
-    val typeParameterWithClass = TypeParameterWithClass::class.java
-    checkTypeParameterAnnotation(
-        typeParameterWithClass.typeParameters[0]!!,
-        "T",
-        "@foo.TypeParameterAnnWithClass(value=class foo.SimpleClass)",
-        "typeParameterWithClass type parameter"
-    )
 
     return "OK"
 }
