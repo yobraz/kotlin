@@ -44,5 +44,5 @@ interface GI : G {
     override fun a(@An arg: @An Int) {}
 }
 
-<!MANY_IMPL_MEMBER_NOT_IMPLEMENTED!>class AG1<!>(val a: A, val g: G) : A by a, G by g
-<!MANY_INTERFACES_MEMBER_NOT_IMPLEMENTED!>class AG2<!>() : AI, GI
+<!MANY_IMPL_MEMBER_NOT_IMPLEMENTED("Class AG1; a")!>class AG1<!>(val a: A, val g: G) : A by a, G by g
+<!MANY_INTERFACES_MEMBER_NOT_IMPLEMENTED("Class AG2; a")!>class AG2<!>() : AI, GI
