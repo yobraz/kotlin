@@ -39,10 +39,12 @@ enum class CompilerSystemProperties(val property: String, val alwaysDirectAccess
     DAEMON_RMI_SOCKET_CONNECT_ATTEMPTS_PROPERTY("kotlin.daemon.socket.connect.attempts"),
     DAEMON_RMI_SOCKET_CONNECT_INTERVAL_PROPERTY("kotlin.daemon.socket.connect.interval"),
     COMPILE_DAEMON_CUSTOM_RUN_FILES_PATH_FOR_TESTS("kotlin.daemon.custom.run.files.path.for.tests"),
-    KOTLIN_STAT_ENABLED_PROPERTY("kotlin.stat.enabled"),
-    KOTLIN_STAT_ELASTICSEARCH_ENDPOINT_PROPERTY("kotlin.stat.endpoint"),
-    KOTLIN_STAT_ELASTICSEARCH_USER_PROPERTY("kotlin.stat.user"),
-    KOTLIN_STAT_ELASTICSEARCH_PASSWORD_PROPERTY("kotlin.stat.password"),
+
+    KOTLIN_STAT_ENABLED_PROPERTY("kotlin.plugin.stat.enabled"),
+    KOTLIN_STAT_ENDPOINT_PROPERTY("kotlin.plugin.stat.endpoint"),
+    KOTLIN_STAT_USER_PROPERTY("kotlin.plugin.stat.user"),
+    KOTLIN_STAT_PASSWORD_PROPERTY("kotlin.plugin.stat.password"),
+
     OS_NAME("os.name", alwaysDirectAccess = true),
     TMP_DIR("java.io.tmpdir"),
     USER_HOME("user.home", alwaysDirectAccess = true),
