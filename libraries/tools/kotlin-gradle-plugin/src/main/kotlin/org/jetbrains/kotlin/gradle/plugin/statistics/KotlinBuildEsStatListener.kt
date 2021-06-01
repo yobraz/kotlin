@@ -5,16 +5,14 @@
 
 package org.jetbrains.kotlin.gradle.plugin.statistics
 
+import org.gradle.BuildResult
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
-import org.gradle.tooling.events.task.TaskFailureResult
-import org.gradle.tooling.events.task.TaskFinishEvent
-import org.gradle.tooling.events.task.TaskSkippedResult
-import org.gradle.tooling.events.task.TaskSuccessResult
+import org.gradle.tooling.events.task.*
 import org.jetbrains.kotlin.gradle.plugin.stat.CompileStatData
 import org.jetbrains.kotlin.gradle.plugin.stat.ReportStatistics
 
-class KotlinBuildEsStatListener : OperationCompletionListener, AutoCloseable {
+class KotlinBuildEsStatListener(val projectName: String) : OperationCompletionListener, AutoCloseable {
     val reportStatistics: ReportStatistics = ReportStatisticsToElasticSearch
 
     override fun onFinish(event: FinishEvent?) {
@@ -32,11 +30,16 @@ class KotlinBuildEsStatListener : OperationCompletionListener, AutoCloseable {
 
             val compileStatData = CompileStatData(
                 duration = event.result.endTime - event.result.startTime, taskResult = taskResult,
-                statData = emptyMap(), projectName = "kotlin", taskName = taskPath
+                statData = emptyMap(), projectName = projectName, taskName = taskPath
             )
             reportStatistics.report(compileStatData)
         }
     }
+
+    fun onFinish(result: BuildResult) {
+//        onFinish(result)
+    }
+
 
     override fun close() {
     }
