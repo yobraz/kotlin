@@ -6,9 +6,13 @@
 package org.jetbrains.kotlin.idea.frontend.api.fir.components
 
 import org.jetbrains.kotlin.fir.expressions.FirExpressionWithSmartcast
+import org.jetbrains.kotlin.fir.expressions.FirExpressionWithSmartcastToNull
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
+import org.jetbrains.kotlin.fir.typeContext
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
+import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.fir.types.coneTypeSafe
+import org.jetbrains.kotlin.idea.fir.low.level.api.api.getOrBuildFir
 import org.jetbrains.kotlin.idea.fir.low.level.api.api.getOrBuildFirSafe
 import org.jetbrains.kotlin.idea.frontend.api.*
 import org.jetbrains.kotlin.idea.frontend.api.components.KtSmartCastProvider
@@ -48,6 +52,24 @@ internal class KtFirSmartcastProvider(
                     ImplicitReceiverSmartcastKind.EXTENSION
                 )
             }?.let(::add)
+        }
+    }
+
+    override fun getStableNullability(expression: KtExpression): StableNullability {
+        val fir = expression.getOrBuildFir(analysisSession.firResolveState)
+        // TODO: Check stability of smartcast (pending PR 4382)
+        return when (fir) {
+            is FirExpressionWithSmartcastToNull -> StableNullability.NULL
+            is FirExpressionWithSmartcast -> {
+                with(analysisSession.rootModuleSession.typeContext) {
+                    if (!fir.typeRef.coneType.isNullableType()) {
+                        StableNullability.NOT_NULL
+                    } else {
+                        StableNullability.UNKNOWN
+                    }
+                }
+            }
+            else -> StableNullability.UNKNOWN
         }
     }
 }
