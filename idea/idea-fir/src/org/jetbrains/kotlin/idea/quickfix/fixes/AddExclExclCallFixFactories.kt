@@ -9,12 +9,14 @@ import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.fir.api.fixes.diagnosticFixFactory
 import org.jetbrains.kotlin.idea.frontend.api.KtAnalysisSession
+import org.jetbrains.kotlin.idea.frontend.api.KtSmartCastNullability
 import org.jetbrains.kotlin.idea.frontend.api.fir.diagnostics.KtFirDiagnostic
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtFunctionSymbol
 import org.jetbrains.kotlin.idea.quickfix.AddExclExclCallFix
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.unwrapParenthesesLabelsAndAnnotations
 import org.jetbrains.kotlin.util.OperatorNameConventions
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 object AddExclExclCallFixFactories {
     val unsafeCallFactory = diagnosticFixFactory<KtFirDiagnostic.UnsafeCall> { diagnostic ->
@@ -77,6 +79,15 @@ object AddExclExclCallFixFactories {
             is KtOperationReferenceExpression -> return getFixForUnsafeCall(unwrapped.parent)
 
             else -> return emptyList()
+        }
+
+        // We don't want to offer AddExclExclCallFix if we know the expression is definitely null, e.g.:
+        //
+        //   if (nullableInt == null) {
+        //     val x = nullableInt.length  // No AddExclExclCallFix here
+        //   }
+        if (target?.safeAs<KtExpression>()?.getSmartCastNullability() == KtSmartCastNullability.NULL) {
+            return emptyList()
         }
 
         return listOfNotNull(target.asAddExclExclCallFix(hasImplicitReceiver = hasImplicitReceiver))

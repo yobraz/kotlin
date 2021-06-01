@@ -55,21 +55,20 @@ internal class KtFirSmartcastProvider(
         }
     }
 
-    override fun getStableNullability(expression: KtExpression): StableNullability {
-        val fir = expression.getOrBuildFir(analysisSession.firResolveState)
+    override fun getSmartCastNullability(expression: KtExpression): KtSmartCastNullability = withValidityAssertion {
         // TODO: Check stability of smartcast (pending PR 4382)
-        return when (fir) {
-            is FirExpressionWithSmartcastToNull -> StableNullability.NULL
+        return when (val fir = expression.getOrBuildFir(analysisSession.firResolveState)) {
+            is FirExpressionWithSmartcastToNull -> KtSmartCastNullability.NULL
             is FirExpressionWithSmartcast -> {
                 with(analysisSession.rootModuleSession.typeContext) {
                     if (!fir.typeRef.coneType.isNullableType()) {
-                        StableNullability.NOT_NULL
+                        KtSmartCastNullability.NOT_NULL
                     } else {
-                        StableNullability.UNKNOWN
+                        KtSmartCastNullability.UNKNOWN
                     }
                 }
             }
-            else -> StableNullability.UNKNOWN
+            else -> KtSmartCastNullability.UNKNOWN
         }
     }
 }

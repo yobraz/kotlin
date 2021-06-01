@@ -6,14 +6,14 @@
 package org.jetbrains.kotlin.idea.frontend.api.components
 
 import org.jetbrains.kotlin.idea.frontend.api.ImplicitReceiverSmartCast
-import org.jetbrains.kotlin.idea.frontend.api.StableNullability
+import org.jetbrains.kotlin.idea.frontend.api.KtSmartCastNullability
 import org.jetbrains.kotlin.idea.frontend.api.types.KtType
 import org.jetbrains.kotlin.psi.KtExpression
 
 abstract class KtSmartCastProvider : KtAnalysisSessionComponent() {
     abstract fun getSmartCastedToType(expression: KtExpression): KtType?
     abstract fun getImplicitReceiverSmartCast(expression: KtExpression): Collection<ImplicitReceiverSmartCast>
-    abstract fun getStableNullability(expression: KtExpression): StableNullability
+    abstract fun getSmartCastNullability(expression: KtExpression): KtSmartCastNullability
 }
 
 interface KtSmartCastProviderMixIn : KtAnalysisSessionMixIn {
@@ -23,6 +23,7 @@ interface KtSmartCastProviderMixIn : KtAnalysisSessionMixIn {
     fun KtExpression.getImplicitReceiverSmartCast(): Collection<ImplicitReceiverSmartCast> =
         analysisSession.smartCastProvider.getImplicitReceiverSmartCast(this)
 
-    fun KtExpression.getStableNullability(): StableNullability =
-        analysisSession.smartCastProvider.getStableNullability(this)
+    /** See [KtSmartCastNullability] for the definition of "smart cast nullability". */
+    fun KtExpression.getSmartCastNullability(): KtSmartCastNullability =
+        analysisSession.smartCastProvider.getSmartCastNullability(this)
 }

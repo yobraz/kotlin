@@ -9,9 +9,12 @@ import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.fir.api.fixes.diagnosticFixFactory
 import org.jetbrains.kotlin.idea.frontend.api.KtAnalysisSession
+import org.jetbrains.kotlin.idea.frontend.api.KtSmartCastNullability
 import org.jetbrains.kotlin.idea.frontend.api.fir.diagnostics.KtFirDiagnostic
 import org.jetbrains.kotlin.idea.frontend.api.types.KtType
 import org.jetbrains.kotlin.idea.frontend.api.types.KtTypeNullability
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 object TypeMismatchFactories {
     val argumentTypeMismatchFactory = diagnosticFixFactory<KtFirDiagnostic.ArgumentTypeMismatch> { diagnostic ->
@@ -37,6 +40,14 @@ object TypeMismatchFactories {
     ): List<IntentionAction> {
         // TODO: Add more fixes than just AddExclExclCallFix when available.
         if (!expectedType.canBeNull && actualType.canBeNull) {
+            // We don't want to offer AddExclExclCallFix if we know the expression is definitely null, e.g.:
+            //
+            //   if (nullableInt == null) {
+            //     val x: Int = nullableInt  // No AddExclExclCallFix here
+            //   }
+            if (psi.safeAs<KtExpression>()?.getSmartCastNullability() == KtSmartCastNullability.NULL) {
+                return emptyList()
+            }
             val nullableExpectedType = expectedType.withNullability(KtTypeNullability.NULLABLE)
             if (actualType isSubTypeOf nullableExpectedType) {
                 return listOfNotNull(psi.asAddExclExclCallFix())
