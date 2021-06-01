@@ -172,6 +172,11 @@ abstract class AbstractDiagnosticCollectorVisitor(
             super.visitResolvedTypeRef(resolvedTypeRef, data)
         }
         if (resolvedTypeRef.source?.kind is FirFakeSourceElementKind) return
+        if (resolvedTypeRef.type !is ConeClassErrorType) {
+            withSuppressedDiagnostics(resolvedTypeRef) {
+                checkElement(resolvedTypeRef)
+            }
+        }
         resolvedTypeRef.delegatedTypeRef?.accept(this, data)
     }
 

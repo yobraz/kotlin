@@ -35,8 +35,8 @@ package usage.bar
 
 import api.*
 
-class Usage : Bar {
+class Usage : <!EXPERIMENTAL_API_USAGE!>Bar<!> {
     override fun bar() {}
 }
 
-class DelegatedUsage(bar: Bar): Bar by bar
+class DelegatedUsage(bar: <!EXPERIMENTAL_API_USAGE!>Bar<!>): <!EXPERIMENTAL_API_USAGE, EXPERIMENTAL_API_USAGE!>Bar<!> by bar

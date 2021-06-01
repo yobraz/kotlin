@@ -1,5 +1,7 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER
 // !WITH_NEW_INFERENCE
+// ALLOW_KOTLIN_PACKAGE
+
 // FILE: annotation.kt
 
 package kotlin

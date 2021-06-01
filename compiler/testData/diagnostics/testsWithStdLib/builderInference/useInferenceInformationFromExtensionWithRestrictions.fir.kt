@@ -14,10 +14,10 @@ class GenericController<T> {
 
 suspend fun <S> GenericController<S>.extensionYield(s: S) {}
 
-@BuilderInference
+@<!EXPERIMENTAL_API_USAGE_ERROR!>BuilderInference<!>
 suspend fun <S> GenericController<S>.safeExtensionYield(s: S) {}
 
-fun <S> generate(@BuilderInference g: suspend GenericController<S>.() -> Unit): List<S> = TODO()
+fun <S> generate(@<!EXPERIMENTAL_API_USAGE_ERROR!>BuilderInference<!> g: suspend GenericController<S>.() -> Unit): List<S> = TODO()
 
 val normal = generate {
     yield(42)
