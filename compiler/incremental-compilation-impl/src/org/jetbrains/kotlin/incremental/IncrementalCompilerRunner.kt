@@ -139,20 +139,25 @@ abstract class IncrementalCompilerRunner<
 
             val exitCode = when (compilationMode) {
                 is CompilationMode.Incremental -> {
-                    val abiSnapshot = AbiSnapshotImpl.read(abiSnapshotFile, reporter)
-                    if (abiSnapshot != null) {
-                        compileIncrementally(
-                            args,
-                            caches,
-                            allSourceFiles,
-                            compilationMode,
-                            messageCollector,
-                            withSnapshot,
-                            abiSnapshot,
-                            classpathAbiSnapshot
-                        )
+                    if (withSnapshot) {
+                        val abiSnapshot = AbiSnapshotImpl.read(abiSnapshotFile, reporter)
+                        if (abiSnapshot != null) {
+                            compileIncrementally(
+                                args,
+                                caches,
+                                allSourceFiles,
+                                compilationMode,
+                                messageCollector,
+                                withSnapshot,
+                                abiSnapshot,
+                                classpathAbiSnapshot
+                            )
+
+                        } else {
+                            rebuild(BuildAttribute.NO_ABI_SNAPSHOT)
+                        }
                     } else {
-                        rebuild(BuildAttribute.NO_ABI_SNAPSHOT)
+                        compileIncrementally(args, caches, allSourceFiles, compilationMode, messageCollector, withSnapshot)
                     }
                 }
                 is CompilationMode.Rebuild -> {
