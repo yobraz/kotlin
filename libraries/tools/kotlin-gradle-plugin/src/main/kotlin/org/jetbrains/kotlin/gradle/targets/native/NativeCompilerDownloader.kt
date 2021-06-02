@@ -45,7 +45,15 @@ class NativeCompilerDownloader(
         get() = NativeDistributionTypeProvider(project).getDistributionType(compilerVersion)
 
     private val simpleOsName: String
-        get() = HostManager.simpleOsName()
+        get() = if (compilerVersion.major <= 1 &&
+            compilerVersion.minor <= 5 &&
+            compilerVersion.maintenance < 30
+        ) {
+            val hostOs = HostManager.hostOs()
+            if (hostOs == "osx") "macos" else hostOs
+        } else {
+            HostManager.simpleOsName()
+        }
 
     private val dependencyName: String
         get() {
