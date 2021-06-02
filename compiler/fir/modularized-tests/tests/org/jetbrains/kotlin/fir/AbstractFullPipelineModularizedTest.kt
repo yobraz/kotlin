@@ -324,7 +324,9 @@ abstract class AbstractFullPipelineModularizedTest : AbstractModularizedTest() {
     }
 
     private fun beforeAllPasses() {
-        isolate()
+        if (System.getProperty("fir.bench.cpuset.noisolate").toBooleanLenient() != false) {
+            isolate()
+        }
     }
 
     fun testTotalKotlin() {
