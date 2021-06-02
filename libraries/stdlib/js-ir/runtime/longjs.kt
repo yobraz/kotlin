@@ -354,8 +354,8 @@ internal fun fromNumber(value: Double): Long {
     } else {
         val twoPwr32 = TWO_PWR_32_DBL_
         return Long(
-            jsBitwiseOr(value.rem(twoPwr32), 0),
-            jsBitwiseOr(value / twoPwr32, 0)
+            jsBitOr(value.rem(twoPwr32), 0),
+            jsBitOr(value / twoPwr32, 0)
         )
     }
 }

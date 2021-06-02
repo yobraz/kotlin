@@ -14,5 +14,5 @@ internal inline fun jsDeleteProperty(obj: Any, property: Any) {
 }
 
 @kotlin.internal.InlineOnly
-internal inline fun jsBitwiseOr(lhs: Any?, rhs: Any?): Int =
+internal inline fun jsBitOr(lhs: Any?, rhs: Any?): Int =
     js("lhs | rhs").unsafeCast<Int>()

@@ -54,7 +54,7 @@ internal fun doubleSignBit(value: Double): Int {
 
 internal fun getNumberHashCode(obj: Double): Int {
     @Suppress("DEPRECATED_IDENTITY_EQUALS")
-    if (jsBitwiseOr(obj, 0).unsafeCast<Double>() === obj) {
+    if (jsBitOr(obj, 0).unsafeCast<Double>() === obj) {
         return obj.toInt()
     }
 

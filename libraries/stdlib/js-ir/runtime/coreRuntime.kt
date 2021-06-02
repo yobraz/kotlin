@@ -58,7 +58,7 @@ private const val OBJECT_HASH_CODE_PROPERTY_NAME = "kotlinHashCodeValue$"
 
 internal fun getObjectHashCode(obj: dynamic): Int {
     if (!jsIn(OBJECT_HASH_CODE_PROPERTY_NAME, obj)) {
-        var hash = jsBitwiseOr(js("Math").random() * POW_2_32, 0) // Make 32-bit singed integer.
+        var hash = jsBitOr(js("Math").random() * POW_2_32, 0) // Make 32-bit singed integer.
         var descriptor = js("new Object()")
         descriptor.value = hash
         descriptor.enumerable = false
