@@ -118,8 +118,8 @@ class MetadataPackageFragment(
                     version,
                     containerSource = null,
                     components = components,
+                    debugName = "scope with top-level callables and type aliases (no classes) for package part $partName of $this",
                     classNames = { emptyList() },
-                    debugName = "scope with top-level callables and type aliases (no classes) for package part $partName of $this"
                 )
             )
         }
@@ -129,8 +129,9 @@ class MetadataPackageFragment(
             this, ProtoBuf.Package.getDefaultInstance(),
             NameResolverImpl(ProtoBuf.StringTable.getDefaultInstance(), ProtoBuf.QualifiedNameTable.getDefaultInstance()),
             BuiltInsBinaryVersion.INSTANCE, // Exact version does not matter here
-            containerSource = null, components = components, classNames = { emptyList() },
-            debugName = "scope for all classes of $this"
+            containerSource = null, components = components,
+            debugName = "scope for all classes of $this",
+            classNames = { emptyList() },
         ) {
             override fun hasClass(name: Name): Boolean = hasTopLevelClass(name)
             override fun definitelyDoesNotContainName(name: Name) = false

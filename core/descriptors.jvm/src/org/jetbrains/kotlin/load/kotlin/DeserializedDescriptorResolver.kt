@@ -71,11 +71,11 @@ class DeserializedDescriptorResolver {
         )
         return DeserializedPackageMemberScope(
             descriptor, packageProto, nameResolver, kotlinClass.classHeader.metadataVersion, source, components,
-            {
-                // All classes are included into Java scope
-                emptyList()
-            }
-        )
+            "scope for $source in $descriptor"
+        ) {
+            // All classes are included into Java scope
+            emptyList()
+        }
     }
 
     private val KotlinJvmBinaryClass.incompatibility: IncompatibleVersionErrorData<JvmMetadataVersion>?

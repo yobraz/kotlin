@@ -39,9 +39,8 @@ open class DeserializedPackageMemberScope(
     metadataVersion: BinaryVersion,
     containerSource: DeserializedContainerSource?,
     components: DeserializationComponents,
+    private val debugName: String,
     classNames: () -> Collection<Name>,
-    // Can be overridden for complex cases, when we create multiple scopes for one package fragment
-    private val debugName: String = "scope for $packageDescriptor"
 ) : DeserializedMemberScope(
     components.createContext(
         packageDescriptor, nameResolver, TypeTable(proto.typeTable),

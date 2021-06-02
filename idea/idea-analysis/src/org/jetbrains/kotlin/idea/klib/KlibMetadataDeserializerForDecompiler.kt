@@ -62,7 +62,8 @@ class KlibMetadataDeserializerForDecompiler(
             containerSource = null,
             components = deserializationComponents,
             classNames = { emptyList() },
-            debugName = "PackageMemberScope@KlibMetadataDeseiralizerForDecompiler of $facadeFqName in ${deserializationComponents.moduleDescriptor} "
+            debugName = "scope of dummyPackageFragment $facadeFqName in ${deserializationComponents.moduleDescriptor} " +
+                    "@KlibMetadataDeserializerForDecompiler"
         )
 
         return membersScope.getContributedDescriptors().toList()
