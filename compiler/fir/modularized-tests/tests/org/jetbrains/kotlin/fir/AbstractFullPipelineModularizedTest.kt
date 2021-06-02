@@ -323,5 +323,16 @@ abstract class AbstractFullPipelineModularizedTest : AbstractModularizedTest() {
         }
     }
 
+    private fun beforeAllPasses() {
+        isolate()
+    }
 
+    fun testTotalKotlin() {
+        beforeAllPasses()
+
+        for (i in 0 until PASSES) {
+            println("Pass $i")
+            runTestOnce(i)
+        }
+    }
 }

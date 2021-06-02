@@ -19,11 +19,4 @@ class FE1FullPipelineModularizedTest : AbstractFullPipelineModularizedTest() {
         args.jvmDefault = "compatibility"
         args.optIn = arrayOf("kotlin.RequiresOptIn")
     }
-
-    fun testTotalKotlin() {
-        for (i in 0 until PASSES) {
-            println("Pass $i")
-            runTestOnce(i)
-        }
-    }
 }

@@ -13,11 +13,4 @@ class FullPipelineModularizedTest : AbstractFullPipelineModularizedTest() {
         args.useFir = true
         args.useIR = true
     }
-
-    fun testTotalKotlin() {
-        for (i in 0 until PASSES) {
-            println("Pass $i")
-            runTestOnce(i)
-        }
-    }
 }
