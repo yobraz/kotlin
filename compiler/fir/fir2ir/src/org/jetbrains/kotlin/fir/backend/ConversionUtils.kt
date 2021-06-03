@@ -49,6 +49,7 @@ import org.jetbrains.kotlin.ir.types.impl.IrErrorTypeImpl
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffsetSkippingComments
@@ -70,11 +71,10 @@ internal fun <T : IrElement> FirQualifiedAccess.convertWithOffsets(
     f: (startOffset: Int, endOffset: Int) -> T
 ): T {
     val psi = psi
-    if (psi is PsiCompiledElement || psi == null) return f(UNDEFINED_OFFSET, UNDEFINED_OFFSET)
-    val startOffset = if (psi is KtQualifiedExpression) {
-        (psi.selectorExpression ?: psi).startOffsetSkippingComments
-    } else {
-        psi.startOffsetSkippingComments
+    val startOffset = when (psi) {
+        is KtQualifiedExpression -> (psi.selectorExpression ?: psi).startOffsetSkippingComments
+        is KtElement -> psi.startOffsetSkippingComments
+        else -> return f(UNDEFINED_OFFSET, UNDEFINED_OFFSET)
     }
     val endOffset = psi.endOffset
     return f(startOffset, endOffset)
