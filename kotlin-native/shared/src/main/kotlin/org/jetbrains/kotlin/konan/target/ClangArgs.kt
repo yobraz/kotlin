@@ -36,6 +36,7 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
     private val clangArgsSpecificForKonanSources
         get() = runtimeDefinitions.map { "-D$it" }
 
+    // TODO: Is it really needed?
     private val binDir = when (HostManager.host) {
         KonanTarget.LINUX_X64 -> "$absoluteTargetToolchain/bin"
         KonanTarget.MINGW_X64 -> "$absoluteTargetToolchain/bin"
