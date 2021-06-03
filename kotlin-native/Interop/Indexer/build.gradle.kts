@@ -38,7 +38,7 @@ val llvmDir = project.findProperty("llvmDir")
 
 val libclang =
     if (HostManager.hostIsMingw) {
-        "bin/libclang.dll"
+        "lib/libclang.lib"
     } else {
         "lib/${System.mapLibraryName("clang")}"
     }
@@ -86,8 +86,7 @@ val lib = if (HostManager.hostIsMingw) "lib" else "a"
 
 native {
     val obj = if (HostManager.hostIsMingw) "obj" else "o"
-    val host = rootProject.project(":kotlin-native").extra["hostName"]
-    val hostLibffiDir = rootProject.project(":kotlin-native").extra["${host}LibffiDir"]
+
     val cxxflags = listOf("-std=c++11", *cflags.toTypedArray())
     suffixes {
         (".c" to ".$obj") {

@@ -79,6 +79,7 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
         val hasCustomSysroot = configurables is ZephyrConfigurables
                 || configurables is WasmConfigurables
                 || configurables is AndroidConfigurables
+                || (target == KonanTarget.MINGW_X64 && forJni)
         if (!hasCustomSysroot) {
             when (configurables) {
                 // isysroot and sysroot on darwin are _almost_ synonyms.
@@ -95,9 +96,8 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
             add(listOf("-fPIC"))
         }
 
-        // FIXME:
-        if (target == KonanTarget.LINUX_X64) {
-            add(listOf("-mavx"))
+        if (target == KonanTarget.MINGW_X64 && forJni) {
+            add(listOf("-fuse-ld=lld"))
         }
 
     }.flatten()
