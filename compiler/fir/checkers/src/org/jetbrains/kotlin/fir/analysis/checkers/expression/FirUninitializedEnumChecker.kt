@@ -6,11 +6,8 @@
 package org.jetbrains.kotlin.fir.analysis.checkers.expression
 
 import org.jetbrains.kotlin.fir.FirFakeSourceElementKind
-import org.jetbrains.kotlin.fir.FirSymbolOwner
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.isEnumEntryInitializer
-import org.jetbrains.kotlin.fir.analysis.checkers.getContainingClass
-import org.jetbrains.kotlin.fir.analysis.checkers.outerClass
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
 import org.jetbrains.kotlin.fir.analysis.diagnostics.reportOn
@@ -20,6 +17,7 @@ import org.jetbrains.kotlin.fir.expressions.FirLambdaArgumentExpression
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
 import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
+import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 
 object FirUninitializedEnumChecker : FirQualifiedAccessChecker() {
     // Initialization order: member property initializers, enum entries, companion object (including members in it).
@@ -71,17 +69,10 @@ object FirUninitializedEnumChecker : FirQualifiedAccessChecker() {
 
         val reference = expression.calleeReference as? FirResolvedNamedReference ?: return
         val calleeDeclaration = reference.resolvedSymbol.fir
-        val calleeContainingClass = calleeDeclaration.getContainingClass(context) as? FirRegularClass ?: return
+        val containingDeclarations = context.containingDeclarations
         // We're looking for members/entries/companion object in an enum class or members in companion object of an enum class.
-        val calleeIsInsideEnum = calleeContainingClass.isEnumClass
-        val calleeIsInsideEnumCompanion =
-            calleeContainingClass.isCompanion && (calleeContainingClass.outerClass(context) as? FirRegularClass)?.isEnumClass == true
-        if (!calleeIsInsideEnum && !calleeIsInsideEnumCompanion) return
-
-        val enumClass =
-            if (calleeIsInsideEnum) calleeContainingClass
-            else calleeContainingClass.outerClass(context) as? FirRegularClass ?: return
-
+        var calleeContainingClass: FirRegularClass? = null
+        var enumClass: FirRegularClass? = null
         // An accessed context within the enum class of interest. We should look up until either enum members or enum entries are found,
         // not just last containing declaration. For example,
         //   enum class Fruit(...) {
@@ -95,14 +86,34 @@ object FirUninitializedEnumChecker : FirQualifiedAccessChecker() {
         // companion object is not initialized for both member properties. The former has the property itself as the last containing
         // declaration, whereas the latter has an anonymous function instead. For both cases, we're looking for member properties as an
         // accessed context.
-        val accessedContext = context.containingDeclarations.lastOrNull {
-            // To not raise an error for an access from another enum class, e.g.,
-            //   enum class EnumCompanion4(...) {
-            //     INSTANCE(EnumCompanion2.foo())
-            //   }
-            // find an accessed context within the same enum class.
-            (it as? FirSymbolOwner<*>)?.getContainingClass(context) == enumClass
-        } ?: return
+        // To not raise an error for an access from another enum class, e.g.,
+        //   enum class EnumCompanion4(...) {
+        //     INSTANCE(EnumCompanion2.foo())
+        //   }
+        // find an accessed context within the same enum class.
+        var accessedContext: FirDeclaration? = null
+        for (index in containingDeclarations.indices.reversed()) {
+            val declaration = containingDeclarations[index]
+            if (declaration is FirRegularClass) {
+                if (calleeContainingClass == null) {
+                    calleeContainingClass = declaration
+                    if (declaration.isEnumClass) {
+                        enumClass = declaration
+                        accessedContext = containingDeclarations.getOrNull(index + 1) ?: return
+                        break
+                    } else if (!declaration.isCompanion) {
+                        return
+                    }
+                } else if (declaration.isEnumClass) {
+                    enumClass = declaration
+                    accessedContext = containingDeclarations.getOrNull(index + 1) ?: return
+                    break
+                } else {
+                    return
+                }
+            }
+        }
+        if (calleeContainingClass == null || enumClass == null) return
 
         val enumMemberProperties = enumClass.declarations.filterIsInstance<FirProperty>()
         val enumEntries = enumClass.declarations.filterIsInstance<FirEnumEntry>()
@@ -115,9 +126,10 @@ object FirUninitializedEnumChecker : FirQualifiedAccessChecker() {
         //           JVM_1_6 -> ...
         //     }
         //   }
+        val lastContainingDeclaration = containingDeclarations.last()
         if (accessedContext in enumMemberProperties) {
             val lazyDelegation = (accessedContext as FirProperty).lazyDelegation
-            if (lazyDelegation != null && lazyDelegation == context.containingDeclarations.lastOrNull()) {
+            if (lazyDelegation != null && lazyDelegation == lastContainingDeclaration) {
                 return
             }
         }
@@ -132,12 +144,13 @@ object FirUninitializedEnumChecker : FirQualifiedAccessChecker() {
         //       fun foo() = ...
         //     }
         //   }
-        if (accessedContext in enumEntries && context.containingDeclarations.lastOrNull()?.isEnumEntryInitializer != true) {
+        if (accessedContext in enumEntries && !lastContainingDeclaration.isEnumEntryInitializer) {
             return
         }
 
         // Members inside the companion object of an enum class
-        if (calleeContainingClass == enumClass.companionObject) {
+        val companionObject = enumClass.companionObject
+        if (companionObject != null && (calleeDeclaration.symbol as? FirCallableSymbol)?.callableId?.classId == companionObject.classId) {
             // Uninitialized from the point of view of members or enum entries of that enum class
             if (accessedContext in enumMemberProperties || accessedContext in enumEntries) {
                 if (calleeDeclaration is FirProperty) {
@@ -158,7 +171,7 @@ object FirUninitializedEnumChecker : FirQualifiedAccessChecker() {
                     //   }
                     // }
                     // <!>Companion<!>.foo() v.s. <!>foo<!>()
-                    if ((expression.explicitReceiver as? FirResolvedQualifier)?.symbol?.fir == enumClass.companionObject) {
+                    if ((expression.explicitReceiver as? FirResolvedQualifier)?.symbol?.fir == companionObject) {
                         reporter.reportOn(
                             expression.explicitReceiver!!.source,
                             FirErrors.UNINITIALIZED_ENUM_COMPANION,
@@ -225,3 +238,4 @@ object FirUninitializedEnumChecker : FirQualifiedAccessChecker() {
             return lazyCallArgument.expression as? FirAnonymousFunction
         }
 }
+
