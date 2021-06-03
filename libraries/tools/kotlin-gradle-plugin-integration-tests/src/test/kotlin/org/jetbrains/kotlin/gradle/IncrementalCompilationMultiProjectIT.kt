@@ -174,7 +174,8 @@ abstract class BaseIncrementalCompilationMultiProjectIT : BaseGradleIT() {
     @Test
     fun testAddNewMethodToLib() {
         val project = defaultProject()
-        project.build("build") {
+        val options = defaultBuildOptions().copy(abiSnapshot = true)
+        project.build("build", options = options) {
             assertSuccessful()
         }
 
@@ -190,7 +191,7 @@ open class A {
 """
         )
 
-        project.build("build") {
+        project.build("build", options = options) {
             assertSuccessful()
             //TODO for abi-snapshot "BB.kt" should not be recompiled
             val affectedSources = project.projectDir.getFilesByNames("A.kt", "B.kt", "AA.kt", "BB.kt", "AAA.kt")
@@ -241,7 +242,7 @@ open class A {
         }
 
         //don't need to recompile app classes because lib's proto stays the same
-        project.build("build") {
+        project.build("build", "") {
             assertSuccessful()
             val affectedSources = project.projectDir.resolve("lib").allFilesWithExtensions("kt", "java")
             val relativePaths = project.relativize(affectedSources)

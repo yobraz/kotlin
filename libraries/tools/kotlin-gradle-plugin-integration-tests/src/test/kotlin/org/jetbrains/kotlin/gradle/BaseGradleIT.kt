@@ -250,6 +250,7 @@ abstract class BaseGradleIT {
         val useFir: Boolean = false,
         val customEnvironmentVariables: Map<String, String> = mapOf(),
         val dryRun: Boolean = false,
+        val abiSnapshot: Boolean = false,
     )
 
     enum class ConfigurationCacheProblems {
@@ -943,6 +944,9 @@ Finished executing task ':$taskName'|
             if (options.dryRun) {
                 add("--dry-run")
             }
+            if (options.abiSnapshot) {
+                add("-Pkotlin.incremental.classpath.snapshot.enabled=true")
+            }
 
             add("-Dorg.gradle.unsafe.configuration-cache=${options.configurationCache}")
             add("-Dorg.gradle.unsafe.configuration-cache-problems=${options.configurationCacheProblems.name.toLowerCase()}")
@@ -959,6 +963,7 @@ Finished executing task ':$taskName'|
             if (supportFailingBuildOnWarning && notUsingAgpWithWarnings && options.warningMode == WarningMode.Fail) {
                 add("--warning-mode=${WarningMode.Fail.name.toLowerCase()}")
             }
+
             addAll(options.freeCommandLineArgs)
         }
 
