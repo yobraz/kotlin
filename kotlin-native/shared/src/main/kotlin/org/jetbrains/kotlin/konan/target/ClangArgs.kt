@@ -97,6 +97,8 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
         }
 
         if (target == KonanTarget.MINGW_X64 && forJni) {
+            add(listOf("-isystem", "C:/ucrt/ucrt", "-isystem", "C:/VS2019BT/VC/Tools/MSVC/14.29.30037/include"))
+            add(listOf("-L", "C:/VS2019BT/VC/Tools/MSVC/14.29.30037/lib/x64", "-L", "C:/ucrt/ucrt_lib_x64", "-L", "C:/ucrt/x64"))
             add(listOf("-fuse-ld=lld"))
         }
 
