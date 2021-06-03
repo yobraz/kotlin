@@ -62,7 +62,7 @@ void consoleInit() {
 void consoleWriteUtf8(const char* utf8, uint32_t sizeBytes) {
 #ifdef KONAN_ANDROID
   // TODO: use sizeBytes!
-  __android_log_print(ANDROID_LOG_INFO, "Konan_main", "%s", utf8);
+  __android_log_print(ANDROID_LOG_INFO, "Konan_main", "%s", static_cast<const char*>(utf8));
 #else
   ::write(STDOUT_FILENO, utf8, sizeBytes);
 #endif
@@ -71,7 +71,7 @@ void consoleWriteUtf8(const char* utf8, uint32_t sizeBytes) {
 NO_EXTERNAL_CALLS_CHECK void consoleErrorUtf8(const char* utf8, uint32_t sizeBytes) {
 #ifdef KONAN_ANDROID
   // TODO: use sizeBytes!
-  __android_log_print(ANDROID_LOG_ERROR, "Konan_main", "%s", utf8);
+  __android_log_print(ANDROID_LOG_ERROR, "Konan_main", "%s", static_cast<const char*>(utf8));
 #else
   ::write(STDERR_FILENO, utf8, sizeBytes);
 #endif
