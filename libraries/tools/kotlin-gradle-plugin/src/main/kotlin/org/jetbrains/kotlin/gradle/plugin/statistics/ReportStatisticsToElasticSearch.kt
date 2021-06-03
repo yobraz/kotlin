@@ -16,11 +16,16 @@ import java.util.*
 object ReportStatisticsToElasticSearch : ReportStatistics {
     val url = CompilerSystemProperties.KOTLIN_STAT_ENDPOINT_PROPERTY.value
     val user = CompilerSystemProperties.KOTLIN_STAT_USER_PROPERTY.value
+    val enable = CompilerSystemProperties.KOTLIN_STAT_ENABLED_PROPERTY.toBooleanLenient()
 
     //TODO Do not store password as string
     val password = CompilerSystemProperties.KOTLIN_STAT_PASSWORD_PROPERTY.value
 
     override fun report(data: CompileStatData) {
+        if (!enable) {
+            //println("skip stat sending")
+            return;
+        }
         val connection = URL(url).openConnection() as HttpURLConnection
         try {
             if (user != null && password != null) {
@@ -38,9 +43,7 @@ object ReportStatisticsToElasticSearch : ReportStatistics {
             }
             connection.connect();
             checkResponseAndLog(connection)
-            println("${connection.responseCode}:${connection.responseMessage}")
-            val response = connection.inputStream.use { it.reader().use { reader -> reader.readText() } }
-            println(response);
+            connection.inputStream.use { it.reader().use { reader -> reader.readText() } }
         } finally {
             connection.disconnect()
         }
