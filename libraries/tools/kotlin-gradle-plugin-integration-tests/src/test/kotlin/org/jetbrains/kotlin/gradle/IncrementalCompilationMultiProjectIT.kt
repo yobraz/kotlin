@@ -243,8 +243,8 @@ open class A {
         project.build("build") {
             assertSuccessful()
             val affectedSources = project.projectDir.getFilesByNames(
-                "JavaClass",
-                "TrackedJavaClass",
+                "JavaClass.java",
+                "TrackedJavaClass.java",
                 "useTrackedJavaClassSameModule.kt",
                 "A.kt",
                 "B.kt",
