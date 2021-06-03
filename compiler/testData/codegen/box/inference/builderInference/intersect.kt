@@ -38,14 +38,14 @@ fun box(): String {
         intersect(Test.foo(getIn()), Test.foo(getIn()))
         intersect(Test.foo(getIn()), getIn())
 
-        build2 {
-            emit(1)
-            intersect(this@build.getIn(), getIn())
-            intersect(getIn(), Test.foo(this@build.getIn()))
-            intersect(Test.foo(this@build.getIn()), Test.foo(getIn()))
-            intersect(Test.foo(getIn()), this@build.getIn())
-            ""
-        }
+//        build2 {
+//            emit(1)
+//            intersect(this@build.getIn(), getIn())
+//            intersect(getIn(), Test.foo(this@build.getIn()))
+//            intersect(Test.foo(this@build.getIn()), Test.foo(getIn()))
+//            intersect(Test.foo(getIn()), this@build.getIn())
+//            ""
+//        }
         ""
     }
     return "OK"

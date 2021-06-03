@@ -446,7 +446,7 @@ object NewCommonSuperTypeCalculator {
             }
 
             val equalToEachOtherType = arguments.firstOrNull { potentialSuperType ->
-                arguments.all { AbstractTypeChecker.equalTypes(this, it.getType(), potentialSuperType.getType()) }
+                arguments.all { AbstractTypeChecker.equalTypes(this, it.getType(), potentialSuperType.getType(), false) }
             }
 
             return if (equalToEachOtherType == null) {
