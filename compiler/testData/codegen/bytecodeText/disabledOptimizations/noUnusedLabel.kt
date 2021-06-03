@@ -1,5 +1,3 @@
-// KOTLIN_CONFIGURATION_FLAGS: +JVM.DISABLE_OPTIMIZATION
-
 fun bar() {}
 
 fun foo(a: Boolean) { if (a) { foo(a) } }
