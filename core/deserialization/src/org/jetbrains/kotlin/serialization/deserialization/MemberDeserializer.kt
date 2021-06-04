@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.descriptors.impl.PropertySetterDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.deserialization.*
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.protobuf.MessageLite
 import org.jetbrains.kotlin.resolve.DescriptorFactory
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
@@ -279,7 +280,7 @@ class MemberDeserializer(private val c: DeserializationContext) {
             proto.receiverType(c.typeTable)?.let(local.typeDeserializer::type)?.let { receiverType ->
                 DescriptorFactory.createExtensionReceiverParameterForCallable(function, receiverType, receiverAnnotations)
             },
-            getDispatchReceiverParameter(),
+            getDispatchReceiverParameter(annotations),
             local.typeDeserializer.ownTypeParameters,
             local.memberDeserializer.valueParameters(proto.valueParameterList, proto, AnnotatedCallableKind.FUNCTION),
             local.typeDeserializer.type(proto.returnType(c.typeTable)),
@@ -328,8 +329,17 @@ class MemberDeserializer(private val c: DeserializationContext) {
         return typeAlias
     }
 
-    private fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
-        return (c.containingDeclaration as? ClassDescriptor)?.thisAsReceiverParameter
+    private fun getDispatchReceiverParameter(functionAnnotations: Annotations = Annotations.EMPTY): ReceiverParameterDescriptor? {
+        val containingClass = c.containingDeclaration as? ClassDescriptor
+        if (containingClass?.kind == ClassKind.CLASS) {
+            // Some synthesized functions (e.g. ones that are created by kotlinx.serialization plugin,
+            // see KSerializerDescriptorResolver#createWriteSelfFunctionDescriptor)
+            // should not have dispatch receiver parameter.
+            // Such declarations have @JvmStatic annotation _outside_ companion object.
+            if (functionAnnotations.hasAnnotation(FqName("kotlin.jvm.JvmStatic")))
+                return null
+        }
+        return containingClass?.thisAsReceiverParameter
     }
 
     fun loadConstructor(proto: ProtoBuf.Constructor, isPrimary: Boolean): ClassConstructorDescriptor {
