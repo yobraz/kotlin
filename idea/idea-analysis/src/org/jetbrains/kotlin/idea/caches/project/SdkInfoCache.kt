@@ -7,9 +7,9 @@ package org.jetbrains.kotlin.idea.caches.project
 
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import com.jetbrains.rd.util.concurrentMapOf
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.caches.project.cacheInvalidatingOnRootModifications
-import java.util.ArrayDeque
 
 /**
  * Maintains and caches mapping ModuleInfo -> SdkInfo *form its dependencies*
@@ -33,47 +33,52 @@ interface SdkInfoCache {
 }
 
 class SdkInfoCacheImpl(private val project: Project) : SdkInfoCache {
-    private val cache: MutableMap<ModuleInfo, SdkInfo?>
-        // Note: it's ok to use thread-unsafe map, because 'doFindSdk' is pure
-        get() = project.cacheInvalidatingOnRootModifications { mutableMapOf() }
+    @JvmInline
+    value class SdkDependency(val sdk: SdkInfo?)
+
+    private val cache: MutableMap<ModuleInfo, SdkDependency>
+        get() = project.cacheInvalidatingOnRootModifications { concurrentMapOf() }
 
     override fun findOrGetCachedSdk(moduleInfo: ModuleInfo): SdkInfo? {
-        if (!cache.containsKey(moduleInfo)) {
-            cache[moduleInfo] = doFindSdk(moduleInfo)
-        }
-
-        return cache[moduleInfo]
+        return doFindSdk(moduleInfo).sdk
     }
 
-    private fun doFindSdk(moduleInfo: ModuleInfo): SdkInfo? {
-        val libraryDependenciesCache = LibraryDependenciesCache.getInstance(this.project)
+    private fun doFindSdk(moduleInfo: ModuleInfo): SdkDependency {
+        val visitedModuleInfos = mutableSetOf<ModuleInfo>()
 
-        val checkedLibraryInfo = mutableSetOf<ModuleInfo>()
-        val stack = ArrayDeque<ModuleInfo>()
+        fun handleRecursivelyAndCache(currentModule: ModuleInfo): SdkDependency {
+            visitedModuleInfos.add(currentModule)
 
-        stack += moduleInfo
-
-        // bfs
-        while (stack.isNotEmpty()) {
-            val poll = stack.poll()
-            if (!checkedLibraryInfo.add(poll)) continue
-
-            val dependencies = run {
-                if (poll is LibraryInfo) {
-                    val (libraries, sdks) = libraryDependenciesCache.getLibrariesAndSdksUsedWith(poll)
-                    sdks.firstOrNull()?.let { return it }
-                    libraries
-                } else {
-                    poll.dependencies()
+            // positive result - is Sdk or already cached
+            cache[currentModule]?.let { return it }
+            if (currentModule is SdkInfo) {
+                SdkDependency(currentModule).also { newDependency ->
+                    cache[currentModule] = newDependency
+                    return newDependency
                 }
-            }.filter { !checkedLibraryInfo.contains(it) }
+            }
 
-            dependencies.firstOrNull { it is SdkInfo }
-                ?.let { return it as SdkInfo }
+            // no positive result on current level - try dependencies
+            for (dependency in currentModule.dependencies()) {
+                if (dependency !in visitedModuleInfos) {
+                    val sdkFromDependency = handleRecursivelyAndCache(dependency)
+                    when (sdkFromDependency.sdk) {
+                        null -> continue // this dependency has no transitive dependency on SDK, but other might have
+                        else -> {
+                            cache[currentModule] = sdkFromDependency
+                            return sdkFromDependency
+                        }
+                    }
+                }
+            }
 
-            stack += dependencies
+            // no positive result for module info and all transitive deps
+            SdkDependency(null).also { notFoundDependency ->
+                cache[currentModule] = notFoundDependency
+                return notFoundDependency
+            }
         }
 
-        return null
+        return handleRecursivelyAndCache(moduleInfo)
     }
 }
