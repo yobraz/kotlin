@@ -50,6 +50,9 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingContextUtils
 import org.jetbrains.kotlin.resolve.CompilerEnvironment
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
+import org.jetbrains.kotlin.test.ConfigurationKind
+import org.jetbrains.kotlin.test.TestJdkKind
+import org.jetbrains.kotlin.test.util.KtTestUtil
 import org.jetbrains.kotlin.util.DummyLogger
 import org.jetbrains.kotlin.utils.rethrow
 import java.io.File
@@ -57,14 +60,19 @@ import java.util.*
 
 abstract class AbstractKlibTextTestCase : CodegenTestCase() {
     override fun doMultiFileTest(wholeFile: File, files: List<TestFile>) {
-        setupEnvironment()
+        setupEnvironment(files)
 
         loadMultiFiles(files)
         doTest(wholeFile)
     }
 
-    private fun setupEnvironment() {
-        val configuration = CompilerConfiguration()
+    private fun setupEnvironment(files: List<TestFile>) {
+        val configuration = createConfiguration(
+            ConfigurationKind.ALL, TestJdkKind.MOCK_JDK, backend,
+            listOf<File>(KtTestUtil.getAnnotationsJar()),
+            listOfNotNull(writeJavaFiles(files)),
+            files
+        )
         configuration.put(CommonConfigurationKeys.MODULE_NAME, "testModule")
         myEnvironment = KotlinCoreEnvironment.createForTests(testRootDisposable, configuration, EnvironmentConfigFiles.JS_CONFIG_FILES)
     }
@@ -213,7 +221,7 @@ abstract class AbstractKlibTextTestCase : CodegenTestCase() {
 
     private val runtimeKlibPath = "libraries/stdlib/js-ir/build/classes/kotlin/js/main"
 
-    protected fun buildFragmentAndLinkIt(stdlib: KotlinLibrary, ignoreErrors: Boolean): Pair<IrModuleFragment, BindingContext> {
+    private fun buildFragmentAndLinkIt(stdlib: KotlinLibrary, ignoreErrors: Boolean): Pair<IrModuleFragment, BindingContext> {
         return generateIrModule(stdlib, ignoreErrors)
     }
 
