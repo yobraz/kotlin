@@ -74,13 +74,13 @@ abstract class AbstractKlibTextTestCase : CodegenTestCase() {
         val ignoreErrors = AbstractIrGeneratorTestCase.shouldIgnoreErrors(wholeFile)
         val stdlib = loadKlibFromPath(listOf(runtimeKlibPath)).single()
         val (irModule, bindingContext) = buildFragmentAndLinkIt(stdlib, ignoreErrors)
-        val expected = irModule.dump()
+        val expected = irModule.dump(stableOrder = true)
         val klibPath = serializeModule(irModule, bindingContext, stdlib, ignoreErrors)
         val libs = loadKlibFromPath(listOf(runtimeKlibPath, klibPath))
         val stdlib2 = libs[0]
         val klib = libs[1]
         val deserializedIrModule = deserializeModule(stdlib2, klib)
-        val actual = deserializedIrModule.dump()
+        val actual = deserializedIrModule.dump(stableOrder = true)
 
         try {
             TestCase.assertEquals(wholeFile.name, expected, actual)
