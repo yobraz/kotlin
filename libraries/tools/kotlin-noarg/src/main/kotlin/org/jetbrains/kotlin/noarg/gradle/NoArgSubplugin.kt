@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.GradleKpmCompilerPlugin
 import org.jetbrains.kotlin.noarg.NoArgKpmCompilerPlugin
 import org.jetbrains.kotlin.noarg.gradle.model.builder.NoArgModelBuilder
+import org.jetbrains.kotlin.project.model.PluginData
 import javax.inject.Inject
 
 class NoArgGradleSubplugin @Inject internal constructor(private val registry: ToolingModelBuilderRegistry) :
@@ -108,7 +109,11 @@ class NoArgGradleSubplugin @Inject internal constructor(private val registry: To
         NoArgKpmCompilerPlugin(
             annotations = extension.myAnnotations,
             presets = extension.myPresets,
-            invokeInitializers = extension.invokeInitializers
+            invokeInitializers = extension.invokeInitializers,
+            commonPluginArtifact = PluginData.ArtifactCoordinates(
+                group = "org.jetbrains.kotlin",
+                artifact = "kotlin-noarg"
+            )
         )
     }
 }

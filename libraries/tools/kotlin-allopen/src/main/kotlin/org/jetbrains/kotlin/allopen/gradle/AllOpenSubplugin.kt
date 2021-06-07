@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.allopen.gradle.model.builder.AllOpenModelBuilder
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.GradleKpmCompilerPlugin
+import org.jetbrains.kotlin.project.model.PluginData
 import javax.inject.Inject
 
 class AllOpenGradleSubplugin @Inject internal constructor(private val registry: ToolingModelBuilderRegistry) :
@@ -103,7 +104,11 @@ class AllOpenGradleSubplugin @Inject internal constructor(private val registry: 
         val extension = getAllOpenExtension(project)
         AllOpenKpmCompilerPlugin(
             annotations = extension.myAnnotations,
-            presets = extension.myPresets
+            presets = extension.myPresets,
+            commonPluginArtifact = PluginData.ArtifactCoordinates(
+                group = "org.jetbrains.kotlin",
+                artifact = "kotlin-allopen"
+            )
         )
     }
 }

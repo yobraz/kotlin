@@ -95,8 +95,9 @@ class AllOpenComponentRegistrar : ComponentRegistrar {
 }
 
 class AllOpenKpmCompilerPlugin(
+    override val commonPluginArtifact: PluginData.ArtifactCoordinates,
     annotations: List<String>,
-    presets: List<String>
+    presets: List<String>,
 ) : BasicKpmCompilerPlugin() {
     override val pluginId = AllOpenCommandLineProcessor.PLUGIN_ID
 
@@ -108,15 +109,10 @@ class AllOpenKpmCompilerPlugin(
             StringOption(
                 key = cliOption.optionName,
                 value = value,
-                sensitive = true
+                isTransient = false
             )
         }
     }
 
-    override fun commonPluginArtifact() = PluginData.ArtifactCoordinates(
-        group = "org.jetbrains.kotlin",
-        artifact = "kotlin-allopen"
-    )
-
-    override fun nativePluginArtifact(): PluginData.ArtifactCoordinates? = null
+    override val nativePluginArtifact: PluginData.ArtifactCoordinates? = null
 }

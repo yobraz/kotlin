@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.GradleKpmCompilerPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.project.model.PluginData
 import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationKpmCompilerPlugin
 
 class SerializationGradleSubplugin :
@@ -67,5 +68,17 @@ class SerializationGradleSubplugin :
     )
     //endregion
 
-    override val kpmCompilerPlugin = SerializationKpmCompilerPlugin
+    override val kpmCompilerPlugin by lazy {
+        SerializationKpmCompilerPlugin(
+            commonPluginArtifact = PluginData.ArtifactCoordinates(
+                group = "org.jetbrains.kotlin",
+                artifact = "kotlin-serialization"
+            ),
+
+            nativePluginArtifact = PluginData.ArtifactCoordinates(
+                group = "org.jetbrains.kotlin",
+                artifact = "kotlin-serialization-unshaded"
+            )
+        )
+    }
 }

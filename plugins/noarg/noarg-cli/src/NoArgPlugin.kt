@@ -124,6 +124,7 @@ private class CliNoArgComponentContainerContributor(
 }
 
 class NoArgKpmCompilerPlugin(
+    override val commonPluginArtifact: PluginData.ArtifactCoordinates,
     private val annotations: List<String>,
     private val presets: List<String>,
     private val invokeInitializers: Boolean
@@ -143,10 +144,5 @@ class NoArgKpmCompilerPlugin(
         options
     }
 
-    override fun commonPluginArtifact() = PluginData.ArtifactCoordinates(
-        group = "org.jetbrains.kotlin",
-        artifact = "kotlin-allopen"
-    )
-
-    override fun nativePluginArtifact(): PluginData.ArtifactCoordinates? = null
+    override val nativePluginArtifact: PluginData.ArtifactCoordinates? = null
 }

@@ -102,20 +102,20 @@ abstract class BasicKpmCompilerPlugin : KpmCompilerPlugin {
 
     abstract val pluginId: String
 
-    protected abstract fun commonPluginArtifact(): PluginData.ArtifactCoordinates?
+    protected abstract val commonPluginArtifact: PluginData.ArtifactCoordinates?
 
-    protected abstract fun nativePluginArtifact(): PluginData.ArtifactCoordinates?
+    protected abstract val nativePluginArtifact: PluginData.ArtifactCoordinates?
 
     protected abstract val pluginOptions: List<PluginOption>
 
-    override fun forMetadataCompilation(fragment: KotlinModuleFragment) = pluginDataOrNull(commonPluginArtifact())
+    override fun forMetadataCompilation(fragment: KotlinModuleFragment) = pluginDataOrNull(commonPluginArtifact)
 
-    override fun forNativeMetadataCompilation(fragment: KotlinModuleFragment) = pluginDataOrNull(nativePluginArtifact())
+    override fun forNativeMetadataCompilation(fragment: KotlinModuleFragment) = pluginDataOrNull(nativePluginArtifact)
 
     override fun forPlatformCompilation(variant: KotlinModuleVariant) =
         when (variant.platform) {
-            KotlinPlatformTypeAttribute.NATIVE -> nativePluginArtifact()
-            else -> commonPluginArtifact()
+            KotlinPlatformTypeAttribute.NATIVE -> nativePluginArtifact
+            else -> commonPluginArtifact
         }.let(::pluginDataOrNull)
 
     private fun pluginDataOrNull(artifact: PluginData.ArtifactCoordinates?) =

@@ -88,6 +88,7 @@ class CliSamWithReceiverComponentContributor(val annotations: List<String>): Sto
 }
 
 class SamWithReceiverKpmCompilerPlugin(
+    override val commonPluginArtifact: PluginData.ArtifactCoordinates,
     annotations: List<String>,
     presets: List<String>
 ): BasicKpmCompilerPlugin() {
@@ -100,10 +101,5 @@ class SamWithReceiverKpmCompilerPlugin(
         values.map { value -> StringOption(cliOption.optionName, value) }
     }
 
-    override fun commonPluginArtifact() = PluginData.ArtifactCoordinates(
-        group = "org.jetbrains.kotlin",
-        artifact = "kotlin-sam-with-receiver"
-    )
-
-    override fun nativePluginArtifact(): PluginData.ArtifactCoordinates? = null
+    override val nativePluginArtifact: PluginData.ArtifactCoordinates? = null
 }

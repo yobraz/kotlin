@@ -7,7 +7,9 @@ package org.jetbrains.kotlin.parcelize
 
 import org.jetbrains.kotlin.project.model.*
 
-object ParcelizeKpmCompilerPlugin : KpmCompilerPlugin {
+class ParcelizeKpmCompilerPlugin(
+    private val artifact: PluginData.ArtifactCoordinates
+) : KpmCompilerPlugin {
     override fun forMetadataCompilation(fragment: KotlinModuleFragment): PluginData? = null
 
     override fun forNativeMetadataCompilation(fragment: KotlinModuleFragment): PluginData? = null
@@ -17,10 +19,7 @@ object ParcelizeKpmCompilerPlugin : KpmCompilerPlugin {
 
         return PluginData(
             pluginId = "org.jetbrains.kotlin.parcelize",
-            artifact = PluginData.ArtifactCoordinates(
-                group = "org.jetbrains.kotlin",
-                artifact = "kotlin-parcelize-compiler"
-            ),
+            artifact = artifact,
             options = emptyList()
         )
     }

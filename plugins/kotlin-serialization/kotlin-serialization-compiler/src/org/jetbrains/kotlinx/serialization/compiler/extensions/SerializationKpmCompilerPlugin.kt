@@ -9,18 +9,11 @@ import org.jetbrains.kotlin.project.model.BasicKpmCompilerPlugin
 import org.jetbrains.kotlin.project.model.PluginData
 import org.jetbrains.kotlin.project.model.PluginOption
 
-object SerializationKpmCompilerPlugin : BasicKpmCompilerPlugin() {
+class SerializationKpmCompilerPlugin(
+    override val commonPluginArtifact: PluginData.ArtifactCoordinates,
+    override val nativePluginArtifact: PluginData.ArtifactCoordinates
+) : BasicKpmCompilerPlugin() {
     override val pluginId = "org.jetbrains.kotlinx.serialization"
 
     override val pluginOptions: List<PluginOption> = emptyList()
-
-    override fun commonPluginArtifact() = PluginData.ArtifactCoordinates(
-        group = "org.jetbrains.kotlin",
-        artifact = "kotlin-serialization"
-    )
-
-    override fun nativePluginArtifact() = PluginData.ArtifactCoordinates(
-        group = "org.jetbrains.kotlin",
-        artifact = "kotlin-serialization-unshaded"
-    )
 }

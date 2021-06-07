@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.GradleKpmCompilerPlugin
 import org.jetbrains.kotlin.noarg.gradle.model.builder.SamWithReceiverModelBuilder
+import org.jetbrains.kotlin.project.model.PluginData
 import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverKpmCompilerPlugin
 import javax.inject.Inject
 
@@ -100,7 +101,11 @@ class SamWithReceiverGradleSubplugin @Inject internal constructor(private val re
         val extension = project.extensions.getByType(SamWithReceiverExtension::class.java)
         SamWithReceiverKpmCompilerPlugin(
             annotations = extension.myAnnotations,
-            presets = extension.myPresets
+            presets = extension.myPresets,
+            commonPluginArtifact = PluginData.ArtifactCoordinates(
+                group = "org.jetbrains.kotlin",
+                artifact = "kotlin-sam-with-receiver"
+            )
         )
     }
 }

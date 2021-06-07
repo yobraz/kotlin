@@ -284,7 +284,11 @@ class ScriptingKotlinGradleSubplugin :
             scriptDefinitions = extension.myScriptDefinitions,
             scriptDefinitionsClasspath = extension.myScriptDefinitionsClasspath,
             disableScriptDefinitionsFromClassPath = extension.myDisableScriptDefinitionsFromClasspath,
-            legacyScriptResolverEnvironment = extension.myScriptResolverEnvironment
+            legacyScriptResolverEnvironment = extension.myScriptResolverEnvironment,
+            commonPluginArtifact = PluginData.ArtifactCoordinates(
+                group = "org.jetbrains.kotlin",
+                artifact = "kotlin-scripting-compiler-embeddable"
+            )
         )
     }
 }

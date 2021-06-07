@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCommandLineProces
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCommandLineProcessor.Companion.SCRIPT_DEFINITIONS_OPTION
 
 class ScriptingKpmCompilerPlugin(
+    override val commonPluginArtifact: PluginData.ArtifactCoordinates,
     private val scriptDefinitions: List<String>,
     private val scriptDefinitionsClasspath: List<String>,
     private val disableScriptDefinitionsFromClassPath: Boolean,
@@ -38,10 +39,5 @@ class ScriptingKpmCompilerPlugin(
         options
     }
 
-    override fun commonPluginArtifact() = PluginData.ArtifactCoordinates(
-        group = "org.jetbrains.kotlin",
-        artifact = "kotlin-scripting-compiler-embeddable"
-    )
-
-    override fun nativePluginArtifact(): PluginData.ArtifactCoordinates? = null
+    override val nativePluginArtifact: PluginData.ArtifactCoordinates? = null
 }
