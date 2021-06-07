@@ -108,6 +108,7 @@ class IrOverridingUtil(
                     this.setter?.let { setter ->
                         setter.overriddenSymbols = value.mapNotNull { (it.owner as IrProperty).setter?.symbol }
                     }
+                    this.overriddenSymbols = value.map { it as IrPropertySymbol }
                 }
                 else -> error("Unexpected declaration for overriddenSymbols: $this")
             }
