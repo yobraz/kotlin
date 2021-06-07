@@ -342,6 +342,7 @@ internal fun fromInt(value: Int) = Long(value, if (value < 0) -1 else 0)
  * Returns zero if this `Double` value is `NaN`, [Long.MIN_VALUE] if it's less than `Long.MIN_VALUE`,
  * [Long.MAX_VALUE] if it's bigger than `Long.MAX_VALUE`.
  */
+@OptIn(JsIntrinsic::class)
 internal fun fromNumber(value: Double): Long {
     if (value.isNaN()) {
         return ZERO;

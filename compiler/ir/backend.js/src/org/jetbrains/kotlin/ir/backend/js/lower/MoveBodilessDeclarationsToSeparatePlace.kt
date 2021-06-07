@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.backend.js.utils.getJsQualifier
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFileImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrFileSymbolImpl
+import org.jetbrains.kotlin.ir.util.constructedClass
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.isEffectivelyExternal
 import org.jetbrains.kotlin.ir.util.render
@@ -45,6 +46,11 @@ private val BODILESS_BUILTIN_CLASSES = listOf(
 
 private fun isBuiltInClass(declaration: IrDeclaration): Boolean =
     declaration is IrClass && declaration.fqNameWhenAvailable in BODILESS_BUILTIN_CLASSES
+
+private val JsIntrinsicFqName = FqName("kotlin.js.JsIntrinsic")
+
+private fun isIntrinsic(declaration: IrDeclaration): Boolean =
+    declaration.annotations.any { it.symbol.owner.constructedClass.fqNameWhenAvailable == JsIntrinsicFqName }
 
 fun moveBodilessDeclarationsToSeparatePlace(context: JsIrBackendContext, moduleFragment: IrModuleFragment) {
     MoveBodilessDeclarationsToSeparatePlaceLowering(context).let { moveBodiless ->
@@ -80,7 +86,7 @@ class MoveBodilessDeclarationsToSeparatePlaceLowering(private val context: JsIrB
         } else {
             val d = declaration as? IrDeclarationWithName ?: return null
 
-            if (isBuiltInClass(d)) {
+            if (isBuiltInClass(d) || isIntrinsic(d)) {
                 context.bodilessBuiltInsPackageFragment.addChild(d)
                 d.collectAllExternalDeclarations()
 

@@ -3,10 +3,26 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-@file:Suppress("UNUSED_PARAMETER")
+@file:Suppress("UNUSED_PARAMETER", "NOTHING_TO_INLINE")
+@file:OptIn(JsIntrinsic::class)
 
 package kotlin.js
 
+
+// Parameters are suffixed with `_hack` as a workaround for Namer.
+// TODO: Implemet as compiler intrinsics
+
+/**
+ * Function corresponding to JavaScript's `typeof` operator
+ */
+public fun jsTypeOf(value_hack: Any?): String =
+    js("typeof value_hack").unsafeCast<String>()
+
+@OptIn(JsIntrinsic::class)
 internal inline fun jsDeleteProperty(obj: Any, property: Any) {
     jsDelete(obj.asDynamic()[property])
 }
+
+// Used in common stdlib code (reflection.kt)
+@OptIn(JsIntrinsic::class)
+internal inline fun jsBitwiseOr(lhs: Any?, rhs: Any?): Int = jsBitOr(lhs, rhs)

@@ -14,12 +14,10 @@ class IrDeclarationToJsTransformer : BaseIrElementToJsNodeTransformer<JsStatemen
 
     override fun visitSimpleFunction(declaration: IrSimpleFunction, context: JsGenerationContext): JsStatement {
         require(!declaration.isExpect)
-        if (declaration.body == null) return JsEmpty
         return declaration.accept(IrFunctionToJsTransformer(), context).makeStmt()
     }
 
     override fun visitConstructor(declaration: IrConstructor, context: JsGenerationContext): JsStatement {
-        if (declaration.body == null) return JsEmpty
         return declaration.accept(IrFunctionToJsTransformer(), context).makeStmt()
     }
 
