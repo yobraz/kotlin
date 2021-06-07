@@ -110,6 +110,20 @@ class CommonizerHierarchicalIT : BaseGradleIT() {
         }
     }
 
+    @Test
+    fun `test platform dependencies on leaf source sets`() {
+        with(Project("commonizeHierarchicallyPlatformDependencies")) {
+            build(":checkPlatformDependencies") {
+                assertSuccessful()
+                assertTasksExecuted(":commonizeNativeDistribution")
+                assertTasksExecuted(":checkLinuxX64MainPlatformDependencies")
+                assertTasksExecuted(":checkLinuxArm64MainPlatformDependencies")
+                assertContainsRegex(Regex(""".*linuxX64Main.*/klib/platform/.*[Pp]osix.*"""))
+                assertContainsRegex(Regex(""".*linuxArm64Main.*/klib/platform/.*[Pp]osix.*"""))
+            }
+        }
+    }
+
     private object Os {
         private val os = OperatingSystem.current()
         val canCompileApple get() = os.isMacOsX
