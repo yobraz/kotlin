@@ -68,4 +68,29 @@ class KpmCompilerPluginIT : BaseGradleIT() {
             }
         }
     }
+
+    @Test
+    fun testBasicCompilerPlugins() {
+        val project = transformProjectWithPluginsDsl("kpmBasicCompilerPlugins")
+
+        project.build("compileKotlin") {
+            assertSuccessful()
+            pluginClasspath(":compileKotlinJvm").also { pluginCp ->
+                val artifacts = listOf(
+                    "kotlin-allopen",
+                    "kotlin-noarg",
+                    "kotlin-sam-with-receiver",
+                )
+
+                artifacts.forEach {
+                    assertTrue(pluginCp.contains(it), "Artifact $it is expected in Plugin Classpath")
+                }
+            }
+        }
+    }
+
+    private fun CompiledProject.pluginClasspath(taskName: String) = compilerArgs(taskName)
+        .let { it.split(" ") }
+        .firstOrNull { it.startsWith("-Xplugin=") }
+        ?: error("Can't find plugin classpath in compiler args of taskname $taskName")
 }
