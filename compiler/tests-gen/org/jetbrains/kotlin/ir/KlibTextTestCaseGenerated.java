@@ -57,11 +57,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/classes/argumentReorderingInDelegatingConstructorCall.kt");
         }
 
-        @TestMetadata("clashingFakeOverrideSignatures.kt")
-        public void testClashingFakeOverrideSignatures() throws Exception {
-            runTest("compiler/testData/ir/irText/classes/clashingFakeOverrideSignatures.kt");
-        }
-
         @TestMetadata("classMembers.kt")
         public void testClassMembers() throws Exception {
             runTest("compiler/testData/ir/irText/classes/classMembers.kt");
@@ -70,11 +65,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
         @TestMetadata("classes.kt")
         public void testClasses() throws Exception {
             runTest("compiler/testData/ir/irText/classes/classes.kt");
-        }
-
-        @TestMetadata("cloneable.kt")
-        public void testCloneable() throws Exception {
-            runTest("compiler/testData/ir/irText/classes/cloneable.kt");
         }
 
         @TestMetadata("companionObject.kt")
@@ -105,11 +95,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
         @TestMetadata("delegatedImplementation.kt")
         public void testDelegatedImplementation() throws Exception {
             runTest("compiler/testData/ir/irText/classes/delegatedImplementation.kt");
-        }
-
-        @TestMetadata("delegatedImplementationOfJavaInterface.kt")
-        public void testDelegatedImplementationOfJavaInterface() throws Exception {
-            runTest("compiler/testData/ir/irText/classes/delegatedImplementationOfJavaInterface.kt");
         }
 
         @TestMetadata("delegatedImplementationWithExplicitOverride.kt")
@@ -145,16 +130,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
         @TestMetadata("enumWithSecondaryCtor.kt")
         public void testEnumWithSecondaryCtor() throws Exception {
             runTest("compiler/testData/ir/irText/classes/enumWithSecondaryCtor.kt");
-        }
-
-        @TestMetadata("fakeOverridesForJavaStaticMembers.kt")
-        public void testFakeOverridesForJavaStaticMembers() throws Exception {
-            runTest("compiler/testData/ir/irText/classes/fakeOverridesForJavaStaticMembers.kt");
-        }
-
-        @TestMetadata("implicitNotNullOnDelegatedImplementation.kt")
-        public void testImplicitNotNullOnDelegatedImplementation() throws Exception {
-            runTest("compiler/testData/ir/irText/classes/implicitNotNullOnDelegatedImplementation.kt");
         }
 
         @TestMetadata("initBlock.kt")
@@ -205,26 +180,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
         @TestMetadata("kt31649.kt")
         public void testKt31649() throws Exception {
             runTest("compiler/testData/ir/irText/classes/kt31649.kt");
-        }
-
-        @TestMetadata("kt43217.kt")
-        public void testKt43217() throws Exception {
-            runTest("compiler/testData/ir/irText/classes/kt43217.kt");
-        }
-
-        @TestMetadata("kt44013.kt")
-        public void testKt44013() throws Exception {
-            runTest("compiler/testData/ir/irText/classes/kt44013.kt");
-        }
-
-        @TestMetadata("kt45853.kt")
-        public void testKt45853() throws Exception {
-            runTest("compiler/testData/ir/irText/classes/kt45853.kt");
-        }
-
-        @TestMetadata("kt45934.kt")
-        public void testKt45934() throws Exception {
-            runTest("compiler/testData/ir/irText/classes/kt45934.kt");
         }
 
         @TestMetadata("lambdaInDataClassDefaultParameter.kt")
@@ -350,11 +305,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/declarations/fakeOverrides.kt");
         }
 
-        @TestMetadata("fileWithAnnotations.kt")
-        public void testFileWithAnnotations() throws Exception {
-            runTest("compiler/testData/ir/irText/declarations/fileWithAnnotations.kt");
-        }
-
         @TestMetadata("fileWithTypeAliasesOnly.kt")
         public void testFileWithTypeAliasesOnly() throws Exception {
             runTest("compiler/testData/ir/irText/declarations/fileWithTypeAliasesOnly.kt");
@@ -378,11 +328,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
         @TestMetadata("kt27005.kt")
         public void testKt27005() throws Exception {
             runTest("compiler/testData/ir/irText/declarations/kt27005.kt");
-        }
-
-        @TestMetadata("kt29833.kt")
-        public void testKt29833() throws Exception {
-            runTest("compiler/testData/ir/irText/declarations/kt29833.kt");
         }
 
         @TestMetadata("kt35550.kt")
@@ -530,11 +475,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             @TestMetadata("inheritingDeprecation.kt")
             public void testInheritingDeprecation() throws Exception {
                 runTest("compiler/testData/ir/irText/declarations/annotations/inheritingDeprecation.kt");
-            }
-
-            @TestMetadata("javaAnnotation.kt")
-            public void testJavaAnnotation() throws Exception {
-                runTest("compiler/testData/ir/irText/declarations/annotations/javaAnnotation.kt");
             }
 
             @TestMetadata("localDelegatedPropertiesWithAnnotations.kt")
@@ -731,11 +671,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
                 runTest("compiler/testData/ir/irText/declarations/provideDelegate/differentReceivers.kt");
             }
 
-            @TestMetadata("javaDelegate.kt")
-            public void testJavaDelegate() throws Exception {
-                runTest("compiler/testData/ir/irText/declarations/provideDelegate/javaDelegate.kt");
-            }
-
             @TestMetadata("local.kt")
             public void testLocal() throws Exception {
                 runTest("compiler/testData/ir/irText/declarations/provideDelegate/local.kt");
@@ -913,24 +848,9 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/expressions/chainOfSafeCalls.kt");
         }
 
-        @TestMetadata("classReference.kt")
-        public void testClassReference() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/classReference.kt");
-        }
-
-        @TestMetadata("coercionToUnit.kt")
-        public void testCoercionToUnit() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/coercionToUnit.kt");
-        }
-
         @TestMetadata("complexAugmentedAssignment.kt")
         public void testComplexAugmentedAssignment() throws Exception {
             runTest("compiler/testData/ir/irText/expressions/complexAugmentedAssignment.kt");
-        }
-
-        @TestMetadata("constructorWithOwnTypeParametersCall.kt")
-        public void testConstructorWithOwnTypeParametersCall() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/constructorWithOwnTypeParametersCall.kt");
         }
 
         @TestMetadata("contructorCall.kt")
@@ -976,11 +896,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
         @TestMetadata("equality.kt")
         public void testEquality() throws Exception {
             runTest("compiler/testData/ir/irText/expressions/equality.kt");
-        }
-
-        @TestMetadata("equals.kt")
-        public void testEquals() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/equals.kt");
         }
 
         @TestMetadata("exhaustiveWhenElseBranch.kt")
@@ -1058,11 +973,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/expressions/implicitCastInReturnFromConstructor.kt");
         }
 
-        @TestMetadata("implicitCastOnPlatformType.kt")
-        public void testImplicitCastOnPlatformType() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/implicitCastOnPlatformType.kt");
-        }
-
         @TestMetadata("implicitCastToNonNull.kt")
         public void testImplicitCastToNonNull() throws Exception {
             runTest("compiler/testData/ir/irText/expressions/implicitCastToNonNull.kt");
@@ -1071,11 +981,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
         @TestMetadata("implicitCastToTypeParameter.kt")
         public void testImplicitCastToTypeParameter() throws Exception {
             runTest("compiler/testData/ir/irText/expressions/implicitCastToTypeParameter.kt");
-        }
-
-        @TestMetadata("implicitNotNullInDestructuringAssignment.kt")
-        public void testImplicitNotNullInDestructuringAssignment() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/implicitNotNullInDestructuringAssignment.kt");
         }
 
         @TestMetadata("in.kt")
@@ -1091,36 +996,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
         @TestMetadata("interfaceThisRef.kt")
         public void testInterfaceThisRef() throws Exception {
             runTest("compiler/testData/ir/irText/expressions/interfaceThisRef.kt");
-        }
-
-        @TestMetadata("javaSyntheticGenericPropretyAccess.kt")
-        public void testJavaSyntheticGenericPropretyAccess() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/javaSyntheticGenericPropretyAccess.kt");
-        }
-
-        @TestMetadata("javaSyntheticPropertyAccess.kt")
-        public void testJavaSyntheticPropertyAccess() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/javaSyntheticPropertyAccess.kt");
-        }
-
-        @TestMetadata("jvmFieldReferenceWithIntersectionTypes.kt")
-        public void testJvmFieldReferenceWithIntersectionTypes() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/jvmFieldReferenceWithIntersectionTypes.kt");
-        }
-
-        @TestMetadata("jvmInstanceFieldReference.kt")
-        public void testJvmInstanceFieldReference() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/jvmInstanceFieldReference.kt");
-        }
-
-        @TestMetadata("jvmStaticFieldReference.kt")
-        public void testJvmStaticFieldReference() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/jvmStaticFieldReference.kt");
-        }
-
-        @TestMetadata("kt16904.kt")
-        public void testKt16904() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/kt16904.kt");
         }
 
         @TestMetadata("kt16905.kt")
@@ -1203,19 +1078,9 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/expressions/kt42321.kt");
         }
 
-        @TestMetadata("kt44993.kt")
-        public void testKt44993() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/kt44993.kt");
-        }
-
         @TestMetadata("kt45022.kt")
         public void testKt45022() throws Exception {
             runTest("compiler/testData/ir/irText/expressions/kt45022.kt");
-        }
-
-        @TestMetadata("kt47082.kt")
-        public void testKt47082() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/kt47082.kt");
         }
 
         @TestMetadata("lambdaInCAO.kt")
@@ -1248,16 +1113,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/expressions/multipleThisReferences.kt");
         }
 
-        @TestMetadata("nullCheckOnGenericLambdaReturn.kt")
-        public void testNullCheckOnGenericLambdaReturn() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/nullCheckOnGenericLambdaReturn.kt");
-        }
-
-        @TestMetadata("nullCheckOnLambdaReturn.kt")
-        public void testNullCheckOnLambdaReturn() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/nullCheckOnLambdaReturn.kt");
-        }
-
         @TestMetadata("objectAsCallable.kt")
         public void testObjectAsCallable() throws Exception {
             runTest("compiler/testData/ir/irText/expressions/objectAsCallable.kt");
@@ -1266,11 +1121,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
         @TestMetadata("objectByNameInsideObject.kt")
         public void testObjectByNameInsideObject() throws Exception {
             runTest("compiler/testData/ir/irText/expressions/objectByNameInsideObject.kt");
-        }
-
-        @TestMetadata("objectClassReference.kt")
-        public void testObjectClassReference() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/objectClassReference.kt");
         }
 
         @TestMetadata("objectReference.kt")
@@ -1303,16 +1153,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/expressions/primitivesImplicitConversions.kt");
         }
 
-        @TestMetadata("propertyReferences.kt")
-        public void testPropertyReferences() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/propertyReferences.kt");
-        }
-
-        @TestMetadata("protectedJavaFieldRef.kt")
-        public void testProtectedJavaFieldRef() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/protectedJavaFieldRef.kt");
-        }
-
         @TestMetadata("references.kt")
         public void testReferences() throws Exception {
             runTest("compiler/testData/ir/irText/expressions/references.kt");
@@ -1336,11 +1176,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
         @TestMetadata("safeCalls.kt")
         public void testSafeCalls() throws Exception {
             runTest("compiler/testData/ir/irText/expressions/safeCalls.kt");
-        }
-
-        @TestMetadata("setFieldWithImplicitCast.kt")
-        public void testSetFieldWithImplicitCast() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/setFieldWithImplicitCast.kt");
         }
 
         @TestMetadata("signedToUnsignedConversions.kt")
@@ -1436,11 +1271,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
         @TestMetadata("typeAliasConstructorReference.kt")
         public void testTypeAliasConstructorReference() throws Exception {
             runTest("compiler/testData/ir/irText/expressions/typeAliasConstructorReference.kt");
-        }
-
-        @TestMetadata("typeArguments.kt")
-        public void testTypeArguments() throws Exception {
-            runTest("compiler/testData/ir/irText/expressions/typeArguments.kt");
         }
 
         @TestMetadata("typeOperators.kt")
@@ -1773,61 +1603,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             public void testAllFilesPresentInSam() throws Exception {
                 KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/ir/irText/expressions/sam"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JS_IR, true);
             }
-
-            @TestMetadata("arrayAsVarargAfterSamArgument.kt")
-            public void testArrayAsVarargAfterSamArgument() throws Exception {
-                runTest("compiler/testData/ir/irText/expressions/sam/arrayAsVarargAfterSamArgument.kt");
-            }
-
-            @TestMetadata("genericSamProjectedOut.kt")
-            public void testGenericSamProjectedOut() throws Exception {
-                runTest("compiler/testData/ir/irText/expressions/sam/genericSamProjectedOut.kt");
-            }
-
-            @TestMetadata("genericSamSmartcast.kt")
-            public void testGenericSamSmartcast() throws Exception {
-                runTest("compiler/testData/ir/irText/expressions/sam/genericSamSmartcast.kt");
-            }
-
-            @TestMetadata("samByProjectedType.kt")
-            public void testSamByProjectedType() throws Exception {
-                runTest("compiler/testData/ir/irText/expressions/sam/samByProjectedType.kt");
-            }
-
-            @TestMetadata("samConstructors.kt")
-            public void testSamConstructors() throws Exception {
-                runTest("compiler/testData/ir/irText/expressions/sam/samConstructors.kt");
-            }
-
-            @TestMetadata("samConversionInGenericConstructorCall.kt")
-            public void testSamConversionInGenericConstructorCall() throws Exception {
-                runTest("compiler/testData/ir/irText/expressions/sam/samConversionInGenericConstructorCall.kt");
-            }
-
-            @TestMetadata("samConversionInGenericConstructorCall_NI.kt")
-            public void testSamConversionInGenericConstructorCall_NI() throws Exception {
-                runTest("compiler/testData/ir/irText/expressions/sam/samConversionInGenericConstructorCall_NI.kt");
-            }
-
-            @TestMetadata("samConversionToGeneric.kt")
-            public void testSamConversionToGeneric() throws Exception {
-                runTest("compiler/testData/ir/irText/expressions/sam/samConversionToGeneric.kt");
-            }
-
-            @TestMetadata("samConversions.kt")
-            public void testSamConversions() throws Exception {
-                runTest("compiler/testData/ir/irText/expressions/sam/samConversions.kt");
-            }
-
-            @TestMetadata("samConversionsWithSmartCasts.kt")
-            public void testSamConversionsWithSmartCasts() throws Exception {
-                runTest("compiler/testData/ir/irText/expressions/sam/samConversionsWithSmartCasts.kt");
-            }
-
-            @TestMetadata("samOperators.kt")
-            public void testSamOperators() throws Exception {
-                runTest("compiler/testData/ir/irText/expressions/sam/samOperators.kt");
-            }
         }
     }
 
@@ -1844,18 +1619,8 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/firProblems/AbstractMutableMap.kt");
         }
 
-        @TestMetadata("AllCandidates.kt")
-        public void testAllCandidates() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/AllCandidates.kt");
-        }
-
         public void testAllFilesPresentInFirProblems() throws Exception {
             KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/ir/irText/firProblems"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JS_IR, true);
-        }
-
-        @TestMetadata("AnnotationInAnnotation.kt")
-        public void testAnnotationInAnnotation() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/AnnotationInAnnotation.kt");
         }
 
         @TestMetadata("AnnotationLoader.kt")
@@ -1873,24 +1638,9 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/firProblems/candidateSymbol.kt");
         }
 
-        @TestMetadata("ClashResolutionDescriptor.kt")
-        public void testClashResolutionDescriptor() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/ClashResolutionDescriptor.kt");
-        }
-
-        @TestMetadata("coercionToUnitForNestedWhen.kt")
-        public void testCoercionToUnitForNestedWhen() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/coercionToUnitForNestedWhen.kt");
-        }
-
         @TestMetadata("DeepCopyIrTree.kt")
         public void testDeepCopyIrTree() throws Exception {
             runTest("compiler/testData/ir/irText/firProblems/DeepCopyIrTree.kt");
-        }
-
-        @TestMetadata("DelegationAndInheritanceFromJava.kt")
-        public void testDelegationAndInheritanceFromJava() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/DelegationAndInheritanceFromJava.kt");
         }
 
         @TestMetadata("deprecated.kt")
@@ -1923,34 +1673,9 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/firProblems/InnerClassInAnonymous.kt");
         }
 
-        @TestMetadata("JCTree.kt")
-        public void testJCTree() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/JCTree.kt");
-        }
-
-        @TestMetadata("kt19251.kt")
-        public void testKt19251() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/kt19251.kt");
-        }
-
         @TestMetadata("kt43342.kt")
         public void testKt43342() throws Exception {
             runTest("compiler/testData/ir/irText/firProblems/kt43342.kt");
-        }
-
-        @TestMetadata("Modality.kt")
-        public void testModality() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/Modality.kt");
-        }
-
-        @TestMetadata("MultiList.kt")
-        public void testMultiList() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/MultiList.kt");
-        }
-
-        @TestMetadata("putIfAbsent.kt")
-        public void testPutIfAbsent() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/putIfAbsent.kt");
         }
 
         @TestMetadata("readWriteProperty.kt")
@@ -1968,11 +1693,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/firProblems/SafeLetWithReturn.kt");
         }
 
-        @TestMetadata("SameJavaFieldReferences.kt")
-        public void testSameJavaFieldReferences() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/SameJavaFieldReferences.kt");
-        }
-
         @TestMetadata("SignatureClash.kt")
         public void testSignatureClash() throws Exception {
             runTest("compiler/testData/ir/irText/firProblems/SignatureClash.kt");
@@ -1983,29 +1703,9 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/firProblems/SimpleTypeMarker.kt");
         }
 
-        @TestMetadata("SyntheticSetterType.kt")
-        public void testSyntheticSetterType() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/SyntheticSetterType.kt");
-        }
-
-        @TestMetadata("throwableStackTrace.kt")
-        public void testThrowableStackTrace() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/throwableStackTrace.kt");
-        }
-
-        @TestMetadata("typeParameterFromJavaClass.kt")
-        public void testTypeParameterFromJavaClass() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/typeParameterFromJavaClass.kt");
-        }
-
         @TestMetadata("typeVariableAfterBuildMap.kt")
         public void testTypeVariableAfterBuildMap() throws Exception {
             runTest("compiler/testData/ir/irText/firProblems/typeVariableAfterBuildMap.kt");
-        }
-
-        @TestMetadata("V8ArrayToList.kt")
-        public void testV8ArrayToList() throws Exception {
-            runTest("compiler/testData/ir/irText/firProblems/V8ArrayToList.kt");
         }
 
         @TestMetadata("VarInInit.kt")
@@ -2060,11 +1760,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
         public void testNonLocalReturn() throws Exception {
             runTest("compiler/testData/ir/irText/lambdas/nonLocalReturn.kt");
         }
-
-        @TestMetadata("samAdapter.kt")
-        public void testSamAdapter() throws Exception {
-            runTest("compiler/testData/ir/irText/lambdas/samAdapter.kt");
-        }
     }
 
     @TestMetadata("compiler/testData/ir/irText/regressions")
@@ -2102,11 +1797,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
         @TestMetadata("typeAliasCtorForGenericClass.kt")
         public void testTypeAliasCtorForGenericClass() throws Exception {
             runTest("compiler/testData/ir/irText/regressions/typeAliasCtorForGenericClass.kt");
-        }
-
-        @TestMetadata("typeParametersInImplicitCast.kt")
-        public void testTypeParametersInImplicitCast() throws Exception {
-            runTest("compiler/testData/ir/irText/regressions/typeParametersInImplicitCast.kt");
         }
 
         @TestMetadata("compiler/testData/ir/irText/regressions/newInference")
@@ -2183,46 +1873,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/stubs/genericClassInDifferentModule.kt");
         }
 
-        @TestMetadata("javaConstructorWithTypeParameters.kt")
-        public void testJavaConstructorWithTypeParameters() throws Exception {
-            runTest("compiler/testData/ir/irText/stubs/javaConstructorWithTypeParameters.kt");
-        }
-
-        @TestMetadata("javaEnum.kt")
-        public void testJavaEnum() throws Exception {
-            runTest("compiler/testData/ir/irText/stubs/javaEnum.kt");
-        }
-
-        @TestMetadata("javaInnerClass.kt")
-        public void testJavaInnerClass() throws Exception {
-            runTest("compiler/testData/ir/irText/stubs/javaInnerClass.kt");
-        }
-
-        @TestMetadata("javaMethod.kt")
-        public void testJavaMethod() throws Exception {
-            runTest("compiler/testData/ir/irText/stubs/javaMethod.kt");
-        }
-
-        @TestMetadata("javaNestedClass.kt")
-        public void testJavaNestedClass() throws Exception {
-            runTest("compiler/testData/ir/irText/stubs/javaNestedClass.kt");
-        }
-
-        @TestMetadata("javaStaticMethod.kt")
-        public void testJavaStaticMethod() throws Exception {
-            runTest("compiler/testData/ir/irText/stubs/javaStaticMethod.kt");
-        }
-
-        @TestMetadata("javaSyntheticProperty.kt")
-        public void testJavaSyntheticProperty() throws Exception {
-            runTest("compiler/testData/ir/irText/stubs/javaSyntheticProperty.kt");
-        }
-
-        @TestMetadata("jdkClassSyntheticProperty.kt")
-        public void testJdkClassSyntheticProperty() throws Exception {
-            runTest("compiler/testData/ir/irText/stubs/jdkClassSyntheticProperty.kt");
-        }
-
         @TestMetadata("kotlinInnerClass.kt")
         public void testKotlinInnerClass() throws Exception {
             runTest("compiler/testData/ir/irText/stubs/kotlinInnerClass.kt");
@@ -2249,11 +1899,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
 
         public void testAllFilesPresentInTypes() throws Exception {
             KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/ir/irText/types"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JS_IR, true);
-        }
-
-        @TestMetadata("asOnPlatformType.kt")
-        public void testAsOnPlatformType() throws Exception {
-            runTest("compiler/testData/ir/irText/types/asOnPlatformType.kt");
         }
 
         @TestMetadata("castsInsideCoroutineInference.kt")
@@ -2316,11 +1961,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/types/intersectionType3_OI.kt");
         }
 
-        @TestMetadata("javaWildcardType.kt")
-        public void testJavaWildcardType() throws Exception {
-            runTest("compiler/testData/ir/irText/types/javaWildcardType.kt");
-        }
-
         @TestMetadata("kt36143.kt")
         public void testKt36143() throws Exception {
             runTest("compiler/testData/ir/irText/types/kt36143.kt");
@@ -2331,24 +1971,9 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/types/localVariableOfIntersectionType_NI.kt");
         }
 
-        @TestMetadata("rawTypeInSignature.kt")
-        public void testRawTypeInSignature() throws Exception {
-            runTest("compiler/testData/ir/irText/types/rawTypeInSignature.kt");
-        }
-
-        @TestMetadata("receiverOfIntersectionType.kt")
-        public void testReceiverOfIntersectionType() throws Exception {
-            runTest("compiler/testData/ir/irText/types/receiverOfIntersectionType.kt");
-        }
-
         @TestMetadata("smartCastOnFakeOverrideReceiver.kt")
         public void testSmartCastOnFakeOverrideReceiver() throws Exception {
             runTest("compiler/testData/ir/irText/types/smartCastOnFakeOverrideReceiver.kt");
-        }
-
-        @TestMetadata("smartCastOnFieldReceiverOfGenericType.kt")
-        public void testSmartCastOnFieldReceiverOfGenericType() throws Exception {
-            runTest("compiler/testData/ir/irText/types/smartCastOnFieldReceiverOfGenericType.kt");
         }
 
         @TestMetadata("smartCastOnReceiverOfGenericType.kt")
@@ -2378,56 +2003,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
                 KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/ir/irText/types/nullChecks"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JS_IR, true);
             }
 
-            @TestMetadata("enhancedNullability.kt")
-            public void testEnhancedNullability() throws Exception {
-                runTest("compiler/testData/ir/irText/types/nullChecks/enhancedNullability.kt");
-            }
-
-            @TestMetadata("enhancedNullabilityInDestructuringAssignment.kt")
-            public void testEnhancedNullabilityInDestructuringAssignment() throws Exception {
-                runTest("compiler/testData/ir/irText/types/nullChecks/enhancedNullabilityInDestructuringAssignment.kt");
-            }
-
-            @TestMetadata("enhancedNullabilityInForLoop.kt")
-            public void testEnhancedNullabilityInForLoop() throws Exception {
-                runTest("compiler/testData/ir/irText/types/nullChecks/enhancedNullabilityInForLoop.kt");
-            }
-
-            @TestMetadata("explicitEqualsAndCompareToCallsOnPlatformTypeReceiver.kt")
-            public void testExplicitEqualsAndCompareToCallsOnPlatformTypeReceiver() throws Exception {
-                runTest("compiler/testData/ir/irText/types/nullChecks/explicitEqualsAndCompareToCallsOnPlatformTypeReceiver.kt");
-            }
-
-            @TestMetadata("implicitNotNullOnPlatformType.kt")
-            public void testImplicitNotNullOnPlatformType() throws Exception {
-                runTest("compiler/testData/ir/irText/types/nullChecks/implicitNotNullOnPlatformType.kt");
-            }
-
-            @TestMetadata("nullabilityAssertionOnExtensionReceiver.kt")
-            public void testNullabilityAssertionOnExtensionReceiver() throws Exception {
-                runTest("compiler/testData/ir/irText/types/nullChecks/nullabilityAssertionOnExtensionReceiver.kt");
-            }
-
-            @TestMetadata("platformTypeReceiver.kt")
-            public void testPlatformTypeReceiver() throws Exception {
-                runTest("compiler/testData/ir/irText/types/nullChecks/platformTypeReceiver.kt");
-            }
-
-            @TestMetadata("typeParameterWithMixedNullableAndNotNullableBounds.kt")
-            public void testTypeParameterWithMixedNullableAndNotNullableBounds() throws Exception {
-                runTest("compiler/testData/ir/irText/types/nullChecks/typeParameterWithMixedNullableAndNotNullableBounds.kt");
-            }
-
-            @TestMetadata("typeParameterWithMultipleNotNullableBounds.kt")
-            public void testTypeParameterWithMultipleNotNullableBounds() throws Exception {
-                runTest("compiler/testData/ir/irText/types/nullChecks/typeParameterWithMultipleNotNullableBounds.kt");
-            }
-
-            @TestMetadata("typeParameterWithMultipleNullableBounds.kt")
-            public void testTypeParameterWithMultipleNullableBounds() throws Exception {
-                runTest("compiler/testData/ir/irText/types/nullChecks/typeParameterWithMultipleNullableBounds.kt");
-            }
-
             @TestMetadata("compiler/testData/ir/irText/types/nullChecks/nullCheckOnLambdaResult")
             @TestDataPath("$PROJECT_ROOT")
             @RunWith(JUnit3RunnerWithInners.class)
@@ -2438,56 +2013,6 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
 
                 public void testAllFilesPresentInNullCheckOnLambdaResult() throws Exception {
                     KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/ir/irText/types/nullChecks/nullCheckOnLambdaResult"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JS_IR, true);
-                }
-
-                @TestMetadata("nnStringVsT.kt")
-                public void testNnStringVsT() throws Exception {
-                    runTest("compiler/testData/ir/irText/types/nullChecks/nullCheckOnLambdaResult/nnStringVsT.kt");
-                }
-
-                @TestMetadata("nnStringVsTAny.kt")
-                public void testNnStringVsTAny() throws Exception {
-                    runTest("compiler/testData/ir/irText/types/nullChecks/nullCheckOnLambdaResult/nnStringVsTAny.kt");
-                }
-
-                @TestMetadata("nnStringVsTConstrained.kt")
-                public void testNnStringVsTConstrained() throws Exception {
-                    runTest("compiler/testData/ir/irText/types/nullChecks/nullCheckOnLambdaResult/nnStringVsTConstrained.kt");
-                }
-
-                @TestMetadata("nnStringVsTXArray.kt")
-                public void testNnStringVsTXArray() throws Exception {
-                    runTest("compiler/testData/ir/irText/types/nullChecks/nullCheckOnLambdaResult/nnStringVsTXArray.kt");
-                }
-
-                @TestMetadata("nnStringVsTXString.kt")
-                public void testNnStringVsTXString() throws Exception {
-                    runTest("compiler/testData/ir/irText/types/nullChecks/nullCheckOnLambdaResult/nnStringVsTXString.kt");
-                }
-
-                @TestMetadata("stringVsT.kt")
-                public void testStringVsT() throws Exception {
-                    runTest("compiler/testData/ir/irText/types/nullChecks/nullCheckOnLambdaResult/stringVsT.kt");
-                }
-
-                @TestMetadata("stringVsTAny.kt")
-                public void testStringVsTAny() throws Exception {
-                    runTest("compiler/testData/ir/irText/types/nullChecks/nullCheckOnLambdaResult/stringVsTAny.kt");
-                }
-
-                @TestMetadata("stringVsTConstrained.kt")
-                public void testStringVsTConstrained() throws Exception {
-                    runTest("compiler/testData/ir/irText/types/nullChecks/nullCheckOnLambdaResult/stringVsTConstrained.kt");
-                }
-
-                @TestMetadata("stringVsTXArray.kt")
-                public void testStringVsTXArray() throws Exception {
-                    runTest("compiler/testData/ir/irText/types/nullChecks/nullCheckOnLambdaResult/stringVsTXArray.kt");
-                }
-
-                @TestMetadata("stringVsTXString.kt")
-                public void testStringVsTXString() throws Exception {
-                    runTest("compiler/testData/ir/irText/types/nullChecks/nullCheckOnLambdaResult/stringVsTXString.kt");
                 }
             }
         }
