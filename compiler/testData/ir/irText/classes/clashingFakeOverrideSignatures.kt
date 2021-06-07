@@ -1,3 +1,4 @@
+// TARGET_BACKEND: JVM
 // IGNORE_BACKEND_FIR: ANY
 //  ^ TODO decide if we want to fix KT-42020 for FIR as well
 

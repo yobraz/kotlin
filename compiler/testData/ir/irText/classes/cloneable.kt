@@ -1,3 +1,4 @@
+// TARGET_BACKEND: JVM
 class A : Cloneable
 
 interface I : Cloneable
