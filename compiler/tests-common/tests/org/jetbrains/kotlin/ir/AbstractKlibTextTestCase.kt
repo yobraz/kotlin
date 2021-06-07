@@ -16,10 +16,7 @@ import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureDe
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.codegen.CodegenTestCase
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.KotlinCompilerVersion
-import org.jetbrains.kotlin.config.languageVersionSettings
+import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
@@ -34,6 +31,7 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.descriptors.IrFunctionFactory
+import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.js.analyze.TopDownAnalyzerFacadeForJS
 import org.jetbrains.kotlin.library.*
@@ -77,13 +75,18 @@ abstract class AbstractKlibTextTestCase : CodegenTestCase() {
         myEnvironment = KotlinCoreEnvironment.createForTests(testRootDisposable, configuration, EnvironmentConfigFiles.JS_CONFIG_FILES)
     }
 
+    private val CompilerConfiguration.expectActualLinker: Boolean
+        get() = get(CommonConfigurationKeys.EXPECT_ACTUAL_LINKER) ?: false
 
     fun doTest(wholeFile: File) {
+        val expectActualSymbols = mutableMapOf<DeclarationDescriptor, IrSymbol>()
         val ignoreErrors = AbstractIrGeneratorTestCase.shouldIgnoreErrors(wholeFile)
         val stdlib = loadKlibFromPath(listOf(runtimeKlibPath)).single()
-        val (irModule, bindingContext) = buildFragmentAndLinkIt(stdlib, ignoreErrors)
+        val (irModule, bindingContext) = buildFragmentAndLinkIt(stdlib, ignoreErrors, expectActualSymbols)
         val expected = irModule.dump(stableOrder = true)
-        val klibPath = serializeModule(irModule, bindingContext, stdlib, ignoreErrors)
+        val mppProject =
+            myEnvironment.configuration.languageVersionSettings.getFeatureSupport(LanguageFeature.MultiPlatformProjects) == LanguageFeature.State.ENABLED
+        val klibPath = serializeModule(irModule, bindingContext, stdlib, ignoreErrors, expectActualSymbols, !mppProject)
         val libs = loadKlibFromPath(listOf(runtimeKlibPath, klibPath))
         val stdlib2 = libs[0]
         val klib = libs[1]
@@ -121,10 +124,12 @@ abstract class AbstractKlibTextTestCase : CodegenTestCase() {
         return serializePackageFragment(moduleDescriptor, memberScope, ktFile.packageFqName)
     }
 
-    protected fun serializeModule(irModuleFragment: IrModuleFragment, bindingContext: BindingContext, stdlib: KotlinLibrary, containsErrorCode: Boolean): String {
+    protected fun serializeModule(irModuleFragment: IrModuleFragment, bindingContext: BindingContext, stdlib: KotlinLibrary, containsErrorCode: Boolean, expectActualSymbols: MutableMap<DeclarationDescriptor, IrSymbol>, skipExpect: Boolean): String {
         val ktFiles = myFiles.psiFiles
         val serializedIr =
-            JsIrModuleSerializer(IrMessageLogger.None, irModuleFragment.irBuiltins, mutableMapOf(), true).serializedIrModule(irModuleFragment)
+            JsIrModuleSerializer(IrMessageLogger.None, irModuleFragment.irBuiltins, expectActualSymbols, skipExpect).serializedIrModule(
+                irModuleFragment
+            )
 
         val moduleDescriptor = irModuleFragment.descriptor
         val metadataSerializer = KlibMetadataIncrementalSerializer(myEnvironment.configuration, myEnvironment.project, containsErrorCode)
@@ -221,8 +226,8 @@ abstract class AbstractKlibTextTestCase : CodegenTestCase() {
 
     private val runtimeKlibPath = "libraries/stdlib/js-ir/build/classes/kotlin/js/main"
 
-    private fun buildFragmentAndLinkIt(stdlib: KotlinLibrary, ignoreErrors: Boolean): Pair<IrModuleFragment, BindingContext> {
-        return generateIrModule(stdlib, ignoreErrors)
+    private fun buildFragmentAndLinkIt(stdlib: KotlinLibrary, ignoreErrors: Boolean, expectActualSymbols: MutableMap<DeclarationDescriptor, IrSymbol>): Pair<IrModuleFragment, BindingContext> {
+        return generateIrModule(stdlib, ignoreErrors, expectActualSymbols)
     }
 
     fun getModuleDescriptor(current: KotlinLibrary, builtins: ModuleDescriptorImpl? = null): ModuleDescriptorImpl {
@@ -239,7 +244,7 @@ abstract class AbstractKlibTextTestCase : CodegenTestCase() {
         return md
     }
 
-    private fun generateIrModule(stdlib: KotlinLibrary, ignoreErrors: Boolean): Pair<IrModuleFragment, BindingContext> {
+    private fun generateIrModule(stdlib: KotlinLibrary, ignoreErrors: Boolean, expectActualSymbols: MutableMap<DeclarationDescriptor, IrSymbol>): Pair<IrModuleFragment, BindingContext> {
         val stdlibDescriptor = getModuleDescriptor(stdlib)
 
         val ktFiles = myFiles.psiFiles
@@ -266,7 +271,7 @@ abstract class AbstractKlibTextTestCase : CodegenTestCase() {
         val irLinker = JsIrLinker(moduleDescriptor, IrMessageLogger.None, irBuiltIns, symbolTable, functionFactory, null, null)
         irLinker.deserializeIrModuleHeader(stdlibDescriptor, stdlib)
 
-        return psi2Ir.generateModuleFragment(context, ktFiles, listOf(irLinker), emptyList()) to bindingContext
+        return psi2Ir.generateModuleFragment(context, ktFiles, listOf(irLinker), emptyList(), expectActualSymbols) to bindingContext
     }
 }
 
