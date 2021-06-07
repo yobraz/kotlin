@@ -6,7 +6,7 @@ public final annotation class Anno : R|kotlin/Annotation| {
 
 }
 
-@R|test/Anno|(value = <implicitArrayOf>(@R|test/Bnno|(value = String(x)) , @R|test/Bnno|(value = String(y)) )) public final class AnnotationInArray : R|kotlin/Any| {
+@R|test/Anno|(<implicitArrayOf>(@R|test/Bnno|(String(x)) , @R|test/Bnno|(String(y)) )) public final class AnnotationInArray : R|kotlin/Any| {
     public constructor(): R|test/AnnotationInArray|
 
 }

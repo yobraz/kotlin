@@ -558,7 +558,7 @@ class CallAndReferenceGenerator(
         } else {
             for ((argument, parameter) in argumentMapping) {
                 val argumentExpression = convertArgument(argument, parameter, substitutor, annotationMode)
-                putValueArgument(valueParameters.indexOf(parameter), argumentExpression)
+                putValueArgument(valueParameters.indexOfFirst { it.name == parameter.name }, argumentExpression)
             }
             if (annotationMode) {
                 for ((index, parameter) in valueParameters.withIndex()) {

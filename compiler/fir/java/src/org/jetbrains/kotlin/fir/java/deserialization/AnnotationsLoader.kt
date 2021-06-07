@@ -7,12 +7,11 @@ package org.jetbrains.kotlin.fir.java.deserialization
 
 import org.jetbrains.kotlin.SpecialJvmAnnotations
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.declarations.FirValueParameter
+import org.jetbrains.kotlin.fir.declarations.primaryConstructor
 import org.jetbrains.kotlin.fir.diagnostics.ConeSimpleDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
-import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
-import org.jetbrains.kotlin.fir.expressions.FirClassReferenceExpression
-import org.jetbrains.kotlin.fir.expressions.FirExpression
-import org.jetbrains.kotlin.fir.expressions.buildUnaryArgumentList
+import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.*
 import org.jetbrains.kotlin.fir.java.createConstantOrError
 import org.jetbrains.kotlin.fir.references.builder.buildErrorNamedReference
@@ -20,8 +19,10 @@ import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
 import org.jetbrains.kotlin.fir.references.impl.FirReferencePlaceholderForResolvedAnnotations
 import org.jetbrains.kotlin.fir.resolve.symbolProvider
 import org.jetbrains.kotlin.fir.resolve.providers.getClassDeclaredPropertySymbols
+import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.fir.symbols.impl.ConeClassLikeLookupTagImpl
+import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.constructClassType
@@ -108,7 +109,7 @@ internal class AnnotationsLoader(private val session: FirSession) {
                         )
                     }
 
-                    override fun visitAnnotation(classId: ClassId): KotlinJvmBinaryClass.AnnotationArgumentVisitor? {
+                    override fun visitAnnotation(classId: ClassId): KotlinJvmBinaryClass.AnnotationArgumentVisitor {
                         val list = mutableListOf<FirAnnotationCall>()
                         val visitor = loadAnnotation(classId, list)
                         return object : KotlinJvmBinaryClass.AnnotationArgumentVisitor by visitor {
@@ -141,17 +142,15 @@ internal class AnnotationsLoader(private val session: FirSession) {
             }
 
             override fun visitEnd() {
+                val valueParameters =
+                    (lookupTag.toSymbol(session) as? FirRegularClassSymbol)?.fir?.primaryConstructor?.valueParameters.orEmpty()
+                val mapping = linkedMapOf<FirExpression, FirValueParameter>()
+                for ((name, expression) in argumentMap) {
+                    mapping[expression] = valueParameters.find { it.name == name } ?: continue
+                }
                 result += buildAnnotationCall {
                     annotationTypeRef = lookupTag.toDefaultResolvedTypeRef()
-                    argumentList = buildArgumentList {
-                        for ((name, expression) in argumentMap) {
-                            arguments += buildNamedArgumentExpression {
-                                this.expression = expression
-                                this.name = name
-                                isSpread = false
-                            }
-                        }
-                    }
+                    argumentList = buildResolvedArgumentList(mapping)
                     calleeReference = FirReferencePlaceholderForResolvedAnnotations
                 }
             }

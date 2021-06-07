@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
+import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.declarations.collectEnumEntries
 import org.jetbrains.kotlin.fir.diagnostics.ConeSimpleDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
@@ -177,7 +178,7 @@ abstract class AbstractAnnotationDeserializer(
         val symbol = lookupTag.toSymbol(session)
         val firAnnotationClass = (symbol as? FirRegularClassSymbol)?.fir
 
-        var arguments = emptyList<FirExpression>()
+        val argumentMapping = linkedMapOf<FirExpression, FirValueParameter>()
         if (proto.argumentCount != 0 && firAnnotationClass?.classKind == ClassKind.ANNOTATION_CLASS) {
             val classScope = firAnnotationClass.defaultType()
                 .scope(session, ScopeSession(), FakeOverrideTypeCalculator.DoNothing)
@@ -189,15 +190,11 @@ abstract class AbstractAnnotationDeserializer(
 
             val parameterByName = constructor.valueParameters.associateBy { it.name }
 
-            arguments = proto.argumentList.mapNotNull {
+            proto.argumentList.forEach {
                 val name = nameResolver.getName(it.nameId)
-                val parameter = parameterByName[name] ?: return@mapNotNull null
+                val parameter = parameterByName[name] ?: return@forEach
                 val value = resolveValue(parameter.returnTypeRef.coneType, it.value, nameResolver)
-                buildNamedArgumentExpression {
-                    expression = value
-                    isSpread = false
-                    this.name = name
-                }
+                argumentMapping[value] = parameter
             }
         }
 
@@ -207,9 +204,7 @@ abstract class AbstractAnnotationDeserializer(
                     type = it.constructType(emptyArray(), isNullable = false)
                 }
             } ?: buildErrorTypeRef { diagnostic = ConeUnresolvedSymbolError(classId) }
-            argumentList = buildArgumentList {
-                this.arguments += arguments
-            }
+            argumentList = buildResolvedArgumentList(argumentMapping)
             useSiteTarget?.let {
                 this.useSiteTarget = it
             }

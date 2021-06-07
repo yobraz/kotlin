@@ -12,9 +12,9 @@ public final fun doubleArrayOf(vararg elements: R|kotlin/DoubleArray|): R|kotlin
 
 public final inline fun <reified T> emptyArray(): R|kotlin/Array<T>|
 
-@R|kotlin/SinceKotlin|(version = String(1.1)) public final inline fun <reified T : R|kotlin/Enum<T>|> enumValueOf(name: R|kotlin/String|): R|T|
+@R|kotlin/SinceKotlin|(String(1.1)) public final inline fun <reified T : R|kotlin/Enum<T>|> enumValueOf(name: R|kotlin/String|): R|T|
 
-@R|kotlin/SinceKotlin|(version = String(1.1)) public final inline fun <reified T : R|kotlin/Enum<T>|> enumValues(): R|kotlin/Array<T>|
+@R|kotlin/SinceKotlin|(String(1.1)) public final inline fun <reified T : R|kotlin/Enum<T>|> enumValues(): R|kotlin/Array<T>|
 
 public final fun floatArrayOf(vararg elements: R|kotlin/FloatArray|): R|kotlin/FloatArray|
 
@@ -59,7 +59,7 @@ public final class Array<T> : R|kotlin/Any|, R|kotlin/Cloneable|, R|java/io/Seri
 }
 
 public final class Boolean : R|kotlin/Comparable<kotlin/Boolean>|, R|java/io/Serializable| {
-    @R|kotlin/SinceKotlin|(version = String(1.3)) public final companion object Companion : R|kotlin/Any| {
+    @R|kotlin/SinceKotlin|(String(1.3)) public final companion object Companion : R|kotlin/Any| {
         private constructor(): R|kotlin/Boolean.Companion|
 
     }
@@ -104,10 +104,10 @@ public final class Byte : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Byte>|, R
         public final const val MIN_VALUE: R|kotlin/Byte| = Byte(-128)
             public get(): R|kotlin/Byte|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.3)) public final const val SIZE_BITS: R|kotlin/Int| = Int(8)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.3)) public final const val SIZE_BITS: R|kotlin/Int| = Int(8)
             public get(): R|kotlin/Int|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.3)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(1)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.3)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(1)
             public get(): R|kotlin/Int|
 
         private constructor(): R|kotlin/Byte.Companion|
@@ -174,17 +174,17 @@ public final class Byte : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Byte>|, R
 
     public final operator fun rangeTo(other: R|kotlin/Short|): R|kotlin/ranges/IntRange|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Byte|): R|kotlin/Int|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Byte|): R|kotlin/Int|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Double|): R|kotlin/Double|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Double|): R|kotlin/Double|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Float|): R|kotlin/Float|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Float|): R|kotlin/Float|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Int|): R|kotlin/Int|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Int|): R|kotlin/Int|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Long|): R|kotlin/Long|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Long|): R|kotlin/Long|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Short|): R|kotlin/Int|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Short|): R|kotlin/Int|
 
     public final operator fun times(other: R|kotlin/Byte|): R|kotlin/Int|
 
@@ -200,7 +200,7 @@ public final class Byte : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Byte>|, R
 
     public open fun toByte(): R|kotlin/Byte|
 
-    @R|kotlin/Deprecated|(message = String(Direct conversion to Char is deprecated. Use toInt().toChar() or Char constructor instead.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(this.toInt().toChar())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.5)) public open fun toChar(): R|kotlin/Char|
+    @R|kotlin/Deprecated|(String(Direct conversion to Char is deprecated. Use toInt().toChar() or Char constructor instead.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(this.toInt().toChar())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.5)) public open fun toChar(): R|kotlin/Char|
 
     public open fun toDouble(): R|kotlin/Double|
 
@@ -249,7 +249,7 @@ public final class Char : R|kotlin/Comparable<kotlin/Char>|, R|java/io/Serializa
         public final const val MAX_SURROGATE: R|kotlin/Char| = Char(57343)
             public get(): R|kotlin/Char|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.3)) public final const val MAX_VALUE: R|kotlin/Char| = Char(65535)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.3)) public final const val MAX_VALUE: R|kotlin/Char| = Char(65535)
             public get(): R|kotlin/Char|
 
         public final const val MIN_HIGH_SURROGATE: R|kotlin/Char| = Char(55296)
@@ -261,13 +261,13 @@ public final class Char : R|kotlin/Comparable<kotlin/Char>|, R|java/io/Serializa
         public final const val MIN_SURROGATE: R|kotlin/Char| = Char(55296)
             public get(): R|kotlin/Char|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.3)) public final const val MIN_VALUE: R|kotlin/Char| = Char(0)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.3)) public final const val MIN_VALUE: R|kotlin/Char| = Char(0)
             public get(): R|kotlin/Char|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.3)) public final const val SIZE_BITS: R|kotlin/Int| = Int(16)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.3)) public final const val SIZE_BITS: R|kotlin/Int| = Int(16)
             public get(): R|kotlin/Int|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.3)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(2)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.3)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(2)
             public get(): R|kotlin/Int|
 
         private constructor(): R|kotlin/Char.Companion|
@@ -288,19 +288,19 @@ public final class Char : R|kotlin/Comparable<kotlin/Char>|, R|java/io/Serializa
 
     public final operator fun rangeTo(other: R|kotlin/Char|): R|kotlin/ranges/CharRange|
 
-    @R|kotlin/Deprecated|(message = String(Conversion of Char to Number is deprecated. Use Char.code property instead.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(this.code.toByte())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.5)) public final fun toByte(): R|kotlin/Byte|
+    @R|kotlin/Deprecated|(String(Conversion of Char to Number is deprecated. Use Char.code property instead.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(this.code.toByte())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.5)) public final fun toByte(): R|kotlin/Byte|
 
     public final fun toChar(): R|kotlin/Char|
 
-    @R|kotlin/Deprecated|(message = String(Conversion of Char to Number is deprecated. Use Char.code property instead.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(this.code.toDouble())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.5)) public final fun toDouble(): R|kotlin/Double|
+    @R|kotlin/Deprecated|(String(Conversion of Char to Number is deprecated. Use Char.code property instead.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(this.code.toDouble())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.5)) public final fun toDouble(): R|kotlin/Double|
 
-    @R|kotlin/Deprecated|(message = String(Conversion of Char to Number is deprecated. Use Char.code property instead.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(this.code.toFloat())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.5)) public final fun toFloat(): R|kotlin/Float|
+    @R|kotlin/Deprecated|(String(Conversion of Char to Number is deprecated. Use Char.code property instead.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(this.code.toFloat())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.5)) public final fun toFloat(): R|kotlin/Float|
 
-    @R|kotlin/Deprecated|(message = String(Conversion of Char to Number is deprecated. Use Char.code property instead.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(this.code)) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.5)) public final fun toInt(): R|kotlin/Int|
+    @R|kotlin/Deprecated|(String(Conversion of Char to Number is deprecated. Use Char.code property instead.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(this.code)) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.5)) public final fun toInt(): R|kotlin/Int|
 
-    @R|kotlin/Deprecated|(message = String(Conversion of Char to Number is deprecated. Use Char.code property instead.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(this.code.toLong())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.5)) public final fun toLong(): R|kotlin/Long|
+    @R|kotlin/Deprecated|(String(Conversion of Char to Number is deprecated. Use Char.code property instead.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(this.code.toLong())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.5)) public final fun toLong(): R|kotlin/Long|
 
-    @R|kotlin/Deprecated|(message = String(Conversion of Char to Number is deprecated. Use Char.code property instead.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(this.code.toShort())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.5)) public final fun toShort(): R|kotlin/Short|
+    @R|kotlin/Deprecated|(String(Conversion of Char to Number is deprecated. Use Char.code property instead.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(this.code.toShort())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.5)) public final fun toShort(): R|kotlin/Short|
 
     private constructor(): R|kotlin/Char|
 
@@ -339,7 +339,7 @@ public abstract interface Comparable<in T> : R|kotlin/Any| {
 
 }
 
-@R|kotlin/annotation/Target|(allowedTargets = <implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.CLASS|(), R|kotlin/annotation/AnnotationTarget.FUNCTION|(), R|kotlin/annotation/AnnotationTarget.PROPERTY|(), R|kotlin/annotation/AnnotationTarget.ANNOTATION_CLASS|(), R|kotlin/annotation/AnnotationTarget.CONSTRUCTOR|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_SETTER|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_GETTER|(), R|kotlin/annotation/AnnotationTarget.TYPEALIAS|())) @R|kotlin/annotation/MustBeDocumented|() public final annotation class Deprecated : R|kotlin/Annotation| {
+@R|kotlin/annotation/Target|(<implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.CLASS|(), R|kotlin/annotation/AnnotationTarget.FUNCTION|(), R|kotlin/annotation/AnnotationTarget.PROPERTY|(), R|kotlin/annotation/AnnotationTarget.ANNOTATION_CLASS|(), R|kotlin/annotation/AnnotationTarget.CONSTRUCTOR|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_SETTER|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_GETTER|(), R|kotlin/annotation/AnnotationTarget.TYPEALIAS|())) @R|kotlin/annotation/MustBeDocumented|() public final annotation class Deprecated : R|kotlin/Annotation| {
     public final val level: R|kotlin/DeprecationLevel|
         public get(): R|kotlin/DeprecationLevel|
 
@@ -353,7 +353,7 @@ public abstract interface Comparable<in T> : R|kotlin/Any| {
 
 }
 
-@R|kotlin/annotation/Target|(allowedTargets = <implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.CLASS|(), R|kotlin/annotation/AnnotationTarget.FUNCTION|(), R|kotlin/annotation/AnnotationTarget.PROPERTY|(), R|kotlin/annotation/AnnotationTarget.ANNOTATION_CLASS|(), R|kotlin/annotation/AnnotationTarget.CONSTRUCTOR|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_SETTER|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_GETTER|(), R|kotlin/annotation/AnnotationTarget.TYPEALIAS|())) @R|kotlin/annotation/MustBeDocumented|() @R|kotlin/SinceKotlin|(version = String(1.4)) public final annotation class DeprecatedSinceKotlin : R|kotlin/Annotation| {
+@R|kotlin/annotation/Target|(<implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.CLASS|(), R|kotlin/annotation/AnnotationTarget.FUNCTION|(), R|kotlin/annotation/AnnotationTarget.PROPERTY|(), R|kotlin/annotation/AnnotationTarget.ANNOTATION_CLASS|(), R|kotlin/annotation/AnnotationTarget.CONSTRUCTOR|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_SETTER|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_GETTER|(), R|kotlin/annotation/AnnotationTarget.TYPEALIAS|())) @R|kotlin/annotation/MustBeDocumented|() @R|kotlin/SinceKotlin|(String(1.4)) public final annotation class DeprecatedSinceKotlin : R|kotlin/Annotation| {
     public final val errorSince: R|kotlin/String|
         public get(): R|kotlin/String|
 
@@ -398,10 +398,10 @@ public final class Double : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Double>
         public final const val POSITIVE_INFINITY: R|kotlin/Double| = Double(Infinity)
             public get(): R|kotlin/Double|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.4)) public final const val SIZE_BITS: R|kotlin/Int| = Int(64)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.4)) public final const val SIZE_BITS: R|kotlin/Int| = Int(64)
             public get(): R|kotlin/Int|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.4)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(8)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.4)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(8)
             public get(): R|kotlin/Int|
 
         private constructor(): R|kotlin/Double.Companion|
@@ -460,17 +460,17 @@ public final class Double : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Double>
 
     public final operator fun plus(other: R|kotlin/Short|): R|kotlin/Double|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Byte|): R|kotlin/Double|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Byte|): R|kotlin/Double|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Double|): R|kotlin/Double|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Double|): R|kotlin/Double|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Float|): R|kotlin/Double|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Float|): R|kotlin/Double|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Int|): R|kotlin/Double|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Int|): R|kotlin/Double|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Long|): R|kotlin/Double|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Long|): R|kotlin/Double|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Short|): R|kotlin/Double|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Short|): R|kotlin/Double|
 
     public final operator fun times(other: R|kotlin/Byte|): R|kotlin/Double|
 
@@ -484,9 +484,9 @@ public final class Double : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Double>
 
     public final operator fun times(other: R|kotlin/Short|): R|kotlin/Double|
 
-    @R|kotlin/Deprecated|(message = String(Unclear conversion. To achieve the same result convert to Int explicitly and then to Byte.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(toInt().toByte())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.3), errorSince = String(1.5)) public open fun toByte(): R|kotlin/Byte|
+    @R|kotlin/Deprecated|(String(Unclear conversion. To achieve the same result convert to Int explicitly and then to Byte.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(toInt().toByte())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.3), String(1.5)) public open fun toByte(): R|kotlin/Byte|
 
-    @R|kotlin/Deprecated|(message = String(Direct conversion to Char is deprecated. Use toInt().toChar() or Char constructor instead.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(this.toInt().toChar())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.5)) public open fun toChar(): R|kotlin/Char|
+    @R|kotlin/Deprecated|(String(Direct conversion to Char is deprecated. Use toInt().toChar() or Char constructor instead.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(this.toInt().toChar())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.5)) public open fun toChar(): R|kotlin/Char|
 
     public open fun toDouble(): R|kotlin/Double|
 
@@ -496,7 +496,7 @@ public final class Double : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Double>
 
     public open fun toLong(): R|kotlin/Long|
 
-    @R|kotlin/Deprecated|(message = String(Unclear conversion. To achieve the same result convert to Int explicitly and then to Short.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(toInt().toShort())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.3), errorSince = String(1.5)) public open fun toShort(): R|kotlin/Short|
+    @R|kotlin/Deprecated|(String(Unclear conversion. To achieve the same result convert to Int explicitly and then to Short.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(toInt().toShort())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.3), String(1.5)) public open fun toShort(): R|kotlin/Short|
 
     public final operator fun unaryMinus(): R|kotlin/Double|
 
@@ -524,7 +524,7 @@ public final class DoubleArray : R|kotlin/Any|, R|kotlin/Cloneable|, R|java/io/S
 
 }
 
-@R|kotlin/annotation/Target|(allowedTargets = <implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.ANNOTATION_CLASS|())) @R|kotlin/annotation/Retention|(value = R|kotlin/annotation/AnnotationRetention.BINARY|()) @R|kotlin/annotation/MustBeDocumented|() @R|kotlin/SinceKotlin|(version = String(1.1)) public final annotation class DslMarker : R|kotlin/Annotation| {
+@R|kotlin/annotation/Target|(<implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.ANNOTATION_CLASS|())) @R|kotlin/annotation/Retention|(R|kotlin/annotation/AnnotationRetention.BINARY|()) @R|kotlin/annotation/MustBeDocumented|() @R|kotlin/SinceKotlin|(String(1.1)) public final annotation class DslMarker : R|kotlin/Annotation| {
     public constructor(): R|kotlin/DslMarker|
 
 }
@@ -555,7 +555,7 @@ public abstract class Enum<E : R|kotlin/Enum<E>|> : R|kotlin/Comparable<E>|, R|j
 
 }
 
-@R|kotlin/annotation/Target|(allowedTargets = <implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.TYPE|())) @R|kotlin/annotation/MustBeDocumented|() public final annotation class ExtensionFunctionType : R|kotlin/Annotation| {
+@R|kotlin/annotation/Target|(<implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.TYPE|())) @R|kotlin/annotation/MustBeDocumented|() public final annotation class ExtensionFunctionType : R|kotlin/Annotation| {
     public constructor(): R|kotlin/ExtensionFunctionType|
 
 }
@@ -577,10 +577,10 @@ public final class Float : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Float>|,
         public final const val POSITIVE_INFINITY: R|kotlin/Float| = Float(Infinity)
             public get(): R|kotlin/Float|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.4)) public final const val SIZE_BITS: R|kotlin/Int| = Int(32)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.4)) public final const val SIZE_BITS: R|kotlin/Int| = Int(32)
             public get(): R|kotlin/Int|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.4)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(4)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.4)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(4)
             public get(): R|kotlin/Int|
 
         private constructor(): R|kotlin/Float.Companion|
@@ -639,17 +639,17 @@ public final class Float : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Float>|,
 
     public final operator fun plus(other: R|kotlin/Short|): R|kotlin/Float|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Byte|): R|kotlin/Float|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Byte|): R|kotlin/Float|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Double|): R|kotlin/Double|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Double|): R|kotlin/Double|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Float|): R|kotlin/Float|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Float|): R|kotlin/Float|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Int|): R|kotlin/Float|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Int|): R|kotlin/Float|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Long|): R|kotlin/Float|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Long|): R|kotlin/Float|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Short|): R|kotlin/Float|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Short|): R|kotlin/Float|
 
     public final operator fun times(other: R|kotlin/Byte|): R|kotlin/Float|
 
@@ -663,9 +663,9 @@ public final class Float : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Float>|,
 
     public final operator fun times(other: R|kotlin/Short|): R|kotlin/Float|
 
-    @R|kotlin/Deprecated|(message = String(Unclear conversion. To achieve the same result convert to Int explicitly and then to Byte.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(toInt().toByte())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.3), errorSince = String(1.5)) public open fun toByte(): R|kotlin/Byte|
+    @R|kotlin/Deprecated|(String(Unclear conversion. To achieve the same result convert to Int explicitly and then to Byte.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(toInt().toByte())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.3), String(1.5)) public open fun toByte(): R|kotlin/Byte|
 
-    @R|kotlin/Deprecated|(message = String(Direct conversion to Char is deprecated. Use toInt().toChar() or Char constructor instead.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(this.toInt().toChar())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.5)) public open fun toChar(): R|kotlin/Char|
+    @R|kotlin/Deprecated|(String(Direct conversion to Char is deprecated. Use toInt().toChar() or Char constructor instead.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(this.toInt().toChar())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.5)) public open fun toChar(): R|kotlin/Char|
 
     public open fun toDouble(): R|kotlin/Double|
 
@@ -675,7 +675,7 @@ public final class Float : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Float>|,
 
     public open fun toLong(): R|kotlin/Long|
 
-    @R|kotlin/Deprecated|(message = String(Unclear conversion. To achieve the same result convert to Int explicitly and then to Short.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(toInt().toShort())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.3), errorSince = String(1.5)) public open fun toShort(): R|kotlin/Short|
+    @R|kotlin/Deprecated|(String(Unclear conversion. To achieve the same result convert to Int explicitly and then to Short.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(toInt().toShort())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.3), String(1.5)) public open fun toShort(): R|kotlin/Short|
 
     public final operator fun unaryMinus(): R|kotlin/Float|
 
@@ -714,10 +714,10 @@ public final class Int : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Int>|, R|j
         public final const val MIN_VALUE: R|kotlin/Int| = Int(-2147483648)
             public get(): R|kotlin/Int|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.3)) public final const val SIZE_BITS: R|kotlin/Int| = Int(32)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.3)) public final const val SIZE_BITS: R|kotlin/Int| = Int(32)
             public get(): R|kotlin/Int|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.3)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(4)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.3)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(4)
             public get(): R|kotlin/Int|
 
         private constructor(): R|kotlin/Int.Companion|
@@ -790,17 +790,17 @@ public final class Int : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Int>|, R|j
 
     public final operator fun rangeTo(other: R|kotlin/Short|): R|kotlin/ranges/IntRange|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Byte|): R|kotlin/Int|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Byte|): R|kotlin/Int|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Double|): R|kotlin/Double|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Double|): R|kotlin/Double|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Float|): R|kotlin/Float|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Float|): R|kotlin/Float|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Int|): R|kotlin/Int|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Int|): R|kotlin/Int|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Long|): R|kotlin/Long|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Long|): R|kotlin/Long|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Short|): R|kotlin/Int|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Short|): R|kotlin/Int|
 
     public final infix fun shl(bitCount: R|kotlin/Int|): R|kotlin/Int|
 
@@ -870,10 +870,10 @@ public final class Long : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Long>|, R
         public final const val MIN_VALUE: R|kotlin/Long| = Long(-9223372036854775808)
             public get(): R|kotlin/Long|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.3)) public final const val SIZE_BITS: R|kotlin/Int| = Int(64)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.3)) public final const val SIZE_BITS: R|kotlin/Int| = Int(64)
             public get(): R|kotlin/Int|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.3)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(8)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.3)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(8)
             public get(): R|kotlin/Int|
 
         private constructor(): R|kotlin/Long.Companion|
@@ -946,17 +946,17 @@ public final class Long : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Long>|, R
 
     public final operator fun rangeTo(other: R|kotlin/Short|): R|kotlin/ranges/LongRange|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Byte|): R|kotlin/Long|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Byte|): R|kotlin/Long|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Double|): R|kotlin/Double|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Double|): R|kotlin/Double|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Float|): R|kotlin/Float|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Float|): R|kotlin/Float|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Int|): R|kotlin/Long|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Int|): R|kotlin/Long|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Long|): R|kotlin/Long|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Long|): R|kotlin/Long|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Short|): R|kotlin/Long|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Short|): R|kotlin/Long|
 
     public final infix fun shl(bitCount: R|kotlin/Int|): R|kotlin/Long|
 
@@ -976,7 +976,7 @@ public final class Long : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Long>|, R
 
     public open fun toByte(): R|kotlin/Byte|
 
-    @R|kotlin/Deprecated|(message = String(Direct conversion to Char is deprecated. Use toInt().toChar() or Char constructor instead.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(this.toInt().toChar())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.5)) public open fun toChar(): R|kotlin/Char|
+    @R|kotlin/Deprecated|(String(Direct conversion to Char is deprecated. Use toInt().toChar() or Char constructor instead.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(this.toInt().toChar())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.5)) public open fun toChar(): R|kotlin/Char|
 
     public open fun toDouble(): R|kotlin/Double|
 
@@ -1042,7 +1042,7 @@ public abstract class Number : R|kotlin/Any|, R|java/io/Serializable| {
 
 }
 
-@R|kotlin/annotation/Target|(allowedTargets = <implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.TYPE|())) @R|kotlin/annotation/MustBeDocumented|() @R|kotlin/SinceKotlin|(version = String(1.1)) public final annotation class ParameterName : R|kotlin/Annotation| {
+@R|kotlin/annotation/Target|(<implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.TYPE|())) @R|kotlin/annotation/MustBeDocumented|() @R|kotlin/SinceKotlin|(String(1.1)) public final annotation class ParameterName : R|kotlin/Annotation| {
     public final val name: R|kotlin/String|
         public get(): R|kotlin/String|
 
@@ -1050,12 +1050,12 @@ public abstract class Number : R|kotlin/Any|, R|java/io/Serializable| {
 
 }
 
-@R|kotlin/annotation/Target|(allowedTargets = <implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.CLASS|(), R|kotlin/annotation/AnnotationTarget.CONSTRUCTOR|(), R|kotlin/annotation/AnnotationTarget.FUNCTION|(), R|kotlin/annotation/AnnotationTarget.PROPERTY|())) @R|kotlin/annotation/Retention|(value = R|kotlin/annotation/AnnotationRetention.BINARY|()) @R|kotlin/annotation/MustBeDocumented|() @R|kotlin/SinceKotlin|(version = String(1.1)) public final annotation class PublishedApi : R|kotlin/Annotation| {
+@R|kotlin/annotation/Target|(<implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.CLASS|(), R|kotlin/annotation/AnnotationTarget.CONSTRUCTOR|(), R|kotlin/annotation/AnnotationTarget.FUNCTION|(), R|kotlin/annotation/AnnotationTarget.PROPERTY|())) @R|kotlin/annotation/Retention|(R|kotlin/annotation/AnnotationRetention.BINARY|()) @R|kotlin/annotation/MustBeDocumented|() @R|kotlin/SinceKotlin|(String(1.1)) public final annotation class PublishedApi : R|kotlin/Annotation| {
     public constructor(): R|kotlin/PublishedApi|
 
 }
 
-@R|kotlin/annotation/Target|(allowedTargets = <implicitArrayOf>()) @R|kotlin/annotation/Retention|(value = R|kotlin/annotation/AnnotationRetention.BINARY|()) @R|kotlin/annotation/MustBeDocumented|() public final annotation class ReplaceWith : R|kotlin/Annotation| {
+@R|kotlin/annotation/Target|(<implicitArrayOf>()) @R|kotlin/annotation/Retention|(R|kotlin/annotation/AnnotationRetention.BINARY|()) @R|kotlin/annotation/MustBeDocumented|() public final annotation class ReplaceWith : R|kotlin/Annotation| {
     public final val expression: R|kotlin/String|
         public get(): R|kotlin/String|
 
@@ -1074,10 +1074,10 @@ public final class Short : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Short>|,
         public final const val MIN_VALUE: R|kotlin/Short| = Short(-32768)
             public get(): R|kotlin/Short|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.3)) public final const val SIZE_BITS: R|kotlin/Int| = Int(16)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.3)) public final const val SIZE_BITS: R|kotlin/Int| = Int(16)
             public get(): R|kotlin/Int|
 
-        @PROPERTY:R|kotlin/SinceKotlin|(version = String(1.3)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(2)
+        @PROPERTY:R|kotlin/SinceKotlin|(String(1.3)) public final const val SIZE_BYTES: R|kotlin/Int| = Int(2)
             public get(): R|kotlin/Int|
 
         private constructor(): R|kotlin/Short.Companion|
@@ -1144,17 +1144,17 @@ public final class Short : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Short>|,
 
     public final operator fun rangeTo(other: R|kotlin/Short|): R|kotlin/ranges/IntRange|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Byte|): R|kotlin/Int|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Byte|): R|kotlin/Int|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Double|): R|kotlin/Double|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Double|): R|kotlin/Double|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Float|): R|kotlin/Float|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Float|): R|kotlin/Float|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Int|): R|kotlin/Int|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Int|): R|kotlin/Int|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Long|): R|kotlin/Long|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Long|): R|kotlin/Long|
 
-    @R|kotlin/SinceKotlin|(version = String(1.1)) public final operator fun rem(other: R|kotlin/Short|): R|kotlin/Int|
+    @R|kotlin/SinceKotlin|(String(1.1)) public final operator fun rem(other: R|kotlin/Short|): R|kotlin/Int|
 
     public final operator fun times(other: R|kotlin/Byte|): R|kotlin/Int|
 
@@ -1170,7 +1170,7 @@ public final class Short : R|kotlin/Number|, R|kotlin/Comparable<kotlin/Short>|,
 
     public open fun toByte(): R|kotlin/Byte|
 
-    @R|kotlin/Deprecated|(message = String(Direct conversion to Char is deprecated. Use toInt().toChar() or Char constructor instead.), replaceWith = @R|kotlin/ReplaceWith|(imports = <implicitArrayOf>(), expression = String(this.toInt().toChar())) ) @R|kotlin/DeprecatedSinceKotlin|(warningSince = String(1.5)) public open fun toChar(): R|kotlin/Char|
+    @R|kotlin/Deprecated|(String(Direct conversion to Char is deprecated. Use toInt().toChar() or Char constructor instead.), @R|kotlin/ReplaceWith|(<implicitArrayOf>(), String(this.toInt().toChar())) ) @R|kotlin/DeprecatedSinceKotlin|(String(1.5)) public open fun toChar(): R|kotlin/Char|
 
     public open fun toDouble(): R|kotlin/Double|
 
@@ -1208,7 +1208,7 @@ public final class ShortArray : R|kotlin/Any|, R|kotlin/Cloneable|, R|java/io/Se
 
 }
 
-@R|kotlin/annotation/Target|(allowedTargets = <implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.CLASS|(), R|kotlin/annotation/AnnotationTarget.PROPERTY|(), R|kotlin/annotation/AnnotationTarget.FIELD|(), R|kotlin/annotation/AnnotationTarget.CONSTRUCTOR|(), R|kotlin/annotation/AnnotationTarget.FUNCTION|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_GETTER|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_SETTER|(), R|kotlin/annotation/AnnotationTarget.TYPEALIAS|())) @R|kotlin/annotation/Retention|(value = R|kotlin/annotation/AnnotationRetention.BINARY|()) @R|kotlin/annotation/MustBeDocumented|() public final annotation class SinceKotlin : R|kotlin/Annotation| {
+@R|kotlin/annotation/Target|(<implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.CLASS|(), R|kotlin/annotation/AnnotationTarget.PROPERTY|(), R|kotlin/annotation/AnnotationTarget.FIELD|(), R|kotlin/annotation/AnnotationTarget.CONSTRUCTOR|(), R|kotlin/annotation/AnnotationTarget.FUNCTION|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_GETTER|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_SETTER|(), R|kotlin/annotation/AnnotationTarget.TYPEALIAS|())) @R|kotlin/annotation/Retention|(R|kotlin/annotation/AnnotationRetention.BINARY|()) @R|kotlin/annotation/MustBeDocumented|() public final annotation class SinceKotlin : R|kotlin/Annotation| {
     public final val version: R|kotlin/String|
         public get(): R|kotlin/String|
 
@@ -1237,7 +1237,7 @@ public final class String : R|kotlin/Comparable<kotlin/String>|, R|kotlin/CharSe
 
 }
 
-@R|kotlin/annotation/Target|(allowedTargets = <implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.CLASS|(), R|kotlin/annotation/AnnotationTarget.ANNOTATION_CLASS|(), R|kotlin/annotation/AnnotationTarget.TYPE_PARAMETER|(), R|kotlin/annotation/AnnotationTarget.PROPERTY|(), R|kotlin/annotation/AnnotationTarget.FIELD|(), R|kotlin/annotation/AnnotationTarget.LOCAL_VARIABLE|(), R|kotlin/annotation/AnnotationTarget.VALUE_PARAMETER|(), R|kotlin/annotation/AnnotationTarget.CONSTRUCTOR|(), R|kotlin/annotation/AnnotationTarget.FUNCTION|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_GETTER|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_SETTER|(), R|kotlin/annotation/AnnotationTarget.TYPE|(), R|kotlin/annotation/AnnotationTarget.EXPRESSION|(), R|kotlin/annotation/AnnotationTarget.FILE|(), R|kotlin/annotation/AnnotationTarget.TYPEALIAS|())) @R|kotlin/annotation/Retention|(value = R|kotlin/annotation/AnnotationRetention.SOURCE|()) public final annotation class Suppress : R|kotlin/Annotation| {
+@R|kotlin/annotation/Target|(<implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.CLASS|(), R|kotlin/annotation/AnnotationTarget.ANNOTATION_CLASS|(), R|kotlin/annotation/AnnotationTarget.TYPE_PARAMETER|(), R|kotlin/annotation/AnnotationTarget.PROPERTY|(), R|kotlin/annotation/AnnotationTarget.FIELD|(), R|kotlin/annotation/AnnotationTarget.LOCAL_VARIABLE|(), R|kotlin/annotation/AnnotationTarget.VALUE_PARAMETER|(), R|kotlin/annotation/AnnotationTarget.CONSTRUCTOR|(), R|kotlin/annotation/AnnotationTarget.FUNCTION|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_GETTER|(), R|kotlin/annotation/AnnotationTarget.PROPERTY_SETTER|(), R|kotlin/annotation/AnnotationTarget.TYPE|(), R|kotlin/annotation/AnnotationTarget.EXPRESSION|(), R|kotlin/annotation/AnnotationTarget.FILE|(), R|kotlin/annotation/AnnotationTarget.TYPEALIAS|())) @R|kotlin/annotation/Retention|(R|kotlin/annotation/AnnotationRetention.SOURCE|()) public final annotation class Suppress : R|kotlin/Annotation| {
     public final val names: R|kotlin/Array<out kotlin/String>|
         public get(): R|kotlin/Array<out kotlin/String>|
 
@@ -1269,7 +1269,7 @@ public final object Unit : R|kotlin/Any| {
 
 }
 
-@R|kotlin/annotation/Target|(allowedTargets = <implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.TYPE|())) @R|kotlin/annotation/Retention|(value = R|kotlin/annotation/AnnotationRetention.SOURCE|()) @R|kotlin/annotation/MustBeDocumented|() public final annotation class UnsafeVariance : R|kotlin/Annotation| {
+@R|kotlin/annotation/Target|(<implicitArrayOf>(R|kotlin/annotation/AnnotationTarget.TYPE|())) @R|kotlin/annotation/Retention|(R|kotlin/annotation/AnnotationRetention.SOURCE|()) @R|kotlin/annotation/MustBeDocumented|() public final annotation class UnsafeVariance : R|kotlin/Annotation| {
     public constructor(): R|kotlin/UnsafeVariance|
 
 }

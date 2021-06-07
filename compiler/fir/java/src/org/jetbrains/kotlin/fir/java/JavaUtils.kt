@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.diagnostics.*
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.*
+import org.jetbrains.kotlin.fir.expressions.impl.FirResolvedArgumentList
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaClass
 import org.jetbrains.kotlin.fir.java.declarations.buildJavaValueParameter
 import org.jetbrains.kotlin.fir.java.enhancement.readOnlyToMutable
@@ -57,33 +58,6 @@ import java.lang.annotation.Documented
 import java.lang.annotation.Retention
 import java.lang.annotation.Target
 import java.util.*
-import kotlin.Any
-import kotlin.Array
-import kotlin.Boolean
-import kotlin.BooleanArray
-import kotlin.Byte
-import kotlin.ByteArray
-import kotlin.Char
-import kotlin.CharArray
-import kotlin.Double
-import kotlin.DoubleArray
-import kotlin.Float
-import kotlin.FloatArray
-import kotlin.Int
-import kotlin.IntArray
-import kotlin.Long
-import kotlin.LongArray
-import kotlin.Short
-import kotlin.ShortArray
-import kotlin.String
-import kotlin.Suppress
-import kotlin.also
-import kotlin.arrayOf
-import kotlin.emptyArray
-import kotlin.error
-import kotlin.let
-import kotlin.run
-import kotlin.to
 
 internal val JavaModifierListOwner.modality: Modality
     get() = when {
@@ -555,23 +529,26 @@ private fun JavaAnnotationArgument.mapJavaRetentionArgument(session: FirSession)
 private fun buildArgumentMapping(
     session: FirSession,
     javaTypeParameterStack: JavaTypeParameterStack,
-    lookupTag: ConeClassLikeLookupTagImpl,
+    annotationConstructor: FirConstructor?,
     annotationArguments: Collection<JavaAnnotationArgument>
 ): FirArgumentList? {
-    if (annotationArguments.none { it.name != null }) {
+    if (annotationConstructor == null || annotationArguments.none { it.name != null }) {
         return null
     }
-    val annotationClassSymbol = session.symbolProvider.getClassLikeSymbolByFqName(lookupTag.classId).also {
-        lookupTag.bindSymbolToLookupTag(session, it)
-    } ?: return null
-    val annotationConstructor =
-        (annotationClassSymbol.fir as FirRegularClass).declarations.filterIsInstance<FirConstructor>().first()
     val mapping = annotationArguments.associateTo(linkedMapOf()) { argument ->
         val parameter = annotationConstructor.valueParameters.find { it.name == (argument.name ?: JavaSymbolProvider.VALUE_METHOD_NAME) }
             ?: return null
         argument.toFirExpression(session, javaTypeParameterStack, parameter.returnTypeRef) to parameter
     }
     return buildResolvedArgumentList(mapping)
+}
+
+private fun buildUnaryResolvedArgumentList(
+    annotationConstructor: FirConstructor?,
+    argument: FirExpression
+): FirResolvedArgumentList? {
+    if (annotationConstructor == null) return null
+    return buildResolvedArgumentList(linkedMapOf(argument to annotationConstructor.valueParameters.first()))
 }
 
 internal fun JavaAnnotation.toFirAnnotationCall(
@@ -593,17 +570,32 @@ internal fun JavaAnnotation.toFirAnnotationCall(
         } else {
             buildErrorTypeRef { diagnostic = ConeUnresolvedReferenceError() }
         }
+        val annotationClassSymbol = lookupTag?.let {
+            session.symbolProvider.getClassLikeSymbolByFqName(it.classId).also { symbol ->
+                it.bindSymbolToLookupTag(session, symbol)
+            }
+        }
+        val annotationConstructor =
+            (annotationClassSymbol?.fir as? FirRegularClass)?.declarations?.filterIsInstance<FirConstructor>()?.firstOrNull()
         argumentList = when (classId) {
             JAVA_TARGET_CLASS_ID -> when (val argument = arguments.singleOrNull()) {
-                is JavaArrayAnnotationArgument -> argument.getElements().mapJavaTargetArguments(session)?.let(::buildUnaryArgumentList)
-                is JavaEnumValueAnnotationArgument -> listOf(argument).mapJavaTargetArguments(session)?.let(::buildUnaryArgumentList)
+                is JavaArrayAnnotationArgument -> argument.getElements().mapJavaTargetArguments(session)?.let {
+                    buildUnaryResolvedArgumentList(annotationConstructor, it)
+                }
+                is JavaEnumValueAnnotationArgument -> listOf(argument).mapJavaTargetArguments(session)?.let {
+                    buildUnaryResolvedArgumentList(annotationConstructor, it)
+                }
                 else -> null
             }
-            JAVA_RETENTION_CLASS_ID -> arguments.singleOrNull()?.mapJavaRetentionArgument(session)?.let(::buildUnaryArgumentList)
-            JAVA_DEPRECATED_CLASS_ID ->
-                buildUnaryArgumentList(buildConstExpression(null, ConstantValueKind.String, "Deprecated in Java").setProperType(session))
+            JAVA_RETENTION_CLASS_ID -> arguments.singleOrNull()?.mapJavaRetentionArgument(session)?.let {
+                buildUnaryResolvedArgumentList(annotationConstructor, it)
+            }
+            JAVA_DEPRECATED_CLASS_ID -> buildUnaryResolvedArgumentList(
+                annotationConstructor,
+                buildConstExpression(null, ConstantValueKind.String, "Deprecated in Java").setProperType(session)
+            )
             null -> null
-            else -> buildArgumentMapping(session, javaTypeParameterStack, lookupTag!!, arguments)
+            else -> buildArgumentMapping(session, javaTypeParameterStack, annotationConstructor, arguments)
         } ?: buildArgumentList {
             this@toFirAnnotationCall.arguments.mapTo(arguments) {
                 it.toFirExpression(session, javaTypeParameterStack, null)
@@ -643,7 +635,11 @@ internal fun JavaValueParameter.toFirValueParameter(
         name = this@toFirValueParameter.name ?: Name.identifier("p$index")
         returnTypeRef = type.toFirJavaTypeRef(session, javaTypeParameterStack)
         isVararg = this@toFirValueParameter.isVararg
-        annotationBuilder = { annotations.map { it.toFirAnnotationCall(session, javaTypeParameterStack) }}
+        annotationBuilder = {
+            annotations.map {
+                it.toFirAnnotationCall(session, javaTypeParameterStack)
+            }
+        }
     }
 }
 
