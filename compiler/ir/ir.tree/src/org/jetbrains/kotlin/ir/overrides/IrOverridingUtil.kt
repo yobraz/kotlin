@@ -36,9 +36,6 @@ abstract class FakeOverrideBuilderStrategy {
 
     protected abstract fun linkFunctionFakeOverride(declaration: IrFakeOverrideFunction)
     protected abstract fun linkPropertyFakeOverride(declaration: IrFakeOverrideProperty)
-
-    // TODO: need to make IrProperty carry overriddenSymbols.
-    val propertyOverriddenSymbols: MutableMap<IrOverridableMember, List<IrSymbol>> = mutableMapOf()
 }
 
 fun buildFakeOverrideMember(superType: IrType, member: IrOverridableMember, clazz: IrClass): IrOverridableMember {
@@ -92,8 +89,7 @@ class IrOverridingUtil(
     private var IrOverridableMember.overriddenSymbols: List<IrSymbol>
         get() = when (this) {
             is IrSimpleFunction -> this.overriddenSymbols
-            is IrProperty -> fakeOverrideBuilder.propertyOverriddenSymbols[this]
-                ?: error("No overridden symbols for ${this.render()}")
+            is IrProperty -> this.overriddenSymbols
             else -> error("Unexpected declaration for overriddenSymbols: $this")
         }
         set(value) {
@@ -101,14 +97,13 @@ class IrOverridingUtil(
                 is IrSimpleFunction -> this.overriddenSymbols =
                     value.map { it as? IrSimpleFunctionSymbol ?: error("Unexpected function overridden symbol: $it") }
                 is IrProperty -> {
-                    fakeOverrideBuilder.propertyOverriddenSymbols[this] =
-                        value.map { it as? IrPropertySymbol ?: error("Unexpected property overridden symbol: $it") }
+                    val overriddenProperties = value.map { it as? IrPropertySymbol ?: error("Unexpected property overridden symbol: $it") }
                     val getter = this.getter ?: error("Property has no getter: ${render()}")
-                    getter.overriddenSymbols = value.map { (it.owner as IrProperty).getter!!.symbol }
+                    getter.overriddenSymbols = overriddenProperties.map { it.owner.getter!!.symbol }
                     this.setter?.let { setter ->
-                        setter.overriddenSymbols = value.mapNotNull { (it.owner as IrProperty).setter?.symbol }
+                        setter.overriddenSymbols = overriddenProperties.mapNotNull { it.owner.setter?.symbol }
                     }
-                    this.overriddenSymbols = value.map { it as IrPropertySymbol }
+                    this.overriddenSymbols = overriddenProperties
                 }
                 else -> error("Unexpected declaration for overriddenSymbols: $this")
             }
@@ -148,8 +143,6 @@ class IrOverridingUtil(
         clazz: IrClass,
         implementedMembers: List<IrOverridableMember> = emptyList()
     ): List<IrOverridableMember> {
-        fakeOverrideBuilder.propertyOverriddenSymbols.clear()
-
         val overriddenMembers = (clazz.declarations.filterIsInstance<IrOverridableMember>() + implementedMembers)
             .flatMap {
                 when (it) {
