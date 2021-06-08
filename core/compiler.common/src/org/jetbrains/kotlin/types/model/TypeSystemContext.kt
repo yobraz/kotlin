@@ -275,6 +275,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun SimpleTypeMarker.typeConstructor(): TypeConstructorMarker
     fun KotlinTypeMarker.withNullability(nullable: Boolean): KotlinTypeMarker
 
+    fun CapturedTypeMarker.isOldCapturedType(): Boolean
     fun CapturedTypeMarker.typeConstructor(): CapturedTypeConstructorMarker
     fun CapturedTypeMarker.captureStatus(): CaptureStatus
     fun CapturedTypeMarker.isProjectionNotNull(): Boolean
