@@ -63,7 +63,7 @@ projectTest {
         val argsExt = project.findProperty("fir.modularized.jvm.args") as? String
         if (argsExt != null) {
             val paramRegex = "([^\"]\\S*|\".+?\")\\s*".toRegex()
-            jvmArgs(paramRegex.findAll(argsExt).map { it.groupValues[1] }.toList())
+            jvmArgs(paramRegex.findAll(argsExt).map { it.groupValues[1].trim('"') }.toList())
         }
     }
     jvmArgs("-XX:ReservedCodeCacheSize=512m")
