@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.backend.common.serialization.mangle.descriptor.Descr
 import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrBasedKotlinManglerImpl
 import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrExportCheckerVisitor
 import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrMangleComputer
+import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -68,7 +69,7 @@ abstract class AbstractJvmDescriptorMangler(private val mainDetector: MainFuncti
         mode: MangleMode
     ) : DescriptorMangleComputer(builder, mode) {
         override fun addReturnTypeSpecialCase(functionDescriptor: FunctionDescriptor): Boolean =
-            functionDescriptor is JavaMethodDescriptor
+            functionDescriptor is JavaMethodDescriptor && functionDescriptor.kind != CallableMemberDescriptor.Kind.FAKE_OVERRIDE
 
         override fun copy(newMode: MangleMode): DescriptorMangleComputer =
             JvmDescriptorManglerComputer(builder, mainDetector, newMode)
