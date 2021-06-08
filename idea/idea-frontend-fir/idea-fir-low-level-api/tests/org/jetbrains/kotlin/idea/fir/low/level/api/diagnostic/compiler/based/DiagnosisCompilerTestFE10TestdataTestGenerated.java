@@ -30151,6 +30151,11 @@ public class DiagnosisCompilerTestFE10TestdataTestGenerated extends AbstractDiag
                 runTest("compiler/testData/diagnostics/testsWithStdLib/experimental/kt37786.kt");
             }
 
+            @TestMetadata("kt45730.kt")
+            public void testKt45730() throws Exception {
+                runTest("compiler/testData/diagnostics/testsWithStdLib/experimental/kt45730.kt");
+            }
+
             @TestMetadata("noRetentionAfter.kt")
             public void testNoRetentionAfter() throws Exception {
                 runTest("compiler/testData/diagnostics/testsWithStdLib/experimental/noRetentionAfter.kt");
