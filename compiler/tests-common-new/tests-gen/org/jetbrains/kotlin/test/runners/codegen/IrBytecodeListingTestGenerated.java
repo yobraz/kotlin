@@ -212,6 +212,12 @@ public class IrBytecodeListingTestGenerated extends AbstractIrBytecodeListingTes
     }
 
     @Test
+    @TestMetadata("kt45853b.kt")
+    public void testKt45853b() throws Exception {
+        runTest("compiler/testData/codegen/bytecodeListing/kt45853b.kt");
+    }
+
+    @Test
     @TestMetadata("kt45934.kt")
     public void testKt45934() throws Exception {
         runTest("compiler/testData/codegen/bytecodeListing/kt45934.kt");

@@ -15,14 +15,13 @@ import org.jetbrains.kotlin.backend.common.serialization.mangle.descriptor.Descr
 import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrBasedKotlinManglerImpl
 import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrExportCheckerVisitor
 import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrMangleComputer
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.idea.MainFunctionDetector
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.util.isFromJava
+import org.jetbrains.kotlin.ir.util.resolveFakeOverride
 import org.jetbrains.kotlin.load.java.descriptors.JavaMethodDescriptor
 import org.jetbrains.kotlin.load.java.lazy.descriptors.isJavaField
 
@@ -34,14 +33,21 @@ abstract class AbstractJvmManglerIr : IrBasedKotlinManglerImpl() {
 
     private class JvmIrExportChecker : IrExportCheckerVisitor() {
         override fun IrDeclaration.isPlatformSpecificExported() = false
+
+        override fun visitField(declaration: IrField, data: Nothing?): Boolean {
+            if (declaration.origin == IrDeclarationOrigin.IR_EXTERNAL_JAVA_DECLARATION_STUB) return true
+            return super.visitField(declaration, data)
+        }
     }
 
     private class JvmIrManglerComputer(builder: StringBuilder, mode: MangleMode) : IrMangleComputer(builder, mode) {
         override fun copy(newMode: MangleMode): IrMangleComputer =
             JvmIrManglerComputer(builder, newMode)
 
-        override fun addReturnTypeSpecialCase(irFunction: IrFunction): Boolean =
-            irFunction.isFromJava()
+        override fun addReturnTypeSpecialCase(irFunction: IrFunction): Boolean {
+            val trueFunction = (irFunction as? IrSimpleFunction)?.resolveFakeOverride() ?: return false
+            return trueFunction.isFromJava()
+        }
     }
 
     override fun getExportChecker(): KotlinExportChecker<IrDeclaration> = exportChecker
@@ -69,7 +75,7 @@ abstract class AbstractJvmDescriptorMangler(private val mainDetector: MainFuncti
         mode: MangleMode
     ) : DescriptorMangleComputer(builder, mode) {
         override fun addReturnTypeSpecialCase(functionDescriptor: FunctionDescriptor): Boolean =
-            functionDescriptor is JavaMethodDescriptor && functionDescriptor.kind != CallableMemberDescriptor.Kind.FAKE_OVERRIDE
+            functionDescriptor is JavaMethodDescriptor
 
         override fun copy(newMode: MangleMode): DescriptorMangleComputer =
             JvmDescriptorManglerComputer(builder, mainDetector, newMode)
