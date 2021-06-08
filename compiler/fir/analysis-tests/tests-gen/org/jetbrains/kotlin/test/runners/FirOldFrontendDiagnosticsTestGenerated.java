@@ -34370,6 +34370,12 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirDiagnosti
             }
 
             @Test
+            @TestMetadata("kt37786.kt")
+            public void testKt37786() throws Exception {
+                runTest("compiler/testData/diagnostics/testsWithStdLib/experimental/kt37786.kt");
+            }
+
+            @Test
             @TestMetadata("noRetentionAfter.kt")
             public void testNoRetentionAfter() throws Exception {
                 runTest("compiler/testData/diagnostics/testsWithStdLib/experimental/noRetentionAfter.kt");
