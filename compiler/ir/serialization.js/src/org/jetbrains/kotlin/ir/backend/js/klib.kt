@@ -253,6 +253,24 @@ fun loadIr(
                 irLinker.modules.forEach { fakeOverrideChecker.check(it) }
             }
 
+            val pluginContext = IrPluginContextImpl(
+                psi2IrContext.moduleDescriptor,
+                psi2IrContext.bindingContext,
+                psi2IrContext.languageVersionSettings,
+                symbolTable,
+                psi2IrContext.typeTranslator,
+                irBuiltIns,
+                linker = irLinker
+            )
+            for (extension in IrGenerationExtension.getInstances(project)) {
+                irLinker.modules.forEach { module ->
+                    if (module.descriptor.name.toString() != "<kotlin>") {
+                        println("APPLYING PLUGIN ${extension} to module ${module.descriptor.name} for main module ${psi2IrContext.moduleDescriptor}")
+                        extension.generate(module, pluginContext)
+                    }
+                }
+            }
+
             irBuiltIns.knownBuiltins.forEach { it.acceptVoid(mangleChecker) }
 
             return IrModuleInfo(moduleFragment, deserializedModuleFragments, irBuiltIns, symbolTable, irLinker)
@@ -332,12 +350,14 @@ fun GeneratorContext.generateModuleFragmentWithPlugins(
             irBuiltIns,
             linker = irLinker
         )
-
+/*
         for (extension in extensions) {
             psi2Ir.addPostprocessingStep { module ->
                 extension.generate(module, pluginContext)
             }
         }
+
+*/
     }
 
     return psi2Ir.generateModuleFragment(this, files, listOf(irLinker), extensions, expectDescriptorToSymbol)
