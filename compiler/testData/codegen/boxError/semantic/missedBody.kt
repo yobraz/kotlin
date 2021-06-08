@@ -13,11 +13,7 @@ fun foo(): String {
 // FILE: b.kt
 
 fun box(): String {
-    try {
-        val r = foo()
-        if (r is String) return r
-    } catch (e: Throwable) {
-        return "OK"
-    }
-    return "FAIL 2"
+    val r = foo()
+    if (r is String) return r
+    return "OK"
 }
