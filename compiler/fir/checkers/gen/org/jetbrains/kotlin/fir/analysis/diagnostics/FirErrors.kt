@@ -520,10 +520,10 @@ object FirErrors {
     val SUPER_CALL_FROM_PUBLIC_INLINE by warning1<KtElement, AbstractFirBasedSymbol<*>>(SourceElementPositioningStrategies.REFERENCE_BY_QUALIFIED)
 
     // Imports
-    val CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON by error1<KtSimpleNameExpression, Name>(SourceElementPositioningStrategies.IMPORT_LAST_NAME)
-    val PACKAGE_CANNOT_BE_IMPORTED by error0<KtSimpleNameExpression>(SourceElementPositioningStrategies.IMPORT_LAST_NAME)
-    val CANNOT_BE_IMPORTED by error1<KtSimpleNameExpression, Name>(SourceElementPositioningStrategies.IMPORT_LAST_NAME)
-    val CONFLICTING_IMPORT by error1<KtImportDirective, Name>(SourceElementPositioningStrategies.IMPORT_LAST_NAME)
-    val OPERATOR_RENAMED_ON_IMPORT by error0<KtSimpleNameExpression>(SourceElementPositioningStrategies.IMPORT_LAST_NAME)
+    val CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON by warning1<KtSimpleNameExpression, Name>(SourceElementPositioningStrategies.IMPORT_LAST_NAME)
+    val PACKAGE_CANNOT_BE_IMPORTED by warning0<KtSimpleNameExpression>(SourceElementPositioningStrategies.IMPORT_LAST_NAME)
+    val CANNOT_BE_IMPORTED by warning1<KtSimpleNameExpression, Name>(SourceElementPositioningStrategies.IMPORT_LAST_NAME)
+    val CONFLICTING_IMPORT by warning1<KtImportDirective, Name>(SourceElementPositioningStrategies.IMPORT_LAST_NAME)
+    val OPERATOR_RENAMED_ON_IMPORT by warning0<KtSimpleNameExpression>(SourceElementPositioningStrategies.IMPORT_LAST_NAME)
 
 }

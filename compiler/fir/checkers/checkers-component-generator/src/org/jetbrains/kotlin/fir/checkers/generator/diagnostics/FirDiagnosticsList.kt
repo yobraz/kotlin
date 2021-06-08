@@ -942,21 +942,21 @@ object DIAGNOSTICS_LIST : DiagnosticList("FirErrors") {
     }
 
     val IMPORTS by object : DiagnosticGroup("Imports") {
-        val CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON by error<KtSimpleNameExpression>(PositioningStrategy.IMPORT_LAST_NAME) {
+        val CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON by warning<KtSimpleNameExpression>(PositioningStrategy.IMPORT_LAST_NAME) {
             parameter<Name>("objectName")
         }
 
-        val PACKAGE_CANNOT_BE_IMPORTED by error<KtSimpleNameExpression>(PositioningStrategy.IMPORT_LAST_NAME)
+        val PACKAGE_CANNOT_BE_IMPORTED by warning<KtSimpleNameExpression>(PositioningStrategy.IMPORT_LAST_NAME)
 
-        val CANNOT_BE_IMPORTED by error<KtSimpleNameExpression>(PositioningStrategy.IMPORT_LAST_NAME) {
+        val CANNOT_BE_IMPORTED by warning<KtSimpleNameExpression>(PositioningStrategy.IMPORT_LAST_NAME) {
             parameter<Name>("name")
         }
 
-        val CONFLICTING_IMPORT by error<KtImportDirective>(PositioningStrategy.IMPORT_LAST_NAME) {
+        val CONFLICTING_IMPORT by warning<KtImportDirective>(PositioningStrategy.IMPORT_LAST_NAME) {
             parameter<Name>("name")
         }
 
-        val OPERATOR_RENAMED_ON_IMPORT by error<KtSimpleNameExpression>(PositioningStrategy.IMPORT_LAST_NAME)
+        val OPERATOR_RENAMED_ON_IMPORT by warning<KtSimpleNameExpression>(PositioningStrategy.IMPORT_LAST_NAME)
     }
 }
 
