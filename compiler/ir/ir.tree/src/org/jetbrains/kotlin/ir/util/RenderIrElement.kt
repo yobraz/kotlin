@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.utils.addIfNotNull
 fun IrElement.render() =
     accept(RenderIrElementVisitor(), null)
 
-class RenderIrElementVisitor(private val normalizeNames: Boolean = false, private val verboseErrorTypes: Boolean = false) : IrElementVisitor<String, Nothing?> {
+class RenderIrElementVisitor(private val normalizeNames: Boolean = false, private val verboseErrorTypes: Boolean = true) : IrElementVisitor<String, Nothing?> {
     private val nameMap: MutableMap<IrVariableSymbol, String> = mutableMapOf()
     private var temporaryIndex: Int = 0
 
