@@ -1,4 +1,4 @@
-// TARGET_BACKEND: JVM
+// SKIP_KLIB_TEST
 class A : Cloneable
 
 interface I : Cloneable
