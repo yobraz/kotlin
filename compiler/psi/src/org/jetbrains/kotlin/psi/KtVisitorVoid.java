@@ -365,6 +365,10 @@ public class KtVisitorVoid extends KtVisitor<Void, Void> {
         super.visitFunctionType(type, null);
     }
 
+    public void visitUnionType(@NotNull KtUnionType type) {
+        super.visitUnionType(type, null);
+    }
+
     public void visitSelfType(@NotNull KtSelfType type) {
         super.visitSelfType(type, null);
     }
