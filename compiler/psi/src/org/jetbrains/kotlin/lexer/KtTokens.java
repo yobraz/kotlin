@@ -116,6 +116,7 @@ public interface KtTokens {
     KtSingleValueToken EXCLEXCL    = new KtSingleValueToken("EXCLEXCL", "!!");
     KtSingleValueToken ANDAND      = new KtSingleValueToken("ANDAND", "&&");
     KtSingleValueToken OROR        = new KtSingleValueToken("OROR", "||");
+    KtSingleValueToken OR          = new KtSingleValueToken("OR", "|");
     KtSingleValueToken SAFE_ACCESS = new KtSingleValueToken("SAFE_ACCESS", "?.");
     KtSingleValueToken ELVIS       = new KtSingleValueToken("ELVIS", "?:");
     KtSingleValueToken QUEST       = new KtSingleValueToken("QUEST", "?");

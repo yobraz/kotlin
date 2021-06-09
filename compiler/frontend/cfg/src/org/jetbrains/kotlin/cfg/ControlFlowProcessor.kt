@@ -22,7 +22,9 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.SmartFMap
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.cfg.ControlFlowBuilder.PredefinedOperation.*
+import org.jetbrains.kotlin.cfg.ControlFlowBuilder.PredefinedOperation.AND
+import org.jetbrains.kotlin.cfg.ControlFlowBuilder.PredefinedOperation.OR
+import org.jetbrains.kotlin.cfg.ControlFlowBuilder.PredefinedOperation.NOT_NULL_ASSERTION
 import org.jetbrains.kotlin.cfg.pseudocode.ControlFlowInstructionsGenerator
 import org.jetbrains.kotlin.cfg.pseudocode.PseudoValue
 import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
