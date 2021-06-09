@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.collectAndFilterRealOverrides
-import org.jetbrains.kotlin.ir.util.file
+import org.jetbrains.kotlin.ir.util.fileOrNull
 import org.jetbrains.kotlin.ir.util.isReal
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.resolve.OverridingUtil.OverrideCompatibilityInfo
@@ -41,9 +41,14 @@ abstract class FakeOverrideBuilderStrategy {
 
 private fun IrOverridableMember.isPrivateToThisModule(thisClass: IrClass, memberClass: IrClass): Boolean {
     if (visibility != DescriptorVisibilities.INTERNAL) return false
-    val thisModule = thisClass.file.module
-    val memberModule = memberClass.file.module
+    val thisModule = thisClass.fileOrNull?.module
+    val memberModule = memberClass.fileOrNull?.module
     if (thisModule == memberModule) return false
+
+    /**
+     *  Note: On WASM backend there is possible if [thisClass] is from [IrExternalPackageFragment] which module is null
+     */
+    if (thisModule == null || memberModule == null) return false
 
     return !isInFriendModules(thisModule, memberModule)
 }
