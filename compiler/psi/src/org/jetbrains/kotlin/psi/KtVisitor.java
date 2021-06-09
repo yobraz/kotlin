@@ -382,6 +382,10 @@ public class KtVisitor<R, D> extends PsiElementVisitor {
         return visitTypeElement(type, data);
     }
 
+    public R visitUnionType(@NotNull KtUnionType type, D data) {
+        return visitTypeElement(type, data);
+    }
+
     public R visitSelfType(@NotNull KtSelfType type, D data) {
         return visitTypeElement(type, data);
     }

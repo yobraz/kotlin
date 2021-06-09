@@ -346,6 +346,10 @@ public class KtVisitorVoidWithParameter<P> extends KtVisitor<Void, P> {
         super.visitFunctionType(type, data);
     }
 
+    public void visitUnionTypeVoid(@NotNull KtUnionType type, P data) {
+        super.visitUnionType(type, data);
+    }
+
     public void visitSelfTypeVoid(@NotNull KtSelfType type, P data) {
         super.visitSelfType(type, data);
     }

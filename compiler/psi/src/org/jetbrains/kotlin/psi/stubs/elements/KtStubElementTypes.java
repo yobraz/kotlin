@@ -92,6 +92,9 @@ public interface KtStubElementTypes {
     KtPlaceHolderStubElementType<KtFunctionType> FUNCTION_TYPE =
             new KtPlaceHolderStubElementType<>("FUNCTION_TYPE", KtFunctionType.class);
 
+    KtPlaceHolderStubElementType<KtUnionType> UNION_TYPE =
+            new KtPlaceHolderStubElementType<>("UNION_TYPE", KtUnionType.class);
+
     KtTypeCodeFragmentType TYPE_CODE_FRAGMENT = new KtTypeCodeFragmentType();
     KtExpressionCodeFragmentType EXPRESSION_CODE_FRAGMENT = new KtExpressionCodeFragmentType();
     KtBlockCodeFragmentType BLOCK_CODE_FRAGMENT = new KtBlockCodeFragmentType();
@@ -170,7 +173,7 @@ public interface KtStubElementTypes {
 
     TokenSet SUPER_TYPE_LIST_ENTRIES = TokenSet.create(DELEGATED_SUPER_TYPE_ENTRY, SUPER_TYPE_CALL_ENTRY, SUPER_TYPE_ENTRY);
 
-    TokenSet TYPE_ELEMENT_TYPES = TokenSet.create(USER_TYPE, NULLABLE_TYPE, FUNCTION_TYPE, DYNAMIC_TYPE, DEFINITELY_NOT_NULL_TYPE);
+    TokenSet TYPE_ELEMENT_TYPES = TokenSet.create(USER_TYPE, NULLABLE_TYPE, FUNCTION_TYPE, DYNAMIC_TYPE, DEFINITELY_NOT_NULL_TYPE, UNION_TYPE);
 
     TokenSet INSIDE_DIRECTIVE_EXPRESSIONS = TokenSet.create(REFERENCE_EXPRESSION, DOT_QUALIFIED_EXPRESSION);
 }
