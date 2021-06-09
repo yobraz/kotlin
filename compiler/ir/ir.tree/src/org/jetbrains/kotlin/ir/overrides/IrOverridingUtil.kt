@@ -39,7 +39,7 @@ abstract class FakeOverrideBuilderStrategy {
     protected abstract fun linkPropertyFakeOverride(declaration: IrFakeOverrideProperty)
 }
 
-private fun IrOverridableMember.privateToThisModule(thisClass: IrClass, memberClass: IrClass): Boolean {
+private fun IrOverridableMember.isPrivateToThisModule(thisClass: IrClass, memberClass: IrClass): Boolean {
     if (visibility != DescriptorVisibilities.INTERNAL) return false
     val thisModule = thisClass.file.module
     val memberModule = memberClass.file.module
@@ -82,7 +82,7 @@ fun buildFakeOverrideMember(superType: IrType, member: IrOverridableMember, claz
     val copier = DeepCopyIrTreeWithSymbolsForFakeOverrides(substitutionMap)
     val deepCopyFakeOverride = copier.copy(member, clazz) as IrOverridableMember
     deepCopyFakeOverride.parent = clazz
-    if (deepCopyFakeOverride.privateToThisModule(clazz, classifier.owner))
+    if (deepCopyFakeOverride.isPrivateToThisModule(clazz, classifier.owner))
         deepCopyFakeOverride.visibility = DescriptorVisibilities.INVISIBLE_FAKE
 
     return deepCopyFakeOverride
