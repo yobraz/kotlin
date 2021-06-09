@@ -95,6 +95,12 @@ class DumpIrTreeVisitor(
         }
     }
 
+    override fun visitExternalPackageFragment(declaration: IrExternalPackageFragment, data: String) {
+        declaration.dumpLabeledElementWith(data) {
+            declaration.declarations.ordered().dumpElements()
+        }
+    }
+
     override fun visitFile(declaration: IrFile, data: String) {
         declaration.dumpLabeledElementWith(data) {
             dumpAnnotations(declaration)
