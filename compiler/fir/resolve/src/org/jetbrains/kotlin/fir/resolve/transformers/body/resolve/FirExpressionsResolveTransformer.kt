@@ -318,10 +318,7 @@ open class FirExpressionsResolveTransformer(transformer: FirBodyResolveTransform
         block.transformStatementsIndexed(transformer) { index ->
             val value =
                 if (index == numberOfStatements - 1)
-                    if (data is ResolutionMode.WithExpectedType)
-                        ResolutionMode.WithExpectedType(data.expectedTypeRef, mayBeCoercionToUnitApplied = true)
-                    else
-                        data
+                    data
                 else
                     ResolutionMode.ContextIndependent
             transformer.firTowerDataContextCollector?.addStatementContext(block.statements[index], context.towerDataContext)

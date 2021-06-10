@@ -356,7 +356,7 @@ private fun checkApplicabilityForArgumentType(
     sink: CheckerSink,
     context: ResolutionContext
 ) {
-    if (expectedType == null) return
+    if (expectedType == null || expectedType.isUnitOrFlexibleUnit) return
 
     fun unstableSmartCastOrSubtypeError(
         unstableType: ConeKotlinType?,

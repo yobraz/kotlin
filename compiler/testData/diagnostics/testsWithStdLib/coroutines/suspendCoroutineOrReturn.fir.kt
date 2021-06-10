@@ -6,7 +6,7 @@ import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 
 class Controller {
-    suspend fun noParams(): Unit = suspendCoroutineUninterceptedOrReturn {
+    suspend fun noParams(): Unit = <!NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>suspendCoroutineUninterceptedOrReturn<!> {
         if (hashCode() % 2 == 0) {
             it.resume(Unit)
             COROUTINE_SUSPENDED

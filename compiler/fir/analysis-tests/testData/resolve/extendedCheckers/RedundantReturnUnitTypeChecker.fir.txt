@@ -59,8 +59,8 @@ FILE: RedundantReturnUnitTypeChecker.kt
         }
 
         public final fun foo(): R|kotlin/Unit| {
-            ^foo this@R|/B|.R|/B.run|<R|kotlin/Unit|>(<L> = run@fun <anonymous>(): R|kotlin/Unit| <inline=NoInline>  {
-                this@R|/B|.R|/B.bar|()
+            ^foo this@R|/B|.R|/B.run|<R|kotlin/Int|>(<L> = run@fun <anonymous>(): R|kotlin/Int| <inline=NoInline>  {
+                ^ this@R|/B|.R|/B.bar|()
             }
             )
         }
@@ -88,8 +88,8 @@ FILE: RedundantReturnUnitTypeChecker.kt
         }
 
         public final fun goo(): R|kotlin/Unit| {
-            ^goo (this@R|/B|, Int(1)).R|/B.let|<R|kotlin/Int|, R|kotlin/Unit|>(<L> = let@fun <anonymous>(it: R|kotlin/Int|): R|kotlin/Unit| <inline=NoInline>  {
-                this@R|/B|.R|/B.bar|()
+            ^goo (this@R|/B|, Int(1)).R|/B.let|<R|kotlin/Int|, R|kotlin/Int|>(<L> = let@fun <anonymous>(it: R|kotlin/Int|): R|kotlin/Int| <inline=NoInline>  {
+                ^ this@R|/B|.R|/B.bar|()
             }
             )
         }

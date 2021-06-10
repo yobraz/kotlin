@@ -1,0 +1,16 @@
+FILE: materializeAtLastStatement.kt
+    public final fun <T> myRun(x: R|() -> T|): R|T| {
+        ^myRun R|<local>/x|.R|SubstitutionOverride<kotlin/Function0.invoke: R|T|>|()
+    }
+    public final fun <T> materialize(): R|T| {
+        ^materialize R|kotlin/TODO|()
+    }
+    public final fun c(): R|kotlin/Unit| {
+        ^c <CS errors: /myRun>#<R|ERROR CLASS: Cannot infer argument for type parameter T|>(<L> = myRun@fun <anonymous>(): <ERROR TYPE REF: Cannot infer argument for type parameter T> <inline=NoInline>  {
+            ^ R|/myRun|<R|ERROR CLASS: Cannot infer argument for type parameter T|>(<L> = myRun@fun <anonymous>(): <ERROR TYPE REF: Cannot infer argument for type parameter T> <inline=NoInline>  {
+                ^ R|/materialize|<R|ERROR CLASS: Cannot infer argument for type parameter T|>()
+            }
+            )
+        }
+        )
+    }

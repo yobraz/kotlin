@@ -2495,6 +2495,44 @@ public class LazyBodyIsNotTouchedTilContractsPhaseTestGenerated extends Abstract
         public void testUnitUpperBound() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolve/inference/unitUpperBound.kt");
         }
+
+        @TestMetadata("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class CoercionToUnit extends AbstractLazyBodyIsNotTouchedTilContractsPhaseTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInCoercionToUnit() throws Exception {
+                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
+            }
+
+            @TestMetadata("builder.kt")
+            public void testBuilder() throws Exception {
+                runTest("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit/builder.kt");
+            }
+
+            @TestMetadata("lastStatementInlambda.kt")
+            public void testLastStatementInlambda() throws Exception {
+                runTest("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit/lastStatementInlambda.kt");
+            }
+
+            @TestMetadata("materializeAtLastStatement.kt")
+            public void testMaterializeAtLastStatement() throws Exception {
+                runTest("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit/materializeAtLastStatement.kt");
+            }
+
+            @TestMetadata("nonLambdaUnit.kt")
+            public void testNonLambdaUnit() throws Exception {
+                runTest("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit/nonLambdaUnit.kt");
+            }
+
+            @TestMetadata("safeCallWithinInnerLambda.kt")
+            public void testSafeCallWithinInnerLambda() throws Exception {
+                runTest("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit/safeCallWithinInnerLambda.kt");
+            }
+        }
     }
 
     @TestMetadata("compiler/fir/analysis-tests/testData/resolve/inlineClasses")

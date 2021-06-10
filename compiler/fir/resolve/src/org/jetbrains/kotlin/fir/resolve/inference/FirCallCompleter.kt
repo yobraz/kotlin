@@ -32,7 +32,6 @@ import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.fir.visitors.transformSingle
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.calls.inference.addSubtypeConstraintIfCompatible
 import org.jetbrains.kotlin.resolve.calls.inference.buildAbstractResultingSubstitutor
 import org.jetbrains.kotlin.resolve.calls.inference.components.ConstraintSystemCompletionMode
 import org.jetbrains.kotlin.types.TypeApproximatorConfiguration
@@ -57,20 +56,18 @@ class FirCallCompleter(
         expectedTypeRef: FirTypeRef?,
         expectedTypeMismatchIsReportedInChecker: Boolean = false,
     ): CompletionResult<T> where T : FirResolvable, T : FirStatement =
-        completeCall(call, expectedTypeRef, mayBeCoercionToUnitApplied = false, expectedTypeMismatchIsReportedInChecker, isFromCast = false)
+        completeCall(call, expectedTypeRef, expectedTypeMismatchIsReportedInChecker, isFromCast = false)
 
     fun <T> completeCall(call: T, data: ResolutionMode): CompletionResult<T> where T : FirResolvable, T : FirStatement =
         completeCall(
             call,
             data.expectedType(components, allowFromCast = true),
-            (data as? ResolutionMode.WithExpectedType)?.mayBeCoercionToUnitApplied == true,
             (data as? ResolutionMode.WithExpectedType)?.expectedTypeMismatchIsReportedInChecker == true,
             isFromCast = data is ResolutionMode.WithExpectedTypeFromCast,
         )
 
     private fun <T> completeCall(
         call: T, expectedTypeRef: FirTypeRef?,
-        mayBeCoercionToUnitApplied: Boolean,
         expectedTypeMismatchIsReportedInChecker: Boolean,
         isFromCast: Boolean,
     ): CompletionResult<T>
@@ -101,15 +98,12 @@ class FirCallCompleter(
                     )
                 }
             } else {
-                val expectedTypeConstraintPosition = ConeExpectedTypeConstraintPosition(expectedTypeMismatchIsReportedInChecker)
-                if (expectedTypeRef.coneType.isUnitOrFlexibleUnit && mayBeCoercionToUnitApplied) {
-                    if (candidate.system.notFixedTypeVariables.isNotEmpty()) {
-                        candidate.system.addSubtypeConstraintIfCompatible(
-                            initialType, expectedTypeRef.type, expectedTypeConstraintPosition
-                        )
-                    }
-                } else {
-                    candidate.system.addSubtypeConstraint(initialType, expectedTypeRef.type, expectedTypeConstraintPosition)
+                if (!expectedTypeRef.coneType.isUnitOrFlexibleUnit) {
+                    candidate.system.addSubtypeConstraint(
+                        initialType,
+                        expectedTypeRef.type,
+                        ConeExpectedTypeConstraintPosition(expectedTypeMismatchIsReportedInChecker)
+                    )
                 }
             }
         }
