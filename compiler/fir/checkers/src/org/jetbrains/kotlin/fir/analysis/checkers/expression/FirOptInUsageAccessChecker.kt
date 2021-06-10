@@ -8,7 +8,9 @@ package org.jetbrains.kotlin.fir.analysis.checkers.expression
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.declarations.FirAnnotatedDeclaration
+import org.jetbrains.kotlin.fir.declarations.FirProperty
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccess
+import org.jetbrains.kotlin.fir.expressions.FirVariableAssignment
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 
 object FirOptInUsageAccessChecker : FirQualifiedAccessChecker() {
@@ -16,6 +18,12 @@ object FirOptInUsageAccessChecker : FirQualifiedAccessChecker() {
         val reference = expression.calleeReference as? FirResolvedNamedReference ?: return
         val fir = reference.resolvedSymbol.fir as? FirAnnotatedDeclaration ?: return
         with(FirOptInUsageBaseChecker) {
+            if (expression is FirVariableAssignment && fir is FirProperty) {
+                val experimentalities = fir.loadExperimentalities(context, fromSetter = true) +
+                        loadExperimentalitiesFromTypeArguments(context, expression.typeArguments)
+                reportNotAcceptedExperimentalities(experimentalities, expression.lValue, context, reporter)
+                return
+            }
             val experimentalities = fir.loadExperimentalities(context) +
                     loadExperimentalitiesFromTypeArguments(context, expression.typeArguments)
             reportNotAcceptedExperimentalities(experimentalities, expression, context, reporter)
