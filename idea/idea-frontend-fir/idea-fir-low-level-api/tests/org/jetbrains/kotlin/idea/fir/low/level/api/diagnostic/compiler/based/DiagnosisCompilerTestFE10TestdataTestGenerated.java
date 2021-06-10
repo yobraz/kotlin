@@ -30236,6 +30236,11 @@ public class DiagnosisCompilerTestFE10TestdataTestGenerated extends AbstractDiag
                 runTest("compiler/testData/diagnostics/testsWithStdLib/experimental/useExperimentalOnFileWithVeryExperimentalMarker.kt");
             }
 
+            @TestMetadata("useExperimentalOnStatement.kt")
+            public void testUseExperimentalOnStatement() throws Exception {
+                runTest("compiler/testData/diagnostics/testsWithStdLib/experimental/useExperimentalOnStatement.kt");
+            }
+
             @TestMetadata("useExperimentalOnWholeModule.kt")
             public void testUseExperimentalOnWholeModule() throws Exception {
                 runTest("compiler/testData/diagnostics/testsWithStdLib/experimental/useExperimentalOnWholeModule.kt");

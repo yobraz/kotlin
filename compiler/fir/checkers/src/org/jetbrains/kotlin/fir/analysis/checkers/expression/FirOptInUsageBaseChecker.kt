@@ -189,14 +189,8 @@ object FirOptInUsageBaseChecker {
         ) {
             return true
         }
-        for (declaration in context.containingDeclarations) {
-            if (declaration !is FirAnnotatedDeclaration) continue
-            if (declaration.isExperimentalityAcceptable(annotationFqName)) {
-                return true
-            }
-        }
-        for (accessOrAnnotation in context.qualifiedAccessOrAnnotationCalls) {
-            if (accessOrAnnotation.isExperimentalityAcceptable(annotationFqName)) {
+        for (annotationContainer in context.annotationContainers) {
+            if (annotationContainer.isExperimentalityAcceptable(annotationFqName)) {
                 return true
             }
         }
