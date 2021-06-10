@@ -53,7 +53,8 @@ object FirOptInUsageBaseChecker {
     @OptIn(SymbolInternals::class)
     internal fun FirBasedSymbol<*>.loadExperimentalities(
         context: CheckerContext,
-        visited: MutableSet<FirAnnotatedDeclaration> = mutableSetOf()
+        visited: MutableSet<FirAnnotatedDeclaration> = mutableSetOf(),
+        fromSetter: Boolean = false,
     ): Set<Experimentality> {
         ensureResolved(FirResolvePhase.STATUS)
         val fir = fir as? FirAnnotatedDeclaration ?: return emptySet()
@@ -71,7 +72,7 @@ object FirOptInUsageBaseChecker {
                     }
                 } else if (fir is FirProperty) {
                     parentClassScope?.processDirectlyOverriddenProperties(fir.symbol) {
-                        result.addAll(it.loadExperimentalities(context, visited))
+                        result.addAll(it.loadExperimentalities(context, visited, fromSetter))
                         ProcessorAction.NEXT
                     }
                 }
@@ -80,6 +81,10 @@ object FirOptInUsageBaseChecker {
 
         if (fir is FirMemberDeclaration) {
             result.addAll(fir.experimentalities)
+        }
+        if (fromSetter && fir is FirProperty) {
+            result.addAll(fir.calculateOwnExperimentalities(context.session, true))
+            result.addAll(fir.setter?.calculateOwnExperimentalities(context.session, true).orEmpty())
         }
 
         if (fir.origin == FirDeclarationOrigin.Library || fir.origin == FirDeclarationOrigin.Enhancement) {

@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.resolve
 
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.fir.FirAnnotationContainer
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
@@ -21,15 +22,17 @@ import org.jetbrains.kotlin.resolve.checkers.OptInNames
 import org.jetbrains.kotlin.utils.addIfNotNull
 
 
-fun FirAnnotationContainer.calculateOwnExperimentalities(session: FirSession): List<Experimentality> {
+fun FirAnnotationContainer.calculateOwnExperimentalities(session: FirSession, fromSetter: Boolean = false): List<Experimentality> {
     val result = mutableListOf<Experimentality>()
     for (annotation in annotations) {
-        val annotationType = annotation.annotationTypeRef.coneTypeSafe<ConeClassLikeType>()
-        result.addIfNotNull(
-            (annotationType?.fullyExpandedType(session)?.lookupTag?.toSymbol(
-                session
-            ) as? FirRegularClassSymbol)?.loadExperimentalityForMarkerAnnotation()
-        )
+        if (annotation.useSiteTarget != AnnotationUseSiteTarget.PROPERTY_SETTER || fromSetter) {
+            val annotationType = annotation.annotationTypeRef.coneTypeSafe<ConeClassLikeType>()
+            result.addIfNotNull(
+                (annotationType?.fullyExpandedType(session)?.lookupTag?.toSymbol(
+                    session
+                ) as? FirRegularClassSymbol)?.loadExperimentalityForMarkerAnnotation()
+            )
+        }
     }
     return result
 }

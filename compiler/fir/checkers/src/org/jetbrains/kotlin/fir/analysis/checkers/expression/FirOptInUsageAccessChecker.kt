@@ -9,7 +9,9 @@ import org.jetbrains.kotlin.fir.FirFakeSourceElementKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccess
+import org.jetbrains.kotlin.fir.expressions.FirVariableAssignment
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
+import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 
 object FirOptInUsageAccessChecker : FirQualifiedAccessChecker() {
     override fun check(expression: FirQualifiedAccess, context: CheckerContext, reporter: DiagnosticReporter) {
@@ -20,6 +22,12 @@ object FirOptInUsageAccessChecker : FirQualifiedAccessChecker() {
         val reference = expression.calleeReference as? FirResolvedNamedReference ?: return
         val fir = reference.resolvedSymbol
         with(FirOptInUsageBaseChecker) {
+            if (expression is FirVariableAssignment && fir is FirPropertySymbol) {
+                val experimentalities = fir.loadExperimentalities(context, fromSetter = true) +
+                        loadExperimentalitiesFromTypeArguments(context, expression.typeArguments)
+                reportNotAcceptedExperimentalities(experimentalities, expression.lValue, context, reporter)
+                return
+            }
             val experimentalities = fir.loadExperimentalities(context) +
                     loadExperimentalitiesFromTypeArguments(context, expression.typeArguments)
             reportNotAcceptedExperimentalities(experimentalities, expression, context, reporter)
