@@ -356,7 +356,7 @@ private fun checkApplicabilityForArgumentType(
     sink: CheckerSink,
     context: ResolutionContext
 ) {
-    if (expectedType == null) return
+    if (expectedType == null || expectedType.isUnitOrFlexibleUnit) return
 
     fun subtypeError(actualExpectedType: ConeKotlinType): ResolutionDiagnostic {
         if (argument.isNullLiteral && actualExpectedType.nullability == ConeNullability.NOT_NULL) {

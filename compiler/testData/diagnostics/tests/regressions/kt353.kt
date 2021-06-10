@@ -7,10 +7,10 @@ interface A {
 
 fun foo(a: A) {
     val g : () -> Unit = {
-        a.gen()  //it works: Unit is derived
+        a.<!NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>gen<!>()  //it works: Unit is derived
     }
 
-    val u: Unit = a.gen() // Unit should be inferred
+    val u: Unit = a.<!NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>gen<!>() // Unit should be inferred
 
     if (true) {
         a.<!NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>gen<!>() // Shouldn't work: no info for inference

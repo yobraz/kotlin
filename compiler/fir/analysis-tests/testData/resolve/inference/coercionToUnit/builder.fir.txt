@@ -1,0 +1,22 @@
+FILE: builder.kt
+    public abstract interface Builder<Y> : R|kotlin/Any| {
+        public abstract fun get(): R|Y|
+
+    }
+    public final fun onValidate(init: R|() -> kotlin/Unit|): R|kotlin/Unit| {
+    }
+    public final fun <T> verify(init: R|() -> Builder<T>|): R|T| {
+        R|kotlin/TODO|()
+    }
+    public final fun builder(): R|Builder<kotlin/String>| {
+        R|kotlin/TODO|()
+    }
+    public final fun main(): R|kotlin/Unit| {
+        R|/onValidate|(<L> = onValidate@fun <anonymous>(): R|kotlin/Unit| <inline=NoInline>  {
+            R|/verify|<R|kotlin/String|>(<L> = verify@fun <anonymous>(): R|Builder<kotlin/String>| <inline=NoInline>  {
+                ^ R|/builder|()
+            }
+            )
+        }
+        )
+    }

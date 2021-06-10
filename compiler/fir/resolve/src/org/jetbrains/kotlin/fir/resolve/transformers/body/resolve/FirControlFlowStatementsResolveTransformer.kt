@@ -217,20 +217,16 @@ class FirControlFlowStatementsResolveTransformer(transformer: FirBodyResolveTran
         elvisExpression.transformAnnotations(transformer, data)
 
         val expectedType = data.expectedType?.coneTypeSafe<ConeKotlinType>()
-        val mayBeCoercionToUnitApplied = (data as? ResolutionMode.WithExpectedType)?.mayBeCoercionToUnitApplied == true
 
         val resolutionModeForLhs =
-            if (mayBeCoercionToUnitApplied && expectedType?.isUnitOrFlexibleUnit == true)
-                withExpectedType(expectedType, mayBeCoercionToUnitApplied = true)
+            if (expectedType?.isUnitOrFlexibleUnit == true)
+                withExpectedType(expectedType)
             else
                 withExpectedType(expectedType?.withNullability(ConeNullability.NULLABLE, session.typeContext))
         elvisExpression.transformLhs(transformer, resolutionModeForLhs)
         dataFlowAnalyzer.exitElvisLhs(elvisExpression)
 
-        val resolutionModeForRhs = withExpectedType(
-            expectedType,
-            mayBeCoercionToUnitApplied = mayBeCoercionToUnitApplied
-        )
+        val resolutionModeForRhs = withExpectedType(expectedType)
         elvisExpression.transformRhs(transformer, resolutionModeForRhs)
 
         val result = syntheticCallGenerator.generateCalleeForElvisExpression(elvisExpression, resolutionContext)?.let {

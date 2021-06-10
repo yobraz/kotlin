@@ -2840,6 +2840,46 @@ public class FirDiagnosticsWithLightTreeTestGenerated extends AbstractFirDiagnos
             public void testUnitUpperBound() throws Exception {
                 runTest("compiler/fir/analysis-tests/testData/resolve/inference/unitUpperBound.kt");
             }
+
+            @Nested
+            @TestMetadata("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit")
+            @TestDataPath("$PROJECT_ROOT")
+            public class CoercionToUnit {
+                @Test
+                public void testAllFilesPresentInCoercionToUnit() throws Exception {
+                    KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
+                }
+
+                @Test
+                @TestMetadata("builder.kt")
+                public void testBuilder() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit/builder.kt");
+                }
+
+                @Test
+                @TestMetadata("lastStatementInlambda.kt")
+                public void testLastStatementInlambda() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit/lastStatementInlambda.kt");
+                }
+
+                @Test
+                @TestMetadata("materializeAtLastStatement.kt")
+                public void testMaterializeAtLastStatement() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit/materializeAtLastStatement.kt");
+                }
+
+                @Test
+                @TestMetadata("nonLambdaUnit.kt")
+                public void testNonLambdaUnit() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit/nonLambdaUnit.kt");
+                }
+
+                @Test
+                @TestMetadata("safeCallWithinInnerLambda.kt")
+                public void testSafeCallWithinInnerLambda() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/inference/coercionToUnit/safeCallWithinInnerLambda.kt");
+                }
+            }
         }
 
         @Nested
