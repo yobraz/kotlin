@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.fir.analysis.checkers.context
 
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.fir.FirAnnotationContainer
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnostic
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
@@ -26,6 +27,7 @@ abstract class CheckerContext {
     abstract val containingDeclarations: List<FirDeclaration>
     abstract val qualifiedAccessOrAnnotationCalls: List<FirStatement>
     abstract val getClassCalls: List<FirGetClassCall>
+    abstract val annotationContainers: List<FirAnnotationContainer>
 
     // Suppress
     abstract val suppressedDiagnostics: Set<String>
@@ -42,6 +44,8 @@ abstract class CheckerContext {
         allWarningsSuppressed: Boolean,
         allErrorsSuppressed: Boolean
     ): PersistentCheckerContext
+
+    abstract fun addAnnotationContainer(annotationContainer: FirAnnotationContainer): CheckerContext
 
     fun isDiagnosticSuppressed(diagnostic: FirDiagnostic): Boolean {
         val factory = diagnostic.factory
