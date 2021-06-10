@@ -230,31 +230,57 @@ dependencies {
 
 publish()
 
+val checkNeedPackCompiler by task<DefaultTask> {
+    dependsOn(fatJarContents)
+    dependsOn(fatJarContentsStripServices)
+    dependsOn(fatJarContentsStripMetadata)
+    dependsOn(fatJarContentsStripVersions)
+
+    inputs.files(fatJarContents.files)
+    inputs.files(fatJarContentsStripServices.files.map {
+        zipTree(it).matching { exclude("META-INF/services/**") }
+    }
+    )
+    inputs.files(fatJarContentsStripMetadata.files.map {
+        zipTree(it).matching { exclude("META-INF/jb/**", "META-INF/LICENSE") }
+    }
+    )
+    inputs.files(fatJarContentsStripVersions.files.map {
+        zipTree(it).matching { exclude("META-INF/versions/**") }
+    })
+
+    outputs.files(File(buildDir, "dummy_file"))
+
+    doLast {
+        System.setProperty("needPackCompiler", "true")
+    }
+}
+
 val packCompiler by task<Jar> {
+    dependsOn(checkNeedPackCompiler)
+
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     destinationDirectory.set(File(buildDir, "libs"))
     archiveClassifier.set("before-proguard")
 
-    dependsOn(fatJarContents)
+    val file = this.archiveFile.get().getAsFile()
+    onlyIf {
+        System.getProperty("needPackCompiler") == "true" || !file.exists()
+    }
+
     from {
         fatJarContents.map(::zipTree)
     }
-
-    dependsOn(fatJarContentsStripServices)
     from {
         fatJarContentsStripServices.files.map {
             zipTree(it).matching { exclude("META-INF/services/**") }
         }
     }
-
-    dependsOn(fatJarContentsStripMetadata)
     from {
         fatJarContentsStripMetadata.files.map {
             zipTree(it).matching { exclude("META-INF/jb/**", "META-INF/LICENSE") }
         }
     }
-
-    dependsOn(fatJarContentsStripVersions)
     from {
         fatJarContentsStripVersions.files.map {
             zipTree(it).matching { exclude("META-INF/versions/**") }
