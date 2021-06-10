@@ -1,0 +1,11 @@
+FILE: nonLambdaUnit.kt
+    public final fun main(): R|kotlin/Unit| {
+        lval x: R|kotlin/Unit| = <CS errors: /materialize>#<R|ERROR CLASS: Cannot infer argument for type parameter T|>()
+        <CS errors: /foo>#(R|/materialize|<R|ERROR CLASS: Cannot infer argument for type parameter T|>())
+        ^main <CS errors: /materialize>#<R|ERROR CLASS: Cannot infer argument for type parameter T|>()
+    }
+    public final fun foo(x: R|kotlin/Unit|): R|kotlin/Unit| {
+    }
+    public final fun <T> materialize(): R|T| {
+        ^materialize R|kotlin/TODO|()
+    }

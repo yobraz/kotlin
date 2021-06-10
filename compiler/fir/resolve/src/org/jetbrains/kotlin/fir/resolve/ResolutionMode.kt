@@ -19,7 +19,6 @@ sealed class ResolutionMode {
     // TODO: it's better not to use WithExpectedType(FirImplicitTypeRef)
     class WithExpectedType(
         val expectedTypeRef: FirTypeRef,
-        val mayBeCoercionToUnitApplied: Boolean = false,
         val expectedTypeMismatchIsReportedInChecker: Boolean = false,
     ) : ResolutionMode()
 

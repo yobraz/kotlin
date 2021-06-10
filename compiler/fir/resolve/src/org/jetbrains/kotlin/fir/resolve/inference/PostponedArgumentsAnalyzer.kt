@@ -195,7 +195,7 @@ class PostponedArgumentsAnalyzer(
             // If it is the last expression, and the expected type is Unit, that expression will be coerced to Unit.
             // If the last expression is of Unit type, of course it's not coercion-to-Unit case.
             val lastExpressionCoercedToUnit =
-                it == lastExpression && expectedReturnType?.isUnitOrFlexibleUnit == true && !it.typeRef.coneType.isUnitOrFlexibleUnit
+                it == lastExpression && expectedReturnType?.isUnitOrFlexibleUnit == true
             // No constraint for the last expression of lambda if it will be coerced to Unit.
             if (!lastExpressionCoercedToUnit && !c.getBuilder().hasContradiction) {
                 candidate.resolveArgumentExpression(
