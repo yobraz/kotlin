@@ -12931,6 +12931,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
         public void testNameHighlighter() throws Exception {
             runTest("compiler/testData/codegen/box/fir/NameHighlighter.kt");
         }
+
+        @TestMetadata("OptInWarningFromAnotherModule.kt")
+        public void testOptInWarningFromAnotherModule() throws Exception {
+            runTest("compiler/testData/codegen/box/fir/OptInWarningFromAnotherModule.kt");
+        }
     }
 
     @TestMetadata("compiler/testData/codegen/box/fullJdk")

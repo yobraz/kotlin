@@ -156,10 +156,10 @@ object FirOptInUsageBaseChecker {
             ?: getAnnotationByFqName(OptInNames.OLD_EXPERIMENTAL_FQ_NAME)
             ?: return null
 
-        val levelArgument = experimental.findSingleArgumentByName(LEVEL) as? FirQualifiedAccessExpression
+        val levelArgument = experimental.findArgumentByName(LEVEL) as? FirQualifiedAccessExpression
         val levelName = (levelArgument?.calleeReference as? FirResolvedNamedReference)?.name?.asString()
         val level = OptInLevel.values().firstOrNull { it.name == levelName } ?: OptInLevel.DEFAULT
-        val message = (experimental.findSingleArgumentByName(MESSAGE) as? FirConstExpression<*>)?.value as? String
+        val message = (experimental.findArgumentByName(MESSAGE) as? FirConstExpression<*>)?.value as? String
         return Experimentality(symbol.classId.asSingleFqName(), level.severity, message)
     }
 
@@ -215,7 +215,7 @@ object FirOptInUsageBaseChecker {
             if (coneType?.lookupTag?.classId?.asSingleFqName() !in OptInNames.USE_EXPERIMENTAL_FQ_NAMES) {
                 continue
             }
-            val annotationClasses = annotation.findSingleArgumentByName(OptInNames.USE_EXPERIMENTAL_ANNOTATION_CLASS) ?: continue
+            val annotationClasses = annotation.findArgumentByName(OptInNames.USE_EXPERIMENTAL_ANNOTATION_CLASS) ?: continue
             if (annotationClasses.extractClassesFromArgument().any {
                     it.classId.asSingleFqName() == annotationFqName
                 }

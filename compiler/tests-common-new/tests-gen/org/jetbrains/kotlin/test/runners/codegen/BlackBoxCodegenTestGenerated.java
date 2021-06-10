@@ -15711,6 +15711,12 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
         }
 
         @Test
+        @TestMetadata("OptInWarningFromAnotherModule.kt")
+        public void testOptInWarningFromAnotherModule() throws Exception {
+            runTest("compiler/testData/codegen/box/fir/OptInWarningFromAnotherModule.kt");
+        }
+
+        @Test
         @TestMetadata("SuspendExtension.kt")
         public void testSuspendExtension() throws Exception {
             runTest("compiler/testData/codegen/box/fir/SuspendExtension.kt");
