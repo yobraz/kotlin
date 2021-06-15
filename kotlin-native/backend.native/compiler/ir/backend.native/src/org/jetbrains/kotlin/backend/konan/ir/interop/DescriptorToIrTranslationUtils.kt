@@ -79,7 +79,7 @@ internal interface DescriptorToIrTranslationMixin {
         return fakeOverrides.map {
             when (it) {
                 is PropertyDescriptor -> createProperty(it)
-                is FunctionDescriptor -> createFunction(it, IrDeclarationOrigin.FAKE_OVERRIDE)
+                is FunctionDescriptor -> createFunction(it)
                 else -> error("Unexpected fake override descriptor: $it")
             }
         }
@@ -108,19 +108,14 @@ internal interface DescriptorToIrTranslationMixin {
     }
 
     fun createProperty(propertyDescriptor: PropertyDescriptor): IrProperty {
-        val origin = if (propertyDescriptor.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
-            IrDeclarationOrigin.FAKE_OVERRIDE
-        } else {
-            IrDeclarationOrigin.IR_EXTERNAL_DECLARATION_STUB
-        }
-        val irProperty = symbolTable.declareProperty(SYNTHETIC_OFFSET, SYNTHETIC_OFFSET, origin, propertyDescriptor)
+        val irProperty = symbolTable.declareProperty(SYNTHETIC_OFFSET, SYNTHETIC_OFFSET, IrDeclarationOrigin.IR_EXTERNAL_DECLARATION_STUB, propertyDescriptor)
         irProperty.getter = propertyDescriptor.getter?.let {
-            val irGetter = createFunction(it, origin)
+            val irGetter = createFunction(it)
             irGetter.correspondingPropertySymbol = irProperty.symbol
             irGetter
         }
         irProperty.setter = propertyDescriptor.setter?.let {
-            val irSetter = createFunction(it, origin)
+            val irSetter = createFunction(it)
             irSetter.correspondingPropertySymbol = irProperty.symbol
             irSetter
         }
@@ -128,11 +123,8 @@ internal interface DescriptorToIrTranslationMixin {
         return irProperty
     }
 
-    fun createFunction(
-            functionDescriptor: FunctionDescriptor,
-            origin: IrDeclarationOrigin = IrDeclarationOrigin.IR_EXTERNAL_DECLARATION_STUB
-    ): IrSimpleFunction {
-        val irFunction = symbolTable.declareSimpleFunctionWithOverrides(SYNTHETIC_OFFSET, SYNTHETIC_OFFSET, origin, functionDescriptor)
+    fun createFunction(functionDescriptor: FunctionDescriptor): IrSimpleFunction {
+        val irFunction = symbolTable.declareSimpleFunctionWithOverrides(SYNTHETIC_OFFSET, SYNTHETIC_OFFSET, IrDeclarationOrigin.IR_EXTERNAL_DECLARATION_STUB, functionDescriptor)
         symbolTable.withScope(irFunction) {
             irFunction.returnType = functionDescriptor.returnType!!.toIrType()
             irFunction.valueParameters +=  functionDescriptor.valueParameters.map {
