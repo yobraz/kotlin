@@ -262,6 +262,14 @@ class FakeOverrideGenerator(
         }
     }
 
+    private fun getOverriddenSymbolsForFakeOverride(property: IrProperty): List<IrPropertySymbol>? {
+        val baseSymbols = basePropertySymbols[property] ?: return null
+        return getOverriddenSymbolsInSupertypes(
+            property,
+            baseSymbols
+        ) { declarationStorage.getIrPropertySymbol(it) as IrPropertySymbol }
+    }
+
     internal fun getOverriddenSymbolsForFakeOverride(function: IrSimpleFunction): List<IrSimpleFunctionSymbol>? {
         val baseSymbols = baseFunctionSymbols[function] ?: return null
         return getOverriddenSymbolsInSupertypes(
@@ -348,7 +356,9 @@ class FakeOverrideGenerator(
                 }
                 is IrProperty -> {
                     val baseSymbols = basePropertySymbols[declaration]!!
+                    val baseIrSymbols = getOverriddenSymbolsForFakeOverride(declaration)!!
                     declaration.withProperty {
+                        overriddenSymbols = baseIrSymbols
                         discardAccessorsAccordingToBaseVisibility(baseSymbols)
                         setOverriddenSymbolsForAccessors(declarationStorage, declaration.isVar, baseSymbols)
                     }
