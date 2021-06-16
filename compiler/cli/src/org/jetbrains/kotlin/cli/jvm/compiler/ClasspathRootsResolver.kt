@@ -55,7 +55,8 @@ class ClasspathRootsResolver(
     private val javaModuleFinder: CliJavaModuleFinder,
     private val requireStdlibModule: Boolean,
     private val outputDirectory: VirtualFile?,
-    private val javaFileManager: KotlinCliJavaFileManager
+    private val javaFileManager: KotlinCliJavaFileManager,
+    private val release: Int
 ) {
     val javaModuleGraph = JavaModuleGraph(javaModuleFinder)
 
@@ -124,8 +125,14 @@ class ClasspathRootsResolver(
                 modules += module
             }
         }
-
-        addModularRoots(modules, result)
+        if (release == 0 || release >= 9) {
+            addModularRoots(modules, result, release)
+        } else {
+            val listFoldersForRelease = javaModuleFinder.listFoldersForRelease(release)
+            listFoldersForRelease.forEach {
+                result += JavaRoot(it, JavaRoot.RootType.BINARY_SIG)
+            }
+        }
 
         return RootsAndModules(result, modules)
     }
@@ -199,7 +206,7 @@ class ClasspathRootsResolver(
         }
     }
 
-    private fun addModularRoots(modules: List<JavaModule>, result: MutableList<JavaRoot>) {
+    private fun addModularRoots(modules: List<JavaModule>, result: MutableList<JavaRoot>, release: Int) {
         // In current implementation, at most one source module is supported. This can be relaxed in the future if we support another
         // compilation mode, similar to java's --module-source-path
         val sourceModules = modules.filterIsInstance<JavaModule.Explicit>().filter(JavaModule::isSourceModule)
@@ -240,7 +247,7 @@ class ClasspathRootsResolver(
         val rootModules = when {
             sourceModule != null -> listOf(sourceModule.name) + additionalModules
             addAllModulePathToRoots -> modules.map(JavaModule::name)
-            else -> computeDefaultRootModules() + additionalModules
+            else -> computeDefaultRootModules(release) + additionalModules
         }
 
         val allDependencies = javaModuleGraph.getAllDependencies(rootModules)
@@ -279,7 +286,8 @@ class ClasspathRootsResolver(
     }
 
     // See http://openjdk.java.net/jeps/261
-    private fun computeDefaultRootModules(): List<String> {
+    private fun computeDefaultRootModules(release: Int): List<String> {
+        if (release != 0) return emptyList()
         val result = arrayListOf<String>()
 
         val systemModules = javaModuleFinder.systemModules.associateBy(JavaModule::name)

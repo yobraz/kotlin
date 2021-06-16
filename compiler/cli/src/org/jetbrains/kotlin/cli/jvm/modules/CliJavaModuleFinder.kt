@@ -17,20 +17,28 @@
 package org.jetbrains.kotlin.cli.jvm.modules
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiJavaModule
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.io.URLUtil
 import org.jetbrains.kotlin.resolve.jvm.KotlinCliJavaFileManager
 import org.jetbrains.kotlin.resolve.jvm.modules.JavaModule
 import org.jetbrains.kotlin.resolve.jvm.modules.JavaModuleFinder
 import org.jetbrains.kotlin.resolve.jvm.modules.JavaModuleInfo
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Paths
 
 class CliJavaModuleFinder(
+    jdkRootFile: VirtualFile?,
     jrtFileSystemRoot: VirtualFile?,
     private val javaFileManager: KotlinCliJavaFileManager,
     project: Project
 ) : JavaModuleFinder {
     private val modulesRoot = jrtFileSystemRoot?.findChild("modules")
+    private val ctSymFile = jdkRootFile?.findChild("lib")?.findChild("ct.sym")
     private val userModules = linkedMapOf<String, JavaModule>()
 
     private val allScope = GlobalSearchScope.allScope(project)
@@ -52,5 +60,19 @@ class CliJavaModuleFinder(
         val file = moduleRoot.findChild(PsiJavaModule.MODULE_INFO_CLS_FILE) ?: return null
         val moduleInfo = JavaModuleInfo.read(file, javaFileManager, allScope) ?: return null
         return JavaModule.Explicit(moduleInfo, listOf(JavaModule.Root(moduleRoot, isBinary = true)), file)
+    }
+
+    private fun codeFor(release: Int): String = if (release < 10) release.toString() else ('A' + (release - 10)).toChar().toString()
+    private fun fileNameMatchesRelease(fileName: String, release: Int) = !fileName.contains("-") && fileName.contains(codeFor(release)) // skip `*-modules`
+
+    fun listFoldersForRelease(release: Int): List<VirtualFile> {
+        if (ctSymFile == null) return emptyList()
+        //val path = Paths.get(ctSymFile.path)
+
+        val findFileByPath = VirtualFileManager.getInstance().getFileSystem(StandardFileSystems.JAR_PROTOCOL).findFileByPath(ctSymFile.path + URLUtil.JAR_SEPARATOR) ?: return emptyList()
+
+        return findFileByPath.children.filter { fileNameMatchesRelease(it.name, release) }.map {
+            it
+        }
     }
 }

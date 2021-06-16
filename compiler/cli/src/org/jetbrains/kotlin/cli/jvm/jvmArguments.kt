@@ -73,6 +73,20 @@ fun CompilerConfiguration.setupJvmSpecificArguments(arguments: K2JVMCompilerArgu
         }
     }
 
+    val release = arguments.release
+    if (release != null) {
+        val value = release.toIntOrNull()
+        if (value == null) {
+            messageCollector.report(
+                ERROR,
+                "Can't parse value passed for `-Xrelease`: $release."
+            )
+        } else {
+            // TODO: check
+            put(JVMConfigurationKeys.RELEASE, value)
+        }
+    }
+
     handleClosureGenerationSchemeArgument("-Xsam-conversions", arguments.samConversions, JVMConfigurationKeys.SAM_CONVERSIONS, jvmTarget)
     handleClosureGenerationSchemeArgument("-Xlambdas", arguments.lambdas, JVMConfigurationKeys.LAMBDAS, jvmTarget)
 
@@ -147,7 +161,11 @@ fun CompilerConfiguration.configureExplicitContentRoots(arguments: K2JVMCompiler
 }
 
 fun CompilerConfiguration.configureStandardLibs(paths: KotlinPaths?, arguments: K2JVMCompilerArguments) {
-    val isModularJava = isModularJava()
+    val jdkHome = File("/home/mike/devel/tools/java/jdk-11.0.1")
+    //val (javaRoot, classesRoots) = jdkHome to PathUtil.getJdkClassesRoots(jdkHome)
+    put(JVMConfigurationKeys.JDK_HOME, jdkHome)
+
+    val isModularJava = false//isModularJava()
 
     fun addRoot(moduleName: String, libraryName: String, getLibrary: (KotlinPaths) -> File, noLibraryArgument: String) {
         addModularRootIfNotNull(

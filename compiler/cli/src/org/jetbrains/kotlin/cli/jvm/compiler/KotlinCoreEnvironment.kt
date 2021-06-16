@@ -196,6 +196,9 @@ class KotlinCoreEnvironment private constructor(
         val jrtFileSystem = VirtualFileManager.getInstance().getFileSystem(StandardFileSystems.JRT_PROTOCOL)
         val javaModuleFinder = CliJavaModuleFinder(
             jdkHome?.path?.let { path ->
+                VirtualFileManager.getInstance().getFileSystem(StandardFileSystems.FILE_PROTOCOL).findFileByPath(path)
+            },
+            jdkHome?.path?.let { path ->
                 jrtFileSystem?.findFileByPath(path + URLUtil.JAR_SEPARATOR)
             },
             javaFileManager,
@@ -214,7 +217,8 @@ class KotlinCoreEnvironment private constructor(
             javaModuleFinder,
             !configuration.getBoolean(CLIConfigurationKeys.ALLOW_KOTLIN_PACKAGE),
             outputDirectory?.let(this::findLocalFile),
-            javaFileManager
+            javaFileManager,
+            configuration.get(JVMConfigurationKeys.RELEASE, 0)
         )
 
         val (initialRoots, javaModules) =
@@ -709,15 +713,15 @@ class KotlinCoreEnvironment private constructor(
             val jvmTarget = configFiles == EnvironmentConfigFiles.JVM_CONFIG_FILES
             if (!jvmTarget) return
 
-            val jdkHome = get(JVMConfigurationKeys.JDK_HOME)
-            val (javaRoot, classesRoots) = if (jdkHome == null) {
+            val jdkHome = File("/home/mike/devel/tools/java/jdk-11.0.1")
+            val (javaRoot, classesRoots) = jdkHome to PathUtil.getJdkClassesRoots(jdkHome) /*if (jdkHome == null) {
                 val javaHome = File(System.getProperty("java.home"))
                 put(JVMConfigurationKeys.JDK_HOME, javaHome)
 
                 javaHome to PathUtil.getJdkClassesRootsFromCurrentJre()
-            } else {
-                jdkHome to PathUtil.getJdkClassesRoots(jdkHome)
-            }
+            } else {*/
+
+            //}
 
             if (!CoreJrtFileSystem.isModularJdk(javaRoot)) {
                 if (classesRoots.isEmpty()) {
