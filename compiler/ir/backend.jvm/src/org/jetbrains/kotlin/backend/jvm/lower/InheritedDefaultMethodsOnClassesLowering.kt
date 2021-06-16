@@ -206,7 +206,7 @@ private class InterfaceDefaultCallsLowering(val context: JvmBackendContext) : Ir
 
 internal fun IrSimpleFunction.isDefinitelyNotDefaultImplsMethod(
     jvmDefaultMode: JvmDefaultMode,
-    implementation: IrSimpleFunction? = resolveFakeOverride()
+    implementation: IrSimpleFunction? = resolveFakeOverride() // TODO use memoized version in JvmBackendContext
 ): Boolean =
     implementation == null ||
             implementation.origin == IrDeclarationOrigin.IR_EXTERNAL_JAVA_DECLARATION_STUB ||
@@ -235,7 +235,7 @@ private class InterfaceObjectCallsLowering(val context: JvmBackendContext) : IrE
         val callee = expression.symbol.owner
         if (!callee.hasInterfaceParent() && expression.dispatchReceiver?.run { type.erasedUpperBound.isJvmInterface } != true)
             return super.visitCall(expression)
-        val resolved = callee.resolveFakeOverride()
+        val resolved = context.resolveFakeOverrideFunction(callee)
         if (resolved?.isMethodOfAny() != true)
             return super.visitCall(expression)
         val newSuperQualifierSymbol = context.irBuiltIns.anyClass.takeIf { expression.superQualifierSymbol != null }
@@ -264,6 +264,7 @@ internal fun IrSimpleFunction.findInterfaceImplementation(jvmDefaultMode: JvmDef
     if (!isFakeOverride) return null
     parent.let { if (it is IrClass && it.isJvmInterface) return null }
 
+    // TODO use memoized version in JvmBackendContext
     val implementation = resolveFakeOverride(toSkip = ::isDefaultImplsBridge) ?: return null
 
     // Only generate interface delegation for functions immediately inherited from an interface.

@@ -103,7 +103,8 @@ internal class InterfaceLowering(val context: JvmBackendContext) : IrElementTran
                     if (function.name.asString().endsWith("\$default")) {
                         continue
                     }
-                    val implementation = function.resolveFakeOverride() ?: error("No single implementation found for: ${function.render()}")
+                    val implementation = context.resolveFakeOverrideFunction(function)
+                        ?: error("No single implementation found for: ${function.render()}")
 
                     when {
                         DescriptorVisibilities.isPrivate(implementation.visibility) || implementation.isMethodOfAny() ->

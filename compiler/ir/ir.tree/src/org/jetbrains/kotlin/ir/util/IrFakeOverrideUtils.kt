@@ -104,7 +104,7 @@ fun <S : IrSymbol, T : IrOverridableDeclaration<S>> T.resolveFakeOverride(
         if (reals.isEmpty()) error("No real overrides for ${this.render()}")
         reals.first()
     } else {
-        collectRealOverrides(toSkip, { it.modality == Modality.ABSTRACT })
+        collectRealOverrides(toSkip) { it.modality == Modality.ABSTRACT }
             .let { realOverrides ->
                 // Kotlin forbids conflicts between overrides, but they may trickle down from Java.
                 realOverrides.singleOrNull { it.parent.safeAs<IrClass>()?.isInterface != true }

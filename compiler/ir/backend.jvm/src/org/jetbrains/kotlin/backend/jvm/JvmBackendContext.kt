@@ -37,8 +37,10 @@ import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.SymbolTable
+import org.jetbrains.kotlin.ir.util.resolveFakeOverride
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
+import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.org.objectweb.asm.Type
 import java.util.concurrent.ConcurrentHashMap
 
@@ -131,6 +133,13 @@ class JvmBackendContext(
     internal val continuationClassesVarsCountByType: MutableMap<IrAttributeContainer, Map<Type, Int>> = hashMapOf()
 
     val inlineMethodGenerationLock = Any()
+
+    private val storageManager = LockBasedStorageManager("fake-overrides")
+
+    val resolveFakeOverrideFunction =
+        storageManager.createMemoizedFunctionWithNullableValues { irFun: IrSimpleFunction ->
+            irFun.resolveFakeOverride()
+        }
 
     init {
         state.mapInlineClass = { descriptor ->

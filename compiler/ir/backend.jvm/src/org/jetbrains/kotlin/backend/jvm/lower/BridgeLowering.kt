@@ -6,7 +6,10 @@
 package org.jetbrains.kotlin.backend.jvm.lower
 
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
-import org.jetbrains.kotlin.backend.common.ir.*
+import org.jetbrains.kotlin.backend.common.ir.allOverridden
+import org.jetbrains.kotlin.backend.common.ir.copyTo
+import org.jetbrains.kotlin.backend.common.ir.isMethodOfAny
+import org.jetbrains.kotlin.backend.common.ir.isStatic
 import org.jetbrains.kotlin.backend.common.lower.*
 import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
@@ -15,6 +18,7 @@ import org.jetbrains.kotlin.backend.jvm.codegen.isJvmInterface
 import org.jetbrains.kotlin.backend.jvm.ir.*
 import org.jetbrains.kotlin.backend.jvm.lower.inlineclasses.unboxInlineClass
 import org.jetbrains.kotlin.codegen.AsmUtil
+import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrStatement
@@ -30,7 +34,6 @@ import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.Method
 import java.util.concurrent.ConcurrentHashMap
@@ -217,6 +220,17 @@ internal class BridgeLowering(val context: JvmBackendContext) : FileLoweringPass
         return super.visitClass(declaration)
     }
 
+    // Check whether a function maps to an abstract method.
+    // For non-interface methods or interface methods coming from Java the modality is correct. Kotlin interface methods
+    // are abstract unless they are annotated @PlatformDependent or compiled to JVM default (with @JvmDefault annotation or without)
+    // or they override such method.
+    private fun IrSimpleFunction.isJvmAbstract(jvmDefaultMode: JvmDefaultMode): Boolean {
+        if (modality == Modality.ABSTRACT) return true
+        if (!parentAsClass.isJvmInterface) return false
+        val targetFunction = context.resolveFakeOverrideFunction(this) ?: return true
+        return targetFunction.run { !isCompiledToJvmDefault(jvmDefaultMode) && !hasPlatformDependent() }
+    }
+
     private fun makeLastParameterNullable(irFunction: IrSimpleFunction) {
         val oldValueParameter = irFunction.valueParameters.last()
         val newValueParameter = oldValueParameter.copyTo(irFunction, type = oldValueParameter.type.makeNullable())
@@ -239,7 +253,7 @@ internal class BridgeLowering(val context: JvmBackendContext) : FileLoweringPass
             .mapTo(HashSet()) { it.jvmMethod }
 
         // Add the current method to the blacklist if it is concrete or final.
-        val targetMethod = (irFunction.resolveFakeOverride() ?: irFunction).jvmMethod
+        val targetMethod = (context.resolveFakeOverrideFunction(irFunction) ?: irFunction).jvmMethod
         if (!irFunction.isFakeOverride || irFunction.modality == Modality.FINAL)
             blacklist += targetMethod
 

@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.util.copyTypeAndValueArgumentsFrom
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.parentAsClass
-import org.jetbrains.kotlin.ir.util.resolveFakeOverride
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
 @Suppress("RemoveExplicitTypeArguments")
@@ -39,8 +38,9 @@ class ResolveInlineCalls(val context: JvmBackendContext) : IrElementTransformerV
         val maybeFakeOverrideOfMultiFileBridge = expression.symbol.owner as? IrSimpleFunction
             ?: return super.visitCall(expression)
         val resolved =
-            maybeFakeOverrideOfMultiFileBridge.resolveMultiFileFacadeMember() ?: maybeFakeOverrideOfMultiFileBridge.resolveFakeOverride()
-            ?: return super.visitCall(expression)
+            maybeFakeOverrideOfMultiFileBridge.resolveMultiFileFacadeMember()
+                ?: context.resolveFakeOverrideFunction(maybeFakeOverrideOfMultiFileBridge)
+                ?: return super.visitCall(expression)
         return super.visitCall(with(expression) {
             IrCallImpl(
                 startOffset,

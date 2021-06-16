@@ -301,15 +301,6 @@ fun IrMemberAccessExpression<IrFunctionSymbol>.copyFromWithPlaceholderTypeArgume
     }
 }
 
-// Check whether a function maps to an abstract method.
-// For non-interface methods or interface methods coming from Java the modality is correct. Kotlin interface methods
-// are abstract unless they are annotated @PlatformDependent or compiled to JVM default (with @JvmDefault annotation or without)
-// or they override such method.
-fun IrSimpleFunction.isJvmAbstract(jvmDefaultMode: JvmDefaultMode): Boolean {
-    if (modality == Modality.ABSTRACT) return true
-    if (!parentAsClass.isJvmInterface) return false
-    return resolveFakeOverride()?.run { !isCompiledToJvmDefault(jvmDefaultMode) && !hasPlatformDependent() } != false
-}
 
 fun firstSuperMethodFromKotlin(
     override: IrSimpleFunction,
