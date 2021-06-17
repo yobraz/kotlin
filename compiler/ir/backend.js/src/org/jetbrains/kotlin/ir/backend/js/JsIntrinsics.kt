@@ -317,7 +317,7 @@ class JsIntrinsics(private val irBuiltIns: IrBuiltIns, val context: JsIrBackendC
     val safePropertyGet = getInternalFunction("safePropertyGet")
     val safePropertySet = getInternalFunction("safePropertySet")
 
-    val jsUndefined = getInternalFunction("undefined")
+    val jsUndefined = getInternalFunction("jsUndefined")
 
     // Helpers:
 

@@ -181,7 +181,7 @@ internal fun <T> sharedBoxRead(box: dynamic): T?
 internal fun <T> sharedBoxWrite(box: dynamic, nv: T?)
 
 @JsIntrinsic
-internal fun undefined(): Nothing?
+internal fun jsUndefined(): Nothing?
 
 @JsIntrinsic
 internal fun <T> DefaultType(): T
