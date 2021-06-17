@@ -173,7 +173,6 @@ class JsIntrinsics(private val irBuiltIns: IrBuiltIns, val context: JsIrBackendC
     val jsGetKClass = getInternalWithoutPackage("getKClass")
     val jsGetKClassFromExpression = getInternalWithoutPackage("getKClassFromExpression")
 
-    private val jsClassClassSymbol = getInternalClassWithoutPackage("kotlin.js.JsClass")
     val jsClass = getInternalFunction("jsClassIntrinsic")
 
     val jsNumberRangeToNumber = getInternalFunction("numberRangeToNumber")
