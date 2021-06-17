@@ -16,7 +16,10 @@ import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.processClassModels
 import org.jetbrains.kotlin.ir.backend.js.utils.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.types.classOrNull
-import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.util.file
+import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
+import org.jetbrains.kotlin.ir.util.hasInterfaceParent
+import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
@@ -231,7 +234,7 @@ class IrToJs(
         // Generate external export
 
         val exportedDeclarations: List<ExportedDeclaration> =
-            with(ExportModelGenerator(backendContext)) {
+            with(ExportModelGenerator(backendContext, generateNamespacesForPackages = false)) {
                 (unit.externalPackageFragments + unit.packageFragments).flatMap { packageFragment ->
                     generateExport(packageFragment)
                 }
@@ -389,6 +392,7 @@ class IrToJs(
     private fun fileInitOrder(file: IrFile): Int =
         when (val singleDeclaration = file.declarations.singleOrNull()) {
             // Initialize parent classes before child classes
+            //  TODO: Comment about open classes in separate files
             is IrClass -> singleDeclaration.getInheritanceChainLength()
             // Initialize regular files after all open classes
             else -> Int.MAX_VALUE
@@ -398,13 +402,15 @@ class IrToJs(
         if (symbol == backendContext.irBuiltIns.anyClass)
             return 0
 
+        // FIXME: Filter out interfaces
         superTypes.forEach { superType ->
             val superClass: IrClass? = superType.classOrNull?.owner
-            if (superClass != null)
+            if (superClass != null && /* !!! */ !superClass.isInterface)
                 return superClass.getInheritanceChainLength() + 1
         }
 
-        error("Class missing super class $fqNameWhenAvailable")
+
+        return 1
     }
 }
 

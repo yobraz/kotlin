@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.backend.js.codegen.JsGenerationGranularity
 import org.jetbrains.kotlin.ir.backend.js.codegen.JsGenerationGranularity.*
 import org.jetbrains.kotlin.ir.backend.js.codegen.JsGenerationOptions
 import org.jetbrains.kotlin.ir.backend.js.codegen.generateEsModules
+import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.IrModuleToJsTransformer
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.ir.declarations.persistent.PersistentIrFactory
 import org.jetbrains.kotlin.js.config.JSConfigurationKeys
@@ -27,6 +28,7 @@ import org.jetbrains.kotlin.js.facade.TranslationUnit
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.parsing.parseBoolean
 import org.jetbrains.kotlin.test.TargetBackend
+import org.jetbrains.kotlin.utils.fileUtils.withReplacedExtensionOrNull
 import java.io.File
 import java.lang.Boolean.getBoolean
 
@@ -96,6 +98,8 @@ abstract class BasicIrBoxTest(
         needsFullIrRuntime: Boolean,
         isMainModule: Boolean,
         skipDceDriven: Boolean,
+        skipEsModules: Boolean,
+        skipOldModuleSystems: Boolean,
         splitPerModule: Boolean,
         propertyLazyInitialization: Boolean,
         customTestModule: String?
@@ -176,28 +180,61 @@ abstract class BasicIrBoxTest(
             val options = JsGenerationOptions(generatePackageJson = true, generateTypeScriptDefinitions = generateDts)
 
             fun generateEsModules(ir: LoweredIr, outputDir: File, granularity: JsGenerationGranularity) {
+                if (skipEsModules) return
                 outputDir.deleteRecursively()
                 generateEsModules(ir, jsOutputSink(outputDir), mainArguments = mainArguments, granularity = granularity, options = options)
                 generateTestFile(outputDir)
             }
 
+            fun generateOldModuleSystems(
+                ir: LoweredIr,
+                outputFile: File,
+                granularity: JsGenerationGranularity
+            ) {
+                if (skipOldModuleSystems) return
+                outputFile.deleteRecursively()
+
+                check(granularity != PER_FILE) { "Per file granularity is not supported for old module systems" }
+                val transformer = IrModuleToJsTransformer(
+                    ir.context,
+                    mainArguments,
+                    fullJs = true,
+                    dceJs = false,
+                    multiModule = granularity == PER_MODULE,
+                    relativeRequirePath = false
+                )
+                val generatedModule: CompilerResult = transformer.generateModule(ir.allModules)
+
+                generatedModule.jsCode!!.writeTo(
+                    outputFile,
+                    config
+                )
+
+                if (generateDts) {
+                    val dtsFile = outputFile.withReplacedExtensionOrNull("_v5.js", ".d.ts")!!
+                    logger.logFile("Output d.ts", dtsFile)
+                    dtsFile.write(generatedModule.tsDefinitions ?: error("No ts definitions"))
+                }
+            }
+
+            val granularity = if (splitPerModule || perModule) PER_MODULE else WHOLE_PROGRAM
+
             if (!skipRegularMode) {
-                val ir = compileToLoweredIr(dceDriven = false, WHOLE_PROGRAM)
-                generateEsModules(ir, outputFile, WHOLE_PROGRAM)
+                val ir = compileToLoweredIr(dceDriven = false, granularity)
+                generateEsModules(ir, outputFile.esModulesSubDir, granularity)
+                generateOldModuleSystems(ir, outputFile, granularity)
 
                 if (runIrDce) {
                     eliminateDeadDeclarations(ir.allModules, ir.context)
-                    generateEsModules(ir, dceOutputFile, WHOLE_PROGRAM)
+                    generateEsModules(ir, dceOutputFile.esModulesSubDir, granularity)
+                    generateOldModuleSystems(ir, dceOutputFile, granularity)
                 }
-
-                val irPerFile = compileToLoweredIr(dceDriven = false, PER_FILE)
-                generateEsModules(irPerFile, outputFile.perFileDir, PER_FILE)
-                generateEsModules(irPerFile, outputFile.perModuleDir, PER_MODULE)
             }
 
             if (runIrPir && !skipDceDriven) {
-                val ir = compileToLoweredIr(dceDriven = true, WHOLE_PROGRAM)
-                generateEsModules(ir, pirOutputFile, WHOLE_PROGRAM)
+                val ir = compileToLoweredIr(dceDriven = true, granularity)
+                generateEsModules(ir, pirOutputFile.esModulesSubDir, granularity)
+                generateOldModuleSystems(ir, pirOutputFile, granularity)
             }
         } else {
             generateKLib(
@@ -263,18 +300,18 @@ abstract class BasicIrBoxTest(
         expectedResult: String,
         withModuleSystem: Boolean
     ) {
-        // No longer needed.
+        // TODO: should we do anything special for module systems?
+        // TODO: return list of js from translateFiles and provide then to this function with other js files
+
+        val allFiles = jsFiles.flatMap { file -> cachedDependencies[File(file).absolutePath]?.let { deps -> deps + file } ?: listOf(file) }
+        testChecker.check(allFiles, testModuleName, testPackage, testFunction, expectedResult, withModuleSystem)
     }
 }
-
 
 private fun File.write(text: String) {
     parentFile.mkdirs()
     writeText(text)
 }
 
-val File.perFileDir: File
-    get() = File(absolutePath + "_per_file")
-
-val File.perModuleDir: File
-    get() = File(absolutePath + "_per_module")
+val File.esModulesSubDir: File
+    get() = File(absolutePath + "_esm")
