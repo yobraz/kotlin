@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.backend.konan.llvm
 import llvm.*
 import org.jetbrains.kotlin.backend.konan.Context
 import org.jetbrains.kotlin.ir.expressions.IrConst
+import org.jetbrains.kotlin.ir.types.IrType
 
 /**
  * Provides utilities to create static data.
@@ -159,12 +160,17 @@ internal class StaticData(override val context: Context): ContextUtils {
 
     private val stringLiterals = mutableMapOf<String, ConstPointer>()
     private val cStringLiterals = mutableMapOf<String, ConstPointer>()
+    private val kTypeObjects = mutableMapOf<IrType, ConstPointer>()
 
     fun cStringLiteral(value: String) =
             cStringLiterals.getOrPut(value) { placeCStringLiteral(value) }
 
     fun kotlinStringLiteral(value: String) =
-        stringLiterals.getOrPut(value) { createKotlinStringLiteral(value) }
+            stringLiterals.getOrPut(value) { createKotlinStringLiteral(value) }
+
+    fun kotlinTypeObject(value: IrType) =
+            kTypeObjects.getOrPut(value) { createKTypeObject(value) }
+
 }
 
 /**

@@ -5,7 +5,42 @@
 
 package kotlin.native.internal
 
+import kotlin.collections.AbstractList
 import kotlin.reflect.*
+
+
+/*
+ * This class is used to avoid having enum inside KType class
+ * Static initialization for enum objects is not supported yet,
+ * so to initialize KType statically we need to avoid them.
+ *
+ * When this issue is resolved, this class can be replaced with just ArrayList
+ */
+public class KTypeProjectionSpecialList(val variance: IntArray, val type: Array<KType?>) : AbstractList<KTypeProjection>() {
+    override val size
+        get() = variance.size
+
+
+    override fun get(index: Int) : KTypeProjection {
+        AbstractList.checkElementIndex(index, size)
+        return KTypeProjection(varianceById(variance[index]), type[index])
+    }
+
+    companion object {
+        const val VARIANCE_STAR = -1
+        const val VARIANCE_INVARIANT = 0
+        const val VARIANCE_IN = 1
+        const val VARIANCE_OUT = 2
+
+        private fun varianceById(ordinal : Int) = when (ordinal) {
+            VARIANCE_STAR -> null
+            VARIANCE_INVARIANT -> KVariance.INVARIANT
+            VARIANCE_IN -> KVariance.IN
+            VARIANCE_OUT -> KVariance.OUT
+            else -> throw IllegalStateException()
+        }
+    }
+}
 
 internal class KTypeImpl(
         override val classifier: KClassifier?,

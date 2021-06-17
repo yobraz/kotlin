@@ -483,6 +483,7 @@ internal class KonanSymbols(
     val kClassUnsupportedImpl = internalClass("KClassUnsupportedImpl")
     val kClassUnsupportedImplConstructor by lazy { kClassUnsupportedImpl.constructors.single() }
     val kTypeParameterImpl = internalClass("KTypeParameterImpl")
+    val kTypeProjectionSpecialList = internalClass("KTypeProjectionSpecialList")
     val kTypeImpl = internalClass("KTypeImpl")
     val kTypeImplForTypeParametersWithRecursiveBounds = internalClass("KTypeImplForTypeParametersWithRecursiveBounds")
 

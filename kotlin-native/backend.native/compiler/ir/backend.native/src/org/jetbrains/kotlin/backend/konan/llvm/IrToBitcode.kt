@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.backend.konan.cgen.CBridgeOrigin
 import org.jetbrains.kotlin.backend.konan.descriptors.*
 import org.jetbrains.kotlin.backend.konan.ir.*
 import org.jetbrains.kotlin.backend.konan.llvm.coverage.LLVMCoverageInstrumentation
+import org.jetbrains.kotlin.backend.konan.lower.KTypeConstructorOrigin
 import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrElement
@@ -36,6 +37,7 @@ import org.jetbrains.kotlin.library.KotlinLibrary
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.classId
+import org.jetbrains.kotlin.backend.konan.llvm.*
 
 internal enum class FieldStorageKind {
     GLOBAL, // In the old memory model these are only accessible from the "main" thread.
@@ -1856,6 +1858,13 @@ internal class CodeGeneratorVisitor(val context: Context, val lifetimes: Map<IrE
 
     private fun evaluateContainerExpression(value: IrContainerExpression): LLVMValueRef {
         context.log{"evaluateContainerExpression    : ${value.statements.forEach { ir2string(it) }}"}
+
+        val origin = value.origin
+        if (origin is KTypeConstructorOrigin) {
+            try {
+                return context.llvm.staticData.kotlinTypeObject(origin.type).llvm
+            } catch (ignored: NotImplementedError) {}
+        }
 
         val scope = if (value.isTransparentScope) {
             null
