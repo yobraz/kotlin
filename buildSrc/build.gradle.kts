@@ -109,16 +109,17 @@ tasks.clean {
 }
 
 sourceSets["main"].withConvention(org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet::class) {
-    kotlin.srcDir("src/main/kotlin")
     if (!kotlinBuildProperties.isInJpsBuildIdeaSync) {
+        kotlin.srcDir("src/main/kotlin")
         kotlin.srcDir("../kotlin-native/shared/src/library/kotlin")
         kotlin.srcDir("../kotlin-native/shared/src/main/kotlin")
         kotlin.srcDir("../kotlin-native/build-tools/src/main/kotlin")
         kotlin.srcDir("../kotlin-native/tools/kotlin-native-gradle-plugin/src/main/kotlin")
         kotlin.srcDir("../compiler/util-klib/src")
         kotlin.srcDir("../native/utils/src")
+        kotlin.srcDir(project.kotlinNativeVersionSrc())
     }
-    kotlin.srcDir(project.kotlinNativeVersionSrc())
+
     /**
      * TODO: mentioned bellow and Co it'd be better to move to :kotlin-native:performance:buildSrc,
      * because all this relates to benchmarking.
