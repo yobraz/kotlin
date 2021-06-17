@@ -143,7 +143,7 @@ class JsIntrinsics(private val irBuiltIns: IrBuiltIns, val context: JsIrBackendC
 
     // Other:
 
-    val jsObjectCreate = getInternalFunction("Object_create") // Object.create
+    val jsObjectCreate = getInternalFunction("objectCreate") // Object.create
     val jsCode = getInternalFunction("js") // js("<code>")
     val jsHashCode = getInternalFunction("hashCode")
     val jsGetNumberHashCode = getInternalFunction("getNumberHashCode")
@@ -174,7 +174,7 @@ class JsIntrinsics(private val irBuiltIns: IrBuiltIns, val context: JsIrBackendC
     val jsGetKClassFromExpression = getInternalWithoutPackage("getKClassFromExpression")
 
     private val jsClassClassSymbol = getInternalClassWithoutPackage("kotlin.js.JsClass")
-    val jsClass = getInternalFunction("_jsClass")
+    val jsClass = getInternalFunction("jsClassIntrinsic")
 
     val jsNumberRangeToNumber = getInternalFunction("numberRangeToNumber")
     val jsNumberRangeToLong = getInternalFunction("numberRangeToLong")
@@ -213,7 +213,7 @@ class JsIntrinsics(private val irBuiltIns: IrBuiltIns, val context: JsIrBackendC
     val uIntClassSymbol by context.lazy2 { getInternalClassWithoutPackage("kotlin.UInt") }
     val uLongClassSymbol by context.lazy2 { getInternalClassWithoutPackage("kotlin.ULong") }
 
-    val unreachable = getInternalFunction("_unreachable")
+    val unreachable = getInternalFunction("unreachable")
 
     val returnIfSuspended = getInternalFunction("returnIfSuspended")
     val getContinuation = getInternalFunction("getContinuation")
@@ -279,7 +279,7 @@ class JsIntrinsics(private val irBuiltIns: IrBuiltIns, val context: JsIrBackendC
 
     val jsArraySlice = getInternalFunction("slice")
 
-    val jsBind = getInternalFunction("_jsBind_")
+    val jsBind = getInternalFunction("jsBind")
 
     // TODO move to IntrinsifyCallsLowering
     val doNotIntrinsifyAnnotationSymbol = context.symbolTable.referenceClass(context.getJsInternalClass("DoNotIntrinsify"))
@@ -310,15 +310,15 @@ class JsIntrinsics(private val irBuiltIns: IrBuiltIns, val context: JsIrBackendC
 
     val captureStack = getInternalFunction("captureStack")
 
-    val createSharedBox = getInternalFunction("sharedBox_create")
-    val readSharedBox = getInternalFunction("sharedBox_read")
-    val writeSharedBox = getInternalFunction("sharedBox_write")
+    val createSharedBox = getInternalFunction("sharedBoxCreate")
+    val readSharedBox = getInternalFunction("sharedBoxRead")
+    val writeSharedBox = getInternalFunction("sharedBoxWrite")
 
 
     val safePropertyGet = getInternalFunction("safePropertyGet")
     val safePropertySet = getInternalFunction("safePropertySet")
 
-    val jsUndefined = getInternalFunction("_undefined")
+    val jsUndefined = getInternalFunction("undefined")
 
     // Helpers:
 

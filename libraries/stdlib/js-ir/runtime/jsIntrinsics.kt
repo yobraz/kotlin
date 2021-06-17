@@ -169,35 +169,35 @@ internal fun float32ArrayOf(a: Any?): Any?
 internal fun float64ArrayOf(a: Any?): Any?
 
 @JsIntrinsic
-internal fun <T> Object_create(): T
+internal fun <T> objectCreate(): T
 
 @JsIntrinsic
-internal fun <T> sharedBox_create(v: T?): dynamic
+internal fun <T> sharedBoxCreate(v: T?): dynamic
 
 @JsIntrinsic
-internal fun <T> sharedBox_read(box: dynamic): T?
+internal fun <T> sharedBoxRead(box: dynamic): T?
 
 @JsIntrinsic
-internal fun <T> sharedBox_write(box: dynamic, nv: T?)
+internal fun <T> sharedBoxWrite(box: dynamic, nv: T?)
 
 @JsIntrinsic
-internal fun _undefined(): Nothing?
+internal fun undefined(): Nothing?
 
 @JsIntrinsic
 internal fun <T> DefaultType(): T
 
 @JsIntrinsic
-internal fun _jsBind_(receiver: Any?, target: Any?): Any?
+internal fun jsBind(receiver: Any?, target: Any?): Any?
 
 @JsIntrinsic
 internal fun <A> slice(a: A): A
 
 @JsIntrinsic
-internal fun _unreachable(): Nothing
+internal fun unreachable(): Nothing
 
 @JsIntrinsic
 @Suppress("REIFIED_TYPE_PARAMETER_NO_INLINE") // TODO: mark `inline` and skip in inliner
-internal fun <reified T : Any> _jsClass(): JsClass<T>
+internal fun <reified T : Any> jsClassIntrinsic(): JsClass<T>
 
 // Returns true if the specified property is in the specified object or its prototype chain.
 @JsIntrinsic
