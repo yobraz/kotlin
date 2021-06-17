@@ -118,6 +118,7 @@ sourceSets["main"].withConvention(org.jetbrains.kotlin.gradle.plugin.KotlinSourc
         kotlin.srcDir("../compiler/util-klib/src")
         kotlin.srcDir("../native/utils/src")
         kotlin.srcDir(project.kotlinNativeVersionSrc())
+        kotlin.exclude("./*.kt")
     }
 
     /**
