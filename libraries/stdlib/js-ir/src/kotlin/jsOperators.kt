@@ -4,13 +4,10 @@
  */
 
 @file:Suppress("UNUSED_PARAMETER", "NOTHING_TO_INLINE")
-@file:OptIn(JsIntrinsic::class)
 
 package kotlin.js
 
-
 // Parameters are suffixed with `_hack` as a workaround for Namer.
-// TODO: Implemet as compiler intrinsics
 
 /**
  * Function corresponding to JavaScript's `typeof` operator

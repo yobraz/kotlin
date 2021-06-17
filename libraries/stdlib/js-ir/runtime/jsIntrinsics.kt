@@ -196,7 +196,7 @@ internal fun <A> slice(a: A): A
 internal fun _unreachable(): Nothing
 
 @JsIntrinsic
-@Suppress("REIFIED_TYPE_PARAMETER_NO_INLINE")
+@Suppress("REIFIED_TYPE_PARAMETER_NO_INLINE") // TODO: mark `inline` and skip in inliner
 internal fun <reified T : Any> _jsClass(): JsClass<T>
 
 // Returns true if the specified property is in the specified object or its prototype chain.
