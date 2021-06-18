@@ -43,6 +43,11 @@ fun KaptContext.doAnnotationProcessing(
         val filtered = javaSourceFiles.filterNot { it.name == KaptContext.MODULE_INFO_FILE }
         if (filtered.size != javaSourceFiles.size) {
             logger.info("${KaptContext.MODULE_INFO_FILE} is removed from sources files to disable JPMS")
+            //we need to remove module-info.class from the target, otherwise compiler will enable JPMS
+            val compiledModuleInfo = File(options.classesOutputDir, KaptContext.MODULE_INFO_FILE_COMPILED)
+            if (compiledModuleInfo.exists() && compiledModuleInfo.isFile) {
+                compiledModuleInfo.delete()
+            }
         }
         filtered
     }

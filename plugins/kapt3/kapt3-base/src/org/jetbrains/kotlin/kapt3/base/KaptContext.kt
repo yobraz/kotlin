@@ -165,6 +165,7 @@ open class KaptContext(val options: KaptOptions, val withJdk: Boolean, val logge
 
     companion object {
         const val MODULE_INFO_FILE = "module-info.java"
+        const val MODULE_INFO_FILE_COMPILED = "module-info.class"
 
         private fun Iterable<File>.makePathsString(): String = joinToString(File.pathSeparator) { it.canonicalPath }
     }
