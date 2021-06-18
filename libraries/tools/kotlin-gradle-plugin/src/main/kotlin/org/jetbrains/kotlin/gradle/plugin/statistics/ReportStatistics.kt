@@ -12,6 +12,7 @@ data class CompileStatData(
     val taskName: String?,
     val taskResult: String,
     val duration: Long,
+    val incrementalStatus: String?,
     val statData: Map<String, Long>
 )
 

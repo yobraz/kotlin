@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.FilteringMessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
@@ -378,7 +379,7 @@ class IncrementalJvmCompilerRunner(
         caches: IncrementalJvmCachesManager,
         services: Services,
         messageCollector: MessageCollector
-    ): ExitCode {
+    ): KotlinCompileResult {
         val compiler = K2JVMCompiler()
         val freeArgsBackup = args.freeArgs.toList()
         args.freeArgs += sourcesToCompile.map { it.absolutePath }

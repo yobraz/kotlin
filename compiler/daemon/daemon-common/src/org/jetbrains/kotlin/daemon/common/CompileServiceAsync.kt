@@ -4,6 +4,7 @@
  */
 package org.jetbrains.kotlin.daemon.common
 
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.cli.common.repl.ReplCheckResult
 import org.jetbrains.kotlin.cli.common.repl.ReplCodeLine
 import org.jetbrains.kotlin.cli.common.repl.ReplCompileResult
@@ -42,7 +43,7 @@ interface CompileServiceAsync {
         compilationOptions: CompilationOptions,
         servicesFacade: CompilerServicesFacadeBaseAsync,
         compilationResults: CompilationResultsAsync?
-    ): CompileService.CallResult<Int>
+    ): CompileService.CallResult<KotlinCompileResult>
 
     suspend fun clearJarCache()
 

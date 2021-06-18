@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporter
 import org.jetbrains.kotlin.build.report.metrics.BuildTime
 import org.jetbrains.kotlin.build.report.metrics.measure
 import org.jetbrains.kotlin.cli.common.ExitCode
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.compilerRunner.KotlinLogger
 import org.jetbrains.kotlin.gradle.logging.GradleKotlinLogger
 import org.jetbrains.kotlin.gradle.internal.tasks.TaskWithLocalState
@@ -12,8 +13,8 @@ import org.jetbrains.kotlin.gradle.internal.tasks.allOutputFiles
 import org.jetbrains.kotlin.gradle.logging.kotlinDebug
 import java.io.File
 
-fun throwGradleExceptionIfError(exitCode: ExitCode) {
-    when (exitCode) {
+fun throwGradleExceptionIfError(exitCode: KotlinCompileResult) {
+    when (exitCode.code) {
         ExitCode.COMPILATION_ERROR -> throw GradleException("Compilation error. See log for more details")
         ExitCode.INTERNAL_ERROR -> throw GradleException("Internal compiler error. See log for more details")
         ExitCode.SCRIPT_EXECUTION_ERROR -> throw GradleException("Script execution error. See log for more details")

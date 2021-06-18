@@ -21,19 +21,14 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.impl.ZipHandler
 import com.intellij.openapi.vfs.impl.jar.CoreJarFileSystem
 import org.jetbrains.kotlin.build.DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS
-import org.jetbrains.kotlin.build.report.BuildReporter
 import org.jetbrains.kotlin.build.report.RemoteBuildReporter
-import org.jetbrains.kotlin.build.report.RemoteReporter
 import org.jetbrains.kotlin.cli.common.CLICompiler
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.cli.common.repl.ReplCheckResult
-import org.jetbrains.kotlin.cli.common.repl.ReplCodeLine
-import org.jetbrains.kotlin.cli.common.repl.ReplCompileResult
-import org.jetbrains.kotlin.cli.common.repl.ReplEvalResult
+import org.jetbrains.kotlin.cli.common.repl.*
 import org.jetbrains.kotlin.cli.js.K2JSCompiler
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
@@ -309,7 +304,8 @@ abstract class CompileServiceImplBase(
 
         if (argumentParseError != null) {
             messageCollector.report(CompilerMessageSeverity.ERROR, argumentParseError)
-            CompileService.CallResult.Good(ExitCode.COMPILATION_ERROR.code)
+            //TODO
+            CompileService.CallResult.Good(KotlinCompileResult(ExitCode.COMPILATION_ERROR, "COMPILATION_ERROR"))
         } else when (compilationOptions.compilerMode) {
             CompilerMode.JPS_COMPILER -> {
                 @Suppress("UNCHECKED_CAST")
@@ -372,8 +368,8 @@ abstract class CompileServiceImplBase(
         sessionId: Int,
         daemonMessageReporter: DaemonMessageReporter,
         tracer: RemoteOperationsTracer?,
-        body: (EventManager, Profiler) -> ExitCode
-    ): CompileService.CallResult<Int> = run {
+        body: (EventManager, Profiler) -> KotlinCompileResult
+    ): CompileService.CallResult<KotlinCompileResult> = run {
         log.fine("alive!")
         withValidClientOrSessionProxy(sessionId) {
             tracer?.before("compile")
@@ -382,7 +378,7 @@ abstract class CompileServiceImplBase(
             try {
                 log.fine("trying get exitCode")
                 val exitCode = checkedCompile(daemonMessageReporter, rpcProfiler) {
-                    body(eventManager, rpcProfiler).code
+                    body(eventManager, rpcProfiler)
                 }
                 CompileService.CallResult.Good(exitCode)
             } finally {
@@ -518,7 +514,7 @@ abstract class CompileServiceImplBase(
         incrementalCompilationOptions: IncrementalCompilationOptions,
         compilerMessageCollector: MessageCollector,
         reporter: RemoteBuildReporter
-    ): ExitCode {
+    ): KotlinCompileResult {
         val allKotlinFiles = arrayListOf<File>()
         val freeArgsWithoutKotlinFiles = arrayListOf<String>()
         args.freeArgs.forEach {
@@ -558,7 +554,7 @@ abstract class CompileServiceImplBase(
         incrementalCompilationOptions: IncrementalCompilationOptions,
         compilerMessageCollector: MessageCollector,
         reporter: RemoteBuildReporter
-    ): ExitCode {
+    ): KotlinCompileResult {
         val allKotlinExtensions = (DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS +
                 (incrementalCompilationOptions.kotlinScriptExtensions ?: emptyArray())).distinct()
         val dotExtensions = allKotlinExtensions.map { ".$it" }

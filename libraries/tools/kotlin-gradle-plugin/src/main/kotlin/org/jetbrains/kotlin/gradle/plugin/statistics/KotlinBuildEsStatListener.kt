@@ -55,7 +55,8 @@ class KotlinBuildEsStatListener(val projectName: String) : OperationCompletionLi
 
         val compileStatData = CompileStatData(
             duration = duration, taskResult = taskResult.name, label = label,
-            statData = statData, projectName = projectName, taskName = taskPath
+            statData = statData, projectName = projectName, taskName = taskPath,
+            incrementalStatus = TaskExecutionResults[taskPath]?.incrementalStatus
         )
         reportStatistics.report(compileStatData)
     }

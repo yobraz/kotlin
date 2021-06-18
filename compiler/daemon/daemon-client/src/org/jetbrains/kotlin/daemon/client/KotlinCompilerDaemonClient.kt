@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.daemon.client
 
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.daemon.client.KotlinCompilerDaemonClient.Companion.instantiate
 import org.jetbrains.kotlin.daemon.common.*
 import org.jetbrains.kotlin.daemon.common.ReportSeverity
@@ -63,7 +64,7 @@ interface KotlinCompilerDaemonClient {
             reportSeverity: ReportSeverity = ReportSeverity.INFO,
             port: Int = SOCKET_ANY_FREE_PORT,
             profiler: Profiler = DummyProfiler()
-    ): Int
+    ): KotlinCompileResult
 
     fun getOrCreateClientFlagFile(daemonOptions: DaemonOptions): File
 

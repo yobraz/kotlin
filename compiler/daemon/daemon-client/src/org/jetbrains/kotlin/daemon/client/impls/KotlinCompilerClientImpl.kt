@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.daemon.client.impls
 
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.daemon.client.*
 import org.jetbrains.kotlin.daemon.common.*
 import org.jetbrains.kotlin.daemon.common.ReportSeverity
@@ -103,7 +104,7 @@ object KotlinCompilerClientImpl : KotlinCompilerDaemonClient {
             reportSeverity: ReportSeverity,
             port: Int,
             profiler: Profiler
-    ): Int = oldClient.compile(
+    ): KotlinCompileResult = oldClient.compile(
             compilerService.toRMI(),
             sessionId,
             targetPlatform,

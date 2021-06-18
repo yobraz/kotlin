@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
+import org.jetbrains.kotlin.cli.common.repl.KotlinCompileResult
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import org.jetbrains.kotlin.daemon.client.DaemonReportingTargets
 import org.jetbrains.kotlin.daemon.client.launchProcessWithFallback
@@ -92,7 +93,7 @@ internal fun runToolInSeparateProcess(
     logger: KotlinLogger,
     buildDir: File,
     jvmArgs: List<String> = emptyList()
-): ExitCode {
+): KotlinCompileResult {
     val javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java"
     val classpathString = classpath.joinToString(separator = File.pathSeparator) { it.absolutePath }
 
@@ -130,7 +131,7 @@ internal fun runToolInSeparateProcess(
 
     val exitCode = process.waitFor()
     logger.logFinish(OUT_OF_PROCESS_EXECUTION_STRATEGY)
-    return exitCodeFromProcessExitCode(logger, exitCode)
+    return exitCodeFromProcessExitCode(logger, KotlinCompileResult(exitCodeFromProcessExitCode(logger, exitCode), OUT_OF_PROCESS_EXECUTION_STRATEGY))
 }
 
 private fun writeArgumentsToFile(directory: File, argsArray: Array<String>): File {
@@ -175,10 +176,21 @@ internal fun KotlinLogger.logFinish(strategy: String) {
     debug("Finished executing kotlin compiler using $strategy strategy")
 }
 
+internal fun exitCodeFromProcessExitCode(log: KotlinLogger, result: KotlinCompileResult): KotlinCompileResult {
+    val exitCode = ExitCode.values().find { it.code == result.code.code }
+    if (exitCode != null) return result
+
+    log.debug("Could not find exit code by value: $result")
+    return if (result.code.code == 0) {
+        KotlinCompileResult(ExitCode.OK, result.compileStatus)
+    } else {
+        KotlinCompileResult(ExitCode.COMPILATION_ERROR, result.compileStatus)
+    }
+}
+
 internal fun exitCodeFromProcessExitCode(log: KotlinLogger, code: Int): ExitCode {
     val exitCode = ExitCode.values().find { it.code == code }
     if (exitCode != null) return exitCode
-
     log.debug("Could not find exit code by value: $code")
     return if (code == 0) ExitCode.OK else ExitCode.COMPILATION_ERROR
 }

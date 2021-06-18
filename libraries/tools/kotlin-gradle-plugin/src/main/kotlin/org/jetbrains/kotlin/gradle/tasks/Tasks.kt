@@ -251,6 +251,9 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments> : AbstractKotl
     @get:Internal
     internal val friendSourceSets = objects.listProperty(String::class.java)
 
+    @get:Internal
+    internal var incrementalStatus: String = "Unknown"
+
     @get:Internal // takes part in the compiler arguments
     val friendPaths: ConfigurableFileCollection = objects.fileCollection()
 
