@@ -983,6 +983,18 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
         print("<implicit>")
     }
 
+    override fun visitUnionTypeRef(unionTypeRef: FirUnionTypeRef) {
+        val nestedTypes = unionTypeRef.nestedTypes
+        val lastIndex = nestedTypes.lastIndex
+
+        nestedTypes.forEachIndexed { i, type ->
+            type.accept(this)
+            if (i != lastIndex) {
+                print(" | ")
+            }
+        }
+    }
+
     override fun visitTypeRefWithNullability(typeRefWithNullability: FirTypeRefWithNullability) {
         if (typeRefWithNullability.isMarkedNullable) {
             print("?")

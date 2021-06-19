@@ -601,6 +601,10 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
             +booleanField("isSuspend")
         }
 
+        unionTypeRef.configure {
+            +fieldList("nestedTypes", typeRef)
+        }
+
         thisReceiverExpression.configure {
             +field("calleeReference", thisReference)
         }

@@ -428,6 +428,8 @@ object ImplementationConfigurator : AbstractFirTreeImplementationConfigurator() 
             defaultEmptyList("annotations")
         }
 
+        impl(unionTypeRef)
+
         impl(reference, "FirStubReference") {
             default("source") {
                 value = "null"
