@@ -2045,11 +2045,15 @@ public class KotlinParsing extends AbstractKotlinParsing {
      *   : userType
      *   : nullableType
      *   : "dynamic"
+     *   : unionType
      *   ;
      *
      * nullableType
      *   : typeReference "?"
      *   ;
+     *
+     * unionType
+     *   : typeReference ("|" unionType)?
      */
     void parseTypeRef() {
         parseTypeRef(TokenSet.EMPTY);
@@ -2065,7 +2069,12 @@ public class KotlinParsing extends AbstractKotlinParsing {
 
     private void parseTypeRef(TokenSet extraRecoverySet, boolean allowNotNullTypeParameters) {
         PsiBuilder.Marker typeRefMarker = parseTypeRefContents(extraRecoverySet, allowNotNullTypeParameters);
-        typeRefMarker.done(TYPE_REFERENCE);
+
+        if (at(OR)) {
+            parseUnionType(typeRefMarker, extraRecoverySet, allowNotNullTypeParameters);
+        } else {
+            typeRefMarker.done(TYPE_REFERENCE);
+        }
     }
 
     // The extraRecoverySet is needed for the foo(bar<x, 1, y>(z)) case, to tell whether we should stop
@@ -2234,6 +2243,21 @@ public class KotlinParsing extends AbstractKotlinParsing {
             advance(); // !!
             definitelyNotNull.done(DEFINITELY_NOT_NULL_TYPE);
         }
+    }
+
+    private void parseUnionType(PsiBuilder.Marker firstTypeRefMarker, TokenSet extraRecoverySet, boolean allowNotNullTypeParameters) {
+        PsiBuilder.Marker unionTypeMarker = firstTypeRefMarker.precede();
+        PsiBuilder.Marker outerTypeRefMarker = unionTypeMarker.precede();
+        firstTypeRefMarker.done(TYPE_REFERENCE);
+
+        while (at(OR)) {
+            advance();
+            PsiBuilder.Marker typeRefMarker = parseTypeRefContents(extraRecoverySet, allowNotNullTypeParameters);
+            typeRefMarker.done(TYPE_REFERENCE);
+        }
+
+        unionTypeMarker.done(UNION_TYPE);
+        outerTypeRefMarker.done(TYPE_REFERENCE);
     }
 
     private boolean atParenthesizedMutableForPlatformTypes(int offset) {
