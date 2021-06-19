@@ -129,6 +129,7 @@ import org.jetbrains.kotlin.fir.types.FirUserTypeRef
 import org.jetbrains.kotlin.fir.types.FirDynamicTypeRef
 import org.jetbrains.kotlin.fir.types.FirFunctionTypeRef
 import org.jetbrains.kotlin.fir.types.FirImplicitTypeRef
+import org.jetbrains.kotlin.fir.types.FirUnionTypeRef
 import org.jetbrains.kotlin.fir.contracts.FirEffectDeclaration
 import org.jetbrains.kotlin.fir.contracts.FirContractDescription
 import org.jetbrains.kotlin.fir.contracts.FirLegacyRawContractDescription
@@ -634,6 +635,10 @@ abstract class FirTransformer<in D> : FirVisitor<FirElement, D>() {
 
     open fun transformImplicitTypeRef(implicitTypeRef: FirImplicitTypeRef, data: D): FirTypeRef {
         return transformElement(implicitTypeRef, data)
+    }
+
+    open fun transformUnionTypeRef(unionTypeRef: FirUnionTypeRef, data: D): FirTypeRef {
+        return transformElement(unionTypeRef, data)
     }
 
     open fun transformEffectDeclaration(effectDeclaration: FirEffectDeclaration, data: D): FirEffectDeclaration {
@@ -1150,6 +1155,10 @@ abstract class FirTransformer<in D> : FirVisitor<FirElement, D>() {
 
     final override fun visitImplicitTypeRef(implicitTypeRef: FirImplicitTypeRef, data: D): FirTypeRef {
         return transformImplicitTypeRef(implicitTypeRef, data)
+    }
+
+    final override fun visitUnionTypeRef(unionTypeRef: FirUnionTypeRef, data: D): FirTypeRef {
+        return transformUnionTypeRef(unionTypeRef, data)
     }
 
     final override fun visitEffectDeclaration(effectDeclaration: FirEffectDeclaration, data: D): FirEffectDeclaration {

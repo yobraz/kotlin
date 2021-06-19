@@ -264,6 +264,10 @@ object BuilderConfigurator : AbstractBuilderConfigurator<FirTreeBuilder>(FirTree
             withCopy()
         }
 
+        builder(unionTypeRef) {
+            withCopy()
+        }
+
         builder(breakExpression) {
             parents += loopJumpBuilder
         }
