@@ -513,9 +513,9 @@ allprojects {
         isReproducibleFileOrder = true
     }
 
-    tasks.withType<Test> {
-        outputs.doNotCacheIf("https://youtrack.jetbrains.com/issue/KTI-112") { true }
-    }
+//    tasks.withType<Test> {
+//        outputs.doNotCacheIf("https://youtrack.jetbrains.com/issue/KTI-112") { true }
+//    }
 
     if (isConfigurationCacheDisabled) {
         // Custom input normolization isn't supported by configuration cache at the moment
