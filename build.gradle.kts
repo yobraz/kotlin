@@ -1146,3 +1146,14 @@ afterEvaluate {
         }
     }
 }
+
+if (kotlinBuildProperties.isTeamcityBuild && gradle.startParameter.isBuildCacheEnabled) {
+    gradle.taskGraph.afterTask {
+        if (this is Test && state.skipped && state.skipMessage == "FROM-CACHE") {
+            reports.junitXml?.let {
+                logger.info("Importing test results xml for $path task from Gradle build cache")
+                println("##teamcity[importData type='junit' path='${it.destination.absolutePath}/*.xml']")
+            }
+        }
+    }
+}
