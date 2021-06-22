@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.*
+import org.jetbrains.kotlin.fir.typeContext
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.fir.types.impl.ConeTypeParameterTypeImpl
@@ -351,6 +352,19 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
         )
     }
 
+    private fun createUnionType(
+        typeRef: FirUnionTypeRef,
+        scopeClassDeclaration: ScopeClassDeclaration,
+        areBareTypesAllowed: Boolean
+    ): ConeUnionType {
+        val resolvedTypes = typeRef.nestedTypes.map { resolveType(it, scopeClassDeclaration, areBareTypesAllowed, false) }
+
+        val commonSuperType = session.typeContext.commonSuperTypeOrNull(resolvedTypes)
+            ?: error(typeRef.render())
+
+        return ConeUnionType(resolvedTypes, commonSuperType)
+    }
+
     override fun resolveType(
         typeRef: FirTypeRef,
         scopeClassDeclaration: ScopeClassDeclaration,
@@ -371,6 +385,7 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
                 )
             }
             is FirFunctionTypeRef -> createFunctionalType(typeRef)
+            is FirUnionTypeRef -> createUnionType(typeRef, scopeClassDeclaration, areBareTypesAllowed)
             is FirDynamicTypeRef -> ConeKotlinErrorType(ConeUnsupportedDynamicType())
             else -> error(typeRef.render())
         }
