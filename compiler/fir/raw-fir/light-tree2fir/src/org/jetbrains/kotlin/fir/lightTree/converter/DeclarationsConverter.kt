@@ -1806,6 +1806,7 @@ class DeclarationsConverter(
                 DEFINITELY_NOT_NULL_TYPE -> firType = unwrapDefinitelyNotNullableType(typeRefSource, it, allTypeModifiers)
                 NULLABLE_TYPE -> firType = convertNullableType(typeRefSource, it, allTypeModifiers)
                 FUNCTION_TYPE -> firType = convertFunctionType(typeRefSource, it, isSuspend = allTypeModifiers.hasSuspend())
+                UNION_TYPE -> firType = convertUnionType(typeRefSource, it)
                 DYNAMIC_TYPE -> firType = buildDynamicTypeRef {
                     source = typeRefSource
                     isMarkedNullable = false
@@ -2012,6 +2013,25 @@ class DeclarationsConverter(
                 annotations += extensionFunctionAnnotation
             }
             this.isSuspend = isSuspend
+        }
+    }
+
+    /**
+     * @see org.jetbrains.kotlin.parsing.KotlinParsing.parseUnionType
+     */
+    private fun convertUnionType(
+        typeRefSource: FirSourceElement,
+        unionType: LighterASTNode
+    ): FirTypeRef {
+        val types = mutableListOf<FirTypeRef>()
+        unionType.forEachChildren {
+            when (it.tokenType) {
+                TYPE_REFERENCE -> types.add(convertType(it))
+            }
+        }
+        return buildUnionTypeRef {
+            source = typeRefSource
+            nestedTypes.addAll(types)
         }
     }
 
