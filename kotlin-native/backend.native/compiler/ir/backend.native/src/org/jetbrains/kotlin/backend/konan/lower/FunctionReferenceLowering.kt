@@ -37,7 +37,7 @@ import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
-internal class FunctionReferenceLowering(val context: Context): FileLoweringPass {
+internal class FunctionReferenceLowering(val context: Context) : FileLoweringPass {
 
     private object DECLARATION_ORIGIN_FUNCTION_REFERENCE_IMPL : IrDeclarationOriginImpl("FUNCTION_REFERENCE_IMPL")
 
@@ -48,7 +48,7 @@ internal class FunctionReferenceLowering(val context: Context): FileLoweringPass
 
     override fun lower(irFile: IrFile) {
         var generatedClasses = mutableListOf<IrClass>()
-        irFile.transform(object: IrElementTransformerVoidWithContext() {
+        irFile.transform(object : IrElementTransformerVoidWithContext() {
 
             private val stack = mutableListOf<IrElement>()
 
@@ -200,28 +200,28 @@ internal class FunctionReferenceLowering(val context: Context): FileLoweringPass
         private val functionReferenceTarget = adaptedReferenceOriginalTarget ?: referencedFunction
 
         private val functionReferenceClass: IrClass =
-            IrClassImpl(
-                    startOffset,endOffset,
-                    DECLARATION_ORIGIN_FUNCTION_REFERENCE_IMPL,
-                    IrClassSymbolImpl(),
-                    "${functionReferenceTarget.name}\$FUNCTION_REFERENCE\$${context.functionReferenceCount++}".synthesizedName,
-                    ClassKind.CLASS,
-                    DescriptorVisibilities.PRIVATE,
-                    Modality.FINAL,
-                    isCompanion = false,
-                    isInner = false,
-                    isData = false,
-                    isExternal = false,
-                    isInline = false,
-                    isExpect = false,
-                    isFun = false
-            ).apply {
-                parent = this@FunctionReferenceBuilder.parent
-                createParameterDeclarations()
+                IrClassImpl(
+                        startOffset, endOffset,
+                        DECLARATION_ORIGIN_FUNCTION_REFERENCE_IMPL,
+                        IrClassSymbolImpl(),
+                        "${functionReferenceTarget.name}\$FUNCTION_REFERENCE\$${context.functionReferenceCount++}".synthesizedName,
+                        ClassKind.CLASS,
+                        DescriptorVisibilities.PRIVATE,
+                        Modality.FINAL,
+                        isCompanion = false,
+                        isInner = false,
+                        isData = false,
+                        isExternal = false,
+                        isInline = false,
+                        isExpect = false,
+                        isFun = false
+                ).apply {
+                    parent = this@FunctionReferenceBuilder.parent
+                    createParameterDeclarations()
 
-                // copy the generated name for IrClass, partially solves KT-47194
-                context.copyLocalClassName(functionReference, this)
-            }
+                    // copy the generated name for IrClass, partially solves KT-47194
+                    context.copyLocalClassName(functionReference, this)
+                }
 
         private val functionReferenceThis = functionReferenceClass.thisReceiver!!
 
@@ -299,8 +299,8 @@ internal class FunctionReferenceLowering(val context: Context): FileLoweringPass
             return BuiltFunctionReference(functionReferenceClass, buildConstructor())
         }
 
-        private fun buildConstructor(): IrConstructor =
-            IrConstructorImpl(
+        private fun buildConstructor(): IrConstructor {
+            return IrConstructorImpl(
                     startOffset, endOffset,
                     DECLARATION_ORIGIN_FUNCTION_REFERENCE_IMPL,
                     IrConstructorSymbolImpl(),
@@ -327,7 +327,7 @@ internal class FunctionReferenceLowering(val context: Context): FileLoweringPass
                         isLambda -> irBuiltIns.anyClass.owner.constructors.single()
                         else -> kFunctionImplConstructorSymbol.owner
                     }
-                    +irDelegatingConstructorCall(superConstructor).apply applyIrDelegationConstructorCall@ {
+                    +irDelegatingConstructorCall(superConstructor).apply applyIrDelegationConstructorCall@{
                         if (isLambda) return@applyIrDelegationConstructorCall
                         val name = ((functionReferenceTarget as? IrSimpleFunction)?.attributeOwnerId as? IrSimpleFunction)?.name
                                 ?: functionReferenceTarget.name
@@ -348,6 +348,7 @@ internal class FunctionReferenceLowering(val context: Context): FileLoweringPass
                     }
                 }
             }
+        }
 
         private fun getFlags() =
                 (if (referencedFunction.isSuspend) 1 else 0) + getAdaptedCallableReferenceFlags() shl 1
@@ -386,8 +387,8 @@ internal class FunctionReferenceLowering(val context: Context): FileLoweringPass
             return false
         }
 
-        private fun buildInvokeMethod(superFunction: IrSimpleFunction): IrSimpleFunction =
-            IrFunctionImpl(
+        private fun buildInvokeMethod(superFunction: IrSimpleFunction): IrSimpleFunction {
+            return IrFunctionImpl(
                     startOffset, endOffset,
                     DECLARATION_ORIGIN_FUNCTION_REFERENCE_IMPL,
                     IrSimpleFunctionSymbolImpl(),
@@ -453,5 +454,6 @@ internal class FunctionReferenceLowering(val context: Context): FileLoweringPass
                     )
                 }
             }
+        }
     }
 }
