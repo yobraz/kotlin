@@ -40,6 +40,8 @@ class TypeVariableTypeConstructor(
     override val originalTypeParameter: TypeParameterDescriptor?
 ) : TypeConstructor,
     NewTypeVariableConstructor, TypeVariableTypeConstructorMarker {
+    var delegatedTypeVariable: TypeVariableTypeConstructor? = null
+
     override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
     override fun getSupertypes(): Collection<KotlinType> = emptyList()
     override fun isFinal(): Boolean = false

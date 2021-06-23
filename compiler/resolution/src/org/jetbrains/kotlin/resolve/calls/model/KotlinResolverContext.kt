@@ -26,16 +26,17 @@ import org.jetbrains.kotlin.resolve.calls.components.*
 import org.jetbrains.kotlin.resolve.calls.inference.addSubsystemFromArgument
 import org.jetbrains.kotlin.resolve.calls.inference.components.ConstraintInjector
 import org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintStorage
+import org.jetbrains.kotlin.resolve.calls.inference.model.NewConstraintSystemImpl
+import org.jetbrains.kotlin.resolve.calls.inference.model.TypeVariableTypeConstructor
+import org.jetbrains.kotlin.resolve.calls.inference.model.typeForTypeVariable
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
 import org.jetbrains.kotlin.resolve.calls.tower.*
 import org.jetbrains.kotlin.resolve.descriptorUtil.hasDynamicExtensionAnnotation
 import org.jetbrains.kotlin.resolve.sam.SamConversionOracle
 import org.jetbrains.kotlin.resolve.sam.SamConversionResolver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
-import org.jetbrains.kotlin.types.ErrorUtils
-import org.jetbrains.kotlin.types.TypeSubstitutor
+import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
-import org.jetbrains.kotlin.types.isDynamic
 
 
 class KotlinCallComponents(
@@ -69,7 +70,31 @@ class SimpleCandidateFactory(
             baseSystem.addSubsystemFromArgument(kotlinCall.explicitReceiver)
             baseSystem.addSubsystemFromArgument(kotlinCall.dispatchReceiverForInvokeExtension)
         }
-        for (argument in kotlinCall.argumentsInParenthesis) {
+        // unify constraint systems
+        val zz = unifyConstraintSystems(kotlinCall.argumentsInParenthesis).singleOrNull()
+        val aq = kotlinCall.argumentsInParenthesis
+
+        if (zz != null) {
+            for (aaq in aq) {
+                if (aaq is SubKotlinCallArgument) {
+                    zz as SubKotlinCallArgument
+                    val aa = aaq.callResult.constraintSystem.allTypeVariables.keys.associateWith {
+                        val or = (it as TypeVariableTypeConstructor).originalTypeParameter
+                        val f = zz.callResult.constraintSystem.allTypeVariables.keys.find { or == (it as TypeVariableTypeConstructor).originalTypeParameter }
+                        f as? TypeVariableTypeConstructor
+                    }.filter { it.value != null } as Map<TypeConstructor, TypeVariableTypeConstructor>
+
+                    aaq.callResult.constraintSystem.allTypeVariables.keys.forEach {
+                        if (aa[it] != it) {
+                            (it as TypeVariableTypeConstructor).delegatedTypeVariable = aa[it]
+                        }
+                    }
+                    aaq.callResult.constraintSystem = zz.callResult.constraintSystem
+                }
+            }
+        }
+
+        for (argument in aq) {
             baseSystem.addSubsystemFromArgument(argument)
         }
         baseSystem.addSubsystemFromArgument(kotlinCall.externalArgument)
@@ -77,6 +102,12 @@ class SimpleCandidateFactory(
         baseSystem.addOtherSystem(inferenceSession.currentConstraintSystem())
 
         this.baseSystem = baseSystem.asReadOnlyStorage()
+    }
+
+    private fun unifyConstraintSystems(arguments: List<KotlinCallArgument>): List<KotlinCallArgument> {
+        val a = arguments.filterIsInstance<SubKotlinCallArgument>().distinctBy { it.callResult.constraintSystem }
+        val b = a + arguments.filter { it !is SubKotlinCallArgument }
+        return b
     }
 
     // todo: try something else, because current method is ugly and unstable

@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.resolve.calls.inference.model
 
 import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.types.model.*
+import kotlin.reflect.typeOf
 
 /**
  * Every type variable can be in the following states:
@@ -95,6 +96,24 @@ class Constraint(
         if (type != other.type) return false
 
         return true
+    }
+
+    fun equals2(other: Any?, context: TypeSystemInferenceExtensionContext): Boolean {
+        if (this === other) return true
+        if (other?.javaClass != javaClass) return false
+
+        other as Constraint
+
+        if (kind != other.kind) return false
+        if (type.typeConstructor(context).isIntegerLiteralTypeConstructor(context) && other.type.typeConstructor(context).isIntegerLiteralTypeConstructor(context)) return true
+        if (type != other.type) return false
+
+        return true
+    }
+
+    fun hashCode2(context: TypeSystemInferenceExtensionContext): Int {
+        if (type.typeConstructor(context).isIntegerLiteralTypeConstructor(context)) return 341345
+        return typeHashCode
     }
 
     override fun hashCode() = typeHashCode

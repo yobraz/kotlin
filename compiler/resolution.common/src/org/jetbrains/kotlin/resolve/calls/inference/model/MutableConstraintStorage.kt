@@ -209,6 +209,23 @@ class MutableVariableWithConstraints private constructor(
     override fun toString(): String {
         return "Constraints for $typeVariable"
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is MutableVariableWithConstraints) return false
+        if (other.constraints.size != this.constraints.size) return false
+
+        for (constraint in other.constraints) {
+            if (this.constraints.none { it.equals2(constraint, context) }) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return constraints.sumOf { it.hashCode2(context) }
+    }
 }
 
 
@@ -227,4 +244,24 @@ internal class MutableConstraintStorage : ConstraintStorage {
         LinkedHashMap()
     override val builtFunctionalTypesForPostponedArgumentsByExpectedTypeVariables: MutableMap<TypeConstructorMarker, KotlinTypeMarker> =
         LinkedHashMap()
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is ConstraintStorage) return false
+        if (other.allTypeVariables.size != this.allTypeVariables.size) return false
+        if (other.notFixedTypeVariables.size != this.notFixedTypeVariables.size) return false
+
+        for ((_, otherVariableWithConstraints) in other.notFixedTypeVariables) {
+            if (this.notFixedTypeVariables.values.none {
+                    otherVariableWithConstraints == it
+            }) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return notFixedTypeVariables.values.sumOf { it.hashCode() }
+    }
 }

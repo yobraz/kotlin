@@ -20,12 +20,10 @@ import org.jetbrains.kotlin.builtins.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystemBuilder
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutor
+import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.inference.model.*
 import org.jetbrains.kotlin.resolve.calls.model.*
-import org.jetbrains.kotlin.types.AbstractTypeChecker
-import org.jetbrains.kotlin.types.ErrorUtils
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.UnwrappedType
+import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.model.TypeVariance
 import org.jetbrains.kotlin.types.model.convertVariance
 import org.jetbrains.kotlin.types.typeUtil.builtIns
@@ -89,6 +87,22 @@ private fun preprocessLambdaArgument(
             csBuilder.builtIns, Annotations.EMPTY, resolvedArgument.receiver,
             resolvedArgument.parameters, null, resolvedArgument.returnType, resolvedArgument.isSuspend
         )
+
+        val tv = with((csBuilder as NewConstraintSystemImpl).typeSystemContext) {
+            expectedType.extractTypeVariables()
+        }.toMutableSet()?.also { if (expectedType.constructor is TypeVariableTypeConstructor) { it.add(expectedType.constructor as TypeVariableTypeConstructor) } }
+
+        val aa = with((csBuilder as NewConstraintSystemImpl).typeSystemContext) {
+            tv.associateWith {
+                val or = (it as TypeVariableTypeConstructor).originalTypeParameter
+                val f = (csBuilder.currentStorage().allTypeVariables.keys.find { or == (it as TypeVariableTypeConstructor).originalTypeParameter })
+                (f as? TypeVariableTypeConstructor)?.typeForTypeVariable()?.unwrap()
+            }.filter { it.value != null } as Map<TypeConstructor, UnwrappedType>
+        }
+
+        val sub = NewTypeSubstitutorByConstructorMap(aa)
+        val newc = sub.safeSubstitute(expectedType)
+
         csBuilder.addSubtypeConstraint(lambdaType, expectedType, ArgumentConstraintPositionImpl(argument))
     }
 

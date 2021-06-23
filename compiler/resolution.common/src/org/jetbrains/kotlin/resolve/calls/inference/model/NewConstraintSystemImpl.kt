@@ -38,6 +38,10 @@ class NewConstraintSystemImpl(
     private val properTypesCache: MutableSet<KotlinTypeMarker> = SmartSet.create()
     private val notProperTypesCache: MutableSet<KotlinTypeMarker> = SmartSet.create()
 
+    init {
+        println(1)
+    }
+
     private enum class State {
         BUILDING,
         TRANSACTION,

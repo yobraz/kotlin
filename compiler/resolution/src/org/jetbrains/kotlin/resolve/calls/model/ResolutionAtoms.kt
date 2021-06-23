@@ -235,7 +235,7 @@ class ResolvedCollectionLiteralAtom(
 sealed class CallResolutionResult(
     resultCallAtom: ResolvedCallAtom?,
     val diagnostics: List<KotlinCallDiagnostic>,
-    val constraintSystem: ConstraintStorage
+    var constraintSystem: ConstraintStorage
 ) : ResolvedAtom() {
     init {
         setAnalyzedResults(listOfNotNull(resultCallAtom))

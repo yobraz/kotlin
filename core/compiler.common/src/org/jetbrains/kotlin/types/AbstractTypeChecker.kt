@@ -35,6 +35,10 @@ abstract class AbstractTypeCheckerContext() {
         return type
     }
 
+    fun buildDelegatingTypeVariableSubstitutor(type: KotlinTypeMarker) {
+
+    }
+
     open fun customIsSubtypeOf(subType: KotlinTypeMarker, superType: KotlinTypeMarker): Boolean = true
 
     abstract val isErrorTypeEqualsToAnything: Boolean

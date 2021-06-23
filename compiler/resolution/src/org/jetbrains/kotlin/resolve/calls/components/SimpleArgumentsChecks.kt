@@ -21,13 +21,14 @@ import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystemBuilder
 import org.jetbrains.kotlin.resolve.calls.inference.addSubtypeConstraintIfCompatible
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutor
-import org.jetbrains.kotlin.resolve.calls.inference.model.ArgumentConstraintPositionImpl
-import org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintPosition
-import org.jetbrains.kotlin.resolve.calls.inference.model.ReceiverConstraintPositionImpl
+import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
+import org.jetbrains.kotlin.resolve.calls.inference.model.*
 import org.jetbrains.kotlin.resolve.calls.model.*
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.captureFromExpression
 import org.jetbrains.kotlin.types.checker.hasSupertypeWithGivenTypeConstructor
+import org.jetbrains.kotlin.types.model.KotlinTypeMarker
+import org.jetbrains.kotlin.types.model.TypeVariableTypeConstructorMarker
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 
@@ -211,6 +212,21 @@ private fun checkSubCallArgument(
         }
         return subCallResult
     }
+
+    val tv = with((csBuilder as NewConstraintSystemImpl).typeSystemContext) {
+        currentReturnType.extractTypeVariables()
+    }
+
+    val aa = with((csBuilder as NewConstraintSystemImpl).typeSystemContext) {
+        tv.associateWith {
+            val or = (it as TypeVariableTypeConstructor).originalTypeParameter
+            val f = (csBuilder.currentStorage().allTypeVariables.keys.find { or == (it as TypeVariableTypeConstructor).originalTypeParameter })
+            (f as? TypeVariableTypeConstructor)?.typeForTypeVariable()?.unwrap()
+        }.filter { it.value != null } as Map<TypeConstructor, UnwrappedType>
+    }
+
+    val sub = NewTypeSubstitutorByConstructorMap(aa)
+    val newc = sub.safeSubstitute(currentReturnType)
 
     csBuilder.addSubtypeConstraint(currentReturnType, expectedType, position)
     return subCallResult
