@@ -27,6 +27,6 @@ dependencies {
 
 compileKotlin {
     kotlinOptions {
-        allWarningsAsErrors=true
+//        allWarningsAsErrors=true
     }
 }

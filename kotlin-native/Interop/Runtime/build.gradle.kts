@@ -77,7 +77,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
                                   "-Xopt-in=kotlin.RequiresOptIn",
                                   "-Xinline-classes",
                                   "-Xskip-prerelease-check")
-        allWarningsAsErrors = true
+//        allWarningsAsErrors = true
     }
 }
 

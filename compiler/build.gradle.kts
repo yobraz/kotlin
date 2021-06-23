@@ -90,7 +90,7 @@ if (kotlinBuildProperties.isInJpsBuildIdeaSync) {
         tasks.withType<KotlinCompile<*>> {
             if (path !in tasksWithWarnings) {
                 kotlinOptions {
-                    allWarningsAsErrors = true
+//                    allWarningsAsErrors = true
                 }
             }
         }

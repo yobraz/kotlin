@@ -15,4 +15,4 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
-compileKotlin.kotlinOptions.allWarningsAsErrors = true
+//compileKotlin.kotlinOptions.allWarningsAsErrors = true

@@ -14,7 +14,7 @@ repositories {
 kotlin.target.compilations {
     all {
         kotlinOptions {
-            allWarningsAsErrors = true
+//            allWarningsAsErrors = true
             jvmTarget = "1.8"
         }
     }
