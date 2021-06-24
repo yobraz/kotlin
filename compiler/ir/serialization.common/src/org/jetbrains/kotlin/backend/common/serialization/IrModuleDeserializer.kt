@@ -55,6 +55,8 @@ abstract class IrModuleDeserializer(val moduleDescriptor: ModuleDescriptor) {
 
     open fun addModuleReachableTopLevel(idSig: IdSignature) { error("Unsupported Operation (sig: $idSig") }
 
+    open fun deserializeReachableDeclarations() { error("Unsupported Operation") }
+
     abstract val moduleFragment: IrModuleFragment
 
     abstract val moduleDependencies: Collection<IrModuleDeserializer>
@@ -62,6 +64,8 @@ abstract class IrModuleDeserializer(val moduleDescriptor: ModuleDescriptor) {
     open val strategy: DeserializationStrategy = DeserializationStrategy.ONLY_DECLARATION_HEADERS
 
     open val isCurrent = false
+
+    open fun fileDeserializers(): Collection<IrFileDeserializer> = error("Unsupported")
 }
 
 // Used to resolve built in symbols like `kotlin.ir.internal.*` or `kotlin.FunctionN`
@@ -82,6 +86,7 @@ class IrModuleDeserializerWithBuiltIns(
     }.toMap()
 
     private fun checkIsFunctionInterface(idSig: IdSignature): Boolean {
+        if (idSig is IdSignature.GlobalFileLocalSignature) return checkIsFunctionInterface(idSig.container)
         val publicSig = idSig.asPublic()
         return publicSig != null &&
                 publicSig.packageFqName in functionalPackages &&
@@ -92,7 +97,7 @@ class IrModuleDeserializerWithBuiltIns(
     override operator fun contains(idSig: IdSignature): Boolean {
         if (idSig in irBuiltInsMap) return true
 
-        return checkIsFunctionInterface(idSig) || idSig in delegate
+        return checkIsFunctionInterface(idSig) || idSig in delegate || idSig is IdSignature.GlobalFileLocalSignature && checkIsFunctionInterface(idSig.container)
     }
 
     override fun referenceSimpleFunctionByLocalSignature(file: IrFile, idSignature: IdSignature) : IrSimpleFunctionSymbol =
@@ -100,6 +105,10 @@ class IrModuleDeserializerWithBuiltIns(
 
     override fun referencePropertyByLocalSignature(file: IrFile, idSignature: IdSignature): IrPropertySymbol =
         delegate.referencePropertyByLocalSignature(file, idSignature)
+
+    override fun deserializeReachableDeclarations() {
+        delegate.deserializeReachableDeclarations()
+    }
 
     private fun computeFunctionDescriptor(className: String): FunctionClassDescriptor {
         val isK = className[0] == 'K'
@@ -116,6 +125,18 @@ class IrModuleDeserializerWithBuiltIns(
     }
 
     private fun resolveFunctionalInterface(idSig: IdSignature, symbolKind: BinarySymbolData.SymbolKind): IrSymbol {
+        if (idSig is IdSignature.GlobalFileLocalSignature) {
+            val containerSymbolKind = when (idSig.container.asPublic()!!.nameSegments.size) {
+                1 -> BinarySymbolData.SymbolKind.CLASS_SYMBOL
+                3 -> BinarySymbolData.SymbolKind.FUNCTION_SYMBOL
+                else -> error("Cannot infer symbolKind")
+            }
+
+            val declaration = resolveFunctionalInterface(idSig.container, containerSymbolKind).owner as IrTypeParametersContainer
+
+            return declaration.typeParameters[(idSig.id - 1000_000_000_000L).toInt()].symbol
+        }
+
         val publicSig = idSig.asPublic() ?: error("$idSig has to be public")
 
         val fqnParts = publicSig.nameSegments
@@ -194,6 +215,14 @@ class IrModuleDeserializerWithBuiltIns(
     override val moduleFragment: IrModuleFragment get() = delegate.moduleFragment
     override val moduleDependencies: Collection<IrModuleDeserializer> get() = delegate.moduleDependencies
     override val isCurrent get() = delegate.isCurrent
+
+    override fun fileDeserializers(): Collection<IrFileDeserializer> {
+        return delegate.fileDeserializers()
+    }
+
+    override fun postProcess() {
+        delegate.postProcess()
+    }
 }
 
 open class CurrentModuleDeserializer(
