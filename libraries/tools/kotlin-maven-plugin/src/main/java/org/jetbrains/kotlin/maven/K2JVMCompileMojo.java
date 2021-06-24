@@ -243,7 +243,7 @@ public class K2JVMCompileMojo extends KotlinCompileMojoBase<K2JVMCompilerArgumen
             K2JVMCompilerArguments arguments,
             List<File> sourceRoots
     ) throws MojoExecutionException {
-        getLog().warn("Using experimental Kotlin incremental compilation");
+        getLog().warn(">>>>>>Using experimental Kotlin incremental compilation");
         File cachesDir = getCachesDir();
         //noinspection ResultOfMethodCallIgnored
         cachesDir.mkdirs();
