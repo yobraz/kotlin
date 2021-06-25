@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -509,11 +509,17 @@ class BlockDecomposerTransformer(
             val arguments = mutableListOf<IrExpression?>()
 
             for ((index, arg) in oldArguments.withIndex()) {
-                val value = if (arg is IrComposite) {
-                    compositesLeft--
-                    newStatements += arg.statements.run { subList(0, lastIndex) }
-                    arg.statements.last() as IrExpression
-                } else arg
+                val value = when (arg) {
+//                    is IrReturnableBlock -> {
+//
+//                    }
+                    is IrComposite -> {
+                        compositesLeft--
+                        newStatements += arg.statements.run { subList(0, lastIndex) }
+                        arg.statements.last() as IrExpression
+                    }
+                    else -> arg
+                }
 
                 val newArg = when {
                     compositesLeft == 0 -> value
@@ -574,10 +580,14 @@ class BlockDecomposerTransformer(
 
             val oldArguments = mutableListOf(expression.dispatchReceiver, expression.extensionReceiver)
             for (i in 0 until expression.valueArgumentsCount) oldArguments += expression.getValueArgument(i)
+//            val compositeCount = oldArguments.count { it is IrContainerExpression }
             val compositeCount = oldArguments.count { it is IrComposite }
 
             if (compositeCount == 0) return expression
 
+//            if (compositeCount0 != compositeCount) {
+//                println()
+//            }
             val newStatements = mutableListOf<IrStatement>()
             val newArguments = mapArguments(oldArguments, compositeCount, newStatements)
 
@@ -660,6 +670,11 @@ class BlockDecomposerTransformer(
 
             newStatements += destructureComposite(expression.statements.last().transformStatement(expressionTransformer))
 
+//            if (expression is IrReturnableBlock) {
+//                expression.statements.clear()
+//                expression.statements += newStatements
+//                return expression
+//            }
             return JsIrBuilder.buildComposite(expression.type, newStatements)
         }
 

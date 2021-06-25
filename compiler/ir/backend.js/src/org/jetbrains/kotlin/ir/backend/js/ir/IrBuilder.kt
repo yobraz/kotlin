@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -156,7 +156,7 @@ object JsIrBuilder {
         buildTypeOperator(toType, IrTypeOperator.IMPLICIT_CAST, value, toType)
 
     fun buildReinterpretCast(value: IrExpression, toType: IrType) =
-        buildTypeOperator(toType, IrTypeOperator.REINTERPRET_CAST, value, toType)
+        IrTypeOperatorCallImpl(value.startOffset, value.endOffset, toType, IrTypeOperator.REINTERPRET_CAST, toType, value)
 
     fun buildNull(type: IrType) = IrConstImpl.constNull(UNDEFINED_OFFSET, UNDEFINED_OFFSET, type)
     fun buildBoolean(type: IrType, v: Boolean) = IrConstImpl.boolean(UNDEFINED_OFFSET, UNDEFINED_OFFSET, type, v)

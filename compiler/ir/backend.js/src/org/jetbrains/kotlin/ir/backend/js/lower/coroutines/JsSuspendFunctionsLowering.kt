@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -10,6 +10,8 @@ import org.jetbrains.kotlin.backend.common.ir.isSuspend
 import org.jetbrains.kotlin.backend.common.lower.FinallyBlocksLowering
 import org.jetbrains.kotlin.ir.backend.js.JsStatementOrigins
 import org.jetbrains.kotlin.backend.common.lower.ReturnableBlockTransformer
+import org.jetbrains.kotlin.backend.common.lower.ReturnableBlockTransformer2
+import org.jetbrains.kotlin.backend.common.lower.ReturnableBlockTransformer3
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.backend.js.ir.JsIrBuilder
 import org.jetbrains.kotlin.ir.builders.*
@@ -52,7 +54,7 @@ class JsSuspendFunctionsLowering(ctx: JsIrBackendContext) : AbstractSuspendFunct
         transformingFunction: IrFunction,
         argumentToPropertiesMap: Map<IrValueParameter, IrField>
     ) {
-        val returnableBlockTransformer = ReturnableBlockTransformer(context)
+        val returnableBlockTransformer = ReturnableBlockTransformer(context) ///???
         val finallyBlockTransformer = FinallyBlocksLowering(context, context.dynamicType)
         val simplifiedFunction =
             transformingFunction.transform(finallyBlockTransformer, null).transform(returnableBlockTransformer, null) as IrFunction

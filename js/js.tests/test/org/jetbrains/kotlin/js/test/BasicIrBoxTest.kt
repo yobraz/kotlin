@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -217,7 +217,7 @@ abstract class BasicIrBoxTest(
         val dependencyPaths = mutableListOf<String>()
 
         dependencies.forEach { (moduleId, code) ->
-            val wrappedCode = wrapWithModuleEmulationMarkers(code, config.moduleKind, moduleId)
+            val wrappedCode = wrapWithModuleEmulationMarkers(code.mainModule, config.moduleKind, moduleId)
             val dependencyPath = outputFile.absolutePath.replace("_v5.js", "-${moduleId}_v5.js")
             dependencyPaths += dependencyPath
             File(dependencyPath).write(wrappedCode)

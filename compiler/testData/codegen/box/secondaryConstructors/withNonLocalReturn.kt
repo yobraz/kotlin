@@ -7,6 +7,7 @@ class A {
     constructor(arg: Boolean) {
         if (arg) {
             prop = 1
+            return
             run2 { return }
             throw RuntimeException("fail 0")
         }
