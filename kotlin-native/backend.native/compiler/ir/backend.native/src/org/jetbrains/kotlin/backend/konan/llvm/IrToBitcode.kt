@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.backend.konan.cgen.CBridgeOrigin
 import org.jetbrains.kotlin.backend.konan.descriptors.*
 import org.jetbrains.kotlin.backend.konan.ir.*
 import org.jetbrains.kotlin.backend.konan.llvm.coverage.LLVMCoverageInstrumentation
+import org.jetbrains.kotlin.backend.konan.lower.STATEMENT_ORIGIN_VARARG
 import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrElement
@@ -23,7 +24,9 @@ import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
+import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
@@ -36,6 +39,7 @@ import org.jetbrains.kotlin.library.KotlinLibrary
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.classId
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal enum class FieldStorageKind {
     GLOBAL, // In the old memory model these are only accessible from the "main" thread.
@@ -418,13 +422,13 @@ internal class CodeGeneratorVisitor(val context: Context, val lifetimes: Map<IrE
                                     val address = context.llvmDeclarations.forStaticField(irField).storageAddressAccess.getAddress(
                                             functionGenerationContext
                                     )
-                                    val initialValue = if (irField.initializer?.expression !is IrConst<*>?) {
+                                    val initialValue = if (irField.initializer == null || irField.initializer!!.expression.canBeInitializedStatically()) {
+                                        null
+                                    } else {
                                         val initialization = evaluateExpression(irField.initializer!!.expression)
                                         if (irField.storageKind == FieldStorageKind.SHARED_FROZEN)
                                             freeze(initialization, currentCodeContext.exceptionHandler)
                                         initialization
-                                    } else {
-                                        null
                                     }
                                     val needRegistration =
                                             context.memoryModel == MemoryModel.EXPERIMENTAL && // only for the new MM
@@ -831,17 +835,108 @@ internal class CodeGeneratorVisitor(val context: Context, val lifetimes: Map<IrE
 
     //-------------------------------------------------------------------------//
 
+    private fun IrExpression.getSingleReturnBlockValue() =
+            (this as? IrBlock)?.takeIf { statements.size == 1 }?.statements?.get(0) as? IrReturn
+
+    private fun IrExpression?.canBeInitializedStatically() : Boolean {
+        return try {
+            createStaticInitializer(false)
+            true
+        } catch (_: NotImplementedError) {
+            false
+        }
+    }
+
+    private fun IrExpression?.createStaticInitializer(doCreate: Boolean): ConstValue? {
+        if (this == null) throw NotImplementedError()
+        if (this is IrConst<*>) {
+            return if (doCreate) evaluateConstAsConstValue(this) else null
+        }
+        if (this is IrBlock) {
+            if (statements.size == 1) {
+                return when (val statement = statements[0]) {
+                    is IrReturn -> statement.value.createStaticInitializer(doCreate)
+                    is IrExpression -> statement.createStaticInitializer(doCreate)
+                    else -> throw NotImplementedError()
+                }
+            }
+
+            fun IrExpression.getIntConst() = this.safeAs<IrConst<*>>()?.value.safeAs<Int>()
+
+            if (origin == STATEMENT_ORIGIN_VARARG) {
+                val setSymbol = type.getClass()?.declarations
+                        ?.singleOrNull { it is IrSimpleFunction && it.name == KonanNameConventions.setWithoutBC }
+                        ?.symbol
+                        ?: throw NotImplementedError()
+
+                val variablesMap = statements.asSequence()
+                        .filterIsInstance<IrVariable>()
+                        .filter { it.name.asString().endsWith("elem") }
+                        .associate { it.symbol to it.initializer }
+
+                val values = statements.asSequence().filterIsInstance<IrCall>().mapIndexed { index, it ->
+                    if (it.symbol != setSymbol || it.getValueArgument(0)?.getIntConst() != index) throw NotImplementedError()
+                    val variable = (it.getValueArgument(1) as? IrGetValue)?.symbol
+                    val value = variablesMap[variable]
+                    value?.createStaticInitializer(doCreate)
+                }.toList()
+                if (values.size != variablesMap.size) throw NotImplementedError()
+
+                return if (doCreate) context.llvm.staticData.createConstKotlinArray(type.getClass()!!, values.map { it!! }) else null
+            }
+        }
+        if (this is IrCall) {
+            if (this.symbol == context.ir.symbols.arrayOf) {
+                return this.getValueArgument(0).createStaticInitializer(doCreate)
+            }
+        }
+        if (this is IrConstructorCall) {
+            fun collectInits(call: IrFunctionAccessExpression, values: MutableMap<IrFieldSymbol, IrExpression>) : Unit {
+                call.symbol.owner.body!!.statements.forEach {
+                    val op = (if (it is IrBlock) it.statements.singleOrNull() else it) ?: throw NotImplementedError()
+                    when (op) {
+                        is IrSetField -> {
+                            values[op.symbol] = if (op.value is IrGetValue) {
+                                val initValue = (op.value as IrGetValue).symbol as? IrValueParameterSymbol ?: throw NotImplementedError()
+                                call.getValueArgument(initValue.owner.index)!!
+                            } else op.value
+                        }
+                        is IrReturn, is IrInstanceInitializerCall -> {}
+                        is IrDelegatingConstructorCall -> if (!op.symbol.owner.returnType.isAny()) collectInits(op, values)
+                        else -> throw NotImplementedError()
+                    }
+                }
+            }
+            val valuesMap = mutableMapOf<IrFieldSymbol, IrExpression>()
+            collectInits(this, valuesMap)
+
+            val fields = context.getLayoutBuilder(this.type.getClass()!!).fields.map {
+                val property = it.correspondingPropertySymbol?.owner ?: throw NotImplementedError()
+                if (property.isVar || property.isLateinit) throw NotImplementedError()
+                valuesMap[it.symbol].createStaticInitializer(doCreate)
+            }
+            return if (doCreate) context.llvm.staticData.createConstKotlinObject(this.type.getClass()!!, *fields.map { it!! }.toTypedArray()) else null
+        }
+        throw NotImplementedError()
+    }
+
+    private fun IrExpression.createStaticInitializer(): ConstValue {
+        return createStaticInitializer(true)!!
+    }
+
+
     override fun visitField(declaration: IrField) {
         context.log{"visitField                     : ${ir2string(declaration)}"}
         debugFieldDeclaration(declaration)
         if (context.needGlobalInit(declaration)) {
             val type = codegen.getLLVMType(declaration.type)
             val globalPropertyAccess = context.llvmDeclarations.forStaticField(declaration).storageAddressAccess
-            val initializer = declaration.initializer?.expression as? IrConst<*>
             val globalProperty = (globalPropertyAccess as? GlobalAddressAccess)?.getAddress(null)
             if (globalProperty != null) {
-                LLVMSetInitializer(globalProperty, if (initializer != null)
-                    evaluateExpression(initializer) else LLVMConstNull(type))
+                LLVMSetInitializer(globalProperty, declaration.initializer?.expression
+                        ?.takeIf { it.canBeInitializedStatically() }
+                        ?.createStaticInitializer()?.llvm
+                        ?: LLVMConstNull(type))
                 // (Cannot do this before the global is initialized).
                 LLVMSetLinkage(globalProperty, LLVMLinkage.LLVMInternalLinkage)
             }
@@ -1684,28 +1779,32 @@ internal class CodeGeneratorVisitor(val context: Context, val lifetimes: Map<IrE
 
     //-------------------------------------------------------------------------//
     private fun evaluateStringConst(value: IrConst<String>) =
-            context.llvm.staticData.kotlinStringLiteral(value.value).llvm
+            context.llvm.staticData.kotlinStringLiteral(value.value)
 
-    private fun evaluateConst(value: IrConst<*>): LLVMValueRef {
+    private fun evaluateConstAsConstValue(value: IrConst<*>): ConstValue {
         context.log{"evaluateConst                  : ${ir2string(value)}"}
         /* This suppression against IrConst<String> */
         @Suppress("UNCHECKED_CAST")
         when (value.kind) {
-            IrConstKind.Null    -> return codegen.kNullObjHeaderPtr
+            IrConstKind.Null    -> return constPointer(codegen.kNullObjHeaderPtr)
             IrConstKind.Boolean -> when (value.value) {
-                true  -> return kTrue
-                false -> return kFalse
+                true  -> return Int1(1)
+                false -> return Int1(0)
             }
-            IrConstKind.Char   -> return Char16(value.value as Char).llvm
-            IrConstKind.Byte   -> return Int8(value.value as Byte).llvm
-            IrConstKind.Short  -> return Int16(value.value as Short).llvm
-            IrConstKind.Int    -> return Int32(value.value as Int).llvm
-            IrConstKind.Long   -> return Int64(value.value as Long).llvm
+            IrConstKind.Char   -> return Char16(value.value as Char)
+            IrConstKind.Byte   -> return Int8(value.value as Byte)
+            IrConstKind.Short  -> return Int16(value.value as Short)
+            IrConstKind.Int    -> return Int32(value.value as Int)
+            IrConstKind.Long   -> return Int64(value.value as Long)
             IrConstKind.String -> return evaluateStringConst(value as IrConst<String>)
-            IrConstKind.Float  -> return Float32(value.value as Float).llvm
-            IrConstKind.Double -> return Float64(value.value as Double).llvm
+            IrConstKind.Float  -> return Float32(value.value as Float)
+            IrConstKind.Double -> return Float64(value.value as Double)
         }
         TODO(ir2string(value))
+    }
+
+    private fun evaluateConst(value: IrConst<*>): LLVMValueRef {
+        return evaluateConstAsConstValue(value).llvm
     }
 
     //-------------------------------------------------------------------------//

@@ -40,6 +40,8 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
+object STATEMENT_ORIGIN_VARARG : IrStatementOriginImpl("DECLATATION_ORIGIN_VARARG")
+
 internal class VarargInjectionLowering constructor(val context: KonanBackendContext): DeclarationContainerLoweringPass {
     override fun lower(irDeclarationContainer: IrDeclarationContainer) {
         irDeclarationContainer.declarations.forEach{
@@ -104,7 +106,7 @@ internal class VarargInjectionLowering constructor(val context: KonanBackendCont
 
                 val hasSpreadElement = hasSpreadElement(expression)
                 val irBuilder = context.createIrBuilder(owner, expression.startOffset, expression.endOffset)
-                return irBuilder.irBlock(expression, null, expression.type) {
+                return irBuilder.irBlock(expression, STATEMENT_ORIGIN_VARARG, expression.type) {
                     val type = expression.varargElementType
                     log { "$expression: array type:$type, is array of primitives ${!expression.type.isArray()}" }
                     val arrayHandle = arrayType(expression.type)
