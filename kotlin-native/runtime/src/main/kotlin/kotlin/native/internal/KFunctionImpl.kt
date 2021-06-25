@@ -22,7 +22,7 @@ internal abstract class KFunctionImpl<out R>: KFunction<R> {
     abstract fun computeArity() : Int
     abstract fun computeFqName() : String
     abstract fun computeName() : String
-    abstract fun computeReceiver(): Any?
+    open fun computeReceiver(): Any? = null
 
     override fun equals(other: Any?): Boolean {
         if (other !is KFunctionImpl<*>) return false

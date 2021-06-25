@@ -328,9 +328,12 @@ internal class FunctionReferenceLowering(val context: Context) : FileLoweringPas
                 addOverride("computeName") { irString(name.asString()) }
                 addOverride("computeFqName") { irString(functionReferenceTarget.computeFullName()) }
 
-                addOverrideInner("computeReceiver") { f ->
-                    val receiver = boundFunctionParameters.singleOrNull()
-                    if (receiver?.descriptor is ReceiverParameterDescriptor) irGetField(irGet(f.dispatchReceiverParameter!!), argumentToPropertiesMap[receiver]!!) else irNull()
+
+                val receiver = boundFunctionParameters.singleOrNull()
+                if (receiver?.descriptor is ReceiverParameterDescriptor) {
+                    addOverrideInner("computeReceiver") { f ->
+                        irGetField(irGet(f.dispatchReceiverParameter!!), argumentToPropertiesMap[receiver]!!)
+                    }
                 }
             }
 
