@@ -5,16 +5,13 @@
 
 package org.jetbrains.kotlin.codegen.inline
 
-import org.jetbrains.kotlin.builtins.isSuspendFunctionType
 import org.jetbrains.kotlin.builtins.isSuspendFunctionTypeOrSubtype
 import org.jetbrains.kotlin.codegen.*
-import org.jetbrains.kotlin.codegen.DescriptorAsmUtil.getMethodAsmFlags
 import org.jetbrains.kotlin.codegen.binding.CalculatedClosure
 import org.jetbrains.kotlin.codegen.binding.CodegenBinding
 import org.jetbrains.kotlin.codegen.coroutines.getOrCreateJvmSuspendFunctionView
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.load.kotlin.TypeMappingMode
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
@@ -28,12 +25,9 @@ import org.jetbrains.kotlin.resolve.inline.isInlineOnly
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterKind
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.org.objectweb.asm.Label
-import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.Method
-import org.jetbrains.org.objectweb.asm.tree.MethodNode
 
 class PsiInlineCodegen(
     codegen: ExpressionCodegen,
@@ -98,7 +92,7 @@ class PsiInlineCodegen(
 
     override fun processHiddenParameters() {
         val contextKind = (sourceCompiler as PsiSourceCompilerForInline).context.contextKind
-        if (getMethodAsmFlags(functionDescriptor, contextKind, state) and Opcodes.ACC_STATIC == 0) {
+        if (!DescriptorAsmUtil.isStaticMethod(contextKind, functionDescriptor)) {
             hiddenParameters += invocationParamBuilder.addNextParameter(methodOwner, false, actualDispatchReceiver) to
                     codegen.frameMap.enterTemp(methodOwner)
         }
@@ -201,10 +195,15 @@ class PsiInlineCodegen(
 
     override fun reorderArgumentsIfNeeded(actualArgsWithDeclIndex: List<ArgumentAndDeclIndex>, valueParameterTypes: List<Type>) = Unit
 
-    override fun extractDefaultLambdas(node: MethodNode): List<DefaultLambda> =
-        extractDefaultLambdas(node, extractDefaultLambdaOffsetAndDescriptor(jvmSignature, functionDescriptor)) { parameter ->
-            PsiDefaultLambda(type, capturedArgs, parameter, offset, needReification, sourceCompiler)
+    override fun computeDefaultLambdaOffsets(): Map<Int, Boolean> {
+        val valueParameters = jvmSignature.valueParameters
+        val contextKind = (sourceCompiler as PsiSourceCompilerForInline).context.contextKind
+        val parameterOffsets = parameterOffsets(DescriptorAsmUtil.isStaticMethod(contextKind, functionDescriptor), valueParameters)
+        val valueParameterOffset = valueParameters.indexOfFirst { it.kind == JvmMethodParameterKind.VALUE }
+        return functionDescriptor.valueParameters.filter { InlineUtil.isInlineParameter(it) && it.declaresDefaultValue() }.associate {
+            parameterOffsets[valueParameterOffset + it.index] to it.isCrossinline
         }
+    }
 }
 
 private val FunctionDescriptor.explicitParameters
@@ -302,33 +301,4 @@ class PsiExpressionLambda(
 
     val isPropertyReference: Boolean
         get() = propertyReferenceInfo != null
-}
-
-class PsiDefaultLambda(
-    lambdaClassType: Type,
-    capturedArgs: Array<Type>,
-    parameterDescriptor: ValueParameterDescriptor,
-    offset: Int,
-    needReification: Boolean,
-    sourceCompiler: SourceCompilerForInline
-) : DefaultLambda(lambdaClassType, capturedArgs, parameterDescriptor.isCrossinline, offset, needReification, sourceCompiler) {
-    private val invokeMethodDescriptor: FunctionDescriptor
-
-    override val invokeMethodParameters: List<KotlinType?>
-        get() = invokeMethodDescriptor.explicitParameters.map { it.returnType }
-
-    override val invokeMethodReturnType: KotlinType?
-        get() = invokeMethodDescriptor.returnType
-
-    init {
-        val name = if (isPropertyReference) OperatorNameConventions.GET else OperatorNameConventions.INVOKE
-        val descriptor = parameterDescriptor.type.memberScope
-            .getContributedFunctions(OperatorNameConventions.INVOKE, NoLookupLocation.FROM_BACKEND)
-            .single()
-            .let { if (parameterDescriptor.type.isSuspendFunctionType) getOrCreateJvmSuspendFunctionView(it, sourceCompiler.state) else it }
-        // This is technically wrong as it always uses `invoke`, but `loadInvoke` will fall back to `get` which is never mangled...
-        val asmMethod = sourceCompiler.state.typeMapper.mapAsmMethod(descriptor)
-        val invokeIsErased = loadInvoke(sourceCompiler, name.asString(), asmMethod)
-        invokeMethodDescriptor = if (invokeIsErased) descriptor.original else descriptor
-    }
 }
