@@ -79,8 +79,6 @@ class DefaultLambda(
     isCrossinline: Boolean,
     sourceCompiler: SourceCompilerForInline
 ) : LambdaInfo(isCrossinline) {
-    val needReification = info.needReification // TODO: remove this
-
     override val lambdaClassType: Type = info.type
     override val isSuspend: Boolean get() = false // TODO: it should probably be true sometimes, but it never was
     override val isBoundCallableReference: Boolean
