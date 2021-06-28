@@ -241,6 +241,7 @@ class CallGenerator(statementGenerator: StatementGenerator) : StatementGenerator
                             dispatchReceiver = dispatchReceiverValue?.load()
                             extensionReceiver = extensionReceiverValue?.load()
                             val contextReceivers = contextReceiverValues.map { it.load() }
+                            contextReceiversCount = contextReceivers.size
                             addParametersToCall(startOffset, endOffset, call, this, irType, contextReceivers)
                         }
                     }
@@ -366,6 +367,7 @@ class CallGenerator(statementGenerator: StatementGenerator) : StatementGenerator
                     dispatchReceiver = dispatchReceiverValue?.load()
                     extensionReceiver = extensionReceiverValue?.load()
                     val contextReceivers = contextReceiverValues.map { it.load() }
+                    contextReceiversCount = contextReceivers.size
                     addParametersToCall(startOffset, endOffset, call, this, irType, contextReceivers)
                 }
             }
