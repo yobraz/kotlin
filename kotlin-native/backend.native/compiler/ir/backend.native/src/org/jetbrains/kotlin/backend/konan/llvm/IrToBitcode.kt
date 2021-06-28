@@ -835,9 +835,6 @@ internal class CodeGeneratorVisitor(val context: Context, val lifetimes: Map<IrE
 
     //-------------------------------------------------------------------------//
 
-    private fun IrExpression.getSingleReturnBlockValue() =
-            (this as? IrBlock)?.takeIf { statements.size == 1 }?.statements?.get(0) as? IrReturn
-
     private fun IrExpression?.canBeInitializedStatically() : Boolean {
         return try {
             createStaticInitializer(false)
@@ -869,18 +866,14 @@ internal class CodeGeneratorVisitor(val context: Context, val lifetimes: Map<IrE
                         ?.symbol
                         ?: throw NotImplementedError()
 
-                val variablesMap = statements.asSequence()
-                        .filterIsInstance<IrVariable>()
-                        .filter { it.name.asString().endsWith("elem") }
-                        .associate { it.symbol to it.initializer }
 
                 val values = statements.asSequence().filterIsInstance<IrCall>().mapIndexed { index, it ->
                     if (it.symbol != setSymbol || it.getValueArgument(0)?.getIntConst() != index) throw NotImplementedError()
-                    val variable = (it.getValueArgument(1) as? IrGetValue)?.symbol
-                    val value = variablesMap[variable]
-                    value?.createStaticInitializer(doCreate)
+                    it.getValueArgument(1).safeAs<IrGetValue>()
+                            ?.symbol?.owner.safeAs<IrVariable>()
+                            ?.initializer
+                            .createStaticInitializer(doCreate)
                 }.toList()
-                if (values.size != variablesMap.size) throw NotImplementedError()
 
                 return if (doCreate) context.llvm.staticData.createConstKotlinArray(type.getClass()!!, values.map { it!! }) else null
             }
