@@ -27,9 +27,6 @@ import org.jetbrains.kotlin.resolve.jvm.KotlinCliJavaFileManager
 import org.jetbrains.kotlin.resolve.jvm.modules.JavaModule
 import org.jetbrains.kotlin.resolve.jvm.modules.JavaModuleFinder
 import org.jetbrains.kotlin.resolve.jvm.modules.JavaModuleInfo
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import java.nio.file.Paths
 
 class CliJavaModuleFinder(
     jdkRootFile: VirtualFile?,
@@ -62,16 +59,19 @@ class CliJavaModuleFinder(
         return JavaModule.Explicit(moduleInfo, listOf(JavaModule.Root(moduleRoot, isBinary = true)), file)
     }
 
-    private fun codeFor(release: Int): String = if (release < 10) release.toString() else ('A' + (release - 10)).toChar().toString()
-    private fun fileNameMatchesRelease(fileName: String, release: Int) = !fileName.contains("-") && fileName.contains(codeFor(release)) // skip `*-modules`
+    private fun codeFor(release: Int): String = if (release < 10) release.toString() else ('A' + (release - 10)).toString()
+
+    private fun matchesRelease(fileName: String, release: Int) =
+        !fileName.contains("-") && fileName.contains(codeFor(release)) // skip `*-modules`
+
+    fun hasCtSymFile() = ctSymFile != null && ctSymFile.isValid
 
     fun listFoldersForRelease(release: Int): List<VirtualFile> {
-        if (ctSymFile == null) return emptyList()
-        //val path = Paths.get(ctSymFile.path)
+        if (!hasCtSymFile()) return emptyList()
+        val findFileByPath = VirtualFileManager.getInstance().getFileSystem(StandardFileSystems.JAR_PROTOCOL)
+            ?.findFileByPath(ctSymFile!!.path + URLUtil.JAR_SEPARATOR) ?: return emptyList()
 
-        val findFileByPath = VirtualFileManager.getInstance().getFileSystem(StandardFileSystems.JAR_PROTOCOL).findFileByPath(ctSymFile.path + URLUtil.JAR_SEPARATOR) ?: return emptyList()
-
-        return findFileByPath.children.filter { fileNameMatchesRelease(it.name, release) }.map {
+        return findFileByPath.children.filter { matchesRelease(it.name, release) }.map {
             it
         }
     }
