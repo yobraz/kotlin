@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -16,11 +16,10 @@ import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.expressions.mapTypeParameters
 import org.jetbrains.kotlin.ir.expressions.mapValueParameters
-import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
-import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
-import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.types.isNullable
 import org.jetbrains.kotlin.name.Name
@@ -35,7 +34,7 @@ import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 abstract class DataClassMembersGenerator(
     val context: IrGeneratorContext,
-    val symbolTable: SymbolTable,
+    val symbolTable: ReferenceSymbolTable,
     val irClass: IrClass,
     val origin: IrDeclarationOrigin
 ) {
@@ -44,7 +43,7 @@ abstract class DataClassMembersGenerator(
 
     inline fun <T : IrDeclaration> T.buildWithScope(builder: (T) -> Unit): T =
         also { irDeclaration ->
-            symbolTable.withScope(irDeclaration) {
+            symbolTable.withReferenceScope(irDeclaration) {
                 builder(irDeclaration)
             }
         }
@@ -134,7 +133,7 @@ abstract class DataClassMembersGenerator(
             for (property in properties) {
                 val arg1 = irGetProperty(irThis(), property)
                 val arg2 = irGetProperty(irGet(irType, otherWithCast.symbol), property)
-                +irIfThenReturnFalse(irNotEquals(arg1, arg2))
+                +irIfThenReturnFalse(notEqualsExpression(property.getter?.returnType ?: property.backingField!!.type, arg1, arg2))
             }
             +irReturnTrue()
         }
@@ -220,7 +219,7 @@ abstract class DataClassMembersGenerator(
 
         fun generateToStringMethodBody(properties: List<IrProperty>) {
             val irConcat = irConcat()
-            irConcat.addArgument(irString(irClass.name.asString() + "("))
+            irConcat.addArgument(irString(irClass.classNameForToString() + "("))
             var first = true
             for (property in properties) {
                 if (!first) irConcat.addArgument(irString(", "))
@@ -245,6 +244,8 @@ abstract class DataClassMembersGenerator(
             +irReturn(irConcat)
         }
     }
+
+    open fun IrClass.classNameForToString(): String = irClass.name.asString()
 
     fun getIrProperty(property: PropertyDescriptor): IrProperty =
         irPropertiesByDescriptor[property]
@@ -342,12 +343,50 @@ abstract class DataClassMembersGenerator(
         }
     }
 
+    open fun IrBlockBodyBuilder.notEqualsExpression(type: IrType, arg1: IrExpression, arg2: IrExpression) = irNotEquals(arg1, arg2)
+
     interface HashCodeFunctionInfo {
         val symbol: IrSimpleFunctionSymbol
         fun commitSubstituted(irMemberAccessExpression: IrMemberAccessExpression<*>)
     }
 
     abstract fun getHashCodeFunctionInfo(type: IrType): HashCodeFunctionInfo
+
+    protected fun getHashCodeFunctionSymbol(type: IrType): IrSimpleFunctionSymbol {
+        val classifier = type.classifierOrNull
+        return when {
+            classifier.isArrayOrPrimitiveArray -> context.irBuiltIns.dataClassArrayMemberHashCodeSymbol
+            classifier is IrClassSymbol -> getHashCodeFunction(classifier.owner)
+            classifier is IrTypeParameterSymbol -> getHashCodeFunction(classifier.owner.erasedUpperBound)
+            else -> error("Unknown classifier kind $classifier")
+        }
+    }
+
+    protected fun getHashCodeFunction(klass: IrClass): IrSimpleFunctionSymbol =
+        klass.functions.singleOrNull {
+            it.name.asString() == "hashCode" && it.valueParameters.isEmpty() && it.extensionReceiverParameter == null
+        }?.symbol
+            ?: context.irBuiltIns.anyClass.functions.single { it.owner.name.asString() == "hashCode" }
+
+
+    val IrTypeParameter.erasedUpperBound: IrClass
+        get() {
+            // Pick the (necessarily unique) non-interface upper bound if it exists
+            for (type in superTypes) {
+                val irClass = type.classOrNull?.owner ?: continue
+                if (!irClass.isInterface && !irClass.isAnnotationClass) return irClass
+            }
+
+            // Otherwise, choose either the first IrClass supertype or recurse.
+            // In the first case, all supertypes are interface types and the choice was arbitrary.
+            // In the second case, there is only a single supertype.
+            return when (val firstSuper = superTypes.first().classifierOrNull?.owner) {
+                is IrClass -> firstSuper
+                is IrTypeParameter -> firstSuper.erasedUpperBound
+                else -> error("unknown supertype kind $firstSuper")
+            }
+        }
+
 
     // Entry for psi2ir
     fun generateHashCodeMethod(function: FunctionDescriptor, properties: List<PropertyDescriptor>) {
