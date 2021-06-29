@@ -46,7 +46,7 @@ public class IrInterpreterAfterFir2IrTestGenerated extends AbstractIrInterpreter
 
     @Test
     public void testAllFilesPresentInInterpreter() throws Exception {
-        KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/ir/interpreter"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true, "helpers");
+        KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/ir/interpreter"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true, "helpers", "partial");
     }
 
     @Test
