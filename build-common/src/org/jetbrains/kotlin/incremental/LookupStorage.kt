@@ -85,9 +85,10 @@ open class LookupStorage(
             val key = LookupSymbolKey(lookupSymbol.name, lookupSymbol.scope)
             val paths = lookups[lookupSymbol]
             val fileIds = paths.mapTo(TreeSet()) { pathToId[it]!! }
-            val oldFileIds = lookupMap[key] ?: emptySet()
-            fileIds.addAll(oldFileIds)
-            if (fileIds != oldFileIds) lookupMap[key] = fileIds
+            lookupMap.append(key, fileIds)
+//            val oldFileIds = lookupMap[key] ?: emptySet()
+//            fileIds.addAll(oldFileIds)
+//            if (fileIds != oldFileIds) lookupMap[key] = fileIds
         }
     }
 
