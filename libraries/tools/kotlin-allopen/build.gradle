@@ -10,6 +10,7 @@ pill {
 dependencies {
     api project(':kotlin-gradle-plugin-api')
     api project(':kotlin-gradle-plugin-model')
+    api project(':kotlin-gradle-plugin-model')
 
     compileOnly project(path: ':kotlin-compiler-embeddable', configuration: 'runtimeJar')
     compileOnly project(':kotlin-allopen-compiler-plugin')
