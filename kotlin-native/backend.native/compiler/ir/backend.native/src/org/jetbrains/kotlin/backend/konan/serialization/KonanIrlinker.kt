@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.konan.DeserializedKlibModuleOrigin
 import org.jetbrains.kotlin.descriptors.konan.isNativeStdlib
 import org.jetbrains.kotlin.descriptors.konan.klibModuleOrigin
-import org.jetbrains.kotlin.descriptors.konan.kotlinLibrary
 import org.jetbrains.kotlin.ir.builders.TranslationPluginContext
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFileImpl
@@ -102,7 +101,7 @@ internal class KonanIrLinker(
             // See https://youtrack.jetbrains.com/issue/KT-43517.
             // Disabling this flag forces linker to generate IR.
             val isCached = false //cachedLibraries.isLibraryCached(klib)
-            return KonanInteropModuleDeserializer(moduleDescriptor, isCached)
+            return KonanInteropModuleDeserializer(moduleDescriptor, klib, isCached)
         }
 
         return KonanModuleDeserializer(moduleDescriptor, klib ?: error("Expecting kotlin library"), strategy)
@@ -118,10 +117,11 @@ internal class KonanIrLinker(
 
     private inner class KonanInteropModuleDeserializer(
             moduleDescriptor: ModuleDescriptor,
+            override val klib: KotlinLibrary,
             private val isLibraryCached: Boolean
     ) : IrModuleDeserializer(moduleDescriptor) {
         init {
-            assert(moduleDescriptor.kotlinLibrary.isInteropLibrary())
+            assert(klib.isInteropLibrary())
         }
 
         private val descriptorByIdSignatureFinder = DescriptorByIdSignatureFinder(
