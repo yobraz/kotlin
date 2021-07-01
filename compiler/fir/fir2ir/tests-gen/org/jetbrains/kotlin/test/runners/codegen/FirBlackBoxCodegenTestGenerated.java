@@ -26679,6 +26679,12 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
         }
 
         @Test
+        @TestMetadata("inFunctionWithExpressionBodyWithJavaGeneric.kt")
+        public void testInFunctionWithExpressionBodyWithJavaGeneric() throws Exception {
+            runTest("compiler/testData/codegen/box/notNullAssertions/inFunctionWithExpressionBodyWithJavaGeneric.kt");
+        }
+
+        @Test
         @TestMetadata("messageLength.kt")
         public void testMessageLength() throws Exception {
             runTest("compiler/testData/codegen/box/notNullAssertions/messageLength.kt");
