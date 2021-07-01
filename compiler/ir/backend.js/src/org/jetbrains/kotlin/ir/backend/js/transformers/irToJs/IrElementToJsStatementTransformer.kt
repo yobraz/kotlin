@@ -62,14 +62,13 @@ class IrElementToJsStatementTransformer : BaseIrElementToJsNodeTransformer<JsSta
         val fieldName = context.getNameForField(expression.symbol.owner)
         val expressionTransformer = IrElementToJsExpressionTransformer()
         val dest = JsNameRef(fieldName, expression.receiver?.accept(expressionTransformer, context))
-        return expression.value.maybeOptimizeIntoSwitch(context) { jsAssignment(dest, it).makeStmt() }.withSource(expression, context)
+        return expression.value.maybeOptimizeIntoSwitch(context) { jsAssignment(dest, it).withSource(expression, context).makeStmt() }
     }
 
     override fun visitSetValue(expression: IrSetValue, context: JsGenerationContext): JsStatement {
         val ref = JsNameRef(context.getNameForValueDeclaration(expression.symbol.owner))
         return expression.value
-            .maybeOptimizeIntoSwitch(context) { JsBinaryOperation(JsBinaryOperator.ASG, ref, it).makeStmt() }
-            .withSource(expression, context)
+            .maybeOptimizeIntoSwitch(context) { jsAssignment(ref, it).withSource(expression, context).makeStmt() }
     }
 
     override fun visitReturn(expression: IrReturn, context: JsGenerationContext): JsStatement {
