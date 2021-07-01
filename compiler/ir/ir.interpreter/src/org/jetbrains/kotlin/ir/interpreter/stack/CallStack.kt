@@ -54,6 +54,21 @@ internal class CallStack {
         currentFrame.removeSubFrame()
     }
 
+    fun safeExecute(block: () -> Unit) {
+        val originalFrame = currentFrame
+        val originalFrameOwner = currentFrameOwner
+        try {
+            block()
+        } catch (e: Exception) {
+            while (currentFrame != originalFrame) {
+                dropFrame()
+            }
+            while (currentFrameOwner != originalFrameOwner) {
+                dropSubFrame()
+            }
+        }
+    }
+
     fun returnFromFrameWithResult(irReturn: IrReturn) {
         val result = popState()
         val returnTarget = irReturn.returnTargetSymbol.owner
@@ -157,7 +172,7 @@ internal class CallStack {
         pushState(exception)
     }
 
-    fun hasNoInstructions() = frames.isEmpty() || (frames.size == 1 && frames.first().hasNoInstructions())
+    fun hasNoInstructions() = frames.isEmpty() || (frames.size == 1 && currentFrame.hasNoInstructions())
 
     fun addInstruction(instruction: Instruction) {
         currentFrame.addInstruction(instruction)
@@ -173,6 +188,7 @@ internal class CallStack {
 
     fun popState(): State = currentFrame.popState()
     fun peekState(): State? = currentFrame.peekState()
+    fun tryToPopState(): State? = currentFrame.peekState()?.also { currentFrame.popState() }
 
     fun addVariable(variable: Variable) {
         currentFrame.addVariable(variable)
