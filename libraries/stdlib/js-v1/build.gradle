@@ -71,6 +71,9 @@ dependencies {
     testCompile project(':kotlin-test:kotlin-test-js')
 }
 
+configurations.api.dependencies.removeIf { it instanceof ProjectDependency && it.dependencyProject == project(':kotlin-stdlib-common') }
+
+
 task prepareComparableSource(type: Copy) {
     def fs = services.get(FileSystemOperations)
     doFirst {

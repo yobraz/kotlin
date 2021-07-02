@@ -61,6 +61,8 @@ dependencies {
     builtins project(':core:builtins')
 }
 
+configurations.api.dependencies.removeIf { it instanceof ProjectDependency && it.dependencyProject == project(':kotlin-stdlib-common') }
+
 jar {
     dependsOn(configurations.builtins)
     manifestAttributes(manifest, project, 'Main', true)
