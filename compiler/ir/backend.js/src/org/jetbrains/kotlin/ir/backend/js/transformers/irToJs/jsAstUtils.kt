@@ -495,7 +495,10 @@ private inline fun <T : JsNode> T.addSourceInfoIfNeed(node: IrElement, context: 
     if (node.startOffset == UNDEFINED_OFFSET || node.endOffset == UNDEFINED_OFFSET) return
 
     val fileEntry = context.currentFile?.fileEntry ?: return
-    val (path, _, startLine, startColumn) = fileEntry.getSourceRangeInfo(node.startOffset, node.endOffset)
+
+    val path = fileEntry.name
+    val startLine = fileEntry.getLineNumber(node.startOffset)
+    val startColumn = fileEntry.getColumnNumber(node.startOffset)
 
     // TODO maybe it's better to fix in JsExpressionStatement
     val locationTarget = if (this is JsExpressionStatement) this.expression else this
