@@ -194,13 +194,13 @@ class IrModuleToJsTransformer(
             )
         }
 
-        val sourcemapOutput = TextOutputImpl()
+        val jsCode = TextOutputImpl()
 
         val configuration = backendContext.configuration
         val sourceMapPrefix = configuration.get(JSConfigurationKeys.SOURCE_MAP_PREFIX, "")
         val sourceMapsEnabled = configuration.getBoolean(JSConfigurationKeys.SOURCE_MAP)
 
-        val sourceMapBuilder = SourceMap3Builder(null, sourcemapOutput, sourceMapPrefix)
+        val sourceMapBuilder = SourceMap3Builder(null, jsCode, sourceMapPrefix)
         val sourceMapBuilderConsumer =
             if (sourceMapsEnabled) {
                 val sourceRoots = configuration.get(JSConfigurationKeys.SOURCE_MAP_SOURCE_ROOTS, emptyList<String>()).map(::File)
@@ -223,9 +223,12 @@ class IrModuleToJsTransformer(
                 null
             }
 
-        program.accept(JsToStringGenerationVisitor(sourcemapOutput, sourceMapBuilderConsumer ?: NoOpSourceLocationConsumer))
+        program.accept(JsToStringGenerationVisitor(jsCode, sourceMapBuilderConsumer ?: NoOpSourceLocationConsumer))
 
-        return CompilationOutputs(sourcemapOutput.toString(), sourceMapBuilder.build())
+        return CompilationOutputs(
+            jsCode.toString(),
+            if(sourceMapsEnabled) sourceMapBuilder.build() else null
+        )
     }
 
     private fun IrModuleFragment.externalModuleName(): String {
