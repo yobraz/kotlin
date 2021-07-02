@@ -5,7 +5,7 @@
 
 @file:JvmName("TypeUtils")
 
-package org.jetbrains.kotlin.idea.util
+package org.jetbrains.kotlin.scripting.ide_common.idea.util
 
 import com.intellij.psi.*
 import org.jetbrains.kotlin.builtins.getReturnTypeFromFunctionType
@@ -16,8 +16,7 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.ClassDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.MutablePackageFragmentDescriptor
 import org.jetbrains.kotlin.idea.FrontendInternals
-import org.jetbrains.kotlin.idea.imports.canBeReferencedViaImport
-import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
+import org.jetbrains.kotlin.scripting.ide_common.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.load.java.components.TypeUsage
 import org.jetbrains.kotlin.load.java.lazy.JavaResolverComponents
