@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -18,13 +18,17 @@ import org.jetbrains.kotlin.types.checker.StrictEqualityTypeChecker
 import org.jetbrains.kotlin.types.typeUtil.*
 import java.util.*
 
+@Suppress("unused") // Used in intellij-community
 fun CallableDescriptor.fuzzyReturnType() = returnType?.toFuzzyType(typeParameters)
 fun CallableDescriptor.fuzzyExtensionReceiverType() = extensionReceiverParameter?.type?.toFuzzyType(typeParameters)
 
+@Suppress("unused") // Used in intellij-community
 fun FuzzyType.makeNotNullable() = type.makeNotNullable().toFuzzyType(freeParameters)
+@Suppress("unused") // Used in intellij-community
 fun FuzzyType.makeNullable() = type.makeNullable().toFuzzyType(freeParameters)
 fun FuzzyType.nullability() = type.nullability()
 
+@Suppress("unused") // Used in intellij-community
 fun FuzzyType.isAlmostEverything(): Boolean {
     if (freeParameters.isEmpty()) return false
     val typeParameter = type.constructor.declarationDescriptor as? TypeParameterDescriptor ?: return false
@@ -35,6 +39,7 @@ fun FuzzyType.isAlmostEverything(): Boolean {
 /**
  * Replaces free parameters inside the type with corresponding type parameters of the class (when possible)
  */
+@Suppress("unused") // Used in intellij-community
 fun FuzzyType.presentationType(): KotlinType {
     if (freeParameters.isEmpty()) return type
 
