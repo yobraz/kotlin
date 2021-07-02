@@ -497,5 +497,7 @@ private inline fun <T : JsNode> T.addSourceInfoIfNeed(node: IrElement, context: 
     val fileEntry = context.currentFile?.fileEntry ?: return
     val (path, _, startLine, startColumn) = fileEntry.getSourceRangeInfo(node.startOffset, node.endOffset)
 
-    source = JsLocation(path, startLine, startColumn)
+    // TODO maybe it's better to fix in JsExpressionStatement
+    val locationTarget = if (this is JsExpressionStatement) this.expression else this
+    locationTarget.source = JsLocation(path, startLine, startColumn)
 }
