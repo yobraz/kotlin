@@ -12,27 +12,26 @@ import org.jetbrains.kotlin.test.backend.handlers.IrInterpreterBackendHandler
 import org.jetbrains.kotlin.test.backend.ir.JvmIrBackendFacade
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives
+import org.jetbrains.kotlin.test.directives.LanguageSettingsDirectives
 import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontend2IrConverter
 import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontendFacade
-import org.jetbrains.kotlin.test.directives.LanguageSettingsDirectives
 import org.jetbrains.kotlin.test.frontend.fir.Fir2IrResultsConverter
 import org.jetbrains.kotlin.test.frontend.fir.FirFrontendFacade
-import org.jetbrains.kotlin.test.model.*
+import org.jetbrains.kotlin.test.model.BinaryKind
+import org.jetbrains.kotlin.test.model.DependencyKind
+import org.jetbrains.kotlin.test.model.FrontendKind
+import org.jetbrains.kotlin.test.model.FrontendKinds
 import org.jetbrains.kotlin.test.preprocessors.IrInterpreterImplicitKotlinImports
 import org.jetbrains.kotlin.test.runners.AbstractKotlinCompilerWithTargetBackendTest
 import org.jetbrains.kotlin.test.services.configuration.CommonEnvironmentConfigurator
 import org.jetbrains.kotlin.test.services.configuration.JvmEnvironmentConfigurator
 import org.jetbrains.kotlin.test.services.sourceProviders.IrInterpreterHelpersSourceFilesProvider
 
-open class AbstractIrInterpreterTest(
-    private val frontendKind: FrontendKind<*>
-) : AbstractKotlinCompilerWithTargetBackendTest(TargetBackend.JVM_IR) {
+open class AbstractCommonIrInterpreterTest : AbstractKotlinCompilerWithTargetBackendTest(TargetBackend.JVM_IR) {
     override fun TestConfigurationBuilder.configuration() {
         globalDefaults {
-            frontend = frontendKind
             targetPlatform = JvmPlatforms.defaultJvmPlatform
             artifactKind = BinaryKind.NoArtifact
-            targetBackend = TargetBackend.JVM_IR
             dependencyKind = DependencyKind.Source
         }
 
@@ -47,7 +46,6 @@ open class AbstractIrInterpreterTest(
             ::JvmEnvironmentConfigurator,
         )
 
-        useAdditionalSourceProviders(::IrInterpreterHelpersSourceFilesProvider)
         useSourcePreprocessor(::IrInterpreterImplicitKotlinImports)
 
         useFrontendFacades(
@@ -60,9 +58,21 @@ open class AbstractIrInterpreterTest(
         )
         useBackendFacades(::JvmIrBackendFacade)
         useAfterAnalysisCheckers(::BlackBoxCodegenSuppressor)
+    }
+}
 
-        useBackendHandlers(::IrInterpreterBackendHandler)
-        enableMetaInfoHandler()
+open class AbstractIrInterpreterTest(private val frontendKind: FrontendKind<*>) : AbstractCommonIrInterpreterTest() {
+    override fun configure(builder: TestConfigurationBuilder) {
+        super.configure(builder)
+        with(builder) {
+            globalDefaults {
+                frontend = frontendKind
+            }
+
+            useAdditionalSourceProviders(::IrInterpreterHelpersSourceFilesProvider)
+            useBackendHandlers(::IrInterpreterBackendHandler)
+            enableMetaInfoHandler()
+        }
     }
 }
 
