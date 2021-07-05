@@ -3,8 +3,6 @@ plugins {
     id("jps-compatible")
 }
 
-publish()
-
 jvmTarget = "1.8"
 
 dependencies {

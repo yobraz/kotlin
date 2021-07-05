@@ -8,18 +8,13 @@
 package org.jetbrains.kotlin.scripting.ide_common.idea.util
 
 import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.scripting.ide_common.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtReferenceExpression
-import org.jetbrains.kotlin.psi.KtSimpleNameExpression
-import org.jetbrains.kotlin.psi.psiUtil.getQualifiedElementSelector
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.bindingContextUtil.getReferenceTargets
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.getImportableDescriptor
-import org.jetbrains.kotlin.scripting.ide_common.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 
 val DeclarationDescriptor.importableFqName: FqName?
@@ -59,10 +54,4 @@ fun KtReferenceExpression.getImportableTargets(bindingContext: BindingContext): 
     val targets = bindingContext[BindingContext.SHORT_REFERENCE_TO_COMPANION_OBJECT, this]?.let { listOf(it) }
         ?: getReferenceTargets(bindingContext)
     return targets.map { it.getImportableDescriptor() }.toSet()
-}
-
-fun KtImportDirective.canResolve(facade: ResolutionFacade): Boolean {
-    return (importedReference?.getQualifiedElementSelector() as? KtSimpleNameExpression)?.let { nameExpression ->
-        nameExpression.getImportableTargets(facade.analyze(nameExpression, BodyResolveMode.PARTIAL)).isNotEmpty()
-    } ?: false
 }

@@ -18,44 +18,9 @@ import org.jetbrains.kotlin.types.checker.StrictEqualityTypeChecker
 import org.jetbrains.kotlin.types.typeUtil.*
 import java.util.*
 
-@Suppress("unused") // Used in intellij-community
-fun CallableDescriptor.fuzzyReturnType() = returnType?.toFuzzyType(typeParameters)
 fun CallableDescriptor.fuzzyExtensionReceiverType() = extensionReceiverParameter?.type?.toFuzzyType(typeParameters)
 
-@Suppress("unused") // Used in intellij-community
-fun FuzzyType.makeNotNullable() = type.makeNotNullable().toFuzzyType(freeParameters)
-@Suppress("unused") // Used in intellij-community
-fun FuzzyType.makeNullable() = type.makeNullable().toFuzzyType(freeParameters)
 fun FuzzyType.nullability() = type.nullability()
-
-@Suppress("unused") // Used in intellij-community
-fun FuzzyType.isAlmostEverything(): Boolean {
-    if (freeParameters.isEmpty()) return false
-    val typeParameter = type.constructor.declarationDescriptor as? TypeParameterDescriptor ?: return false
-    if (typeParameter !in freeParameters) return false
-    return typeParameter.upperBounds.singleOrNull()?.isAnyOrNullableAny() ?: false
-}
-
-/**
- * Replaces free parameters inside the type with corresponding type parameters of the class (when possible)
- */
-@Suppress("unused") // Used in intellij-community
-fun FuzzyType.presentationType(): KotlinType {
-    if (freeParameters.isEmpty()) return type
-
-    val map = HashMap<TypeConstructor, TypeProjection>()
-    for ((argument, typeParameter) in type.arguments.zip(type.constructor.parameters)) {
-        if (argument.projectionKind == Variance.INVARIANT) {
-            val equalToFreeParameter = freeParameters.firstOrNull {
-                StrictEqualityTypeChecker.strictEqualTypes(it.defaultType, argument.type.unwrap())
-            } ?: continue
-
-            map[equalToFreeParameter.typeConstructor] = createProjection(typeParameter.defaultType, Variance.INVARIANT, null)
-        }
-    }
-    val substitutor = TypeSubstitutor.create(map)
-    return substitutor.substitute(type, Variance.INVARIANT)!!
-}
 
 fun KotlinType.toFuzzyType(freeParameters: Collection<TypeParameterDescriptor>) = FuzzyType(this, freeParameters)
 
@@ -106,10 +71,13 @@ class FuzzyType(
         }
     }
 
+    @Suppress("MemberVisibilityCanBePrivate") // Used in intellij-community
     fun checkIsSubtypeOf(otherType: FuzzyType): TypeSubstitutor? = matchedSubstitutor(otherType, MatchKind.IS_SUBTYPE)
 
+    @Suppress("MemberVisibilityCanBePrivate") // Used in intellij-community
     fun checkIsSuperTypeOf(otherType: FuzzyType): TypeSubstitutor? = matchedSubstitutor(otherType, MatchKind.IS_SUPERTYPE)
 
+    @Suppress("unused") // Used in intellij-community
     fun checkIsSubtypeOf(otherType: KotlinType): TypeSubstitutor? = checkIsSubtypeOf(otherType.toFuzzyType(emptyList()))
 
     fun checkIsSuperTypeOf(otherType: KotlinType): TypeSubstitutor? = checkIsSuperTypeOf(otherType.toFuzzyType(emptyList()))
@@ -178,22 +146,4 @@ class FuzzyType(
                 })
         return TypeConstructorSubstitution.createByConstructorsMap(substitutionMap, approximateCapturedTypes = true).buildSubstitutor()
     }
-}
-
-
-fun TypeSubstitution.hasConflictWith(other: TypeSubstitution, freeParameters: Collection<TypeParameterDescriptor>): Boolean {
-    return freeParameters.any { parameter ->
-        val type = parameter.defaultType
-        val substituted1 = this[type] ?: return@any false
-        val substituted2 = other[type] ?: return@any false
-        !StrictEqualityTypeChecker.strictEqualTypes(
-            substituted1.type.unwrap(),
-            substituted2.type.unwrap()
-        ) || substituted1.projectionKind != substituted2.projectionKind
-    }
-}
-
-fun TypeSubstitutor.combineIfNoConflicts(other: TypeSubstitutor, freeParameters: Collection<TypeParameterDescriptor>): TypeSubstitutor? {
-    if (this.substitution.hasConflictWith(other.substitution, freeParameters)) return null
-    return TypeSubstitutor.createChainedSubstitutor(this.substitution, other.substitution)
 }

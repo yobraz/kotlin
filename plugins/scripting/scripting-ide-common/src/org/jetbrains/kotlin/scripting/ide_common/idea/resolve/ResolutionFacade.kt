@@ -52,5 +52,3 @@ interface ResolutionFacade {
 
 @FrontendInternals
 inline fun <reified T : Any> ResolutionFacade.frontendService(): T = this.getFrontendService(T::class.java)
-
-inline fun <reified T : Any> ResolutionFacade.ideService(): T = this.getIdeService(T::class.java)
