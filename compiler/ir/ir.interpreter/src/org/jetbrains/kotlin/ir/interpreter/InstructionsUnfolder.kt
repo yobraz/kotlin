@@ -111,6 +111,7 @@ private fun unfoldConstructor(constructor: IrConstructor, callStack: CallStack) 
 private fun unfoldValueParameters(expression: IrFunctionAccessExpression, callStack: CallStack) {
     val hasDefaults = (0 until expression.valueArgumentsCount).any { expression.getValueArgument(it) == null }
     if (hasDefaults) {
+        // TODO 1. cache function 2. try to avoid creation of many defaults for single function (use bit mask)
         // if some arguments are not defined, then it is necessary to create temp function where defaults will be evaluated
         val actualParameters = MutableList<IrValueDeclaration?>(expression.valueArgumentsCount) { null }
         val ownerWithDefaults = expression.getFunctionThatContainsDefaults()
