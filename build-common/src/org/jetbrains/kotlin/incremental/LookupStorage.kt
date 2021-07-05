@@ -77,18 +77,32 @@ open class LookupStorage(
 
     @Synchronized
     fun addAll(lookups: MultiMap<LookupSymbol, String>, allPaths: Set<String>) {
-        LOG.debug("===")
+        //проинвертировать MultiMap<LookupSymbol, String>
+        //LOG.debug("===")
         val pathToId = allPaths.sorted().keysToMap { addFileIfNeeded(File(it)) }
+        //LOG.debug("All pathsToId: $pathToId")
 
         for (lookupSymbol in lookups.keySet().sorted()) {
-            LOG.debug("s: ${lookupSymbol.name}(${lookupSymbol.scope}) -- f: $allPaths")
             val key = LookupSymbolKey(lookupSymbol.name, lookupSymbol.scope)
             val paths = lookups[lookupSymbol]
+
+            //LOG.debug("symbol: ${lookupSymbol.name}(${lookupSymbol.scope})")
+            //val keysInt = lookupMap[key] ?: emptySet()
+            //LOG.debug("before: ${keysInt.map { idToFile[it]?.path }}")
+            //LOG.debug("paths: $paths")
+
             val fileIds = paths.mapTo(TreeSet()) { pathToId[it]!! }
+
+            // check
+            //val oldFileIds = lookupMap[key] ?: emptySet()
+
             lookupMap.append(key, fileIds)
-//            val oldFileIds = lookupMap[key] ?: emptySet()
-//            fileIds.addAll(oldFileIds)
-//            if (fileIds != oldFileIds) lookupMap[key] = fileIds
+            //LOG.debug("after: ${(lookupMap[key] ?: emptyList()).map { idToFile[it]?.path }}")
+
+            // check
+            //if (fileIds + oldFileIds != lookupMap[key]) {
+            //    LOG.debug("e: ${fileIds + oldFileIds}")
+            //}
         }
     }
 
@@ -127,8 +141,7 @@ open class LookupStorage(
 
                 countersFile.writeText("$size\n$deletedCount")
             }
-        }
-        finally {
+        } finally {
             super.flush(memoryCachesOnly)
         }
     }
