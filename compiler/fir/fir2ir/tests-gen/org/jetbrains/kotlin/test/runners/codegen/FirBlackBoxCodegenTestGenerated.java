@@ -38942,6 +38942,12 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
             public void testJaggedDeep() throws Exception {
                 runTest("compiler/testData/codegen/box/reified/arraysReification/jaggedDeep.kt");
             }
+
+            @Test
+            @TestMetadata("singletonLambda.kt")
+            public void testSingletonLambda() throws Exception {
+                runTest("compiler/testData/codegen/box/reified/arraysReification/singletonLambda.kt");
+            }
         }
     }
 
