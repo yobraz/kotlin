@@ -46,7 +46,7 @@ open class LookupStorage(
     private val idToFile = registerMap(IdToFileMap("id-to-file".storageFile, pathConverter))
     private val fileToId = registerMap(FileToIdMap("file-to-id".storageFile, pathConverter))
 //    private val fileEnumerator = PersistentStringEnumerator("fileEnumerator".storageFile)
-    val lookupMap = registerMap(LookupMap("lookups".storageFile))
+    private val lookupMap = registerMap(LookupMap("lookups".storageFile))
 
     @Volatile
     private var size: Int = 0
