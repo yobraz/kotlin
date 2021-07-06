@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -94,7 +94,7 @@ fun JvmBackendContext.getSourceMapper(declaration: IrClass): SourceMapper {
     //       whole file the class is declared in rather than the class only.
     val endLineNumber = when (fileEntry) {
         is MultifileFacadeFileEntry -> 0
-        else -> fileEntry.getSourceRangeInfo(0, fileEntry.maxOffset).endLineNumber
+        else -> fileEntry.getLineNumber(fileEntry.maxOffset)
     }
     val sourceFileName = when (fileEntry) {
         is MultifileFacadeFileEntry -> fileEntry.partFiles.singleOrNull()?.name
