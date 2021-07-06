@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.resolve.calls.NewCommonSuperTypeCalculator
 import org.jetbrains.kotlin.resolve.calls.inference.components.TypeVariableDirectionCalculator.ResolveDirection
-import org.jetbrains.kotlin.resolve.calls.inference.hasDeclaredUpperBoundSelfTypes
+import org.jetbrains.kotlin.resolve.calls.inference.extractSelfTypeConstructorForGivenTypeVariable
 import org.jetbrains.kotlin.resolve.calls.inference.model.*
 import org.jetbrains.kotlin.types.AbstractTypeApproximator
 import org.jetbrains.kotlin.types.AbstractTypeChecker
@@ -27,13 +27,35 @@ class ResultTypeResolver(
         fun isReified(variable: TypeVariableMarker): Boolean
     }
 
+    private fun Context.getDefaultTypeForSelfType(
+        constraints: List<Constraint>,
+        typeVariable: TypeVariableMarker
+    ) = constraints.mapNotNull { constraint ->
+        if (constraint.position.from !is DeclaredUpperBoundConstraintPosition<*>) return@mapNotNull null
+        val extractedType = extractSelfTypeConstructorForGivenTypeVariable(constraint.type, typeVariable.freshTypeConstructor() as TypeVariableTypeConstructorMarker)
+            ?: return@mapNotNull null
+        createCapturedStarProjectionForSelfType(
+            typeVariable.freshTypeConstructor() as TypeVariableTypeConstructorMarker,
+            extractedType as SimpleTypeMarker
+        )
+    }.takeIf { it.isNotEmpty() }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    private fun Context.getDefaultType(
+        direction: ResolveDirection,
+        constraints: List<Constraint>,
+        typeVariable: TypeVariableMarker
+    ): KotlinTypeMarker {
+        getDefaultTypeForSelfType(constraints, typeVariable)?.let { return intersectTypes(it) }
+
+        return if (direction == ResolveDirection.TO_SUBTYPE) nothingType() else nullableAnyType()
+    }
+
     fun findResultType(c: Context, variableWithConstraints: VariableWithConstraints, direction: ResolveDirection): KotlinTypeMarker {
         findResultTypeOrNull(c, variableWithConstraints, direction)?.let { return it }
 
         // no proper constraints
-        return run {
-            if (direction == ResolveDirection.TO_SUBTYPE) c.nothingType() else c.nullableAnyType()
-        }
+        return c.getDefaultType(direction, variableWithConstraints.constraints, variableWithConstraints.typeVariable)
     }
 
     private fun findResultTypeOrNull(
@@ -217,8 +239,7 @@ class ResultTypeResolver(
         val isTypeInferenceForSelfTypesSupported =
             languageVersionSettings.supportsFeature(LanguageFeature.TypeInferenceOnCallsWithSelfTypes)
         val upperConstraints = variableWithConstraints.constraints.filter {
-            it.kind == ConstraintKind.UPPER
-                    && ((isTypeInferenceForSelfTypesSupported && hasDeclaredUpperBoundSelfTypes(it)) || isProperTypeForFixation(it.type))
+            it.kind == ConstraintKind.UPPER && isProperTypeForFixation(it.type)
         }
         if (upperConstraints.isNotEmpty()) {
             val intersectionUpperType = intersectTypes(upperConstraints.map { it.type })

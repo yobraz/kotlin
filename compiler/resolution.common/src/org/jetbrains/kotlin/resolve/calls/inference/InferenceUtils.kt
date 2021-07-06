@@ -5,9 +5,7 @@
 
 package org.jetbrains.kotlin.resolve.calls.inference
 
-import org.jetbrains.kotlin.resolve.calls.inference.model.Constraint
 import org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintStorage
-import org.jetbrains.kotlin.resolve.calls.inference.model.DeclaredUpperBoundConstraintPosition
 import org.jetbrains.kotlin.types.model.*
 
 fun ConstraintStorage.buildCurrentSubstitutor(
@@ -49,10 +47,29 @@ fun ConstraintStorage.buildNotFixedVariablesToNonSubtypableTypesSubstitutor(
     )
 }
 
-fun TypeSystemInferenceExtensionContext.hasDeclaredUpperBoundSelfTypes(constraint: Constraint): Boolean {
-    val typeConstructor = constraint.type.typeConstructor()
+fun TypeSystemInferenceExtensionContext.hasRecursiveTypeParametersWithGivenSelfType(selfTypeConstructor: TypeConstructorMarker) =
+    selfTypeConstructor.getParameters().any { it.hasRecursiveBounds(selfTypeConstructor) }
 
-    return constraint.position.from is DeclaredUpperBoundConstraintPosition<*>
-            && (typeConstructor.getParameters().any { it.hasRecursiveBounds(typeConstructor) }
-            || typeConstructor.getTypeParameterClassifier()?.hasRecursiveBounds() == true)
+fun TypeSystemInferenceExtensionContext.isRecursiveTypeParameter(typeConstructor: TypeConstructorMarker) =
+    typeConstructor.getTypeParameterClassifier()?.hasRecursiveBounds() == true
+
+fun TypeSystemInferenceExtensionContext.extractSelfTypeConstructorForGivenTypeVariable(
+    type: KotlinTypeMarker,
+    typeVariable: TypeVariableTypeConstructorMarker
+): KotlinTypeMarker? {
+    val recursiveTypeParameter = type.getArguments().find {
+        val typeConstructor = it.getType().typeConstructor()
+        typeConstructor is TypeVariableTypeConstructorMarker && typeConstructor.typeParameter?.hasRecursiveBounds(type.typeConstructor()) == true
+    }
+    if (recursiveTypeParameter != null) {
+        return type
+    }
+
+    for (typeArgument in type.getArguments()) {
+        if (typeArgument.isStarProjection()) continue
+        val extractedType = extractSelfTypeConstructorForGivenTypeVariable(typeArgument.getType(), typeVariable)
+        if (extractedType != null) return extractedType
+    }
+
+    return null
 }
