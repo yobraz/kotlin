@@ -16,6 +16,9 @@ import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromT
 @KotlinScript(fileExtension = "simplescript.kts")
 abstract class SimpleScript
 
+@KotlinScript
+abstract class ScriptTemplateWithArgs(val args: Array<String>)
+
 val simpleScriptCompilationConfiguration = createJvmCompilationConfigurationFromTemplate<SimpleScript> {
     updateClasspath(classpathFromClass<SimpleScript>())
 }

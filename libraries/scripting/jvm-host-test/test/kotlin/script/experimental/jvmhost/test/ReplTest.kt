@@ -10,6 +10,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.scripting.compiler.plugin.impl.KJvmReplCompilerBase
 import org.junit.Assert
 import org.junit.Test
+import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.BasicJvmReplEvaluator
@@ -17,7 +18,6 @@ import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
 import kotlin.script.experimental.jvm.updateClasspath
 import kotlin.script.experimental.jvm.util.classpathFromClass
 import kotlin.script.experimental.jvmhost.createJvmScriptDefinitionFromTemplate
-import kotlin.script.templates.standard.ScriptTemplateWithArgs
 
 class ReplTest : TestCase() {
 

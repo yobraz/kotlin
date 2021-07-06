@@ -3,18 +3,20 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
+@file:Suppress("DEPRECATION")
+
 package kotlin.script.templates
 
 import kotlin.reflect.KClass
 import kotlin.script.dependencies.Environment
 
-@Deprecated("temporary workaround for missing functionality, will be replaced by the new API soon")
+@Deprecated("Use new scripting API")
 // Note: all subclasses should provide the same constructor
 open class ScriptTemplateAdditionalCompilerArgumentsProvider(val arguments: Iterable<String> = emptyList()) {
     open fun getAdditionalCompilerArguments(@Suppress("UNUSED_PARAMETER") environment: Environment?): Iterable<String> = arguments
 }
 
-// Should be deprecated as well, but since we don't have replacement as of yet, leaving it as is
+@Deprecated("Use new scripting API")
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class ScriptTemplateAdditionalCompilerArguments(

@@ -11,8 +11,6 @@ import org.jetbrains.kotlin.mainKts.impl.IvyResolver
 import java.io.File
 import java.nio.ByteBuffer
 import java.security.MessageDigest
-import kotlin.script.dependencies.ScriptContents
-import kotlin.script.dependencies.ScriptDependenciesResolver
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.dependencies.*
@@ -20,8 +18,6 @@ import kotlin.script.experimental.host.FileBasedScriptSource
 import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.jvm.*
-import kotlin.script.experimental.jvm.compat.mapLegacyDiagnosticSeverity
-import kotlin.script.experimental.jvm.compat.mapLegacyScriptPosition
 import kotlin.script.experimental.jvmhost.CompiledScriptJarsCache
 import kotlin.script.experimental.jvmhost.jsr223.configureProvidedPropertiesFromJsr223Context
 import kotlin.script.experimental.jvmhost.jsr223.importAllBindings
@@ -108,18 +104,6 @@ class MainKtsConfigurator : RefineScriptCompilationConfigurationHandler {
 
     fun processAnnotations(context: ScriptConfigurationRefinementContext): ResultWithDiagnostics<ScriptCompilationConfiguration> {
         val diagnostics = arrayListOf<ScriptDiagnostic>()
-
-        fun report(severity: ScriptDependenciesResolver.ReportSeverity, message: String, position: ScriptContents.Position?) {
-            diagnostics.add(
-                ScriptDiagnostic(
-                    ScriptDiagnostic.unspecifiedError,
-                    message,
-                    mapLegacyDiagnosticSeverity(severity),
-                    context.script.locationId,
-                    mapLegacyScriptPosition(position)
-                )
-            )
-        }
 
         val annotations = context.collectedData?.get(ScriptCollectedData.collectedAnnotations)?.takeIf { it.isNotEmpty() }
             ?: return context.compilationConfiguration.asSuccess()

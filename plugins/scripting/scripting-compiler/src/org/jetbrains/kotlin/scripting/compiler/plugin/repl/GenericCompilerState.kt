@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.scripting.compiler.plugin.repl.messages.DiagnosticMessageHolder
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.write
-import kotlin.script.experimental.dependencies.ScriptDependencies
 
 class ReplCompilerStageHistory(private val state: GenericReplCompilerState) : BasicReplStageHistory<ScriptDescriptor>(state.lock) {
 
@@ -67,5 +66,6 @@ class GenericReplCompilerState(environment: KotlinCoreEnvironment, override val 
 
     val analyzerEngine = ReplCodeAnalyzerBase(environment)
 
-    var lastDependencies: ScriptDependencies? = null
+    @Suppress("DEPRECATION")
+    var lastDependencies: kotlin.script.experimental.dependencies.ScriptDependencies? = null
 }

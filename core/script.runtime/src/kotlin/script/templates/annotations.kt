@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@file:Suppress("unused")
+@file:Suppress("unused", "DEPRECATION")
 
 package kotlin.script.templates
 
@@ -22,13 +22,16 @@ import kotlin.reflect.KClass
 import kotlin.script.dependencies.ScriptDependenciesResolver
 import kotlin.script.experimental.dependencies.DependenciesResolver.NoDependencies
 
+@Deprecated("Use new scripting API")
 const val DEFAULT_SCRIPT_FILE_PATTERN = ".*\\.kts"
 
+@Deprecated("Use new scripting API")
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class ScriptTemplateDefinition(val resolver: KClass<out ScriptDependenciesResolver> = NoDependencies::class,
                                           val scriptFilePattern: String = DEFAULT_SCRIPT_FILE_PATTERN)
 
+@Deprecated("Use new scripting API")
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class AcceptedAnnotations(vararg val supportedAnnotationClasses: KClass<out Annotation>)

@@ -19,15 +19,18 @@ package kotlin.script.templates.standard
 /**
  * Basic script definition template without parameters
  */
+@Deprecated("Use new scripting API")
 public abstract class SimpleScriptTemplate()
 
 /**
  * Script definition template with standard argv-like parameter; default for regular kotlin scripts
  */
+@Deprecated("Use new scripting API")
 public abstract class ScriptTemplateWithArgs(val args: Array<String>)
 
 /**
  * Script definition template with generic bindings parameter (String to Object)
  */
+@Deprecated("Use new scripting API")
 public abstract class ScriptTemplateWithBindings(val bindings: Map<String, Any?>)
 

@@ -2,7 +2,7 @@
  * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
-@file:Suppress("unused")
+@file:Suppress("unused", "DEPRECATION")
 
 package org.jetbrains.kotlin.scripting.compiler.test
 
@@ -44,7 +44,6 @@ import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
 import kotlin.script.templates.AcceptedAnnotations
 import kotlin.script.templates.ScriptTemplateDefinition
-import kotlin.script.templates.standard.ScriptTemplateWithArgs
 
 // TODO: the contetnts of this file should go into ScriptTest.kt and replace appropriate xml-based functionality,
 // as soon as the the latter is removed from the codebase
@@ -568,6 +567,8 @@ class ThrowingResolver : DependenciesResolver {
         throw IllegalStateException("Exception from resolver")
     }
 }
+
+abstract class ScriptTemplateWithArgs(val args: Array<String>)
 
 @ScriptTemplateDefinition(
     scriptFilePattern = ".*\\.kts",

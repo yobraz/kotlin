@@ -3,6 +3,8 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
+@file:Suppress("DEPRECATION")
+
 package org.jetbrains.kotlin.scripting.resolve
 
 import kotlinx.coroutines.runBlocking
@@ -12,6 +14,7 @@ import kotlin.script.experimental.dependencies.AsyncDependenciesResolver
 import kotlin.script.experimental.dependencies.DependenciesResolver
 
 // wraps AsyncDependenciesResolver to provide implementation for synchronous DependenciesResolver::resolve
+@Deprecated("Use new scripting API")
 class AsyncDependencyResolverWrapper(
         override val delegate: AsyncDependenciesResolver
 ): AsyncDependenciesResolver, DependencyResolverWrapper<AsyncDependenciesResolver> {

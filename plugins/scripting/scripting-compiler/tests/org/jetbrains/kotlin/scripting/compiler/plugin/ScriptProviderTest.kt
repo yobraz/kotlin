@@ -17,7 +17,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
-import kotlin.script.templates.standard.ScriptTemplateWithArgs
+
+abstract class ScriptTemplateWithArgs(val args: Array<String>)
 
 class ScriptProviderTest {
 

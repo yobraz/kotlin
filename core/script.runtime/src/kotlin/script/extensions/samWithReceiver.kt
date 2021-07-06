@@ -16,6 +16,7 @@
 
 package kotlin.script.extensions
 
+@Deprecated("Use new scripting API")
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class SamWithReceiverAnnotations(vararg val annotations: String)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@file:Suppress("unused")
+@file:Suppress("unused", "DEPRECATION")
 
 package kotlin.script.experimental.dependencies
 
@@ -23,6 +23,7 @@ import kotlin.script.dependencies.ScriptContents
 import kotlin.script.dependencies.ScriptDependenciesResolver
 import kotlin.script.experimental.dependencies.DependenciesResolver.ResolveResult
 
+@Deprecated("Use new scripting API")
 interface DependenciesResolver : ScriptDependenciesResolver {
     fun resolve(scriptContents: ScriptContents, environment: Environment): ResolveResult
 
@@ -47,9 +48,11 @@ interface DependenciesResolver : ScriptDependenciesResolver {
     }
 }
 
+@Deprecated("Use new scripting API")
 data class ScriptReport(val message: String, val severity: Severity = Severity.ERROR, val position: Position? = null) {
     data class Position(val startLine: Int, val startColumn: Int, val endLine: Int? = null, val endColumn: Int? = null)
     enum class Severity { FATAL, ERROR, WARNING, INFO, DEBUG }
 }
 
+@Deprecated("Use new scripting API")
 fun ScriptDependencies.asSuccess(): ResolveResult.Success = ResolveResult.Success(this)

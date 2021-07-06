@@ -17,14 +17,13 @@ import kotlin.script.experimental.api.refineConfigurationBeforeEvaluate
 import kotlin.script.experimental.jvmhost.jsr223.configureProvidedPropertiesFromJsr223Context
 import kotlin.script.experimental.jvmhost.jsr223.importAllBindings
 import kotlin.script.experimental.jvmhost.jsr223.jsr223
-import kotlin.script.templates.standard.ScriptTemplateWithBindings
 
 @Suppress("unused")
 @KotlinScript(
     compilationConfiguration = KotlinJsr223DefaultScriptCompilationConfiguration::class,
     evaluationConfiguration = KotlinJsr223DefaultScriptEvaluationConfiguration::class
 )
-abstract class KotlinJsr223DefaultScript(val jsr223Bindings: Bindings) : ScriptTemplateWithBindings(jsr223Bindings) {
+abstract class KotlinJsr223DefaultScript(val bindings: Bindings) {
 
     private val myEngine: ScriptEngine? get() = bindings[KOTLIN_SCRIPT_ENGINE_BINDINGS_KEY]?.let { it as? ScriptEngine }
 
@@ -34,7 +33,7 @@ abstract class KotlinJsr223DefaultScript(val jsr223Bindings: Bindings) : ScriptT
     fun eval(script: String, newBindings: Bindings): Any? =
         withMyEngine {
             val savedState =
-                newBindings[KOTLIN_SCRIPT_STATE_BINDINGS_KEY]?.takeIf { it === this.jsr223Bindings[KOTLIN_SCRIPT_STATE_BINDINGS_KEY] }
+                newBindings[KOTLIN_SCRIPT_STATE_BINDINGS_KEY]?.takeIf { it === this.bindings[KOTLIN_SCRIPT_STATE_BINDINGS_KEY] }
                     ?.apply {
                         newBindings[KOTLIN_SCRIPT_STATE_BINDINGS_KEY] = null
                     }
@@ -47,10 +46,10 @@ abstract class KotlinJsr223DefaultScript(val jsr223Bindings: Bindings) : ScriptT
 
     fun eval(script: String): Any? =
         withMyEngine {
-            val savedState = jsr223Bindings.remove(KOTLIN_SCRIPT_STATE_BINDINGS_KEY)
-            val res = it.eval(script, jsr223Bindings)
+            val savedState = bindings.remove(KOTLIN_SCRIPT_STATE_BINDINGS_KEY)
+            val res = it.eval(script, bindings)
             savedState?.apply {
-                jsr223Bindings[KOTLIN_SCRIPT_STATE_BINDINGS_KEY] = savedState
+                bindings[KOTLIN_SCRIPT_STATE_BINDINGS_KEY] = savedState
             }
             res
         }

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-@file:Suppress("unused")
+@file:Suppress("unused", "DEPRECATION")
 
 package kotlin.script.experimental.dependencies
 
 import kotlin.script.dependencies.Environment
 import kotlin.script.dependencies.ScriptContents
 
+@Deprecated("Use new scripting API")
 interface AsyncDependenciesResolver : DependenciesResolver {
     suspend fun resolveAsync(
             scriptContents: ScriptContents, environment: Environment

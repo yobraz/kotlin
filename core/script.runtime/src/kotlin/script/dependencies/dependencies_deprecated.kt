@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-@file:Suppress("unused")
+@file:Suppress("unused", "DEPRECATION")
 
 package kotlin.script.dependencies
 
 import java.io.File
 
+@Deprecated("Use new scripting API")
 interface KotlinScriptExternalDependencies : Comparable<KotlinScriptExternalDependencies> {
     val javaHome: String? get() = null
     val classpath: Iterable<File> get() = emptyList()

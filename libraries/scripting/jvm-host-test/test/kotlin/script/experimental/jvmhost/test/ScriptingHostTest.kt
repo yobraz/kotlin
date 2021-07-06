@@ -21,6 +21,7 @@ import java.net.URLClassLoader
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 import java.util.jar.JarFile
+import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.BasicScriptingHost
 import kotlin.script.experimental.host.FileBasedScriptSource
@@ -31,7 +32,9 @@ import kotlin.script.experimental.jvm.updateClasspath
 import kotlin.script.experimental.jvm.util.KotlinJars
 import kotlin.script.experimental.jvm.util.classpathFromClass
 import kotlin.script.experimental.jvmhost.*
-import kotlin.script.templates.standard.SimpleScriptTemplate
+
+@KotlinScript
+abstract class SimpleScriptTemplate()
 
 class ScriptingHostTest : TestCase() {
 

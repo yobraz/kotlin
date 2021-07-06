@@ -17,7 +17,6 @@ import kotlin.script.experimental.jvm.impl.toContainingJarOrNull
 import kotlin.script.experimental.jvm.impl.toFileOrNull
 import kotlin.script.experimental.jvm.impl.tryGetResourcePathForClass
 import kotlin.script.experimental.jvm.impl.tryGetResourcePathForClassByName
-import kotlin.script.templates.standard.ScriptTemplateWithArgs
 
 // TODO: consider moving all these utilites to the build-common or some other shared compiler API module
 
@@ -442,11 +441,12 @@ object KotlinJars {
         )
     }
 
+    @Suppress("DEPRECATION")
     val scriptRuntimeOrNull: File? by lazy {
         getLib(
             KOTLIN_SCRIPT_RUNTIME_JAR_PROPERTY,
             KOTLIN_JAVA_SCRIPT_RUNTIME_JAR,
-            ScriptTemplateWithArgs::class
+            kotlin.script.templates.standard.ScriptTemplateWithArgs::class
         )
     }
 

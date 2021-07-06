@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package org.jetbrains.kotlin.script.jsr223
 
 import org.jetbrains.kotlin.cli.common.repl.KOTLIN_SCRIPT_ENGINE_BINDINGS_KEY
@@ -9,9 +11,9 @@ import kotlin.script.templates.standard.ScriptTemplateWithBindings
 
 @Suppress("unused")
 @ScriptTemplateDefinition
-abstract class KotlinStandardJsr223ScriptTemplate(val jsr223Bindings: Bindings) : ScriptTemplateWithBindings(jsr223Bindings) {
+abstract class KotlinStandardJsr223ScriptTemplate(val jsr223Bindings: Bindings) {
 
-    private val myEngine: ScriptEngine? get() = bindings[KOTLIN_SCRIPT_ENGINE_BINDINGS_KEY]?.let { it as? ScriptEngine }
+    private val myEngine: ScriptEngine? get() = jsr223Bindings[KOTLIN_SCRIPT_ENGINE_BINDINGS_KEY]?.let { it as? ScriptEngine }
 
     private inline fun<T> withMyEngine(body: (ScriptEngine) -> T): T =
             myEngine?.let(body) ?: throw IllegalStateException("Script engine for `eval` call is not found")

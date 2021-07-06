@@ -3,6 +3,8 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
+@file:Suppress("DEPRECATION")
+
 package kotlin.script.experimental.jvm.impl
 
 import kotlinx.coroutines.runBlocking
@@ -20,6 +22,7 @@ import kotlin.script.experimental.jvm.JvmDependency
 import kotlin.script.experimental.jvm.compat.mapToLegacyScriptReportPosition
 import kotlin.script.experimental.jvm.compat.mapToLegacyScriptReportSeverity
 
+@Deprecated("Use new scripting API")
 class BridgeDependenciesResolver(
     val scriptCompilationConfiguration: ScriptCompilationConfiguration,
     val onConfigurationUpdated: (SourceCode, ScriptCompilationConfiguration) -> Unit = { _, _ -> },

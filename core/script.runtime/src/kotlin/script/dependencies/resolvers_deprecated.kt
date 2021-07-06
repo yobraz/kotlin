@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@file:Suppress("unused")
+@file:Suppress("unused", "DEPRECATION")
 
 package kotlin.script.dependencies
 
@@ -22,8 +22,10 @@ import java.io.File
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
+@Deprecated("Use new scripting API")
 typealias Environment = Map<String, Any?>
 
+@Deprecated("Use new scripting API")
 interface ScriptDependenciesResolver {
 
     enum class ReportSeverity { FATAL, ERROR, WARNING, INFO, DEBUG }
@@ -35,10 +37,13 @@ interface ScriptDependenciesResolver {
     ): Future<KotlinScriptExternalDependencies?> = PseudoFuture(null)
 }
 
+@Deprecated("Use new scripting API")
 class BasicScriptDependenciesResolver : ScriptDependenciesResolver
 
+@Deprecated("Use new scripting API")
 fun KotlinScriptExternalDependencies?.asFuture(): PseudoFuture<KotlinScriptExternalDependencies?> = PseudoFuture(this)
 
+@Deprecated("Use new scripting API")
 class PseudoFuture<T>(private val value: T): Future<T> {
     override fun get(): T = value
     override fun get(p0: Long, p1: TimeUnit): T  = value
@@ -47,6 +52,7 @@ class PseudoFuture<T>(private val value: T): Future<T> {
     override fun isCancelled(): Boolean = false
 }
 
+@Deprecated("Use new scripting API")
 interface ScriptContents {
     val file: File?
     val annotations: Iterable<Annotation>
