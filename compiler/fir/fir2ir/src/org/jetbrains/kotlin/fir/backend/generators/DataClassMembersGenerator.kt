@@ -113,8 +113,41 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
                 }
             }
 
+            private fun getHashCodeFunction(klass: IrClass): IrSimpleFunctionSymbol =
+                klass.functions.singleOrNull {
+                    it.name.asString() == "hashCode" && it.valueParameters.isEmpty() && it.extensionReceiverParameter == null
+                }?.symbol
+                    ?: context.irBuiltIns.anyClass.functions.single { it.owner.name.asString() == "hashCode" }
+
+
+            val IrTypeParameter.erasedUpperBound: IrClass
+                get() {
+                    // Pick the (necessarily unique) non-interface upper bound if it exists
+                    for (type in superTypes) {
+                        val irClass = type.classOrNull?.owner ?: continue
+                        if (!irClass.isInterface && !irClass.isAnnotationClass) return irClass
+                    }
+
+                    // Otherwise, choose either the first IrClass supertype or recurse.
+                    // In the first case, all supertypes are interface types and the choice was arbitrary.
+                    // In the second case, there is only a single supertype.
+                    return when (val firstSuper = superTypes.first().classifierOrNull?.owner) {
+                        is IrClass -> firstSuper
+                        is IrTypeParameter -> firstSuper.erasedUpperBound
+                        else -> error("unknown supertype kind $firstSuper")
+                    }
+                }
+
+
             override fun getHashCodeFunctionInfo(type: IrType): HashCodeFunctionInfo {
-                return Fir2IrHashCodeFunctionInfo(getHashCodeFunctionSymbol(type))
+                val classifier = type.classifierOrNull
+                val symbol = when {
+                    classifier.isArrayOrPrimitiveArray -> context.irBuiltIns.dataClassArrayMemberHashCodeSymbol
+                    classifier is IrClassSymbol -> getHashCodeFunction(classifier.owner)
+                    classifier is IrTypeParameterSymbol -> getHashCodeFunction(classifier.owner.erasedUpperBound)
+                    else -> error("Unknown classifier kind $classifier")
+                }
+                return Fir2IrHashCodeFunctionInfo(symbol)
             }
         }
 

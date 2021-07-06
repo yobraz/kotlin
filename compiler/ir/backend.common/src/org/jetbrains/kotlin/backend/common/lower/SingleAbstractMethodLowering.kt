@@ -274,7 +274,7 @@ class SamEqualsHashCodeMethodsGenerator(
 
     fun generate() {
         generateGetFunctionDelegate()
-        val anyGenerator = MethodsFromAnyGeneratorForLowerings(context, klass)
+        val anyGenerator = MethodsFromAnyGeneratorForLowerings(context, klass, IrDeclarationOrigin.SYNTHETIC_GENERATED_SAM_IMPLEMENTATION)
         generateEquals(anyGenerator)
         generateHashCode(anyGenerator)
     }

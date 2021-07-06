@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.backend.jvm.lower
 
 import org.jetbrains.kotlin.backend.common.lower.ANNOTATION_IMPLEMENTATION
 import org.jetbrains.kotlin.backend.common.lower.AnnotationImplementationLowering
+import org.jetbrains.kotlin.backend.common.lower.AnnotationImplementationTransformer
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
@@ -14,27 +15,33 @@ import org.jetbrains.kotlin.backend.jvm.lower.FunctionReferenceLowering.Companio
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.isArray
-import org.jetbrains.kotlin.ir.types.isKClass
-import org.jetbrains.kotlin.ir.types.starProjectedType
+import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.findDeclaration
 import org.jetbrains.kotlin.ir.util.isPrimitiveArray
+import org.jetbrains.kotlin.ir.util.render
 
-internal val annotationImplementationPhase = makeIrFilePhase(
-    ::JvmAnnotationImplementationLowering,
+internal val annotationImplementationPhase = makeIrFilePhase<JvmBackendContext>(
+    { ctxt -> AnnotationImplementationLowering { JvmAnnotationImplementationTransformer(ctxt, it) } },
     name = "AnnotationImplementation",
     description = "Create synthetic annotations implementations and use them in annotations constructor calls"
 )
 
-class JvmAnnotationImplementationLowering(val jvmContext: JvmBackendContext): AnnotationImplementationLowering(jvmContext) {
-    override fun IrType.kClassToJClassIfNeeded(): IrType {
-        if (!this.isKClass()) return this
-        return jvmContext.ir.symbols.javaLangClass.starProjectedType
+class JvmAnnotationImplementationTransformer(val jvmContext: JvmBackendContext, file: IrFile) :
+    AnnotationImplementationTransformer(jvmContext, file) {
+    override fun IrType.kClassToJClassIfNeeded(): IrType = when {
+        this.isKClass() -> jvmContext.ir.symbols.javaLangClass.starProjectedType
+        this.isKClassArray() -> jvmContext.irBuiltIns.arrayClass.typeWith(
+            jvmContext.ir.symbols.javaLangClass.starProjectedType
+        )
+        else -> this
     }
+
+    private fun IrType.isKClassArray() =
+        this is IrSimpleType && isArray() && arguments.single().typeOrNull?.isKClass() == true
 
     override fun IrBuilderWithScope.kClassExprToJClassIfNeeded(irExpression: IrExpression): IrExpression {
         with(this) {
@@ -49,21 +56,19 @@ class JvmAnnotationImplementationLowering(val jvmContext: JvmBackendContext): An
     }
 
     override fun generatedEquals(irBuilder: IrBlockBodyBuilder, type: IrType, arg1: IrExpression, arg2: IrExpression): IrExpression {
-        if (type.isArray() || type.isPrimitiveArray()) {
+        return if (type.isArray() || type.isPrimitiveArray()) {
             val targetType = if (type.isPrimitiveArray()) type else jvmContext.ir.symbols.arrayOfAnyNType
             val requiredSymbol = jvmContext.ir.symbols.arraysClass.owner.findDeclaration<IrFunction> {
                 it.name.asString() == "equals" && it.valueParameters.size == 2 && it.valueParameters.first().type == targetType
             }
-            if (requiredSymbol != null) {
-                return irBuilder.irCall(
-                    requiredSymbol.symbol
-                ).apply {
-                    putValueArgument(0, arg1)
-                    putValueArgument(1, arg2)
-                }
+            requireNotNull(requiredSymbol) { "Can't find Arrays.equals method for type ${targetType.render()}" }
+            irBuilder.irCall(
+                requiredSymbol.symbol
+            ).apply {
+                putValueArgument(0, arg1)
+                putValueArgument(1, arg2)
             }
-        }
-        return super.generatedEquals(irBuilder, type, arg1, arg2)
+        } else super.generatedEquals(irBuilder, type, arg1, arg2)
     }
 
     override fun implementPlatformSpecificParts(annotationClass: IrClass, implClass: IrClass) {

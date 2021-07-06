@@ -390,6 +390,12 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
             }
 
             @Test
+            @TestMetadata("annotationEnclosingName.kt")
+            public void testAnnotationEnclosingName() throws Exception {
+                runTest("compiler/testData/codegen/box/annotations/instances/annotationEnclosingName.kt");
+            }
+
+            @Test
             @TestMetadata("annotationEqHc.kt")
             public void testAnnotationEqHc() throws Exception {
                 runTest("compiler/testData/codegen/box/annotations/instances/annotationEqHc.kt");
@@ -402,6 +408,12 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
             }
 
             @Test
+            @TestMetadata("annotationInstancesEmptyDefault.kt")
+            public void testAnnotationInstancesEmptyDefault() throws Exception {
+                runTest("compiler/testData/codegen/box/annotations/instances/annotationInstancesEmptyDefault.kt");
+            }
+
+            @Test
             @TestMetadata("annotationToString.kt")
             public void testAnnotationToString() throws Exception {
                 runTest("compiler/testData/codegen/box/annotations/instances/annotationToString.kt");
@@ -411,6 +423,24 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
             @TestMetadata("annotationType.kt")
             public void testAnnotationType() throws Exception {
                 runTest("compiler/testData/codegen/box/annotations/instances/annotationType.kt");
+            }
+
+            @Test
+            @TestMetadata("javaAnnotation.kt")
+            public void testJavaAnnotation() throws Exception {
+                runTest("compiler/testData/codegen/box/annotations/instances/javaAnnotation.kt");
+            }
+
+            @Test
+            @TestMetadata("multifileEqHc.kt")
+            public void testMultifileEqHc() throws Exception {
+                runTest("compiler/testData/codegen/box/annotations/instances/multifileEqHc.kt");
+            }
+
+            @Test
+            @TestMetadata("multiplatformInstantiation.kt")
+            public void testMultiplatformInstantiation() throws Exception {
+                runTest("compiler/testData/codegen/box/annotations/instances/multiplatformInstantiation.kt");
             }
         }
 
