@@ -853,7 +853,8 @@ abstract class Kotlin2JsCompile @Inject constructor(
     private val libraryFilterBody: (File) -> Boolean
         get() = if (kotlinOptions.isIrBackendEnabled()) {
             if (kotlinOptions.isPreIrBackendDisabled()) {
-                ::isKotlinLibrary
+                //::isKotlinLibrary
+                { isKotlinLibrary(it) }
             } else {
                 ::isHybridKotlinJsLibrary
             }
