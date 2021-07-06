@@ -76,7 +76,7 @@ configurations {
     kotlinCommonSources
 
     cli_bcRuntime {
-        extendsFrom compilerRuntime
+        extendsFrom compilerRuntimeOnly
         extendsFrom kotlin_script_runtime_jar
     }
 

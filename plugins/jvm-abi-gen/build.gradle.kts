@@ -19,10 +19,10 @@ dependencies {
 
     testRuntimeOnly(project(":kotlin-compiler"))
 
-    testCompile(commonDep("junit:junit"))
-    testCompile(projectTests(":compiler:tests-common"))
-    testCompile(projectTests(":compiler:incremental-compilation-impl"))
-    testRuntime(intellijCoreDep())
+    testApi(commonDep("junit:junit"))
+    testApi(projectTests(":compiler:tests-common"))
+    testApi(projectTests(":compiler:incremental-compilation-impl"))
+    testRuntimeOnly(intellijCoreDep())
 }
 
 sourceSets {

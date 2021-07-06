@@ -16,7 +16,7 @@ dependencies {
     compileOnly(project(":core:compiler.common.jvm"))
     compileOnly(project(":idea-frontend-fir:idea-fir-low-level-api"))
 
-    compile(intellijCoreDep()) { includeJars("intellij-core", "guava", rootProject = rootProject) }
+    api(intellijCoreDep()) { includeJars("intellij-core", "guava", rootProject = rootProject) }
 }
 
 kotlin {

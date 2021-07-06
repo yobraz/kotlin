@@ -11,10 +11,6 @@ dependencies {
     compileOnly kotlinStdlib()
 }
 
-configurations {
-    mainJar
-}
-
 sourceSets {
     main {
         kotlin {
@@ -25,10 +21,6 @@ sourceSets {
 
 jar {
     manifestAttributes(manifest, project, 'Main')
-}
-
-artifacts {
-    mainJar jar
 }
 
 configureSourcesJar()

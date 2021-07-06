@@ -9,14 +9,14 @@ sourceSets {
 }
 
 dependencies {
-    compile(kotlinStdlib("jdk8"))
+    api(kotlinStdlib("jdk8"))
 
-    testCompile(projectTests(":generators:test-generator"))
-    testCompile(projectTests(":compiler:tests-common"))
-    testCompile(projectTests(":compiler:tests-spec"))
-    testCompile(projectTests(":idea-frontend-fir:idea-fir-low-level-api"))
-    testCompile(projectTests(":idea-frontend-fir"))
-    testCompile(intellijCoreDep()) { includeJars("intellij-core", "guava", rootProject = rootProject) }
+    testApi(projectTests(":generators:test-generator"))
+    testApi(projectTests(":compiler:tests-common"))
+    testApi(projectTests(":compiler:tests-spec"))
+    testApi(projectTests(":idea-frontend-fir:idea-fir-low-level-api"))
+    testApi(projectTests(":idea-frontend-fir"))
+    testApi(intellijCoreDep()) { includeJars("intellij-core", "guava", rootProject = rootProject) }
     testApiJUnit5()
 }
 

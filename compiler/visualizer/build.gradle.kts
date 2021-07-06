@@ -25,7 +25,7 @@ dependencies {
     Platform[203].orHigher {
         testRuntimeOnly(intellijDep()) { includeJars("intellij-deps-fastutil-8.4.1-4") }
     }
-    testRuntimeOnly(compile(intellijDep()) { includeJars("jna", rootProject = rootProject) })
+    testRuntimeOnly(intellijDep()) { includeJars("jna", rootProject = rootProject) }
 }
 
 val generationRoot = projectDir.resolve("tests-gen")
