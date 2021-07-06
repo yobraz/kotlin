@@ -6962,6 +6962,12 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
             public void testLibraryProperty() throws Exception {
                 runTest("compiler/testData/codegen/box/compileKotlinAgainstKotlin/fir/LibraryProperty.kt");
             }
+
+            @Test
+            @TestMetadata("UnionTypes.kt")
+            public void testUnionTypes() throws Exception {
+                runTest("compiler/testData/codegen/box/compileKotlinAgainstKotlin/fir/UnionTypes.kt");
+            }
         }
 
         @Nested
@@ -42562,6 +42568,22 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
         @TestMetadata("longOverflow.kt")
         public void testLongOverflow() throws Exception {
             runTest("compiler/testData/codegen/box/unaryOp/longOverflow.kt");
+        }
+    }
+
+    @Nested
+    @TestMetadata("compiler/testData/codegen/box/unionTypes")
+    @TestDataPath("$PROJECT_ROOT")
+    public class UnionTypes {
+        @Test
+        public void testAllFilesPresentInUnionTypes() throws Exception {
+            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/unionTypes"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
+        }
+
+        @Test
+        @TestMetadata("multicatch.kt")
+        public void testMulticatch() throws Exception {
+            runTest("compiler/testData/codegen/box/unionTypes/multicatch.kt");
         }
     }
 
