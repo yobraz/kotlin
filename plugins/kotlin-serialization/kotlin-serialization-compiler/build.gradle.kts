@@ -19,8 +19,8 @@ dependencies {
 
     runtimeOnly(kotlinStdlib())
 
-    testCompile(projectTests(":compiler:tests-common"))
-    testCompile(commonDep("junit:junit"))
+    testApi(projectTests(":compiler:tests-common"))
+    testApi(commonDep("junit:junit"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.1.0")
 
     testRuntimeOnly(intellijCoreDep()) { includeJars("intellij-core") }
