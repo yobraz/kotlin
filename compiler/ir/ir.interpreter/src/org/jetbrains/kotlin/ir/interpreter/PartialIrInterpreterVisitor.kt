@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.ir.interpreter.state.State
 import org.jetbrains.kotlin.ir.interpreter.state.asBoolean
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
-internal class Evaluator(val irBuiltIns: IrBuiltIns) {
+internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementTransformerVoid) {
     private val environment = IrInterpreterEnvironment(irBuiltIns)
     internal val callStack: CallStack
         get() = environment.callStack
@@ -37,7 +37,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns) {
 
     fun interpret(block: IrReturnableBlock): IrElement {
         callStack.newFrame(block)
-        block.transformChildren(this, null)
+        block.transformChildren(transformer, null)
         callStack.dropFrame()
         return block
     }
@@ -49,7 +49,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns) {
     }
 
     fun evalIrReturnValue(expression: IrReturn): State? {
-        expression.value = expression.value.transform(this, null)
+        expression.value = expression.value.transform(transformer, null)
         return callStack.tryToPopState()
     }
 
@@ -58,18 +58,18 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns) {
     }
 
     fun evalIrCallDispatchReceiver(expression: IrCall): State? {
-        expression.dispatchReceiver = expression.dispatchReceiver?.transform(this, null)
+        expression.dispatchReceiver = expression.dispatchReceiver?.transform(transformer, null)
         return callStack.tryToPopState()
     }
 
     fun evalIrCallExtensionReceiver(expression: IrCall): State? {
-        expression.extensionReceiver = expression.extensionReceiver?.transform(this, null)
+        expression.extensionReceiver = expression.extensionReceiver?.transform(transformer, null)
         return callStack.tryToPopState()
     }
 
     fun evalIrCallArgs(expression: IrCall): List<State?> {
         (0 until expression.valueArgumentsCount).forEach {
-            expression.putValueArgument(it, expression.getValueArgument(it)?.transform(this, null))
+            expression.putValueArgument(it, expression.getValueArgument(it)?.transform(transformer, null))
         }
         val args = mutableListOf<State?>()
         (0 until expression.valueArgumentsCount).forEach {
@@ -92,7 +92,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns) {
     }
 
     fun evalIrBlock(expression: IrBlock) {
-        expression.transformChildren(this, null)
+        expression.transformChildren(transformer, null)
     }
 
     fun fallbackIrBlock(expression: IrBlock): IrExpression {
@@ -104,7 +104,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns) {
 
     fun evalIrWhenConditions(expression: IrWhen): List<State?> {
         return expression.branches.map {
-            it.condition = it.condition.transform(this, null)
+            it.condition = it.condition.transform(transformer, null)
             callStack.tryToPopState()
         }
     }
@@ -114,14 +114,14 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns) {
             when {
                 condition == null -> {
                     (i until expression.branches.size).forEach {
-                        expression.branches[it].result = expression.branches[it].result.transform(this, null)
+                        expression.branches[it].result = expression.branches[it].result.transform(transformer, null)
                     }
                     // TODO collect all mutable vars and remove them + rollback all changes
                     return expression
                 }
-                condition.asBoolean() -> return expression.branches[i].result.transform(this, null)
+                condition.asBoolean() -> return expression.branches[i].result.transform(transformer, null)
                 else -> {
-                    expression.branches[i].result = expression.branches[i].result.transform(this, null)
+                    expression.branches[i].result = expression.branches[i].result.transform(transformer, null)
                     // TODO rollback all changes
                 }
             }
@@ -130,7 +130,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns) {
     }
 
     fun evalIrSetValue(expression: IrSetValue): State? {
-        expression.value = expression.value.transform(this, null)
+        expression.value = expression.value.transform(transformer, null)
         return callStack.tryToPopState()
     }
 
@@ -165,7 +165,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns) {
     }
 
     fun evalIrVariable(declaration: IrVariable): State? {
-        declaration.initializer = declaration.initializer?.transform(this, null)
+        declaration.initializer = declaration.initializer?.transform(transformer, null)
         return callStack.tryToPopState()
     }
 
@@ -184,197 +184,64 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns) {
 // there can be many `lowerings` that are using compile time information.
 // but this information will be the same every time, so there is no need to reinterpret all code
 internal class PartialIrInterpreterVisitor(val irBuiltIns: IrBuiltIns) : IrElementTransformerVoid() {
-    private val environment = IrInterpreterEnvironment(irBuiltIns)
-    internal val callStack: CallStack
-        get() = environment.callStack
-    private val interpreter = IrInterpreter(environment, emptyMap())
-
-    internal fun evaluate(irExpression: IrExpression, args: List<State> = emptyList(), interpretOnly: Boolean = true) {
-        callStack.safeExecute {
-            interpreter.interpret(
-                {
-                    this.newSubFrame(irExpression)
-                    this.pushInstruction(if (interpretOnly) SimpleInstruction(irExpression) else CompoundInstruction(irExpression))
-                    args.reversed().forEach { this.pushState(it) }
-                },
-                { this.dropSubFrame() }
-            )
-        }
-    }
+    protected val evaluator = Evaluator(irBuiltIns, this)
 
     fun interpret(block: IrReturnableBlock): IrElement {
-        callStack.newFrame(block)
-        block.transformChildren(this, null)
-        callStack.dropFrame()
-        return block
+        return evaluator.interpret(block)
     }
 
-    private fun IrFunctionAccessExpression.getExpectedArgumentsCount(): Int {
-        val dispatch = dispatchReceiver?.let { 1 } ?: 0
-        val extension = extensionReceiver?.let { 1 } ?: 0
-        return dispatch + extension + valueArgumentsCount
-    }
-
-    fun evalIrReturnValue(expression: IrReturn): State? {
-        expression.value = expression.value.transform(this, null)
-        return callStack.tryToPopState()
-    }
-
-    fun fallbackIrReturn(expression: IrReturn, value: State?): IrReturn {
-        return expression
-    }
-
-    /*private*/ override fun visitReturn(expression: IrReturn): IrExpression {
-        return fallbackIrReturn(expression, evalIrReturnValue(expression))
-    }
-
-    fun evalIrCallDispatchReceiver(expression: IrCall): State? {
-        expression.dispatchReceiver = expression.dispatchReceiver?.transform(this, null)
-        return callStack.tryToPopState()
-    }
-
-    fun evalIrCallExtensionReceiver(expression: IrCall): State? {
-        expression.extensionReceiver = expression.extensionReceiver?.transform(this, null)
-        return callStack.tryToPopState()
-    }
-
-    fun evalIrCallArgs(expression: IrCall): List<State?> {
-        (0 until expression.valueArgumentsCount).forEach {
-            expression.putValueArgument(it, expression.getValueArgument(it)?.transform(this, null))
-        }
-        val args = mutableListOf<State?>()
-        (0 until expression.valueArgumentsCount).forEach {
-            args += callStack.tryToPopState()
-        }
-        return args
-    }
-
-    fun fallbackIrCall(expression: IrCall, dispatchReceiver: State?, extensionReceiver: State?, args: List<State?>): IrCall {
-        val actualArgs = listOf(dispatchReceiver, extensionReceiver, *args.toTypedArray()).filterNotNull()
-        if (actualArgs.size != expression.getExpectedArgumentsCount()) return expression
-
-        val owner = expression.symbol.owner
-        if (EvaluationMode.ONLY_BUILTINS.canEvaluateFunction(owner, expression) || EvaluationMode.WITH_ANNOTATIONS.canEvaluateFunction(owner, expression)) {
-            evaluate(expression, actualArgs, interpretOnly = true)
-            // TODO if result is Primitive -> return const
-            return expression
-        }
-        return expression
+    override fun visitReturn(expression: IrReturn): IrExpression {
+        return evaluator.fallbackIrReturn(
+            expression,
+            evaluator.evalIrReturnValue(expression)
+        )
     }
 
     override fun visitCall(expression: IrCall): IrExpression {
-        return fallbackIrCall(expression, evalIrCallDispatchReceiver(expression), evalIrCallExtensionReceiver(expression), evalIrCallArgs(expression))
-    }
-
-    fun evalIrBlock(expression: IrBlock) {
-        expression.transformChildren(this, null)
-    }
-
-    fun fallbackIrBlock(expression: IrBlock): IrExpression {
-        callStack.newSubFrame(expression)
-        evalIrBlock(expression)
-        callStack.dropSubFrame()
-        return expression
+        return evaluator.fallbackIrCall(
+            expression,
+            evaluator.evalIrCallDispatchReceiver(expression),
+            evaluator.evalIrCallExtensionReceiver(expression),
+            evaluator.evalIrCallArgs(expression)
+        )
     }
 
     override fun visitBlock(expression: IrBlock): IrExpression {
-        return fallbackIrBlock(expression)
-    }
-
-    fun evalIrWhenConditions(expression: IrWhen): List<State?> {
-        return expression.branches.map {
-            it.condition = it.condition.transform(this, null)
-            callStack.tryToPopState()
-        }
-    }
-
-    fun fallbackIrWhen(expression: IrWhen, conditions: List<State?>): IrExpression {
-        for ((i, condition) in conditions.withIndex()) {
-            when {
-                condition == null -> {
-                    (i until expression.branches.size).forEach {
-                        expression.branches[it].result = expression.branches[it].result.transform(this, null)
-                    }
-                    // TODO collect all mutable vars and remove them + rollback all changes
-                    return expression
-                }
-                condition.asBoolean() -> return expression.branches[i].result.transform(this, null)
-                else -> {
-                    expression.branches[i].result = expression.branches[i].result.transform(this, null)
-                    // TODO rollback all changes
-                }
-            }
-        }
-        return expression
+        return evaluator.fallbackIrBlock(expression)
     }
 
     override fun visitWhen(expression: IrWhen): IrExpression {
-        return fallbackIrWhen(expression, evalIrWhenConditions(expression))
-    }
-
-    fun evalIrSetValue(expression: IrSetValue): State? {
-        expression.value = expression.value.transform(this, null)
-        return callStack.tryToPopState()
-    }
-
-    fun fallbackIrSetValue(expression: IrSetValue, value: State?): IrExpression {
-        if (value == null) {
-            // TODO remove from stack
-            return expression
-        }
-        evaluate(expression, listOf(value))
-        return expression
+        return evaluator.fallbackIrWhen(
+            expression,
+            evaluator.evalIrWhenConditions(expression)
+        )
     }
 
     override fun visitSetValue(expression: IrSetValue): IrExpression {
-        return fallbackIrSetValue(expression, evalIrSetValue(expression))
-    }
-
-    fun evalIrGetValue(expression: IrGetValue): State? {
-        // TODO evaluate can throw exception, how to avoid?
-        evaluate(expression, interpretOnly = false)
-        return callStack.tryToPopState()
-    }
-
-    fun fallbackIrGetValue(expression: IrGetValue, value: State?): IrExpression {
-        value?.let { callStack.pushState(it) }
-        return expression
+        return evaluator.fallbackIrSetValue(
+            expression,
+            evaluator.evalIrSetValue(expression)
+        )
     }
 
     override fun visitGetValue(expression: IrGetValue): IrExpression {
-        return fallbackIrGetValue(expression, evalIrGetValue(expression))
-    }
-
-    fun <T> evalIrConst(expression: IrConst<T>): State? {
-        evaluate(expression)
-        return callStack.tryToPopState()
-    }
-
-    fun <T> fallbackIrConst(expression: IrConst<T>, value: State?): IrExpression {
-        value?.let { callStack.pushState(it) }
-        return expression
+        return evaluator.fallbackIrGetValue(
+            expression,
+            evaluator.evalIrGetValue(expression)
+        )
     }
 
     override fun <T> visitConst(expression: IrConst<T>): IrExpression {
-        return fallbackIrConst(expression, evalIrConst(expression))
+        return evaluator.fallbackIrConst(
+            expression,
+            evaluator.evalIrConst(expression)
+        )
     }
-
-    fun evalIrVariable(declaration: IrVariable): State? {
-        declaration.initializer = declaration.initializer?.transform(this, null)
-        return callStack.tryToPopState()
-    }
-
-    fun fallbackIrVariable(declaration: IrVariable, value: State?): IrStatement {
-        if (declaration.initializer == null) {
-            callStack.storeState(declaration.symbol, null)
-        } else {
-            value?.let { callStack.storeState(declaration.symbol, it) }
-        }
-        return declaration
-    }
-
 
     override fun visitVariable(declaration: IrVariable): IrStatement {
-        return fallbackIrVariable(declaration, evalIrVariable(declaration))
+        return evaluator.fallbackIrVariable(
+            declaration,
+            evaluator.evalIrVariable(declaration)
+        )
     }
 }
