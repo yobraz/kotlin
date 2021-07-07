@@ -43,6 +43,8 @@ import java.net.URL;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 
 import static com.intellij.openapi.util.text.StringUtil.join;
 import static org.jetbrains.kotlin.maven.Util.filterClassPath;
