@@ -15,118 +15,69 @@ import org.jetbrains.kotlin.ir.interpreter.stack.CallStack
 import org.jetbrains.kotlin.ir.interpreter.state.State
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
+// TODO
+// 1. cache.
+// there can be many `lowerings` that are using compile time information.
+// but this information will be the same every time, so there is no need to reinterpret all code
 abstract class PartialIrInterpreter(val irBuiltIns: IrBuiltIns) : IrElementTransformerVoid() {
-    private val environment = IrInterpreterEnvironment(irBuiltIns)
-    internal val callStack: CallStack
-        get() = environment.callStack
-    private val interpreter = IrInterpreter(environment, emptyMap())
-
-    internal fun evaluate(irExpression: IrExpression, args: List<State> = emptyList(), interpretOnly: Boolean = true) {
-        callStack.safeExecute {
-            interpreter.interpret(
-                {
-                    this.newSubFrame(irExpression)
-                    this.pushInstruction(if (interpretOnly) SimpleInstruction(irExpression) else CompoundInstruction(irExpression))
-                    args.reversed().forEach { this.pushState(it) }
-                },
-                { this.dropSubFrame() }
-            )
-        }
-    }
+    internal val evaluator = Evaluator(irBuiltIns, this)
 
     fun interpret(block: IrReturnableBlock): IrElement {
-        callStack.newFrame(block)
-        block.transformChildren(this, null)
-        callStack.dropFrame()
-        return block
-    }
-
-    private fun IrFunctionAccessExpression.getExpectedArgumentsCount(): Int {
-        val dispatch = dispatchReceiver?.let { 1 } ?: 0
-        val extension = extensionReceiver?.let { 1 } ?: 0
-        return dispatch + extension + valueArgumentsCount
-    }
-
-    override fun visitCall(expression: IrCall): IrExpression {
-        // TODO if has defaults create new function
-        expression.dispatchReceiver = expression.dispatchReceiver?.transform(this, null)
-        expression.extensionReceiver = expression.extensionReceiver?.transform(this, null)
-        (0 until expression.valueArgumentsCount).forEach {
-            expression.putValueArgument(it, expression.getValueArgument(it)?.transform(this, null))
-        }
-
-        val args = mutableListOf<State>()
-        (0 until expression.valueArgumentsCount).forEach {
-            args += callStack.tryToPopState() ?: return expression
-        }
-        expression.extensionReceiver?.let { args += callStack.tryToPopState() ?: return expression }
-        expression.dispatchReceiver?.let { args += callStack.tryToPopState() ?: return expression }
-        if (args.size != expression.getExpectedArgumentsCount()) return expression
-
-        val owner = expression.symbol.owner
-        if (EvaluationMode.ONLY_BUILTINS.canEvaluateFunction(owner, expression) || EvaluationMode.WITH_ANNOTATIONS.canEvaluateFunction(owner, expression)) {
-            evaluate(expression, args, interpretOnly = true)
-            // TODO if result is Primitive -> return const
-            return expression
-        }
-        return expression
-    }
-
-//    private fun customVisitCall(expression: IrCall, receiver: State?, args: List<State>?): IrExpression {
-//        TODO()
-//    }
-
-    override fun visitBlock(expression: IrBlock): IrExpression {
-        callStack.newSubFrame(expression)
-        expression.transformChildren(this, null)
-        callStack.dropSubFrame()
-        return expression
-    }
-
-    internal fun evaluateReturn(expression: IrReturn): State? {
-        expression.value = expression.value.transform(this, null)
-        return callStack.tryToPopState()
-    }
-
-    internal fun defaultReturnHandler(expression: IrReturn, returnValue: State?): IrExpression {
-        return expression
+        return evaluator.interpret(block)
     }
 
     override fun visitReturn(expression: IrReturn): IrExpression {
-        // TODO if value was not calculated -> continue
-        return defaultReturnHandler(expression, evaluateReturn(expression))
+        return evaluator.fallbackIrReturn(
+            expression,
+            evaluator.evalIrReturnValue(expression)
+        )
     }
 
-//    override fun visitSetField(expression: IrSetField): IrExpression {
-//        expression.value = expression.value.transform(this, null)
-//        // TODO if value was not calculated -> return
-//        return expression
-//    }
-//
-//    override fun visitGetField(expression: IrGetField): IrExpression {
-//        // TODO evaluate if possible
-//        return expression
-//    }
+    override fun visitCall(expression: IrCall): IrExpression {
+        return evaluator.fallbackIrCall(
+            expression,
+            evaluator.evalIrCallDispatchReceiver(expression),
+            evaluator.evalIrCallExtensionReceiver(expression),
+            evaluator.evalIrCallArgs(expression)
+        )
+    }
+
+    override fun visitBlock(expression: IrBlock): IrExpression {
+        return evaluator.fallbackIrBlock(expression)
+    }
+
+    override fun visitWhen(expression: IrWhen): IrExpression {
+        return evaluator.fallbackIrWhen(
+            expression,
+            expression.branches.map { evaluator.evalIrBranchCondition(it) }
+        )
+    }
+
+    override fun visitSetValue(expression: IrSetValue): IrExpression {
+        return evaluator.fallbackIrSetValue(
+            expression,
+            evaluator.evalIrSetValue(expression)
+        )
+    }
 
     override fun visitGetValue(expression: IrGetValue): IrExpression {
-        // TODO evaluate can throw exception, how to avoid?
-        evaluate(expression, interpretOnly = false)
-        return expression
+        return evaluator.fallbackIrGetValue(
+            expression,
+            evaluator.evalIrGetValue(expression)
+        )
     }
 
     override fun <T> visitConst(expression: IrConst<T>): IrExpression {
-        evaluate(expression)
-        return expression
+        return evaluator.fallbackIrConst(
+            expression,
+            evaluator.evalIrConst(expression)
+        )
     }
 
     override fun visitVariable(declaration: IrVariable): IrStatement {
-        if (declaration.initializer == null) {
-            callStack.storeState(declaration.symbol, null)
-        } else {
-            declaration.initializer = declaration.initializer?.transform(this, null)
-            callStack.tryToPopState()?.let { callStack.storeState(declaration.symbol, it) }
-        }
-
-        return declaration
+        return evaluator.fallbackIrVariable(
+            declaration,
+            evaluator.evalIrVariable(declaration)
+        )
     }
 }

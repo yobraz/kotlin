@@ -91,40 +91,35 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         return expression
     }
 
-    fun evalIrBlock(expression: IrBlock) {
-        expression.transformChildren(transformer, null)
-    }
-
     fun fallbackIrBlock(expression: IrBlock): IrExpression {
         callStack.newSubFrame(expression)
-        evalIrBlock(expression)
+        expression.transformChildren(transformer, null)
         callStack.dropSubFrame()
         return expression
     }
 
-    fun evalIrWhenConditions(expression: IrWhen): List<State?> {
-        return expression.branches.map {
-            it.condition = it.condition.transform(transformer, null)
-            callStack.tryToPopState()
-        }
+    fun evalIrBranchCondition(branch: IrBranch): State? {
+        branch.condition = branch.condition.transform(transformer, null)
+        return callStack.tryToPopState()
+    }
+
+    fun evalIrBranchResult(branch: IrBranch): State? {
+        branch.result = branch.result.transform(transformer, null)
+        return callStack.tryToPopState()
+    }
+
+    fun fallbackIrBranch(branch: IrBranch, condition: State?): IrElement {
+        evalIrBranchResult(branch)
+        // TODO rollback all changes
+        // TODO collect all mutable vars/fields and remove them
+        // TODO that to do if object is passed to some none compile time function? 1. only scan it and delete mutated fields 2. remove entire symbol from stack
+        return branch
     }
 
     fun fallbackIrWhen(expression: IrWhen, conditions: List<State?>): IrExpression {
-        for ((i, condition) in conditions.withIndex()) {
-            when {
-                condition == null -> {
-                    (i until expression.branches.size).forEach {
-                        expression.branches[it].result = expression.branches[it].result.transform(transformer, null)
-                    }
-                    // TODO collect all mutable vars and remove them + rollback all changes
-                    return expression
-                }
-                condition.asBoolean() -> return expression.branches[i].result.transform(transformer, null)
-                else -> {
-                    expression.branches[i].result = expression.branches[i].result.transform(transformer, null)
-                    // TODO rollback all changes
-                }
-            }
+        val beginFromIndex = expression.branches.size - conditions.size
+        for (i in (beginFromIndex until expression.branches.size)) {
+            fallbackIrBranch(expression.branches[i], conditions[i])
         }
         return expression
     }
@@ -176,72 +171,5 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
             value?.let { callStack.storeState(declaration.symbol, it) }
         }
         return declaration
-    }
-}
-
-// TODO
-// 1. cache.
-// there can be many `lowerings` that are using compile time information.
-// but this information will be the same every time, so there is no need to reinterpret all code
-internal class PartialIrInterpreterVisitor(val irBuiltIns: IrBuiltIns) : IrElementTransformerVoid() {
-    protected val evaluator = Evaluator(irBuiltIns, this)
-
-    fun interpret(block: IrReturnableBlock): IrElement {
-        return evaluator.interpret(block)
-    }
-
-    override fun visitReturn(expression: IrReturn): IrExpression {
-        return evaluator.fallbackIrReturn(
-            expression,
-            evaluator.evalIrReturnValue(expression)
-        )
-    }
-
-    override fun visitCall(expression: IrCall): IrExpression {
-        return evaluator.fallbackIrCall(
-            expression,
-            evaluator.evalIrCallDispatchReceiver(expression),
-            evaluator.evalIrCallExtensionReceiver(expression),
-            evaluator.evalIrCallArgs(expression)
-        )
-    }
-
-    override fun visitBlock(expression: IrBlock): IrExpression {
-        return evaluator.fallbackIrBlock(expression)
-    }
-
-    override fun visitWhen(expression: IrWhen): IrExpression {
-        return evaluator.fallbackIrWhen(
-            expression,
-            evaluator.evalIrWhenConditions(expression)
-        )
-    }
-
-    override fun visitSetValue(expression: IrSetValue): IrExpression {
-        return evaluator.fallbackIrSetValue(
-            expression,
-            evaluator.evalIrSetValue(expression)
-        )
-    }
-
-    override fun visitGetValue(expression: IrGetValue): IrExpression {
-        return evaluator.fallbackIrGetValue(
-            expression,
-            evaluator.evalIrGetValue(expression)
-        )
-    }
-
-    override fun <T> visitConst(expression: IrConst<T>): IrExpression {
-        return evaluator.fallbackIrConst(
-            expression,
-            evaluator.evalIrConst(expression)
-        )
-    }
-
-    override fun visitVariable(declaration: IrVariable): IrStatement {
-        return evaluator.fallbackIrVariable(
-            declaration,
-            evaluator.evalIrVariable(declaration)
-        )
     }
 }
