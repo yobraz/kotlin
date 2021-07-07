@@ -25,10 +25,12 @@ import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
+import org.jetbrains.kotlin.fir.typeContext
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.name.StandardClassIds
+import org.jetbrains.kotlin.types.AbstractTypeChecker
 
 class FirWhenExhaustivenessTransformer(private val bodyResolveComponents: BodyResolveComponents) : FirTransformer<Any?>() {
     companion object {
@@ -36,7 +38,8 @@ class FirWhenExhaustivenessTransformer(private val bodyResolveComponents: BodyRe
             WhenOnBooleanExhaustivenessChecker,
             WhenOnEnumExhaustivenessChecker,
             WhenOnSealedClassExhaustivenessChecker,
-            WhenOnNothingExhaustivenessChecker
+            WhenOnNothingExhaustivenessChecker,
+            WhenOnUnionTypeExhaustivenessChecker,
         )
 
         @OptIn(ExperimentalStdlibApi::class)
@@ -405,5 +408,51 @@ private object WhenOnNothingExhaustivenessChecker : WhenExhaustivenessChecker() 
         destination: MutableCollection<WhenMissingCase>
     ) {
         // Nothing has no branches. The null case for `Nothing?` is handled by WhenOnNullableExhaustivenessChecker
+    }
+}
+
+private object WhenOnUnionTypeExhaustivenessChecker : WhenExhaustivenessChecker() {
+    override fun isApplicable(subjectType: ConeKotlinType, session: FirSession): Boolean {
+        return subjectType is ConeUnionType
+    }
+
+    override fun computeMissingCases(
+        whenExpression: FirWhenExpression,
+        subjectType: ConeKotlinType,
+        session: FirSession,
+        destination: MutableCollection<WhenMissingCase>
+    ) {
+        val uncheckedTypes = (subjectType as ConeUnionType).nestedTypes.toMutableList()
+        whenExpression.accept(ConditionChecker, Flags(uncheckedTypes, session))
+        uncheckedTypes.mapNotNullTo(destination) { type ->
+            type.classId?.let { classId ->
+                val isSingleton = (type.toSymbol(session) as? FirClassSymbol<*>)?.fir?.classKind?.isSingleton == true
+
+                WhenMissingCase.IsTypeCheckIsMissing(classId, isSingleton)
+            }
+        }
+    }
+
+    private class Flags(
+        val uncheckedTypes: MutableList<ConeKotlinType>,
+        val session: FirSession
+    )
+
+    private object ConditionChecker : AbstractConditionChecker<Flags>() {
+        override fun visitTypeOperatorCall(typeOperatorCall: FirTypeOperatorCall, data: Flags) {
+            val isNotNegated = when (typeOperatorCall.operation) {
+                FirOperation.IS -> true
+                FirOperation.NOT_IS -> false
+                else -> return
+            }
+            val typeOperatorCallType = typeOperatorCall.conversionTypeRef.coneType.fullyExpandedType(data.session)
+            val typeContext = data.session.typeContext
+
+            data.uncheckedTypes.removeAll { type ->
+                val notNullableType = type.withNullability(ConeNullability.NOT_NULL, typeContext)
+
+                isNotNegated == AbstractTypeChecker.isSubtypeOf(typeContext, notNullableType, typeOperatorCallType)
+            }
+        }
     }
 }
