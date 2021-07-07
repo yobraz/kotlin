@@ -195,6 +195,8 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
     val libclangArgs: List<String> =
             libclangSpecificArgs + clangArgs
 
+    val libclangArgsForJni: List<String> =
+            libclangSpecificArgs + clangArgs
     /**
      * libclang args for C++.
      *
@@ -215,7 +217,11 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
 
     fun clangC(vararg userArgs: String) = targetClangCmd + userArgs.asList()
 
+    fun clangCForJni(vararg userArgs: String) = targetClangCmd + userArgs.asList()
+
     fun clangCXX(vararg userArgs: String) = targetClangXXCmd + userArgs.asList()
+
+    fun clangCXXForJni(vararg userArgs: String) = targetClangXXCmd + userArgs.asList()
 
     fun llvmAr(vararg userArgs: String) = targetArCmd + userArgs.asList()
 }

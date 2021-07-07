@@ -101,12 +101,12 @@ native {
     val cxxflags = listOf("-std=c++11", *cflags.toTypedArray())
     suffixes {
         (".c" to ".$obj") {
-            tool(*platformManager.hostPlatform.clang.clangC("").toTypedArray())
+            tool(*platformManager.hostPlatform.clang.clangCForJni("").toTypedArray())
             flags(*cflags.toTypedArray(),
                   "-c", "-o", ruleOut(), ruleInFirst())
         }
         (".cpp" to ".$obj") {
-            tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
+            tool(*platformManager.hostPlatform.clang.clangCXXForJni("").toTypedArray())
             flags(*cxxflags.toTypedArray(), "-c", "-o", ruleOut(), ruleInFirst())
         }
 

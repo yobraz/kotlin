@@ -50,7 +50,7 @@ native {
     val objSet = sourceSets["callbacks"]!!.transform(".c" to ".$obj")
 
     target(solib("callbacks"), objSet) {
-        tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
+        tool(*platformManager.hostPlatform.clang.clangCXXForJni("").toTypedArray())
         flags("-shared",
               "-o",ruleOut(), *ruleInAll(),
               "-L${project(":kotlin-native:libclangext").buildDir}",

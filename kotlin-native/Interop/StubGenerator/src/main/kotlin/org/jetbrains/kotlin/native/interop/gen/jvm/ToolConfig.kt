@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.konan.util.defaultTargetSubstitutions
 import org.jetbrains.kotlin.native.interop.gen.jvm.KotlinPlatform
 import org.jetbrains.kotlin.native.interop.indexer.Language
 
-class ToolConfig(userProvidedTargetName: String?, flavor: KotlinPlatform) {
+class ToolConfig(userProvidedTargetName: String?, private val flavor: KotlinPlatform) {
 
     private val konanHome = KonanHomeProvider.determineKonanHome()
     private val distribution = customerDistribution(konanHome)
@@ -44,7 +44,10 @@ class ToolConfig(userProvidedTargetName: String?, flavor: KotlinPlatform) {
 
     fun getDefaultCompilerOptsForLanguage(language: Language): List<String> = when (language) {
         Language.C,
-        Language.OBJECTIVE_C -> platform.clang.libclangArgs.toList()
+        Language.OBJECTIVE_C -> when (flavor) {
+            KotlinPlatform.JVM -> platform.clang.libclangArgsForJni.toList()
+            KotlinPlatform.NATIVE -> platform.clang.libclangArgs.toList()
+        }
         Language.CPP -> platform.clang.libclangXXArgs.toList()
     }
 
