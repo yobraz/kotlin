@@ -30,4 +30,10 @@ public class IrPartialInterpreterTestGenerated extends AbstractIrPartialInterpre
     public void testCallsOnly() throws Exception {
         runTest("compiler/testData/ir/interpreter/partial/callsOnly.kt");
     }
+
+    @Test
+    @TestMetadata("simpleCostructorCall.kt")
+    public void testSimpleCostructorCall() throws Exception {
+        runTest("compiler/testData/ir/interpreter/partial/simpleCostructorCall.kt");
+    }
 }

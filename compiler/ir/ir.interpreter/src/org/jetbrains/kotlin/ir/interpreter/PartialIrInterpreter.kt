@@ -10,10 +10,6 @@ import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.expressions.*
-import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
-import org.jetbrains.kotlin.ir.interpreter.stack.CallStack
-import org.jetbrains.kotlin.ir.interpreter.stack.Variable
-import org.jetbrains.kotlin.ir.interpreter.state.State
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
 // TODO
@@ -39,6 +35,14 @@ abstract class PartialIrInterpreter(val irBuiltIns: IrBuiltIns) : IrElementTrans
             expression,
             evaluator.evalIrCallDispatchReceiver(expression),
             evaluator.evalIrCallExtensionReceiver(expression),
+            evaluator.evalIrCallArgs(expression)
+        )
+    }
+
+    override fun visitConstructorCall(expression: IrConstructorCall): IrExpression {
+        return evaluator.fallbackIrConstructorCall(
+            expression,
+            evaluator.evalIrCallDispatchReceiver(expression),
             evaluator.evalIrCallArgs(expression)
         )
     }
@@ -79,6 +83,17 @@ abstract class PartialIrInterpreter(val irBuiltIns: IrBuiltIns) : IrElementTrans
         return evaluator.fallbackIrVariable(
             declaration,
             evaluator.evalIrVariable(declaration)
+        )
+    }
+
+    override fun visitGetField(expression: IrGetField): IrExpression {
+        return evaluator.fallbackIrGetField(expression)
+    }
+
+    override fun visitSetField(expression: IrSetField): IrExpression {
+        return evaluator.fallbackIrSetField(
+            expression,
+            evaluator.evalIrSetFieldValue(expression)
         )
     }
 }
