@@ -1,6 +1,7 @@
 // FIR_IDENTICAL
 // !LANGUAGE: +UnrestrictedBuilderInference
 // !DIAGNOSTICS: -UNUSED_PARAMETER
+// !ALLOW_KOTLIN_PACKAGE
 
 // FILE: annotation.kt
 

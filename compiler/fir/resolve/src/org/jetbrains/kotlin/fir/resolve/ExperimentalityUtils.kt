@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.resolve.checkers.OptInNames
 import org.jetbrains.kotlin.utils.addIfNotNull
 
 
-internal fun FirAnnotationContainer.calculateOwnExperimentalities(session: FirSession): List<Experimentality> {
+fun FirAnnotationContainer.calculateOwnExperimentalities(session: FirSession): List<Experimentality> {
     val result = mutableListOf<Experimentality>()
     for (annotation in annotations) {
         val annotationType = annotation.annotationTypeRef.coneTypeSafe<ConeClassLikeType>()
@@ -34,7 +34,7 @@ internal fun FirAnnotationContainer.calculateOwnExperimentalities(session: FirSe
     return result
 }
 
-internal fun ConeKotlinType?.loadExperimentalities(session: FirSession): List<Experimentality> =
+fun ConeKotlinType?.loadExperimentalities(session: FirSession): List<Experimentality> =
     when (this) {
         !is ConeClassLikeType -> emptyList()
         else -> {
