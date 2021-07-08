@@ -23,19 +23,20 @@ internal class CallStack {
     private val frames = mutableListOf<Frame>()
     private val currentFrame get() = frames.last()
     internal val currentFrameOwner get() = currentFrame.currentSubFrameOwner
+    private var collectAllChanges = false
 
     fun newFrame(frameOwner: IrElement, irFile: IrFile? = null) {
-        val newFrame = SubFrame(frameOwner)
+        val newFrame = if (collectAllChanges) SubFrameWithHistory(frameOwner) else SubFrame(frameOwner)
         frames.add(Frame(newFrame, irFile))
     }
 
     fun newFrame(frameOwner: IrFunction) {
-        val newFrame = SubFrame(frameOwner)
+        val newFrame = if (collectAllChanges) SubFrameWithHistory(frameOwner) else SubFrame(frameOwner)
         frames.add(Frame(newFrame, frameOwner.fileOrNull))
     }
 
     fun newSubFrame(frameOwner: IrElement) {
-        val newFrame = SubFrame(frameOwner)
+        val newFrame = if (collectAllChanges) SubFrameWithHistory(frameOwner) else SubFrame(frameOwner)
         currentFrame.addSubFrame(newFrame)
     }
 
@@ -67,6 +68,16 @@ internal class CallStack {
                 dropSubFrame()
             }
         }
+    }
+
+    fun rollbackAllChanges(block: () -> Unit) {
+        val previous = collectAllChanges
+        collectAllChanges = true
+        currentFrame.addSubFrame(SubFrameWithHistory(currentFrameOwner))
+        block()
+        currentFrame.rollbackAllCollectedChanges()
+        dropSubFrame()
+        collectAllChanges = previous
     }
 
     fun returnFromFrameWithResult(irReturn: IrReturn) {
@@ -197,6 +208,7 @@ internal class CallStack {
     fun getState(symbol: IrSymbol): State = currentFrame.getState(symbol)
     fun setState(symbol: IrSymbol, newState: State) = currentFrame.setState(symbol, newState)
     fun containsVariable(symbol: IrSymbol): Boolean = currentFrame.containsVariable(symbol)
+    fun setFieldForReceiver(receiver: IrSymbol, propertySymbol: IrSymbol, newField: State) = currentFrame.setFieldForReceiver(receiver, propertySymbol, newField)
 
     fun storeUpValues(state: StateWithClosure) {
         // TODO save only necessary declarations

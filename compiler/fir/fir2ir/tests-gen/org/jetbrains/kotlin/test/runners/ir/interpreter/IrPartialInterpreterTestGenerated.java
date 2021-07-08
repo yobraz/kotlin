@@ -26,6 +26,12 @@ public class IrPartialInterpreterTestGenerated extends AbstractIrPartialInterpre
     }
 
     @Test
+    @TestMetadata("branches.kt")
+    public void testBranches() throws Exception {
+        runTest("compiler/testData/ir/interpreter/partial/branches.kt");
+    }
+
+    @Test
     @TestMetadata("callsOnly.kt")
     public void testCallsOnly() throws Exception {
         runTest("compiler/testData/ir/interpreter/partial/callsOnly.kt");

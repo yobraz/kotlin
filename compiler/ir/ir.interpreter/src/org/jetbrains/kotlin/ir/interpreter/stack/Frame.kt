@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 
-internal class Frame(subFrame: SubFrame, val irFile: IrFile? = null) {
+internal class Frame(subFrame: AbstractSubFrame, val irFile: IrFile? = null) {
     private val innerStack = mutableListOf(subFrame)
     private var currentInstruction: Instruction? = null
 
@@ -26,7 +26,7 @@ internal class Frame(subFrame: SubFrame, val irFile: IrFile? = null) {
         const val NOT_DEFINED = "Not defined"
     }
 
-    fun addSubFrame(frame: SubFrame) {
+    fun addSubFrame(frame: AbstractSubFrame) {
         innerStack.add(frame)
     }
 
@@ -35,7 +35,14 @@ internal class Frame(subFrame: SubFrame, val irFile: IrFile? = null) {
         removeSubFrameWithoutDataPropagation()
     }
 
+    fun rollbackAllCollectedChanges() {
+        (innerStack.last() as SubFrameWithHistory).history.forEach { (symbol, oldState) -> setState(symbol, oldState) }
+    }
+
     fun removeSubFrameWithoutDataPropagation() {
+        if (innerStack.size > 1 && innerStack[innerStack.size - 2] is SubFrameWithHistory && innerStack[innerStack.size - 1] is SubFrameWithHistory) {
+            (innerStack[innerStack.size - 2] as SubFrameWithHistory).combineHistory(innerStack[innerStack.size - 1] as SubFrameWithHistory)
+        }
         innerStack.removeLast()
     }
 
@@ -70,9 +77,18 @@ internal class Frame(subFrame: SubFrame, val irFile: IrFile? = null) {
 
     fun setState(symbol: IrSymbol, newState: State) {
         (innerStack.lastIndex downTo 0).forEach {
-            if (innerStack[it].containsVariable(symbol))
+            val oldState = innerStack[it].getState(symbol)
+            if (oldState != null) {
+                (currentFrame as? SubFrameWithHistory)?.storeOldValue(symbol, oldState)
                 return innerStack[it].setState(symbol, newState)
+            }
         }
+    }
+
+    fun setFieldForReceiver(receiver: IrSymbol, propertySymbol: IrSymbol, newField: State) {
+        val receiverState = getState(receiver)
+        (currentFrame as? SubFrameWithHistory)?.storeChangeOfField(receiverState, propertySymbol)
+        receiverState.setField(Variable(propertySymbol, newField))
     }
 
     fun containsVariable(symbol: IrSymbol): Boolean = (innerStack.lastIndex downTo 0).any { innerStack[it].containsVariable(symbol) }
@@ -103,46 +119,4 @@ internal class Frame(subFrame: SubFrame, val irFile: IrFile? = null) {
 
         return "at $fileNameCapitalized.${entryPoint?.fqNameWhenAvailable ?: "<clinit>"}(${irFile.name}$lineNum)"
     }
-}
-
-internal class SubFrame(val owner: IrElement) {
-    private val instructions = mutableListOf<Instruction>()
-    private val dataStack = DataStack()
-    private val memory = mutableListOf<Variable>()
-
-    // Methods to work with instruction
-    fun isEmpty() = instructions.isEmpty()
-    fun pushInstruction(instruction: Instruction) = instructions.add(0, instruction)
-    fun popInstruction(): Instruction = instructions.removeFirst()
-    fun dropInstructions() = instructions.lastOrNull()?.apply { instructions.clear() }
-
-    // Methods to work with data
-    fun pushState(state: State) = dataStack.push(state)
-    fun popState(): State = dataStack.pop()
-    fun peekState(): State? = dataStack.peek()
-
-    // Methods to work with memory
-    fun addVariable(variable: Variable) {
-        memory.add(0, variable)
-    }
-
-    private fun getVariable(symbol: IrSymbol): Variable? = memory.firstOrNull { it.symbol == symbol }
-    fun containsVariable(symbol: IrSymbol): Boolean = getVariable(symbol) != null
-    fun getState(symbol: IrSymbol): State? = getVariable(symbol)?.state
-    fun setState(symbol: IrSymbol, newState: State) {
-        getVariable(symbol)?.state = newState
-    }
-
-    fun getAll(): List<Variable> = memory
-}
-
-private class DataStack {
-    private val stack = mutableListOf<State>()
-
-    fun push(state: State) {
-        stack.add(state)
-    }
-
-    fun pop(): State = stack.removeLast()
-    fun peek(): State? = stack.lastOrNull()
 }
