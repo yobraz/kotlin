@@ -133,13 +133,14 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         return branch
     }
 
-    fun fallbackIrWhen(expression: IrWhen, conditions: List<State?>): IrExpression {
-        val beginFromIndex = expression.branches.size - conditions.size
-        for (i in (beginFromIndex until expression.branches.size)) {
-            fallbackIrBranch(expression.branches[i], conditions[i])
+    fun fallbackIrWhen(expression: IrWhen, beginFromIndex: Int = 0, inclusive: Boolean = true): IrExpression {
+        callStack.removeAllMutatedVariablesAndFields {
+            for (i in (beginFromIndex until expression.branches.size)) {
+                val condition = if (!inclusive && i == beginFromIndex) null else evalIrBranchCondition(expression.branches[i])
+                fallbackIrBranch(expression.branches[i], condition)
+            }
+            // TODO that to do if object is passed to some none compile time function? 1. only scan it and delete mutated fields 2. remove entire symbol from stack
         }
-        // TODO collect all mutable vars/fields and remove them
-        // TODO that to do if object is passed to some none compile time function? 1. only scan it and delete mutated fields 2. remove entire symbol from stack
         return expression
     }
 

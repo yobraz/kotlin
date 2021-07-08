@@ -82,7 +82,13 @@ internal class CallStack {
     }
 
     fun removeAllMutatedVariablesAndFields(block: () -> Unit) {
+        val previous = collectAllChanges
+        collectAllChanges = true
+        currentFrame.addSubFrame(SubFrameWithHistory(currentFrameOwner))
         block()
+        currentFrame.dropAllVariablesInHistory()
+        dropSubFrame()
+        collectAllChanges = previous
     }
 
     fun returnFromFrameWithResult(irReturn: IrReturn) {

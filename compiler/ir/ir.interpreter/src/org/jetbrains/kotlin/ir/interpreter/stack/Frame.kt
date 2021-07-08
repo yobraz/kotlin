@@ -38,6 +38,20 @@ internal class Frame(subFrame: AbstractSubFrame, val irFile: IrFile? = null) {
 
     fun rollbackAllCollectedChanges() {
         (innerStack.last() as SubFrameWithHistory).history.forEach { (symbol, oldState) -> setState(symbol, oldState) }
+        (innerStack.last() as SubFrameWithHistory).fieldHistory.forEach { (receiver, fieldToState) ->
+            fieldToState.forEach { (propertySymbol, state) ->
+                receiver.setField(Variable(propertySymbol, state))
+            }
+        }
+    }
+
+    fun dropAllVariablesInHistory() {
+        (innerStack.last() as SubFrameWithHistory).history.forEach { (symbol, _) -> setState(symbol, UnknownState) }
+        (innerStack.last() as SubFrameWithHistory).fieldHistory.forEach { (receiver, fieldToState) ->
+            fieldToState.forEach { (propertySymbol, _) ->
+                receiver.setField(Variable(propertySymbol, UnknownState))
+            }
+        }
     }
 
     fun removeSubFrameWithoutDataPropagation() {

@@ -383,7 +383,7 @@ MODULE_FRAGMENT name:<main>
                     SET_VAR 'var a_1: kotlin.Int [var] declared in <root>.e' type=kotlin.Unit origin=EQ
                       CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
             RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
-              CONST Int type=kotlin.Int value=0
+              GET_VAR 'var a_1: kotlin.Int [var] declared in <root>.e' type=kotlin.Int origin=null
       FUN DEFAULT_PROPERTY_ACCESSOR name:<get-e> visibility:public modality:FINAL <> () returnType:kotlin.Int
         correspondingProperty: PROPERTY name:e visibility:public modality:FINAL [val]
         BLOCK_BODY
