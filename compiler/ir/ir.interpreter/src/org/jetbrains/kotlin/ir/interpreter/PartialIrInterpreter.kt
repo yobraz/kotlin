@@ -93,4 +93,11 @@ abstract class PartialIrInterpreter(val irBuiltIns: IrBuiltIns) : IrElementTrans
             evaluator.evalIrSetFieldValue(expression)
         )
     }
+
+    override fun visitVararg(expression: IrVararg): IrExpression {
+        return evaluator.fallbackIrVararg(
+            expression,
+            evaluator.evalIrVarargElements(expression)
+        )
+    }
 }
