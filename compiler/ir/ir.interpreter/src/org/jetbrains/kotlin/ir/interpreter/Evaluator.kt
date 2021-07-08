@@ -150,7 +150,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
 
     fun fallbackIrSetValue(expression: IrSetValue, value: State?): IrExpression {
         if (value == null) {
-            // TODO remove from stack
+            callStack.dropState(expression.symbol)
             return expression
         }
         evaluate(expression, listOf(value))

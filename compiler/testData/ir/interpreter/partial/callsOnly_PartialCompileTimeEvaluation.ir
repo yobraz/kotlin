@@ -83,6 +83,16 @@ MODULE_FRAGMENT name:<main>
             other: CALL 'public final fun compileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
         RETURN type=kotlin.Nothing from='public final fun withNotCompileTimeArgs (): kotlin.Int [inline] declared in <root>'
           GET_VAR 'val c: kotlin.Int [val] declared in <root>.withNotCompileTimeArgs' type=kotlin.Int origin=null
+    FUN name:setValueNonCompileTime visibility:public modality:FINAL <> () returnType:kotlin.Int [inline]
+      annotations:
+        PartialEvaluation
+      BLOCK_BODY
+        VAR name:a type:kotlin.Int [var]
+          CONST Int type=kotlin.Int value=0
+        SET_VAR 'var a: kotlin.Int [var] declared in <root>.setValueNonCompileTime' type=kotlin.Unit origin=EQ
+          CALL 'public final fun notCompileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+        RETURN type=kotlin.Nothing from='public final fun setValueNonCompileTime (): kotlin.Int [inline] declared in <root>'
+          GET_VAR 'var a: kotlin.Int [var] declared in <root>.setValueNonCompileTime' type=kotlin.Int origin=null
     PROPERTY name:a visibility:public modality:FINAL [val]
       FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:private [final,static]
         EXPRESSION_BODY
@@ -165,6 +175,21 @@ MODULE_FRAGMENT name:<main>
         BLOCK_BODY
           RETURN type=kotlin.Nothing from='public final fun <get-e> (): kotlin.Int declared in <root>'
             GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:e type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+    PROPERTY name:f visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:f type:kotlin.Int visibility:private [final,static]
+        EXPRESSION_BODY
+          BLOCK type=kotlin.Int origin=null
+            VAR name:a_1 type:kotlin.Int [var]
+              CONST Int type=kotlin.Int value=0
+            SET_VAR 'var a_1: kotlin.Int [var] declared in <root>.f' type=kotlin.Unit origin=EQ
+              CALL 'public final fun notCompileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+            RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+              GET_VAR 'var a_1: kotlin.Int [var] declared in <root>.f' type=kotlin.Int origin=null
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-f> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:f visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-f> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:f type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
   FILE fqName:kotlin fileName:/CompileTimeCalculation.kt
     CLASS ANNOTATION_CLASS name:CompileTimeCalculation modality:FINAL visibility:public superTypes:[kotlin.Annotation]
       annotations:

@@ -38,8 +38,16 @@ inline fun withNotCompileTimeArgs(): Int {
     return c
 }
 
+@PartialEvaluation
+inline fun setValueNonCompileTime(): Int {
+    var a = 0
+    a = notCompileTimeInt()
+    return a // must not be set to zero
+}
+
 val a = singleCall(constInt)
 val b = withSingleVariable(constInt)
 val c = withCompileTimeCall()
 val d = withNotCompileTimeCode(constInt)
 val e = withNotCompileTimeArgs()
+val f = setValueNonCompileTime()

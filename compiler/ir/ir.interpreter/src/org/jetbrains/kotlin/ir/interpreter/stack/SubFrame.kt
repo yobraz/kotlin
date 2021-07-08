@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.ir.interpreter.stack
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.interpreter.Instruction
 import org.jetbrains.kotlin.ir.interpreter.state.State
+import org.jetbrains.kotlin.ir.interpreter.state.UnknownState
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 
 internal abstract class AbstractSubFrame(val owner: IrElement) {

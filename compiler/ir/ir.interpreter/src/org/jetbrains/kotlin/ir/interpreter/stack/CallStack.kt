@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.ir.interpreter.SimpleInstruction
 import org.jetbrains.kotlin.ir.interpreter.handleAndDropResult
 import org.jetbrains.kotlin.ir.interpreter.state.State
 import org.jetbrains.kotlin.ir.interpreter.state.StateWithClosure
+import org.jetbrains.kotlin.ir.interpreter.state.UnknownState
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.util.fileOrNull
 
@@ -78,6 +79,10 @@ internal class CallStack {
         currentFrame.rollbackAllCollectedChanges()
         dropSubFrame()
         collectAllChanges = previous
+    }
+
+    fun removeAllMutatedVariablesAndFields(block: () -> Unit) {
+        block()
     }
 
     fun returnFromFrameWithResult(irReturn: IrReturn) {
@@ -207,6 +212,7 @@ internal class CallStack {
 
     fun getState(symbol: IrSymbol): State = currentFrame.getState(symbol)
     fun setState(symbol: IrSymbol, newState: State) = currentFrame.setState(symbol, newState)
+    fun dropState(symbol: IrSymbol) = currentFrame.setState(symbol, UnknownState)
     fun containsVariable(symbol: IrSymbol): Boolean = currentFrame.containsVariable(symbol)
     fun setFieldForReceiver(receiver: IrSymbol, propertySymbol: IrSymbol, newField: State) = currentFrame.setFieldForReceiver(receiver, propertySymbol, newField)
 
