@@ -208,4 +208,23 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         value?.let { evaluate(expression, listOf(it)) }
         return expression
     }
+
+    fun evalIrVarargElements(expression: IrVararg): List<State?> {
+        (0 until expression.elements.size).forEach {
+            expression.putElement(it, expression.elements[it].transform(transformer, null) as IrVarargElement)
+        }
+        val args = mutableListOf<State?>()
+        (0 until expression.elements.size).forEach {
+            args += callStack.tryToPopState()
+        }
+        return args
+    }
+
+    fun fallbackIrVararg(expression: IrVararg, args: List<State?>): IrExpression {
+        val actualArgs = args.filterNotNull()
+        if (actualArgs.size != expression.elements.size) return expression
+
+        evaluate(expression, actualArgs, interpretOnly = true)
+        return expression
+    }
 }
