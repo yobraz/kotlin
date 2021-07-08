@@ -43,6 +43,4 @@ class GeneratorContext(
     val reflectionTypes = ReflectionTypes(moduleDescriptor, NotFoundClasses(LockBasedStorageManager.NO_LOCKS, moduleDescriptor))
 
     val samTypeApproximator = SamTypeApproximator(moduleDescriptor.builtIns, languageVersionSettings)
-
-    val irBuiltInsOverDescriptors: IrBuiltInsOverDescriptors get() = irBuiltIns as IrBuiltInsOverDescriptors
 }
