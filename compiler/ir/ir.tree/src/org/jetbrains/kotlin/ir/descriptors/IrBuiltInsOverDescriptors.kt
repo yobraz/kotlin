@@ -343,12 +343,11 @@ class IrBuiltInsOverDescriptors(
     override val primitiveArrayElementTypes = primitiveArraysToPrimitiveTypes.mapValues { primitiveTypeToIrType[it.value] }
     override val primitiveArrayForType = primitiveArrayElementTypes.asSequence().associate { it.value to it.key }
 
-    override val unsignedTypesToUnsignedArrays: Map<UnsignedType, IrClassSymbol> by lazy {
+    override val unsignedTypesToUnsignedArrays: Map<UnsignedType, IrClassSymbol> =
         UnsignedType.values().mapNotNull { unsignedType ->
             val array = builtIns.builtInsModule.findClassAcrossModuleDependencies(unsignedType.arrayClassId)?.toIrSymbol()
             if (array == null) null else unsignedType to array
         }.toMap()
-    }
 
     override val lessFunByOperandType = primitiveIrTypesWithComparisons.defineComparisonOperatorForEachIrType(BuiltInOperatorNames.LESS)
     override val lessOrEqualFunByOperandType = primitiveIrTypesWithComparisons.defineComparisonOperatorForEachIrType(BuiltInOperatorNames.LESS_OR_EQUAL)
@@ -522,7 +521,7 @@ class IrBuiltInsOverDescriptors(
     override fun suspendFunctionN(arity: Int): IrClass = functionFactory.suspendFunctionN(arity)
     override fun kSuspendFunctionN(arity: Int): IrClass = functionFactory.kSuspendFunctionN(arity)
 
-    override val getProgressionLastElementByReturnType: Map<IrClassifierSymbol?, IrSimpleFunctionSymbol> by lazy {
+    override val getProgressionLastElementByReturnType: Map<IrClassifierSymbol?, IrSimpleFunctionSymbol> =
         builtInsPackage("kotlin", "internal")
             .getContributedFunctions(Name.identifier("getProgressionLastElement"), NoLookupLocation.FROM_BACKEND)
             .filter { it.containingDeclaration !is BuiltInsPackageFragment }
@@ -532,7 +531,6 @@ class IrBuiltInsOverDescriptors(
                 klass to function
             }
             .toMap()
-    }
 }
 
 private inline fun MemberScope.findFirstFunction(name: String, predicate: (CallableMemberDescriptor) -> Boolean) =
