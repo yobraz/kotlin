@@ -33,6 +33,12 @@ class MingwConfigurablesImpl(target: KonanTarget, properties: Properties, baseDi
             WindowsSdkPartsProvider.Local
         }
     }
+
+    override val dependencies
+        get() = super.dependencies + when (windowsSdkPartsProvider) {
+            WindowsSdkPartsProvider.InternalServer -> listOf(windowsKitParts, msvcParts)
+            WindowsSdkPartsProvider.Local -> emptyList()
+        }
 }
 
 private fun createCustomWindowsKitPath(windowsKitParts: Path): WindowsKit.CustomPath {

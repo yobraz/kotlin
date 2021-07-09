@@ -47,8 +47,8 @@ private val Properties.downloadingAttemptIntervalMs : Long
 
 private fun Properties.findCandidates(dependencies: List<String>): Map<String, List<DependencySource>> {
     val dependencyProfiles = this.propertyList("dependencyProfiles")
-    return dependencies.map { dependency ->
-        dependency to dependencyProfiles.flatMap { profile ->
+    return dependencies.associateWith { dependency ->
+        dependencyProfiles.flatMap { profile ->
             val candidateSpecs = propertyList("$dependency.$profile")
             if (profile == "default" && candidateSpecs.isEmpty()) {
                 listOf(DependencySource.Remote.Public)
@@ -62,7 +62,7 @@ private fun Properties.findCandidates(dependencies: List<String>): Map<String, L
                 }
             }
         }
-    }.toMap()
+    }
 }
 
 
@@ -314,13 +314,14 @@ internal object InternalServer {
     private const val internalDomain = "labs.intellij.net"
 
     val isAvailable: Boolean get() {
-        val envKey = "KONAN_USE_INTERNAL_SERVER"
-        return when (val envValue = System.getenv(envKey)) {
-            null, "0" -> false
-            "1" -> true
-            "auto" -> isAccessible
-            else -> error("unexpected environment: $envKey=$envValue")
-        }
+//        val envKey = "KONAN_USE_INTERNAL_SERVER"
+        return true
+//        return when (val envValue = System.getenv(envKey)) {
+//            null, "0" -> false
+//            "1" -> true
+//            "auto" -> isAccessible
+//            else -> error("unexpected environment: $envKey=$envValue")
+//        }
     }
 
     private val isAccessible by lazy { checkAccessible() }
