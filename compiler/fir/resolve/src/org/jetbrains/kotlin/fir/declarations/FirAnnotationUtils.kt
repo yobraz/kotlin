@@ -92,6 +92,12 @@ fun FirAnnotatedDeclaration.hasAnnotation(classId: ClassId): Boolean {
     return annotations.any { it.toAnnotationClassId() == classId }
 }
 
+fun FirAnnotationContainer.getAnnotationByClassId(classId: ClassId): FirAnnotationCall? {
+    return annotations.find {
+        (it.annotationTypeRef.coneType as? ConeClassLikeType)?.lookupTag?.classId == classId
+    }
+}
+
 fun FirAnnotationContainer.getAnnotationByFqName(fqName: FqName): FirAnnotationCall? {
     return annotations.find {
         it.annotationTypeRef.coneTypeUnsafe<ConeClassLikeType>().lookupTag.classId.asSingleFqName() == fqName

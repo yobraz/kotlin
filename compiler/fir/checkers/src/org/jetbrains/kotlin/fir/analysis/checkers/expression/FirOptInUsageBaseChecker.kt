@@ -153,7 +153,7 @@ object FirOptInUsageBaseChecker {
     private fun FirAnnotationContainer.isAnnotatedWithUseExperimentalOf(annotationFqName: FqName): Boolean {
         for (annotation in annotations) {
             val coneType = annotation.annotationTypeRef.coneType as? ConeClassLikeType
-            if (coneType?.lookupTag?.classId?.asSingleFqName() != OptInNames.OPT_IN_FQ_NAME) {
+            if (coneType?.lookupTag?.classId != OptInNames.OPT_IN_CLASS_ID) {
                 continue
             }
             val annotationClasses = annotation.findArgumentByName(OptInNames.USE_EXPERIMENTAL_ANNOTATION_CLASS) ?: continue

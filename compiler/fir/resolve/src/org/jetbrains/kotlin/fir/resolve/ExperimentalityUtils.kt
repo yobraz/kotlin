@@ -55,7 +55,7 @@ fun FirRegularClassSymbol.loadExperimentalityForMarkerAnnotation(): Experimental
 }
 
 private fun FirRegularClass.loadExperimentalityForMarkerAnnotation(): Experimentality? {
-    val experimental = getAnnotationByFqName(OptInNames.REQUIRES_OPT_IN_FQ_NAME) ?: return null
+    val experimental = getAnnotationByClassId(OptInNames.REQUIRES_OPT_IN_CLASS_ID) ?: return null
 
     val levelArgument = experimental.findArgumentByName(LEVEL) as? FirQualifiedAccessExpression
     val levelName = (levelArgument?.calleeReference as FirNamedReference?)?.name?.asString()
