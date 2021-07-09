@@ -38,7 +38,7 @@ native {
                                *platformManager.hostPlatform.clang.hostCompilerArgsForJni)
     suffixes {
         (".c" to ".$obj") {
-            tool(*platformManager.hostPlatform.clang.clangC("").toTypedArray())
+            tool(*platformManager.hostPlatform.clang.clangCForJni("").toTypedArray())
             flags( *cflags.toTypedArray(), "-c", "-o", ruleOut(), ruleInFirst())
         }
     }
@@ -54,7 +54,7 @@ native {
         flags("-shared",
               "-o",ruleOut(), *ruleInAll(),
               "-L${project(":kotlin-native:libclangext").buildDir}",
-              "$hostLibffiDir/lib/libffi.a",
+              if (isWindows) "$hostLibffiDir/lib/libffi.lib" else "$hostLibffiDir/lib/libffi.a",
               "-lclangext")
     }
     tasks.named(solib("callbacks")).configure {

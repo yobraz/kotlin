@@ -43,8 +43,9 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
         KonanTarget.MACOS_ARM64 -> "$absoluteTargetToolchain/usr/bin"
         else -> throw TargetSupportException("Unexpected host platform")
     }
+
     // TODO: Use buildList
-    private val commonClangArgs: List<String> = mutableListOf<List<String>>().apply {
+    private fun getCommonClangArgs(jni: Boolean = false): List<String> = mutableListOf<List<String>>().apply {
         add(listOf("-B$binDir", "-fno-stack-protector"))
         if (configurables is GccConfigurables) {
             add(listOf("--gcc-toolchain=${configurables.absoluteGccToolchain}"))
@@ -68,11 +69,16 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
             )
             add(listOf("-target", targetArg.toString()))
         } else {
-            add(listOf("-target", configurables.targetTriple.toString()))
+            val target = when {
+                jni && target == KonanTarget.MINGW_X64 -> "x86_64-pc-windows-msvc"
+                else -> configurables.targetTriple.toString()
+            }
+            add(listOf("-target", target))
         }
         val hasCustomSysroot = configurables is ZephyrConfigurables
                 || configurables is WasmConfigurables
                 || configurables is AndroidConfigurables
+                || (target == KonanTarget.MINGW_X64 && jni)
         if (!hasCustomSysroot) {
             when (configurables) {
                 // isysroot and sysroot on darwin are _almost_ synonyms.
@@ -87,6 +93,17 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
             // `-fPIC` allows us to avoid some problems when producing dynamic library.
             // See KT-43502.
             add(listOf("-fPIC"))
+        }
+
+        if (target == KonanTarget.MINGW_X64 && jni) {
+            require(configurables is MingwConfigurables)
+            add(configurables.windowsKit.compilerFlags())
+            add(configurables.msvc.compilerFlags())
+
+//            add(listOf("-isystem", "C:/ucrt/ucrt", "-isystem", "C:/VS2019BT/VC/Tools/MSVC/14.29.30037/include"))
+//            add(listOf("-L", "C:/VS2019BT/VC/Tools/MSVC/14.29.30037/lib/x64", "-L", "C:/ucrt/ucrt_lib_x64", "-L", "C:/ucrt/x64"))
+            // Do not depend on link.exe from Visual Studio.
+            add(listOf("-fuse-ld=lld"))
         }
     }.flatten()
 
@@ -156,25 +173,31 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
 
     val hostCompilerArgsForJni = listOf("", HostManager.jniHostPlatformIncludeDir).map { "-I$jdkDir/include/$it" }.toTypedArray()
 
+    private fun getClangArgs(jni: Boolean = false) =
+            (getCommonClangArgs(jni) + specificClangArgs).toTypedArray()
+
+    private fun getClangXXArgs(jni: Boolean = false) =
+            getClangArgs(jni) + when (configurables) {
+                is AppleConfigurables -> arrayOf(
+                        "-stdlib=libc++",
+                        // Starting from Xcode 12.5, platform SDKs contain C++ stdlib.
+                        // It results in two c++ stdlib in search path (one from LLVM, another from SDK).
+                        // We workaround this problem by explicitly specifying path to stdlib.
+                        // TODO: Revise after LLVM update.
+                        "-nostdinc++", "-isystem", "$absoluteLlvmHome/include/c++/v1"
+                )
+                else -> emptyArray()
+            }
+
     /**
      * Clang args for Objectice-C and plain C compilation.
      */
-    val clangArgs: Array<String> = (commonClangArgs + specificClangArgs).toTypedArray()
+    val clangArgs: Array<String> = getClangArgs()
 
     /**
      * Clang args for C++ compilation.
      */
-    val clangXXArgs: Array<String> = clangArgs + when (configurables) {
-        is AppleConfigurables -> arrayOf(
-                "-stdlib=libc++",
-                // Starting from Xcode 12.5, platform SDKs contain C++ stdlib.
-                // It results in two c++ stdlib in search path (one from LLVM, another from SDK).
-                // We workaround this problem by explicitly specifying path to stdlib.
-                // TODO: Revise after LLVM update.
-                "-nostdinc++", "-isystem", "$absoluteLlvmHome/include/c++/v1"
-        )
-        else -> emptyArray()
-    }
+    val clangXXArgs: Array<String> = getClangXXArgs()
 
     val clangArgsForKonanSources =
             clangXXArgs + clangArgsSpecificForKonanSources
@@ -196,7 +219,7 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
             libclangSpecificArgs + clangArgs
 
     val libclangArgsForJni: List<String> =
-            libclangSpecificArgs + clangArgs
+            libclangSpecificArgs + getClangArgs(jni = true)
     /**
      * libclang args for C++.
      *
@@ -205,23 +228,23 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
     val libclangXXArgs: List<String> =
             libclangSpecificArgs + clangXXArgs
 
-    private val targetClangCmd
-            = listOf("${absoluteLlvmHome}/bin/clang") + clangArgs
+    private fun getTargetClangCmd(jni: Boolean = false) =
+            listOf("${absoluteLlvmHome}/bin/clang") + getClangArgs(jni)
 
-    private val targetClangXXCmd
-            = listOf("${absoluteLlvmHome}/bin/clang++") + clangXXArgs
+    private fun getTargetClangXXCmd(jni: Boolean = false) =
+            listOf("${absoluteLlvmHome}/bin/clang++") + getClangXXArgs(jni)
 
     private val targetArCmd
             = listOf("${absoluteLlvmHome}/bin/llvm-ar")
 
 
-    fun clangC(vararg userArgs: String) = targetClangCmd + userArgs.asList()
+    fun clangC(vararg userArgs: String) = getTargetClangCmd() + userArgs.asList()
 
-    fun clangCForJni(vararg userArgs: String) = targetClangCmd + userArgs.asList()
+    fun clangCForJni(vararg userArgs: String) = getTargetClangCmd(jni = true) + userArgs.asList()
 
-    fun clangCXX(vararg userArgs: String) = targetClangXXCmd + userArgs.asList()
+    fun clangCXX(vararg userArgs: String) = getTargetClangXXCmd() + userArgs.asList()
 
-    fun clangCXXForJni(vararg userArgs: String) = targetClangXXCmd + userArgs.asList()
+    fun clangCXXForJni(vararg userArgs: String) = getTargetClangXXCmd(jni = true) + userArgs.asList()
 
     fun llvmAr(vararg userArgs: String) = targetArCmd + userArgs.asList()
 }
