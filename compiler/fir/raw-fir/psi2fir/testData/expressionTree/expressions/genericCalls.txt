@@ -1,0 +1,10 @@
+FILE: genericCalls.kt
+    public? final? fun <T> nullableValue(): T? {
+        ^nullableValue Null(null)
+    }
+    public? final? fun expressionTree(block: ( () -> Unit )): R|kotlin/Unit| {
+        TODO#(String(intrinsic))
+    }
+    public? final? fun test(): <implicit> {
+        ^test firBlock#(listOf#(), listOf#(firProperty#(listOf#(), firNull#(), firString#(String("n")), firImplicitTypeRef#(), firFalse#(), firTrue#(), firNull#(), firNull#()), firProperty#(listOf#(), firNull#(), firString#(String("x")), firImplicitTypeRef#(), firFalse#(), firTrue#(), firNull#(), firNull#()), firProperty#(listOf#(), firNull#(), firString#(String("s")), firImplicitTypeRef#(), firFalse#(), firTrue#(), firNull#(), firNull#())))
+    }

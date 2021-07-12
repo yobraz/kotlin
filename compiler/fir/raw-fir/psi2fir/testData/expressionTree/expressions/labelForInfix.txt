@@ -1,0 +1,7 @@
+FILE: labelForInfix.kt
+    public? final? fun main(): <implicit> {
+        ^main firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firAnonymousFunctionExpression#(firAnonymousFunction#(listOf#(), firTrue#(), firImplicitTypeRef#(), listOf#(), firImplicitTypeRef#(), firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("length")))))))), firSimpleNamedReference#(firString#(String("foo"))))))
+    }
+    public? final? fun expressionTree(block: ( () -> Unit )): R|kotlin/Unit| {
+        TODO#(String(intrinsic))
+    }

@@ -1,0 +1,14 @@
+FILE: nullability.kt
+    public? final? fun test(): R|kotlin/Unit| {
+        local final? fun orFourtyTwo(arg: Int?): <implicit> {
+            ^orFourtyTwo arg# ?: IntegerLiteral(42)
+        }
+
+        local final? fun bang(arg: Int?): <implicit> {
+            ^bang arg#!!
+        }
+
+    }
+    public? final? fun expressionTree(block: ( () -> Unit )): R|kotlin/Unit| {
+        TODO#(String(intrinsic))
+    }

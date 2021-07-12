@@ -1,0 +1,7 @@
+FILE: qualifierWithTypeArguments.kt
+    public? final? fun test(): <implicit> {
+        ^test firBlock#(listOf#(), listOf#(firGetClassCall#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(firTypeProjectionWithVariance#(firUserTypeRef#(listOf#(), firFalse#(), listOf#(firQualifierPart#(firString#(String("String")), listOf#()))), firVariance_INVARIANT#())), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("Array"))))))))
+    }
+    public? final? fun expressionTree(block: ( () -> Unit )): R|kotlin/Unit| {
+        TODO#(String(intrinsic))
+    }

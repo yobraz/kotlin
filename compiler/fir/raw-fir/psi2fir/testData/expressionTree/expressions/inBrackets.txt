@@ -1,0 +1,7 @@
+FILE: inBrackets.kt
+    public? final? fun test(e: ( Int.() -> String )): <implicit> {
+        ^test firBlock#(listOf#(), listOf#(firProperty#(listOf#(), firNull#(), firString#(String("s")), firImplicitTypeRef#(), firFalse#(), firTrue#(), firNull#(), firNull#()), firProperty#(listOf#(), firNull#(), firString#(String("ss")), firImplicitTypeRef#(), firFalse#(), firTrue#(), firNull#(), firNull#())))
+    }
+    public? final? fun expressionTree(block: ( () -> Unit )): R|kotlin/Unit| {
+        TODO#(String(intrinsic))
+    }

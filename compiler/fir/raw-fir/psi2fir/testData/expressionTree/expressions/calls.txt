@@ -1,0 +1,40 @@
+FILE: calls.kt
+    public? final? fun expressionTree(block: ( () -> Unit )): R|kotlin/Unit| {
+        TODO#(String(intrinsic))
+    }
+    public? final? infix fun Int.distance(y: Int): <implicit> {
+        ^distance firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firExplicitThisReference#(firNull#())), firSimpleNamedReference#(firString#(String("plus"))))))
+    }
+    public? final? fun test(): <implicit> {
+        ^test firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firIntegerLiteral#(IntegerLiteral(3)), firSimpleNamedReference#(firString#(String("distance"))))))
+    }
+    public? final? fun testRegular(): <implicit> {
+        ^testRegular firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firIntegerLiteral#(IntegerLiteral(3)), firSimpleNamedReference#(firString#(String("distance"))))))
+    }
+    public? final? class My : R|kotlin/Any| {
+        public? [ContainingClassKey=My] constructor(x: Int): R|My| {
+            super<R|kotlin/Any|>()
+        }
+
+        public? final? [IsFromPrimaryConstructor=true] var x: Int = R|<local>/x|
+            public? get(): Int
+            public? set(value: Int): R|kotlin/Unit|
+
+        public? final? operator fun invoke(): <implicit> {
+            ^invoke x#
+        }
+
+        public? final? fun foo(): R|kotlin/Unit| {
+        }
+
+        public? final? fun copy(): <implicit> {
+            ^copy My#(x#)
+        }
+
+    }
+    public? final? fun testInvoke(): <implicit> {
+        ^testInvoke firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("My")))), firSimpleNamedReference#(firString#(String("invoke"))))))
+    }
+    public? final? fun testQualified(first: My, second: My?): <implicit> {
+        ^testQualified firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("println")))), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("println")))), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("first")))), firSimpleNamedReference#(firString#(String("foo")))), firSafeCallExpression#(listOf#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("second")))), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firCheckedSafeCallSubject#(), firSimpleNamedReference#(firString#(String("foo"))))), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("first")))), firSimpleNamedReference#(firString#(String("copy")))), firSimpleNamedReference#(firString#(String("foo")))), firVariableAssignment#(listOf#(), listOf#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("first")))), firNoReceiverExpression#(), firNoReceiverExpression#(), firIntegerLiteral#(IntegerLiteral(42)))))
+    }

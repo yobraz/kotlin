@@ -1,0 +1,35 @@
+FILE: annotated.kt
+    @Target(AnnotationTarget#.EXPRESSION#, AnnotationTarget#.LOCAL_VARIABLE#) @Retention(AnnotationRetention#.SOURCE#) public? final? annotation class Ann : R|kotlin/Annotation| {
+        public? [ContainingClassKey=Ann] constructor(): R|Ann| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public? final? fun expressionTree(block: ( () -> Unit )): R|kotlin/Unit| {
+        TODO#(String(intrinsic))
+    }
+    public? final? fun foo(arg: Int): Int {
+        firBlock#(listOf#(), listOf#(firWhenExpression#(listOf#(), firNull#(), firNull#(), listOf#(firWhenBranch#(firEqualityOperatorCall#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(firAnnotationCall#(listOf#(), firNull#(), firUserTypeRef#(listOf#(), firFalse#(), listOf#(firQualifierPart#(firString#(String("Ann")), listOf#()))), firSimpleNamedReference#(firString#(String("Ann"))), listOf#())), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("arg")))), firIntegerLiteral#(IntegerLiteral(0))), firOperation_EQ#()), firBlock#(listOf#(), listOf#(firReturnExpression#(listOf#(firAnnotationCall#(listOf#(), firNull#(), firUserTypeRef#(listOf#(), firFalse#(), listOf#(firQualifierPart#(firString#(String("Ann")), listOf#()))), firSimpleNamedReference#(firString#(String("Ann"))), listOf#())), firImplicitNothingTypeRef#(), firFunctionTarget#(firString#(String("expressionTree")), firTrue#()), firIntegerLiteral#(IntegerLiteral(1))))))), firFalse#()), firWhenExpression#(listOf#(firAnnotationCall#(listOf#(), firNull#(), firUserTypeRef#(listOf#(), firFalse#(), listOf#(firQualifierPart#(firString#(String("Ann")), listOf#()))), firSimpleNamedReference#(firString#(String("Ann"))), listOf#())), firNull#(), firNull#(), listOf#(firWhenBranch#(firEqualityOperatorCall#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("arg")))), firIntegerLiteral#(IntegerLiteral(1))), firOperation_EQ#()), firBlock#(listOf#(), listOf#(firReturnExpression#(listOf#(), firImplicitNothingTypeRef#(), firFunctionTarget#(firString#(String("expressionTree")), firTrue#()), firIntegerLiteral#(IntegerLiteral(1))))))), firFalse#())))
+        ^foo IntegerLiteral(42)
+    }
+    public? final? data class Two : R|kotlin/Any| {
+        public? [ContainingClassKey=Two] constructor(x: Int, y: Int): R|Two| {
+            super<R|kotlin/Any|>()
+        }
+
+        public? final? [IsFromPrimaryConstructor=true] val x: Int = R|<local>/x|
+            public? get(): Int
+
+        public? final? [IsFromPrimaryConstructor=true] val y: Int = R|<local>/y|
+            public? get(): Int
+
+        public final operator fun component1(): Int
+
+        public final operator fun component2(): Int
+
+        public final fun copy(x: Int = this@R|/Two|.R|/Two.x|, y: Int = this@R|/Two|.R|/Two.y|): R|Two|
+
+    }
+    public? final? fun bar(two: Two): R|kotlin/Unit| {
+        firBlock#(listOf#(), listOf#(firProperty#(listOf#(), firNull#(), firString#(String("<destruct>")), firImplicitTypeRef#(), firFalse#(), firTrue#(), firNull#(), firNull#()), firProperty#(listOf#(), firNull#(), firString#(String("x")), firImplicitTypeRef#(), firFalse#(), firTrue#(), firNull#(), firNull#()), firProperty#(listOf#(), firNull#(), firString#(String("y")), firImplicitTypeRef#(), firFalse#(), firTrue#(), firNull#(), firNull#())))
+    }

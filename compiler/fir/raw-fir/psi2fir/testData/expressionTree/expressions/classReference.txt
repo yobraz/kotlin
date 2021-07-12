@@ -1,0 +1,13 @@
+FILE: classReference.kt
+    public? final? fun expressionTree(block: ( () -> Unit )): R|kotlin/Unit| {
+        TODO#(String(intrinsic))
+    }
+    public? final? class A : R|kotlin/Any| {
+        public? [ContainingClassKey=A] constructor(): R|test/A| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public? final? fun test(): <implicit> {
+        ^test firBlock#(listOf#(), listOf#(firGetClassCall#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("A")))))), firGetClassCall#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("test")))), firSimpleNamedReference#(firString#(String("A")))))), firGetClassCall#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("A")))))), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firGetClassCall#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("A")))))), firSimpleNamedReference#(firString#(String("java")))), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firGetClassCall#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("test")))), firSimpleNamedReference#(firString#(String("A")))))), firSimpleNamedReference#(firString#(String("java")))), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firGetClassCall#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("A")))))), firSimpleNamedReference#(firString#(String("java"))))))
+    }

@@ -1,0 +1,13 @@
+FILE: lambdaAndAnonymousFunction.kt
+    public? final? fun <T> run(block: ( () -> T )): T {
+        ^run block#()
+    }
+    public? final? fun expressionTree(block: ( () -> Unit )): R|kotlin/Unit| {
+        TODO#(String(intrinsic))
+    }
+    public? final? fun test_1(): <implicit> {
+        ^test_1 firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("run")))), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("run"))))))
+    }
+    public? final? fun test_2(): <implicit> {
+        ^test_2 firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("run"))))))
+    }

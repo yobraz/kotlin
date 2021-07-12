@@ -1,0 +1,36 @@
+FILE: callableReferences.kt
+    public? final? class A : R|kotlin/Any| {
+        public? [ContainingClassKey=A] constructor(): R|A| {
+            super<R|kotlin/Any|>()
+        }
+
+        public? final? fun foo(): R|kotlin/Unit| {
+        }
+
+        public? final? val bar: <implicit> = IntegerLiteral(0)
+            [ContainingClassKey=A] public? get(): <implicit>
+
+    }
+    public? final? fun expressionTree(block: ( () -> Unit )): R|kotlin/Unit| {
+        TODO#(String(intrinsic))
+    }
+    public? final? fun A.qux(): R|kotlin/Unit| {
+    }
+    public? final? fun baz(): R|kotlin/Unit| {
+    }
+    public? final? val test1: <implicit> = firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("A")))), firSimpleNamedReference#(firString#(String("foo"))))))
+        public? get(): <implicit>
+    public? final? val test2: <implicit> = firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("A")))), firSimpleNamedReference#(firString#(String("bar"))))))
+        public? get(): <implicit>
+    public? final? val test3: <implicit> = firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("A")))), firSimpleNamedReference#(firString#(String("qux"))))))
+        public? get(): <implicit>
+    public? final? val test4: <implicit> = firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("A")))), firSimpleNamedReference#(firString#(String("foo"))))))
+        public? get(): <implicit>
+    public? final? val test5: <implicit> = firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("A")))), firSimpleNamedReference#(firString#(String("bar"))))))
+        public? get(): <implicit>
+    public? final? val test6: <implicit> = firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("A")))), firSimpleNamedReference#(firString#(String("qux"))))))
+        public? get(): <implicit>
+    public? final? val test7: <implicit> = firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("baz"))))))
+        public? get(): <implicit>
+    public? final? val test8: <implicit> = firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("A")))), firSimpleNamedReference#(firString#(String("foo"))))))
+        public? get(): <implicit>
