@@ -48,13 +48,10 @@ import org.jetbrains.kotlin.gradle.logging.GradlePrintingMessageCollector
 import org.jetbrains.kotlin.gradle.logging.kotlinDebug
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
-import org.jetbrains.kotlin.gradle.plugin.mpp.associateWithTransitiveClosure
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinCompilationData
 import org.jetbrains.kotlin.gradle.report.ReportingSettings
 import org.jetbrains.kotlin.gradle.targets.js.ir.isProduceUnzippedKlib
 import org.jetbrains.kotlin.gradle.utils.*
-import org.jetbrains.kotlin.gradle.utils.isParentOf
-import org.jetbrains.kotlin.gradle.utils.pathsAsStringRelativeTo
 import org.jetbrains.kotlin.incremental.ChangedFiles
 import org.jetbrains.kotlin.incremental.IncrementalCompilerRunner
 import org.jetbrains.kotlin.library.impl.isKotlinLibrary
@@ -743,7 +740,7 @@ abstract class Kotlin2JsCompile @Inject constructor(
     override fun isIncrementalCompilationEnabled(): Boolean =
         when {
             "-Xir-produce-js" in kotlinOptions.freeCompilerArgs -> false
-            "-Xir-produce-klib-dir" in kotlinOptions.freeCompilerArgs -> false // TODO: it's not supported yet
+            "-Xir-produce-klib-dir" in kotlinOptions.freeCompilerArgs -> incrementalJsKlib
             "-Xir-produce-klib-file" in kotlinOptions.freeCompilerArgs -> incrementalJsKlib
             else -> incremental
         }
