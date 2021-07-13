@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.declarations.findArgumentByName
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.languageVersionSettings
+import org.jetbrains.kotlin.fir.resolve.loadExperimentalityForMarkerAnnotation
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.fir.types.coneTypeSafe
 import org.jetbrains.kotlin.resolve.checkers.OptInNames
@@ -35,15 +36,13 @@ object FirOptInAnnotationCallChecker : FirAnnotationCallChecker() {
                 } else {
                     val annotationClasses = expression.findArgumentByName(OptInNames.USE_EXPERIMENTAL_ANNOTATION_CLASS)
                     for (classSymbol in annotationClasses?.extractClassesFromArgument().orEmpty()) {
-                        with(FirOptInUsageBaseChecker) {
-                            if (classSymbol.loadExperimentalityForMarkerAnnotation() == null) {
-                                reporter.reportOn(
-                                    expression.source,
-                                    FirErrors.USE_EXPERIMENTAL_ARGUMENT_IS_NOT_MARKER,
-                                    classSymbol.classId.asSingleFqName(),
-                                    context
-                                )
-                            }
+                        if (classSymbol.loadExperimentalityForMarkerAnnotation() == null) {
+                            reporter.reportOn(
+                                expression.source,
+                                FirErrors.USE_EXPERIMENTAL_ARGUMENT_IS_NOT_MARKER,
+                                classSymbol.classId.asSingleFqName(),
+                                context
+                            )
                         }
                     }
                 }
