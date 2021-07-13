@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.fir.resolve
 
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
+import org.jetbrains.kotlin.fir.declarations.FirTypeAlias
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.fir.symbols.ConeClassifierLookupTag
@@ -42,6 +43,9 @@ fun ConeClassLikeLookupTag.toSymbolOrError(useSiteSession: FirSession): FirClass
 
 fun ConeClassLikeLookupTag.toFirRegularClass(session: FirSession): FirRegularClass? =
     session.symbolProvider.getSymbolByLookupTag(this)?.fir as? FirRegularClass
+
+fun ConeClassLikeLookupTag.toFirTypeAlias(session: FirSession): FirTypeAlias? =
+    session.symbolProvider.getSymbolByLookupTag(this)?.fir as? FirTypeAlias
 
 @OptIn(LookupTagInternals::class)
 fun ConeClassLikeLookupTagImpl.bindSymbolToLookupTag(session: FirSession, symbol: FirClassLikeSymbol<*>?) {

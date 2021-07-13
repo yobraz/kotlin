@@ -13,15 +13,16 @@ import org.jetbrains.kotlin.fir.expressions.FirStatement
 import org.jetbrains.kotlin.fir.languageVersionSettings
 import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
+import org.jetbrains.kotlin.fir.resolve.calculateOwnExperimentalities
 import org.jetbrains.kotlin.fir.resolve.firProvider
+import org.jetbrains.kotlin.fir.resolve.loadExperimentalities
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.LocalClassesNavigationInfo
 import org.jetbrains.kotlin.fir.scopes.FirCompositeScope
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.symbols.ensureResolved
-import org.jetbrains.kotlin.fir.types.FirTypeRef
-import org.jetbrains.kotlin.fir.types.coneType
-import org.jetbrains.kotlin.fir.types.toSymbol
+import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.visitors.transformSingle
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 
 @OptIn(AdapterForResolveProcessor::class)
 class FirStatusResolveProcessor(
@@ -474,6 +475,7 @@ abstract class AbstractFirStatusResolveTransformer(
     ): FirStatement {
         constructor.transformStatus(this, statusResolver.resolveStatus(constructor, containingClass, isLocal = false))
         calculateDeprecations(constructor)
+        constructor.calculateExperimentalities()
         return transformDeclaration(constructor, data) as FirStatement
     }
 
@@ -486,6 +488,7 @@ abstract class AbstractFirStatusResolveTransformer(
         }
         simpleFunction.transformStatus(this, statusResolver.resolveStatus(simpleFunction, containingClass, isLocal = false))
         calculateDeprecations(simpleFunction)
+        simpleFunction.calculateExperimentalities()
         return transformDeclaration(simpleFunction, data) as FirStatement
     }
 
@@ -501,6 +504,7 @@ abstract class AbstractFirStatusResolveTransformer(
         property.getter?.let { transformPropertyAccessor(it, property) }
         property.setter?.let { transformPropertyAccessor(it, property) }
         calculateDeprecations(property)
+        property.calculateExperimentalities()
         return property
     }
 
@@ -548,9 +552,25 @@ abstract class AbstractFirStatusResolveTransformer(
         }
     }
 
-    protected fun calculateDeprecations(simpleFunction: FirCallableDeclaration) {
-        if (simpleFunction.deprecation == null) {
-            simpleFunction.replaceDeprecation(simpleFunction.getDeprecationInfos(session.languageVersionSettings.apiVersion))
+    protected fun calculateDeprecations(callable: FirCallableDeclaration) {
+        if (callable.deprecation == null) {
+            callable.replaceDeprecation(callable.getDeprecationInfos(session.languageVersionSettings.apiVersion))
         }
+    }
+
+    protected fun FirCallableDeclaration.calculateExperimentalities() {
+        val result = mutableListOf<Experimentality>()
+        result.addAll(returnTypeRef.coneTypeSafe<ConeKotlinType>().loadExperimentalities(session))
+        result.addAll(receiverTypeRef?.coneTypeSafe<ConeKotlinType>().loadExperimentalities(session))
+        if (this is FirSimpleFunction) {
+            valueParameters.forEach {
+                val typeExperimentalities = it.returnTypeRef.coneTypeSafe<ConeKotlinType>().loadExperimentalities(session)
+                result.addAll(typeExperimentalities)
+                it.replaceExperimentalities(typeExperimentalities + it.calculateOwnExperimentalities(session))
+            }
+        }
+        result.addAll(calculateOwnExperimentalities(session))
+        result.addAll((containingClass as? FirRegularClass)?.experimentalities.orEmpty())
+        replaceExperimentalities(result.distinct())
     }
 }

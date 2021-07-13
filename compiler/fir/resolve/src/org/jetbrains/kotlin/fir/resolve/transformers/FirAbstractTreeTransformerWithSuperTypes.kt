@@ -6,21 +6,19 @@
 package org.jetbrains.kotlin.fir.resolve.transformers
 
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.declarations.FirDeclaration
+import org.jetbrains.kotlin.fir.declarations.FirMemberDeclaration
+import org.jetbrains.kotlin.fir.declarations.FirRegularClass
+import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.diagnostics.ConeSimpleDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
-import org.jetbrains.kotlin.fir.expressions.FirStatement
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
-import org.jetbrains.kotlin.fir.resolve.lookupSuperTypes
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutorByMap
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.scopes.FirCompositeScope
 import org.jetbrains.kotlin.fir.scopes.FirScope
-import org.jetbrains.kotlin.fir.scopes.getNestedClassifierScope
 import org.jetbrains.kotlin.fir.scopes.impl.FirMemberTypeParameterScope
-import org.jetbrains.kotlin.fir.scopes.impl.nestedClassifierScope
-import org.jetbrains.kotlin.fir.scopes.impl.wrapNestedClassifierScopeWithSubstitutionForSuperType
 import org.jetbrains.kotlin.fir.types.ConeClassErrorType
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.ConeLookupTagBasedType
@@ -49,49 +47,6 @@ abstract class FirAbstractTreeTransformerWithSuperTypes(
     protected inline fun <T> withClassDeclarationCleanup(declaration: FirRegularClass, crossinline l: () -> T): T {
         withClassDeclarationCleanup(classDeclarationsStack, declaration) {
             return l()
-        }
-    }
-
-    protected fun resolveNestedClassesSupertypes(
-        firClass: FirClass,
-        data: Any?
-    ): FirStatement {
-        if (needReplacePhase(firClass)) {
-            firClass.replaceResolvePhase(transformerPhase)
-        }
-        return withScopeCleanup {
-            // Otherwise annotations may try to resolve
-            // themselves as inner classes of the `firClass`
-            // if their names match
-            firClass.transformAnnotations(this, null)
-
-            // ? Is it Ok to use original file session here ?
-            val superTypes = lookupSuperTypes(
-                firClass,
-                lookupInterfaces = false,
-                deep = true,
-                substituteTypes = true,
-                useSiteSession = session
-            ).asReversed()
-            for (superType in superTypes) {
-                superType.lookupTag.getNestedClassifierScope(session, scopeSession)?.let { nestedClassifierScope ->
-                    val scope = nestedClassifierScope.wrapNestedClassifierScopeWithSubstitutionForSuperType(superType, session)
-                    scopes.add(scope)
-                }
-            }
-            if (firClass is FirRegularClass) {
-                firClass.addTypeParametersScope()
-                val companionObject = firClass.companionObject
-                if (companionObject != null) {
-                    session.nestedClassifierScope(companionObject)?.let(scopes::add)
-                }
-            }
-
-            session.nestedClassifierScope(firClass)?.let(scopes::add)
-
-            // Note that annotations are still visited here
-            // again, although there's no need in it
-            transformDeclarationContent(firClass, data) as FirClass
         }
     }
 

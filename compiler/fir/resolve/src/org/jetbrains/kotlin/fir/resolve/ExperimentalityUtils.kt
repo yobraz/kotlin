@@ -5,22 +5,51 @@
 
 package org.jetbrains.kotlin.fir.resolve
 
-import org.jetbrains.kotlin.fir.declarations.FirRegularClass
-import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
-import org.jetbrains.kotlin.fir.declarations.findArgumentByName
-import org.jetbrains.kotlin.fir.declarations.getAnnotationByFqName
+import org.jetbrains.kotlin.fir.FirAnnotationContainer
+import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.expressions.FirConstExpression
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
-import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
+import org.jetbrains.kotlin.fir.references.FirNamedReference
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.ensureResolved
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
+import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.resolve.checkers.OptInNames
+import org.jetbrains.kotlin.utils.addIfNotNull
+
+
+internal fun FirAnnotationContainer.calculateOwnExperimentalities(session: FirSession): List<Experimentality> {
+    val result = mutableListOf<Experimentality>()
+    for (annotation in annotations) {
+        val annotationType = annotation.annotationTypeRef.coneTypeSafe<ConeClassLikeType>()
+        result.addIfNotNull(
+            (annotationType?.fullyExpandedType(session)?.lookupTag?.toSymbol(
+                session
+            ) as? FirRegularClassSymbol)?.loadExperimentalityForMarkerAnnotation()
+        )
+    }
+    return result
+}
+
+internal fun ConeKotlinType?.loadExperimentalities(session: FirSession): List<Experimentality> =
+    when (this) {
+        !is ConeClassLikeType -> emptyList()
+        else -> {
+            val expandedType = fullyExpandedType(session)
+            expandedType.lookupTag.toFirRegularClass(session)?.experimentalities.orEmpty() + expandedType.typeArguments.flatMap {
+                if (it.isStarProjection) emptyList()
+                else it.type?.loadExperimentalities(session).orEmpty()
+            } + if (this !== expandedType) {
+                lookupTag.toFirTypeAlias(session)?.experimentalities.orEmpty()
+            } else emptyList()
+        }
+    }
 
 fun FirRegularClassSymbol.loadExperimentalityForMarkerAnnotation(): Experimentality? {
-    ensureResolved(FirResolvePhase.BODY_RESOLVE)
+    ensureResolved(FirResolvePhase.SUPER_TYPES)
     @OptIn(SymbolInternals::class)
     return fir.loadExperimentalityForMarkerAnnotation()
 }
@@ -29,7 +58,7 @@ private fun FirRegularClass.loadExperimentalityForMarkerAnnotation(): Experiment
     val experimental = getAnnotationByFqName(OptInNames.REQUIRES_OPT_IN_FQ_NAME) ?: return null
 
     val levelArgument = experimental.findArgumentByName(LEVEL) as? FirQualifiedAccessExpression
-    val levelName = (levelArgument?.calleeReference as? FirResolvedNamedReference)?.name?.asString()
+    val levelName = (levelArgument?.calleeReference as FirNamedReference?)?.name?.asString()
     val level = OptInLevel.values().firstOrNull { it.name == levelName } ?: OptInLevel.DEFAULT
     val message = (experimental.findArgumentByName(MESSAGE) as? FirConstExpression<*>)?.value as? String
     return Experimentality(symbol.classId.asSingleFqName(), level.severity, message)

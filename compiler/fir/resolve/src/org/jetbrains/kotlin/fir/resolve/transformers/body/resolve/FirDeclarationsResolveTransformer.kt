@@ -22,17 +22,14 @@ import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.buildReturnExpression
 import org.jetbrains.kotlin.fir.expressions.builder.buildUnitExpression
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
-import org.jetbrains.kotlin.fir.resolve.ResolutionMode
+import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.calls.FirNamedReferenceWithCandidate
-import org.jetbrains.kotlin.fir.resolve.constructFunctionalTypeRef
 import org.jetbrains.kotlin.fir.resolve.dfa.FirControlFlowGraphReferenceImpl
 import org.jetbrains.kotlin.fir.resolve.dfa.unwrapSmartcastExpression
 import org.jetbrains.kotlin.fir.resolve.inference.extractLambdaInfoFromFunctionalType
 import org.jetbrains.kotlin.fir.resolve.inference.isSuspendFunctionType
-import org.jetbrains.kotlin.fir.resolve.mode
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.resolve.transformers.*
-import org.jetbrains.kotlin.fir.resolve.withExpectedType
 import org.jetbrains.kotlin.fir.scopes.impl.FirMemberTypeParameterScope
 import org.jetbrains.kotlin.fir.symbols.constructStarProjectedType
 import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
@@ -282,6 +279,8 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
             variable.transformAccessors()
         }
         variable.transformOtherChildren(transformer, ResolutionMode.ContextIndependent)
+        val typeExperimentalities = variable.returnTypeRef.coneTypeSafe<ConeKotlinType>().loadExperimentalities(session)
+        variable.replaceExperimentalities(typeExperimentalities + variable.calculateOwnExperimentalities(session))
         context.storeVariable(variable)
         transformer.replaceDeclarationResolvePhaseIfNeeded(variable, transformerPhase)
         dataFlowAnalyzer.exitLocalVariableDeclaration(variable)
@@ -518,6 +517,9 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
                             simpleFunction?.isInline == true
                         )
                     )
+                )
+                result.replaceExperimentalities(
+                    result.experimentalities + result.returnTypeRef.coneType.loadExperimentalities(session)
                 )
             } else {
                 result.transformReturnTypeRef(
@@ -844,6 +846,9 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
                             inferenceComponents.session.typeContext,
                         )
                     )
+                )
+                variable.replaceExperimentalities(
+                    variable.experimentalities + variable.returnTypeRef.coneType.loadExperimentalities(session)
                 )
             } else {
                 variable.transformReturnTypeRef(

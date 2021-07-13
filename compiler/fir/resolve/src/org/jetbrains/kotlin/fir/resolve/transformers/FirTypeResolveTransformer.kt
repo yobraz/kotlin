@@ -8,18 +8,22 @@ package org.jetbrains.kotlin.fir.resolve.transformers
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.declarations.utils.expandedConeType
 import org.jetbrains.kotlin.fir.declarations.utils.isFromVararg
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirBlock
 import org.jetbrains.kotlin.fir.expressions.FirDelegatedConstructorCall
 import org.jetbrains.kotlin.fir.expressions.FirStatement
-import org.jetbrains.kotlin.fir.resolve.ScopeSession
+import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.diagnostics.ConeCyclicTypeBound
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.createImportingScopes
+import org.jetbrains.kotlin.fir.scopes.getNestedClassifierScope
+import org.jetbrains.kotlin.fir.scopes.impl.nestedClassifierScope
+import org.jetbrains.kotlin.fir.scopes.impl.wrapNestedClassifierScopeWithSubstitutionForSuperType
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildErrorTypeRef
-import org.jetbrains.kotlin.fir.types.impl.FirImplicitBuiltinTypeRef
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 
 class FirTypeResolveProcessor(
     session: FirSession,
@@ -53,6 +57,7 @@ open class FirTypeResolveTransformer(
 
     private val typeResolverTransformer: FirSpecificTypeResolverTransformer = FirSpecificTypeResolverTransformer(session)
     private var currentFile: FirFile? = null
+    private val parentExperimentalities = mutableListOf<Experimentality>()
 
     override fun transformFile(file: FirFile, data: Any?): FirFile {
         checkSessionConsistency(file)
@@ -81,6 +86,54 @@ open class FirTypeResolveTransformer(
         return resolveNestedClassesSupertypes(anonymousObject, data)
     }
 
+    protected fun resolveNestedClassesSupertypes(
+        firClass: FirClass,
+        data: Any?
+    ): FirStatement {
+        if (needReplacePhase(firClass)) {
+            firClass.replaceResolvePhase(transformerPhase)
+        }
+        return withScopeCleanup {
+            // Otherwise annotations may try to resolve
+            // themselves as inner classes of the `firClass`
+            // if their names match
+            firClass.transformAnnotations(this, null)
+
+            // ? Is it Ok to use original file session here ?
+            val superTypes = lookupSuperTypes(
+                firClass,
+                lookupInterfaces = false,
+                deep = true,
+                substituteTypes = true,
+                useSiteSession = session
+            ).asReversed()
+            for (superType in superTypes) {
+                superType.lookupTag.getNestedClassifierScope(session, scopeSession)?.let { nestedClassifierScope ->
+                    val scope = nestedClassifierScope.wrapNestedClassifierScopeWithSubstitutionForSuperType(superType, session)
+                    scopes.add(scope)
+                }
+            }
+            val ownExperimentalities = firClass.calculateOwnExperimentalities(session)
+            if (firClass is FirRegularClass) {
+                firClass.addTypeParametersScope()
+                val companionObject = firClass.companionObject
+                if (companionObject != null) {
+                    session.nestedClassifierScope(companionObject)?.let(scopes::add)
+                }
+                firClass.replaceExperimentalities(parentExperimentalities + ownExperimentalities)
+                parentExperimentalities.addAll(ownExperimentalities)
+            }
+
+            session.nestedClassifierScope(firClass)?.let(scopes::add)
+
+            // Note that annotations are still visited here
+            // again, although there's no need in it
+            (transformDeclarationContent(firClass, data) as FirClass).also {
+                repeat(ownExperimentalities.size) { parentExperimentalities.removeLast() }
+            }
+        }
+    }
+
     override fun transformConstructor(constructor: FirConstructor, data: Any?): FirConstructor {
         return withScopeCleanup {
             constructor.addTypeParametersScope()
@@ -89,10 +142,14 @@ open class FirTypeResolveTransformer(
     }
 
     override fun transformTypeAlias(typeAlias: FirTypeAlias, data: Any?): FirTypeAlias {
-        return withScopeCleanup {
+        return (withScopeCleanup {
             typeAlias.addTypeParametersScope()
             transformDeclaration(typeAlias, data)
-        } as FirTypeAlias
+        } as FirTypeAlias).apply {
+            this.replaceExperimentalities(
+                expandedConeType.loadExperimentalities(session) + calculateOwnExperimentalities(session)
+            )
+        }
     }
 
     override fun transformEnumEntry(enumEntry: FirEnumEntry, data: Any?): FirEnumEntry {
