@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirEnumEntrySymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.fir.visitors.*
 
@@ -38,6 +39,7 @@ internal class FirEnumEntryImpl(
     override var returnTypeRef: FirTypeRef,
     override val typeParameters: MutableList<FirTypeParameterRef>,
     override var status: FirDeclarationStatus,
+    override val experimentalities: MutableList<Experimentality>,
     override var deprecation: DeprecationsPerUseSite?,
     override val containerSource: DeserializedContainerSource?,
     override val dispatchReceiverType: ConeKotlinType?,
@@ -126,6 +128,11 @@ internal class FirEnumEntryImpl(
 
     override fun replaceReturnTypeRef(newReturnTypeRef: FirTypeRef) {
         returnTypeRef = newReturnTypeRef
+    }
+
+    override fun replaceExperimentalities(newExperimentalities: List<Experimentality>) {
+        experimentalities.clear()
+        experimentalities.addAll(newExperimentalities)
     }
 
     override fun replaceReceiverTypeRef(newReceiverTypeRef: FirTypeRef?) {}

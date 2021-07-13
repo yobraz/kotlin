@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.fir.expressions.FirBlock
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.*
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
 /*
@@ -39,6 +40,7 @@ interface FirFunctionBuilder : FirDeclarationBuilder, FirAnnotationContainerBuil
     abstract override val annotations: MutableList<FirAnnotationCall>
     abstract var returnTypeRef: FirTypeRef
     abstract var status: FirDeclarationStatus
+    abstract val experimentalities: MutableList<Experimentality>
     abstract var deprecation: DeprecationsPerUseSite?
     abstract var containerSource: DeserializedContainerSource?
     abstract var dispatchReceiverType: ConeKotlinType?

@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.fir.declarations
 
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.fir.visitors.*
 
 /*
@@ -18,12 +19,15 @@ sealed interface FirMemberDeclaration : FirTypeParameterRefsOwner {
     override val source: FirSourceElement?
     override val typeParameters: List<FirTypeParameterRef>
     val status: FirDeclarationStatus
+    val experimentalities: List<Experimentality>
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitMemberDeclaration(this, data)
 
     @Suppress("UNCHECKED_CAST")
     override fun <E: FirElement, D> transform(transformer: FirTransformer<D>, data: D): E = 
         transformer.transformMemberDeclaration(this, data) as E
+
+    fun replaceExperimentalities(newExperimentalities: List<Experimentality>)
 
     override fun <D> transformTypeParameters(transformer: FirTransformer<D>, data: D): FirMemberDeclaration
 

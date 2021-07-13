@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.fir.visitors.*
 
@@ -38,6 +39,7 @@ internal class FirDefaultSetterValueParameter(
     override val origin: FirDeclarationOrigin,
     override val attributes: FirDeclarationAttributes,
     override var returnTypeRef: FirTypeRef,
+    override val experimentalities: MutableList<Experimentality>,
     override var receiverTypeRef: FirTypeRef?,
     override var deprecation: DeprecationsPerUseSite?,
     override val containerSource: DeserializedContainerSource?,
@@ -146,6 +148,11 @@ internal class FirDefaultSetterValueParameter(
 
     override fun replaceReturnTypeRef(newReturnTypeRef: FirTypeRef) {
         returnTypeRef = newReturnTypeRef
+    }
+
+    override fun replaceExperimentalities(newExperimentalities: List<Experimentality>) {
+        experimentalities.clear()
+        experimentalities.addAll(newExperimentalities)
     }
 
     override fun replaceReceiverTypeRef(newReceiverTypeRef: FirTypeRef?) {

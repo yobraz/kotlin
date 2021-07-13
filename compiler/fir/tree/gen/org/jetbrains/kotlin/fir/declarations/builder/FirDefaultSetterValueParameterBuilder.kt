@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
 /*
@@ -43,6 +44,7 @@ class FirDefaultSetterValueParameterBuilder : FirAnnotationContainerBuilder {
     lateinit var origin: FirDeclarationOrigin
     var attributes: FirDeclarationAttributes = FirDeclarationAttributes()
     lateinit var returnTypeRef: FirTypeRef
+    val experimentalities: MutableList<Experimentality> = mutableListOf()
     var receiverTypeRef: FirTypeRef? = null
     var deprecation: DeprecationsPerUseSite? = null
     var containerSource: DeserializedContainerSource? = null
@@ -68,6 +70,7 @@ class FirDefaultSetterValueParameterBuilder : FirAnnotationContainerBuilder {
             origin,
             attributes,
             returnTypeRef,
+            experimentalities,
             receiverTypeRef,
             deprecation,
             containerSource,

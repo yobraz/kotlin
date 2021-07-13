@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
 /*
@@ -43,6 +44,7 @@ class FirEnumEntryBuilder : FirAnnotationContainerBuilder {
     lateinit var returnTypeRef: FirTypeRef
     val typeParameters: MutableList<FirTypeParameterRef> = mutableListOf()
     lateinit var status: FirDeclarationStatus
+    val experimentalities: MutableList<Experimentality> = mutableListOf()
     var deprecation: DeprecationsPerUseSite? = null
     var containerSource: DeserializedContainerSource? = null
     var dispatchReceiverType: ConeKotlinType? = null
@@ -61,6 +63,7 @@ class FirEnumEntryBuilder : FirAnnotationContainerBuilder {
             returnTypeRef,
             typeParameters,
             status,
+            experimentalities,
             deprecation,
             containerSource,
             dispatchReceiverType,

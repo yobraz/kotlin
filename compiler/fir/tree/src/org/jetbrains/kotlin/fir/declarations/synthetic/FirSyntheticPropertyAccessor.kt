@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
 class FirSyntheticPropertyAccessor(
@@ -79,6 +80,8 @@ class FirSyntheticPropertyAccessor(
     override val contractDescription: FirContractDescription = FirEmptyContractDescription
 
     override val containerSource: DeserializedContainerSource? get() = null
+
+    override val experimentalities: List<Experimentality> get() = emptyList()
 
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         delegate.accept(visitor, data)
@@ -151,6 +154,10 @@ class FirSyntheticPropertyAccessor(
     }
 
     override fun replaceControlFlowGraphReference(newControlFlowGraphReference: FirControlFlowGraphReference?) {
+        throw AssertionError("Mutation of synthetic property accessor isn't supported")
+    }
+
+    override fun replaceExperimentalities(newExperimentalities: List<Experimentality>) {
         throw AssertionError("Mutation of synthetic property accessor isn't supported")
     }
 }

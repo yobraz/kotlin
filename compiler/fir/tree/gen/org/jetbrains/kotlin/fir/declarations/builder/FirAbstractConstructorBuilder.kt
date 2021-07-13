@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.*
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
 /*
@@ -42,6 +43,7 @@ interface FirAbstractConstructorBuilder : FirFunctionBuilder {
     abstract override val annotations: MutableList<FirAnnotationCall>
     abstract override var returnTypeRef: FirTypeRef
     abstract override var status: FirDeclarationStatus
+    abstract override val experimentalities: MutableList<Experimentality>
     abstract override var deprecation: DeprecationsPerUseSite?
     abstract override var containerSource: DeserializedContainerSource?
     abstract override var dispatchReceiverType: ConeKotlinType?

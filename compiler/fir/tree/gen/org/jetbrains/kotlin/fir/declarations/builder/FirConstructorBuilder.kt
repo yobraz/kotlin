@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.*
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
 /*
@@ -45,6 +46,7 @@ open class FirConstructorBuilder : FirAbstractConstructorBuilder, FirAnnotationC
     override lateinit var returnTypeRef: FirTypeRef
     override val typeParameters: MutableList<FirTypeParameterRef> = mutableListOf()
     override lateinit var status: FirDeclarationStatus
+    override val experimentalities: MutableList<Experimentality> = mutableListOf()
     override var receiverTypeRef: FirTypeRef? = null
     override var deprecation: DeprecationsPerUseSite? = null
     override var containerSource: DeserializedContainerSource? = null
@@ -65,6 +67,7 @@ open class FirConstructorBuilder : FirAbstractConstructorBuilder, FirAnnotationC
             returnTypeRef,
             typeParameters,
             status,
+            experimentalities,
             receiverTypeRef,
             deprecation,
             containerSource,
@@ -108,6 +111,7 @@ inline fun buildConstructorCopy(original: FirConstructor, init: FirConstructorBu
     copyBuilder.returnTypeRef = original.returnTypeRef
     copyBuilder.typeParameters.addAll(original.typeParameters)
     copyBuilder.status = original.status
+    copyBuilder.experimentalities.addAll(original.experimentalities)
     copyBuilder.receiverTypeRef = original.receiverTypeRef
     copyBuilder.deprecation = original.deprecation
     copyBuilder.containerSource = original.containerSource

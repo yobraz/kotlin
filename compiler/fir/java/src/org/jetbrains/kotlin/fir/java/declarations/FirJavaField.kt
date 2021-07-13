@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.fir.visitors.transformInplace
 import org.jetbrains.kotlin.fir.visitors.transformSingle
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -63,6 +64,8 @@ class FirJavaField @FirImplementationDetail constructor(
     override val deprecation: DeprecationsPerUseSite by lazy {
         annotations.getDeprecationInfosFromAnnotations(moduleData.session.languageVersionSettings.apiVersion, fromJava = true)
     }
+
+    override val experimentalities: List<Experimentality> get() = emptyList()
 
     override fun <D> transformReturnTypeRef(transformer: FirTransformer<D>, data: D): FirField {
         returnTypeRef = returnTypeRef.transformSingle(transformer, data)
@@ -120,6 +123,10 @@ class FirJavaField @FirImplementationDetail constructor(
 
     override fun replaceInitializer(newInitializer: FirExpression?) {
         initializer = newInitializer
+    }
+
+    override fun replaceExperimentalities(newExperimentalities: List<Experimentality>) {
+        throw AssertionError("Replacing experimentalities for Java is not supported")
     }
 
     override fun <D> transformTypeParameters(transformer: FirTransformer<D>, data: D): FirField {

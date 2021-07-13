@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.fir.visitors.transformSingle
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -92,6 +93,8 @@ class FirJavaValueParameter @FirImplementationDetail constructor(
 
     override val dispatchReceiverType: ConeKotlinType?
         get() = null
+
+    override val experimentalities: List<Experimentality> get() = emptyList()
 
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         returnTypeRef.accept(visitor, data)
@@ -166,6 +169,10 @@ class FirJavaValueParameter @FirImplementationDetail constructor(
     }
 
     override fun replaceControlFlowGraphReference(newControlFlowGraphReference: FirControlFlowGraphReference?) {
+    }
+
+    override fun replaceExperimentalities(newExperimentalities: List<Experimentality>) {
+        throw AssertionError("Replacing experimentalities for Java is not supported")
     }
 }
 

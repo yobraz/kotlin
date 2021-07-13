@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
 class FirSyntheticProperty(
@@ -84,6 +85,9 @@ class FirSyntheticProperty(
 
     override val initializerAndAccessorsAreResolved: Boolean
         get() = true
+
+    override val experimentalities: List<Experimentality>
+        get() = emptyList()
 
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         returnTypeRef.accept(visitor, data)
@@ -159,6 +163,10 @@ class FirSyntheticProperty(
     }
 
     override fun replaceInitializerAndAccessorsAreResolved(newInitializerAndAccessorsAreResolved: Boolean) {
+        throw AssertionError("Mutation of synthetic property isn't supported")
+    }
+
+    override fun replaceExperimentalities(newExperimentalities: List<Experimentality>) {
         throw AssertionError("Mutation of synthetic property isn't supported")
     }
 }

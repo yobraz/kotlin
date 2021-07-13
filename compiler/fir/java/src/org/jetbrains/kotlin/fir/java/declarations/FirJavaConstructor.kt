@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.fir.visitors.transformInplace
 import org.jetbrains.kotlin.fir.visitors.transformSingle
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import kotlin.properties.Delegates
 
@@ -62,6 +63,7 @@ class FirJavaConstructor @FirImplementationDetail constructor(
 
     override val annotations: List<FirAnnotationCall> by lazy { annotationBuilder() }
 
+    override val experimentalities: List<Experimentality> get() = emptyList()
 
     override fun <D> transformValueParameters(transformer: FirTransformer<D>, data: D): FirJavaConstructor {
         valueParameters.transformInplace(transformer, data)
@@ -141,6 +143,10 @@ class FirJavaConstructor @FirImplementationDetail constructor(
 
     override fun replaceBody(newBody: FirBlock?) {
         error("Body cannot be replaced for FirJavaConstructor")
+    }
+
+    override fun replaceExperimentalities(newExperimentalities: List<Experimentality>) {
+        throw AssertionError("Replacing experimentalities for Java is not supported")
     }
 }
 

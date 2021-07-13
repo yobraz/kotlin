@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.fir.visitors.transformInplace
 import org.jetbrains.kotlin.fir.visitors.transformSingle
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.util.OperatorNameConventions.ASSIGNMENT_OPERATIONS
 import org.jetbrains.kotlin.util.OperatorNameConventions.BINARY_OPERATION_NAMES
@@ -86,6 +87,8 @@ class FirJavaMethod @FirImplementationDetail constructor(
 
     //not used actually, because get 'enhanced' into regular FirSimpleFunction
     override var deprecation: DeprecationsPerUseSite? = null
+
+    override val experimentalities: List<Experimentality> get() = emptyList()
 
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         returnTypeRef.accept(visitor, data)
@@ -177,6 +180,10 @@ class FirJavaMethod @FirImplementationDetail constructor(
 
     override fun replaceContractDescription(newContractDescription: FirContractDescription) {
     }
+
+    override fun replaceExperimentalities(newExperimentalities: List<Experimentality>) {
+        throw AssertionError("Replacing experimentalities for Java is not supported")
+    }
 }
 
 val ALL_JAVA_OPERATION_NAMES =
@@ -200,6 +207,7 @@ class FirJavaMethodBuilder : FirFunctionBuilder, FirTypeParametersOwnerBuilder, 
     var isStatic: Boolean by Delegates.notNull()
     override var resolvePhase: FirResolvePhase = FirResolvePhase.ANALYZED_DEPENDENCIES
     lateinit var annotationBuilder: () -> List<FirAnnotationCall>
+    override val experimentalities: MutableList<Experimentality> = mutableListOf()
 
     @Deprecated("Modification of 'deprecation' has no impact for FirJavaFunctionBuilder", level = DeprecationLevel.HIDDEN)
     override var deprecation: DeprecationsPerUseSite?

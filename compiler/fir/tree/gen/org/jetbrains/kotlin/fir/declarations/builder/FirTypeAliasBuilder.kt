@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 
 /*
  * This file was generated automatically
@@ -40,6 +41,7 @@ class FirTypeAliasBuilder : FirDeclarationBuilder, FirTypeParametersOwnerBuilder
     override var attributes: FirDeclarationAttributes = FirDeclarationAttributes()
     var deprecation: DeprecationsPerUseSite? = null
     lateinit var status: FirDeclarationStatus
+    val experimentalities: MutableList<Experimentality> = mutableListOf()
     override val typeParameters: MutableList<FirTypeParameter> = mutableListOf()
     lateinit var name: Name
     lateinit var symbol: FirTypeAliasSymbol
@@ -55,6 +57,7 @@ class FirTypeAliasBuilder : FirDeclarationBuilder, FirTypeParametersOwnerBuilder
             attributes,
             deprecation,
             status,
+            experimentalities,
             typeParameters,
             name,
             symbol,
@@ -86,6 +89,7 @@ inline fun buildTypeAliasCopy(original: FirTypeAlias, init: FirTypeAliasBuilder.
     copyBuilder.attributes = original.attributes.copy()
     copyBuilder.deprecation = original.deprecation
     copyBuilder.status = original.status
+    copyBuilder.experimentalities.addAll(original.experimentalities)
     copyBuilder.typeParameters.addAll(original.typeParameters)
     copyBuilder.name = original.name
     copyBuilder.symbol = original.symbol

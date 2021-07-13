@@ -109,6 +109,7 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
 
         memberDeclaration.configure {
             +status.withTransform()
+            +fieldList("experimentalities", experimentalityType, withReplace = true)
         }
 
         expression.configure {

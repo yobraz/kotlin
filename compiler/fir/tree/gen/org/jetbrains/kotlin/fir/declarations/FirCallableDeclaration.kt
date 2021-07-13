@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.fir.visitors.*
 
@@ -30,6 +31,7 @@ sealed class FirCallableDeclaration : FirTypedDeclaration(), FirMemberDeclaratio
     abstract override val returnTypeRef: FirTypeRef
     abstract override val typeParameters: List<FirTypeParameterRef>
     abstract override val status: FirDeclarationStatus
+    abstract override val experimentalities: List<Experimentality>
     abstract val receiverTypeRef: FirTypeRef?
     abstract val deprecation: DeprecationsPerUseSite?
     abstract override val symbol: FirCallableSymbol<out FirCallableDeclaration>
@@ -45,6 +47,8 @@ sealed class FirCallableDeclaration : FirTypedDeclaration(), FirMemberDeclaratio
     abstract override fun replaceResolvePhase(newResolvePhase: FirResolvePhase)
 
     abstract override fun replaceReturnTypeRef(newReturnTypeRef: FirTypeRef)
+
+    abstract override fun replaceExperimentalities(newExperimentalities: List<Experimentality>)
 
     abstract fun replaceReceiverTypeRef(newReceiverTypeRef: FirTypeRef?)
 

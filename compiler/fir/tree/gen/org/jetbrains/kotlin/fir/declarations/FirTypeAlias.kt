@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.fir.visitors.*
 
 /*
@@ -27,6 +28,7 @@ abstract class FirTypeAlias : FirClassLikeDeclaration(), FirMemberDeclaration, F
     abstract override val attributes: FirDeclarationAttributes
     abstract override val deprecation: DeprecationsPerUseSite?
     abstract override val status: FirDeclarationStatus
+    abstract override val experimentalities: List<Experimentality>
     abstract override val typeParameters: List<FirTypeParameter>
     abstract val name: Name
     abstract override val symbol: FirTypeAliasSymbol
@@ -42,6 +44,8 @@ abstract class FirTypeAlias : FirClassLikeDeclaration(), FirMemberDeclaration, F
     abstract override fun replaceResolvePhase(newResolvePhase: FirResolvePhase)
 
     abstract override fun replaceDeprecation(newDeprecation: DeprecationsPerUseSite?)
+
+    abstract override fun replaceExperimentalities(newExperimentalities: List<Experimentality>)
 
     abstract fun replaceExpandedTypeRef(newExpandedTypeRef: FirTypeRef)
 

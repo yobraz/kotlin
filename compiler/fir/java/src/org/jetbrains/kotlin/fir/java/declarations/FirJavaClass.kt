@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.fir.visitors.transformInplace
 import org.jetbrains.kotlin.fir.visitors.transformSingle
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import kotlin.properties.Delegates
 
 @OptIn(FirImplementationDetail::class)
@@ -61,6 +62,9 @@ class FirJavaClass @FirImplementationDetail internal constructor(
     override val companionObject: FirRegularClass?
         get() = null
 
+    override val experimentalities: List<Experimentality>
+        get() = emptyList()
+
     override fun replaceSuperTypeRefs(newSuperTypeRefs: List<FirTypeRef>) {
         superTypeRefs.clear()
         superTypeRefs.addAll(newSuperTypeRefs)
@@ -75,6 +79,10 @@ class FirJavaClass @FirImplementationDetail internal constructor(
     }
 
     override fun replaceControlFlowGraphReference(newControlFlowGraphReference: FirControlFlowGraphReference?) {}
+
+    override fun replaceExperimentalities(newExperimentalities: List<Experimentality>) {
+        throw AssertionError("Replacing experimentalities for Java is not supported")
+    }
 
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         declarations.forEach { it.accept(visitor, data) }

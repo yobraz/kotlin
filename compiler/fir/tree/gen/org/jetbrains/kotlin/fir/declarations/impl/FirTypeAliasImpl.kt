@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.fir.visitors.*
 
 /*
@@ -33,6 +34,7 @@ internal class FirTypeAliasImpl(
     override val attributes: FirDeclarationAttributes,
     override var deprecation: DeprecationsPerUseSite?,
     override var status: FirDeclarationStatus,
+    override val experimentalities: MutableList<Experimentality>,
     override val typeParameters: MutableList<FirTypeParameter>,
     override val name: Name,
     override val symbol: FirTypeAliasSymbol,
@@ -84,6 +86,11 @@ internal class FirTypeAliasImpl(
 
     override fun replaceDeprecation(newDeprecation: DeprecationsPerUseSite?) {
         deprecation = newDeprecation
+    }
+
+    override fun replaceExperimentalities(newExperimentalities: List<Experimentality>) {
+        experimentalities.clear()
+        experimentalities.addAll(newExperimentalities)
     }
 
     override fun replaceExpandedTypeRef(newExpandedTypeRef: FirTypeRef) {

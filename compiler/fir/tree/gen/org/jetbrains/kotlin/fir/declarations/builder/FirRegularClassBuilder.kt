@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 
 /*
  * This file was generated automatically
@@ -49,6 +50,7 @@ open class FirRegularClassBuilder : FirClassBuilder, FirTypeParameterRefsOwnerBu
     override val annotations: MutableList<FirAnnotationCall> = mutableListOf()
     override lateinit var scopeProvider: FirScopeProvider
     open lateinit var status: FirDeclarationStatus
+    open val experimentalities: MutableList<Experimentality> = mutableListOf()
     open lateinit var name: Name
     open lateinit var symbol: FirRegularClassSymbol
     open var companionObject: FirRegularClass? = null
@@ -68,6 +70,7 @@ open class FirRegularClassBuilder : FirClassBuilder, FirTypeParameterRefsOwnerBu
             annotations,
             scopeProvider,
             status,
+            experimentalities,
             name,
             symbol,
             companionObject,
@@ -103,6 +106,7 @@ inline fun buildRegularClassCopy(original: FirRegularClass, init: FirRegularClas
     copyBuilder.annotations.addAll(original.annotations)
     copyBuilder.scopeProvider = original.scopeProvider
     copyBuilder.status = original.status
+    copyBuilder.experimentalities.addAll(original.experimentalities)
     copyBuilder.name = original.name
     copyBuilder.symbol = original.symbol
     copyBuilder.companionObject = original.companionObject

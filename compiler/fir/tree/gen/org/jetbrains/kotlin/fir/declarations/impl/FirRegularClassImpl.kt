@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.fir.scopes.FirScopeProvider
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.fir.visitors.*
 
 /*
@@ -42,6 +43,7 @@ internal class FirRegularClassImpl(
     override val annotations: MutableList<FirAnnotationCall>,
     override val scopeProvider: FirScopeProvider,
     override var status: FirDeclarationStatus,
+    override val experimentalities: MutableList<Experimentality>,
     override val name: Name,
     override val symbol: FirRegularClassSymbol,
     override var companionObject: FirRegularClass?,
@@ -110,6 +112,11 @@ internal class FirRegularClassImpl(
 
     override fun replaceDeprecation(newDeprecation: DeprecationsPerUseSite?) {
         deprecation = newDeprecation
+    }
+
+    override fun replaceExperimentalities(newExperimentalities: List<Experimentality>) {
+        experimentalities.clear()
+        experimentalities.addAll(newExperimentalities)
     }
 
     override fun replaceControlFlowGraphReference(newControlFlowGraphReference: FirControlFlowGraphReference?) {
