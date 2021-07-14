@@ -347,6 +347,12 @@ open class FirSupertypeResolverVisitor(
                     }
                 }
             }
+
+            // This is needed for type resolve stage, e.g. for successful resolve of class OptIns
+            for (annotation in classLikeDeclaration.annotations) {
+                annotation.transformAnnotationTypeRef(transformer, scopeDeclaration)
+            }
+
             /*
               This list is backed by mutable list and during iterating on it we can resolve supertypes of that class via IDE light classes
               as IJ Java resolve may resolve a lot of stuff by light classes

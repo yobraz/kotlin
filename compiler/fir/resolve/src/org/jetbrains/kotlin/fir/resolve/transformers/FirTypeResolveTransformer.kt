@@ -94,11 +94,6 @@ open class FirTypeResolveTransformer(
             firClass.replaceResolvePhase(transformerPhase)
         }
         return withScopeCleanup {
-            // Otherwise annotations may try to resolve
-            // themselves as inner classes of the `firClass`
-            // if their names match
-            firClass.transformAnnotations(this, null)
-
             // ? Is it Ok to use original file session here ?
             val superTypes = lookupSuperTypes(
                 firClass,
