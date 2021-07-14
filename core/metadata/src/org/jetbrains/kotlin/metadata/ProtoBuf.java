@@ -4783,6 +4783,45 @@ public final class ProtoBuf {
     int getAbbreviatedTypeId();
 
     /**
+     * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+     *
+     * <pre>
+     * Present only if type is union
+     * </pre>
+     */
+    java.util.List<org.jetbrains.kotlin.metadata.ProtoBuf.Type> 
+        getNestedTypeList();
+    /**
+     * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+     *
+     * <pre>
+     * Present only if type is union
+     * </pre>
+     */
+    org.jetbrains.kotlin.metadata.ProtoBuf.Type getNestedType(int index);
+    /**
+     * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+     *
+     * <pre>
+     * Present only if type is union
+     * </pre>
+     */
+    int getNestedTypeCount();
+
+    /**
+     * <code>repeated int32 nested_type_id = 17 [packed = true];</code>
+     */
+    java.util.List<java.lang.Integer> getNestedTypeIdList();
+    /**
+     * <code>repeated int32 nested_type_id = 17 [packed = true];</code>
+     */
+    int getNestedTypeIdCount();
+    /**
+     * <code>repeated int32 nested_type_id = 17 [packed = true];</code>
+     */
+    int getNestedTypeId(int index);
+
+    /**
      * <code>optional int32 flags = 1;</code>
      *
      * <pre>
@@ -4947,6 +4986,35 @@ public final class ProtoBuf {
               abbreviatedTypeId_ = input.readInt32();
               break;
             }
+            case 130: {
+              if (!((mutable_bitField0_ & 0x00002000) == 0x00002000)) {
+                nestedType_ = new java.util.ArrayList<org.jetbrains.kotlin.metadata.ProtoBuf.Type>();
+                mutable_bitField0_ |= 0x00002000;
+              }
+              nestedType_.add(input.readMessage(org.jetbrains.kotlin.metadata.ProtoBuf.Type.PARSER, extensionRegistry));
+              break;
+            }
+            case 136: {
+              if (!((mutable_bitField0_ & 0x00004000) == 0x00004000)) {
+                nestedTypeId_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00004000;
+              }
+              nestedTypeId_.add(input.readInt32());
+              break;
+            }
+            case 138: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00004000) == 0x00004000) && input.getBytesUntilLimit() > 0) {
+                nestedTypeId_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00004000;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                nestedTypeId_.add(input.readInt32());
+              }
+              input.popLimit(limit);
+              break;
+            }
           }
         }
       } catch (org.jetbrains.kotlin.protobuf.InvalidProtocolBufferException e) {
@@ -4957,6 +5025,12 @@ public final class ProtoBuf {
       } finally {
         if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
           argument_ = java.util.Collections.unmodifiableList(argument_);
+        }
+        if (((mutable_bitField0_ & 0x00002000) == 0x00002000)) {
+          nestedType_ = java.util.Collections.unmodifiableList(nestedType_);
+        }
+        if (((mutable_bitField0_ & 0x00004000) == 0x00004000)) {
+          nestedTypeId_ = java.util.Collections.unmodifiableList(nestedTypeId_);
         }
         try {
           unknownFieldsCodedOutput.flush();
@@ -5923,6 +5997,84 @@ public final class ProtoBuf {
       return abbreviatedTypeId_;
     }
 
+    public static final int NESTED_TYPE_FIELD_NUMBER = 16;
+    private java.util.List<org.jetbrains.kotlin.metadata.ProtoBuf.Type> nestedType_;
+    /**
+     * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+     *
+     * <pre>
+     * Present only if type is union
+     * </pre>
+     */
+    public java.util.List<org.jetbrains.kotlin.metadata.ProtoBuf.Type> getNestedTypeList() {
+      return nestedType_;
+    }
+    /**
+     * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+     *
+     * <pre>
+     * Present only if type is union
+     * </pre>
+     */
+    public java.util.List<? extends org.jetbrains.kotlin.metadata.ProtoBuf.TypeOrBuilder> 
+        getNestedTypeOrBuilderList() {
+      return nestedType_;
+    }
+    /**
+     * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+     *
+     * <pre>
+     * Present only if type is union
+     * </pre>
+     */
+    public int getNestedTypeCount() {
+      return nestedType_.size();
+    }
+    /**
+     * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+     *
+     * <pre>
+     * Present only if type is union
+     * </pre>
+     */
+    public org.jetbrains.kotlin.metadata.ProtoBuf.Type getNestedType(int index) {
+      return nestedType_.get(index);
+    }
+    /**
+     * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+     *
+     * <pre>
+     * Present only if type is union
+     * </pre>
+     */
+    public org.jetbrains.kotlin.metadata.ProtoBuf.TypeOrBuilder getNestedTypeOrBuilder(
+        int index) {
+      return nestedType_.get(index);
+    }
+
+    public static final int NESTED_TYPE_ID_FIELD_NUMBER = 17;
+    private java.util.List<java.lang.Integer> nestedTypeId_;
+    /**
+     * <code>repeated int32 nested_type_id = 17 [packed = true];</code>
+     */
+    public java.util.List<java.lang.Integer>
+        getNestedTypeIdList() {
+      return nestedTypeId_;
+    }
+    /**
+     * <code>repeated int32 nested_type_id = 17 [packed = true];</code>
+     */
+    public int getNestedTypeIdCount() {
+      return nestedTypeId_.size();
+    }
+    /**
+     * <code>repeated int32 nested_type_id = 17 [packed = true];</code>
+     */
+    public int getNestedTypeId(int index) {
+      return nestedTypeId_.get(index);
+    }
+    private int nestedTypeIdMemoizedSerializedSize = -1;
+
     public static final int FLAGS_FIELD_NUMBER = 1;
     private int flags_;
     /**
@@ -5960,6 +6112,8 @@ public final class ProtoBuf {
       outerTypeId_ = 0;
       abbreviatedType_ = org.jetbrains.kotlin.metadata.ProtoBuf.Type.getDefaultInstance();
       abbreviatedTypeId_ = 0;
+      nestedType_ = java.util.Collections.emptyList();
+      nestedTypeId_ = java.util.Collections.emptyList();
       flags_ = 0;
     }
     private byte memoizedIsInitialized = -1;
@@ -5988,6 +6142,12 @@ public final class ProtoBuf {
       }
       if (hasAbbreviatedType()) {
         if (!getAbbreviatedType().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
+      for (int i = 0; i < getNestedTypeCount(); i++) {
+        if (!getNestedType(i).isInitialized()) {
           memoizedIsInitialized = 0;
           return false;
         }
@@ -6047,6 +6207,16 @@ public final class ProtoBuf {
       }
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
         output.writeInt32(14, abbreviatedTypeId_);
+      }
+      for (int i = 0; i < nestedType_.size(); i++) {
+        output.writeMessage(16, nestedType_.get(i));
+      }
+      if (getNestedTypeIdList().size() > 0) {
+        output.writeRawVarint32(138);
+        output.writeRawVarint32(nestedTypeIdMemoizedSerializedSize);
+      }
+      for (int i = 0; i < nestedTypeId_.size(); i++) {
+        output.writeInt32NoTag(nestedTypeId_.get(i));
       }
       extensionWriter.writeUntil(200, output);
       output.writeRawBytes(unknownFields);
@@ -6113,6 +6283,24 @@ public final class ProtoBuf {
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
         size += org.jetbrains.kotlin.protobuf.CodedOutputStream
           .computeInt32Size(14, abbreviatedTypeId_);
+      }
+      for (int i = 0; i < nestedType_.size(); i++) {
+        size += org.jetbrains.kotlin.protobuf.CodedOutputStream
+          .computeMessageSize(16, nestedType_.get(i));
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < nestedTypeId_.size(); i++) {
+          dataSize += org.jetbrains.kotlin.protobuf.CodedOutputStream
+            .computeInt32SizeNoTag(nestedTypeId_.get(i));
+        }
+        size += dataSize;
+        if (!getNestedTypeIdList().isEmpty()) {
+          size += 2;
+          size += org.jetbrains.kotlin.protobuf.CodedOutputStream
+              .computeInt32SizeNoTag(dataSize);
+        }
+        nestedTypeIdMemoizedSerializedSize = dataSize;
       }
       size += extensionsSerializedSize();
       size += unknownFields.size();
@@ -6234,8 +6422,12 @@ public final class ProtoBuf {
         bitField0_ = (bitField0_ & ~0x00000800);
         abbreviatedTypeId_ = 0;
         bitField0_ = (bitField0_ & ~0x00001000);
-        flags_ = 0;
+        nestedType_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00002000);
+        nestedTypeId_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00004000);
+        flags_ = 0;
+        bitField0_ = (bitField0_ & ~0x00008000);
         return this;
       }
 
@@ -6312,7 +6504,17 @@ public final class ProtoBuf {
           to_bitField0_ |= 0x00000800;
         }
         result.abbreviatedTypeId_ = abbreviatedTypeId_;
-        if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
+        if (((bitField0_ & 0x00002000) == 0x00002000)) {
+          nestedType_ = java.util.Collections.unmodifiableList(nestedType_);
+          bitField0_ = (bitField0_ & ~0x00002000);
+        }
+        result.nestedType_ = nestedType_;
+        if (((bitField0_ & 0x00004000) == 0x00004000)) {
+          nestedTypeId_ = java.util.Collections.unmodifiableList(nestedTypeId_);
+          bitField0_ = (bitField0_ & ~0x00004000);
+        }
+        result.nestedTypeId_ = nestedTypeId_;
+        if (((from_bitField0_ & 0x00008000) == 0x00008000)) {
           to_bitField0_ |= 0x00001000;
         }
         result.flags_ = flags_;
@@ -6368,6 +6570,26 @@ public final class ProtoBuf {
         if (other.hasAbbreviatedTypeId()) {
           setAbbreviatedTypeId(other.getAbbreviatedTypeId());
         }
+        if (!other.nestedType_.isEmpty()) {
+          if (nestedType_.isEmpty()) {
+            nestedType_ = other.nestedType_;
+            bitField0_ = (bitField0_ & ~0x00002000);
+          } else {
+            ensureNestedTypeIsMutable();
+            nestedType_.addAll(other.nestedType_);
+          }
+          
+        }
+        if (!other.nestedTypeId_.isEmpty()) {
+          if (nestedTypeId_.isEmpty()) {
+            nestedTypeId_ = other.nestedTypeId_;
+            bitField0_ = (bitField0_ & ~0x00004000);
+          } else {
+            ensureNestedTypeIdIsMutable();
+            nestedTypeId_.addAll(other.nestedTypeId_);
+          }
+          
+        }
         if (other.hasFlags()) {
           setFlags(other.getFlags());
         }
@@ -6398,6 +6620,12 @@ public final class ProtoBuf {
         }
         if (hasAbbreviatedType()) {
           if (!getAbbreviatedType().isInitialized()) {
+            
+            return false;
+          }
+        }
+        for (int i = 0; i < getNestedTypeCount(); i++) {
+          if (!getNestedType(i).isInitialized()) {
             
             return false;
           }
@@ -7117,6 +7345,245 @@ public final class ProtoBuf {
         return this;
       }
 
+      private java.util.List<org.jetbrains.kotlin.metadata.ProtoBuf.Type> nestedType_ =
+        java.util.Collections.emptyList();
+      private void ensureNestedTypeIsMutable() {
+        if (!((bitField0_ & 0x00002000) == 0x00002000)) {
+          nestedType_ = new java.util.ArrayList<org.jetbrains.kotlin.metadata.ProtoBuf.Type>(nestedType_);
+          bitField0_ |= 0x00002000;
+         }
+      }
+
+      /**
+       * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+       *
+       * <pre>
+       * Present only if type is union
+       * </pre>
+       */
+      public java.util.List<org.jetbrains.kotlin.metadata.ProtoBuf.Type> getNestedTypeList() {
+        return java.util.Collections.unmodifiableList(nestedType_);
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+       *
+       * <pre>
+       * Present only if type is union
+       * </pre>
+       */
+      public int getNestedTypeCount() {
+        return nestedType_.size();
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+       *
+       * <pre>
+       * Present only if type is union
+       * </pre>
+       */
+      public org.jetbrains.kotlin.metadata.ProtoBuf.Type getNestedType(int index) {
+        return nestedType_.get(index);
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+       *
+       * <pre>
+       * Present only if type is union
+       * </pre>
+       */
+      public Builder setNestedType(
+          int index, org.jetbrains.kotlin.metadata.ProtoBuf.Type value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureNestedTypeIsMutable();
+        nestedType_.set(index, value);
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+       *
+       * <pre>
+       * Present only if type is union
+       * </pre>
+       */
+      public Builder setNestedType(
+          int index, org.jetbrains.kotlin.metadata.ProtoBuf.Type.Builder builderForValue) {
+        ensureNestedTypeIsMutable();
+        nestedType_.set(index, builderForValue.build());
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+       *
+       * <pre>
+       * Present only if type is union
+       * </pre>
+       */
+      public Builder addNestedType(org.jetbrains.kotlin.metadata.ProtoBuf.Type value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureNestedTypeIsMutable();
+        nestedType_.add(value);
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+       *
+       * <pre>
+       * Present only if type is union
+       * </pre>
+       */
+      public Builder addNestedType(
+          int index, org.jetbrains.kotlin.metadata.ProtoBuf.Type value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureNestedTypeIsMutable();
+        nestedType_.add(index, value);
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+       *
+       * <pre>
+       * Present only if type is union
+       * </pre>
+       */
+      public Builder addNestedType(
+          org.jetbrains.kotlin.metadata.ProtoBuf.Type.Builder builderForValue) {
+        ensureNestedTypeIsMutable();
+        nestedType_.add(builderForValue.build());
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+       *
+       * <pre>
+       * Present only if type is union
+       * </pre>
+       */
+      public Builder addNestedType(
+          int index, org.jetbrains.kotlin.metadata.ProtoBuf.Type.Builder builderForValue) {
+        ensureNestedTypeIsMutable();
+        nestedType_.add(index, builderForValue.build());
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+       *
+       * <pre>
+       * Present only if type is union
+       * </pre>
+       */
+      public Builder addAllNestedType(
+          java.lang.Iterable<? extends org.jetbrains.kotlin.metadata.ProtoBuf.Type> values) {
+        ensureNestedTypeIsMutable();
+        org.jetbrains.kotlin.protobuf.AbstractMessageLite.Builder.addAll(
+            values, nestedType_);
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+       *
+       * <pre>
+       * Present only if type is union
+       * </pre>
+       */
+      public Builder clearNestedType() {
+        nestedType_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00002000);
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.metadata.Type nested_type = 16;</code>
+       *
+       * <pre>
+       * Present only if type is union
+       * </pre>
+       */
+      public Builder removeNestedType(int index) {
+        ensureNestedTypeIsMutable();
+        nestedType_.remove(index);
+
+        return this;
+      }
+
+      private java.util.List<java.lang.Integer> nestedTypeId_ = java.util.Collections.emptyList();
+      private void ensureNestedTypeIdIsMutable() {
+        if (!((bitField0_ & 0x00004000) == 0x00004000)) {
+          nestedTypeId_ = new java.util.ArrayList<java.lang.Integer>(nestedTypeId_);
+          bitField0_ |= 0x00004000;
+         }
+      }
+      /**
+       * <code>repeated int32 nested_type_id = 17 [packed = true];</code>
+       */
+      public java.util.List<java.lang.Integer>
+          getNestedTypeIdList() {
+        return java.util.Collections.unmodifiableList(nestedTypeId_);
+      }
+      /**
+       * <code>repeated int32 nested_type_id = 17 [packed = true];</code>
+       */
+      public int getNestedTypeIdCount() {
+        return nestedTypeId_.size();
+      }
+      /**
+       * <code>repeated int32 nested_type_id = 17 [packed = true];</code>
+       */
+      public int getNestedTypeId(int index) {
+        return nestedTypeId_.get(index);
+      }
+      /**
+       * <code>repeated int32 nested_type_id = 17 [packed = true];</code>
+       */
+      public Builder setNestedTypeId(
+          int index, int value) {
+        ensureNestedTypeIdIsMutable();
+        nestedTypeId_.set(index, value);
+        
+        return this;
+      }
+      /**
+       * <code>repeated int32 nested_type_id = 17 [packed = true];</code>
+       */
+      public Builder addNestedTypeId(int value) {
+        ensureNestedTypeIdIsMutable();
+        nestedTypeId_.add(value);
+        
+        return this;
+      }
+      /**
+       * <code>repeated int32 nested_type_id = 17 [packed = true];</code>
+       */
+      public Builder addAllNestedTypeId(
+          java.lang.Iterable<? extends java.lang.Integer> values) {
+        ensureNestedTypeIdIsMutable();
+        org.jetbrains.kotlin.protobuf.AbstractMessageLite.Builder.addAll(
+            values, nestedTypeId_);
+        
+        return this;
+      }
+      /**
+       * <code>repeated int32 nested_type_id = 17 [packed = true];</code>
+       */
+      public Builder clearNestedTypeId() {
+        nestedTypeId_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00004000);
+        
+        return this;
+      }
+
       private int flags_ ;
       /**
        * <code>optional int32 flags = 1;</code>
@@ -7126,7 +7593,7 @@ public final class ProtoBuf {
        * </pre>
        */
       public boolean hasFlags() {
-        return ((bitField0_ & 0x00002000) == 0x00002000);
+        return ((bitField0_ & 0x00008000) == 0x00008000);
       }
       /**
        * <code>optional int32 flags = 1;</code>
@@ -7146,7 +7613,7 @@ public final class ProtoBuf {
        * </pre>
        */
       public Builder setFlags(int value) {
-        bitField0_ |= 0x00002000;
+        bitField0_ |= 0x00008000;
         flags_ = value;
         
         return this;
@@ -7159,7 +7626,7 @@ public final class ProtoBuf {
        * </pre>
        */
       public Builder clearFlags() {
-        bitField0_ = (bitField0_ & ~0x00002000);
+        bitField0_ = (bitField0_ & ~0x00008000);
         flags_ = 0;
         
         return this;

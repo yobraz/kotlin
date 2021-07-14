@@ -857,6 +857,10 @@ open class ProtoCompareGenerated(
             if (!checkEquals(oldTypeTable.getType(old.abbreviatedTypeId), newTypeTable.getType(new.abbreviatedTypeId))) return false
         }
 
+        if (!checkEqualsTypeNestedType(old, new)) return false
+
+        if (!checkEqualsTypeNestedTypeId(old, new)) return false
+
         if (old.hasFlags() != new.hasFlags()) return false
         if (old.hasFlags()) {
             if (old.flags != new.flags) return false
@@ -1557,6 +1561,26 @@ open class ProtoCompareGenerated(
         return true
     }
 
+    open fun checkEqualsTypeNestedType(old: ProtoBuf.Type, new: ProtoBuf.Type): Boolean {
+        if (old.nestedTypeCount != new.nestedTypeCount) return false
+
+        for(i in 0..old.nestedTypeCount - 1) {
+            if (!checkEquals(old.getNestedType(i), new.getNestedType(i))) return false
+        }
+
+        return true
+    }
+
+    open fun checkEqualsTypeNestedTypeId(old: ProtoBuf.Type, new: ProtoBuf.Type): Boolean {
+        if (old.nestedTypeIdCount != new.nestedTypeIdCount) return false
+
+        for(i in 0..old.nestedTypeIdCount - 1) {
+            if (!checkEquals(oldTypeTable.getType(old.getNestedTypeId(i)), newTypeTable.getType(new.getNestedTypeId(i)))) return false
+        }
+
+        return true
+    }
+
     open fun checkEqualsConstructorValueParameter(old: ProtoBuf.Constructor, new: ProtoBuf.Constructor): Boolean {
         if (old.valueParameterCount != new.valueParameterCount) return false
 
@@ -2170,6 +2194,14 @@ fun ProtoBuf.Type.hashCode(stringIndexes: (Int) -> Int, fqNameIndexes: (Int) -> 
 
     if (hasAbbreviatedTypeId()) {
         hashCode = 31 * hashCode + typeById(abbreviatedTypeId).hashCode(stringIndexes, fqNameIndexes, typeById)
+    }
+
+    for(i in 0..nestedTypeCount - 1) {
+        hashCode = 31 * hashCode + getNestedType(i).hashCode(stringIndexes, fqNameIndexes, typeById)
+    }
+
+    for(i in 0..nestedTypeIdCount - 1) {
+        hashCode = 31 * hashCode + typeById(getNestedTypeId(i)).hashCode(stringIndexes, fqNameIndexes, typeById)
     }
 
     if (hasFlags()) {
