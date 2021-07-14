@@ -43,8 +43,8 @@ object FirOptInUsageTypeRefChecker : FirTypeRefChecker() {
         }
 
         with(FirOptInUsageBaseChecker) {
-            val experimentalities = symbol.loadExperimentalities(context) +
-                    loadExperimentalitiesFromConeArguments(context, coneType.typeArguments.toList())
+            val experimentalities = symbol.loadExperimentalities(context)
+            experimentalities.addExperimentalitiesFromConeArguments(context, coneType.typeArguments.toList())
             reportNotAcceptedExperimentalities(experimentalities, typeRef, context, reporter)
         }
     }

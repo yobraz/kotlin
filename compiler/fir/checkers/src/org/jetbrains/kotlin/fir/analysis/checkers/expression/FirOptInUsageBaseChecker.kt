@@ -32,22 +32,28 @@ import org.jetbrains.kotlin.resolve.checkers.OptInNames
 import org.jetbrains.kotlin.utils.SmartSet
 
 object FirOptInUsageBaseChecker {
-    internal fun loadExperimentalitiesFromTypeArguments(
+    internal fun MutableSet<Experimentality>.addExperimentalitiesFromTypeArguments(
         context: CheckerContext,
         typeArguments: List<FirTypeProjection>
-    ): Set<Experimentality> {
-        if (typeArguments.isEmpty()) return emptySet()
-        return loadExperimentalitiesFromConeArguments(context, typeArguments.map { it.toConeTypeProjection() })
+    ) {
+        if (typeArguments.isEmpty()) return
+        typeArguments.forEach {
+            val coneArgument = it.toConeTypeProjection()
+            if (!coneArgument.isStarProjection) {
+                addAll(coneArgument.type?.loadExperimentalities(context.session).orEmpty())
+            }
+        }
     }
 
-    internal fun loadExperimentalitiesFromConeArguments(
+    internal fun MutableSet<Experimentality>.addExperimentalitiesFromConeArguments(
         context: CheckerContext,
         typeArguments: List<ConeTypeProjection>
-    ): Set<Experimentality> {
-        if (typeArguments.isEmpty()) return emptySet()
-        return typeArguments.flatMapTo(mutableSetOf()) {
-            if (it.isStarProjection) emptySet()
-            else it.type?.loadExperimentalities(context.session).orEmpty().distinct()
+    ) {
+        if (typeArguments.isEmpty()) return
+        typeArguments.forEach {
+            if (!it.isStarProjection) {
+                addAll(it.type?.loadExperimentalities(context.session).orEmpty())
+            }
         }
     }
 
@@ -56,11 +62,11 @@ object FirOptInUsageBaseChecker {
         context: CheckerContext,
         visited: MutableSet<FirAnnotatedDeclaration> = mutableSetOf(),
         fromSetter: Boolean = false,
-    ): Set<Experimentality> {
+    ): SmartSet<Experimentality> {
         ensureResolved(FirResolvePhase.STATUS)
-        val fir = fir as? FirAnnotatedDeclaration ?: return emptySet()
-        if (!visited.add(fir)) return emptySet()
         val result = SmartSet.create<Experimentality>()
+        val fir = fir as? FirAnnotatedDeclaration ?: return result
+        if (!visited.add(fir)) return result
         val session = context.session
         if (fir is FirCallableDeclaration && fir.isSubstitutionOrIntersectionOverride) {
             val parentClassScope = fir.containingClass()?.toFirRegularClass(session)?.unsubstitutedScope(context)
