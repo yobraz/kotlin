@@ -9,10 +9,7 @@ import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.expressions.FirBlock
 import org.jetbrains.kotlin.fir.expressions.FirExpression
-import org.jetbrains.kotlin.fir.types.FirDynamicTypeRef
-import org.jetbrains.kotlin.fir.types.FirErrorTypeRef
-import org.jetbrains.kotlin.fir.types.FirImplicitTypeRef
-import org.jetbrains.kotlin.fir.types.FirTypeRef
+import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.*
 import org.jetbrains.kotlin.fir.types.impl.*
 import org.jetbrains.kotlin.name.FqName
@@ -54,6 +51,9 @@ fun <R : FirTypeRef> R.copyWithNewSourceKind(newKind: FirFakeSourceElementKind):
             annotations += typeRef.annotations
         }
         is FirImplicitBuiltinTypeRef -> typeRef.withFakeSource(newKind)
+        is FirUnionTypeRef -> buildUnionTypeRefCopy(typeRef) {
+            source = newSource
+        }
         else -> TODO("Not implemented for ${typeRef::class}")
     } as R
 }

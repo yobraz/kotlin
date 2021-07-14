@@ -99,5 +99,11 @@ public class FirSpecificBlackBoxCodegenTestGenerated extends AbstractFirBlackBox
         public void testSimpleMulticatch() throws Exception {
             runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/simpleMulticatch.kt");
         }
+
+        @Test
+        @TestMetadata("typeParameter.kt")
+        public void testTypeParameter() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/typeParameter.kt");
+        }
     }
 }
