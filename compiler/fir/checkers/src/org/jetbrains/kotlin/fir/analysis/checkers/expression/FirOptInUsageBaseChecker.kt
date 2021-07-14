@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.fir.scopes.processDirectlyOverriddenProperties
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.ensureResolved
+import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.checkers.Experimentality
@@ -61,20 +62,17 @@ object FirOptInUsageBaseChecker {
         if (!visited.add(fir)) return emptySet()
         val result = SmartSet.create<Experimentality>()
         val session = context.session
-        if (fir is FirCallableDeclaration) {
-            val parentClass = fir.containingClass()?.toFirRegularClass(session)
-            if (fir.isSubstitutionOrIntersectionOverride) {
-                val parentClassScope = parentClass?.unsubstitutedScope(context)
-                if (fir is FirSimpleFunction) {
-                    parentClassScope?.processDirectlyOverriddenFunctions(fir.symbol) {
-                        result.addAll(it.loadExperimentalities(context, visited))
-                        ProcessorAction.NEXT
-                    }
-                } else if (fir is FirProperty) {
-                    parentClassScope?.processDirectlyOverriddenProperties(fir.symbol) {
-                        result.addAll(it.loadExperimentalities(context, visited, fromSetter))
-                        ProcessorAction.NEXT
-                    }
+        if (fir is FirCallableDeclaration && fir.isSubstitutionOrIntersectionOverride) {
+            val parentClassScope = fir.containingClass()?.toFirRegularClass(session)?.unsubstitutedScope(context)
+            if (fir is FirSimpleFunction) {
+                parentClassScope?.processDirectlyOverriddenFunctions(fir.symbol) {
+                    result.addAll(it.loadExperimentalities(context, visited))
+                    ProcessorAction.NEXT
+                }
+            } else if (fir is FirProperty) {
+                parentClassScope?.processDirectlyOverriddenProperties(fir.symbol) {
+                    result.addAll(it.loadExperimentalities(context, visited, fromSetter))
+                    ProcessorAction.NEXT
                 }
             }
         }
@@ -89,7 +87,6 @@ object FirOptInUsageBaseChecker {
 
         if (fir.origin == FirDeclarationOrigin.Library || fir.origin == FirDeclarationOrigin.Enhancement) {
             if (fir is FirCallableDeclaration) {
-                val parentClass = fir.containingClass()?.toFirRegularClass(session)
                 result.addAll(fir.returnTypeRef.coneTypeSafe<ConeKotlinType>().loadExperimentalities(context.session))
                 result.addAll(fir.receiverTypeRef?.coneTypeSafe<ConeKotlinType>().loadExperimentalities(context.session))
                 if (fir is FirSimpleFunction) {
@@ -97,17 +94,16 @@ object FirOptInUsageBaseChecker {
                         result.addAll(it.returnTypeRef.coneTypeSafe<ConeKotlinType>().loadExperimentalities(context.session))
                     }
                 }
+                val parentClass = fir.containingClass()?.toFirRegularClass(session)
                 if (parentClass != null) {
-                    result.addAll(parentClass.symbol.loadExperimentalities(context, visited))
+                    result.addAll(parentClass.experimentalities)
                 }
             } else if (fir is FirRegularClass) {
                 val parentClassSymbol = fir.symbol.outerClassSymbol(context)
-                if (parentClassSymbol != null) {
-                    result.addAll(parentClassSymbol.loadExperimentalities(context, visited))
+                if (parentClassSymbol is FirRegularClassSymbol) {
+                    result.addAll(parentClassSymbol.fir.experimentalities)
                 }
-
             }
-            result.addAll(fir.calculateOwnExperimentalities(context.session))
         }
 
         return result

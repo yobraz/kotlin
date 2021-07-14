@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.java.JavaSymbolProvider
 import org.jetbrains.kotlin.fir.java.topLevelName
 import org.jetbrains.kotlin.fir.languageVersionSettings
+import org.jetbrains.kotlin.fir.resolve.calculateOwnExperimentalitiesFromAnnotations
 import org.jetbrains.kotlin.fir.scopes.FirKotlinScopeProvider
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.load.java.JavaClassFinder
@@ -138,8 +139,12 @@ class KotlinDeserializedJvmSymbolsProvider(
             },
             kotlinClass.byteContent,
         )
-        (symbol.fir.annotations as MutableList<FirAnnotationCall>) += annotations
-        symbol.fir.replaceDeprecation(symbol.fir.getDeprecationInfos(session.languageVersionSettings.apiVersion))
+        val fir = symbol.fir
+        (fir.annotations as MutableList<FirAnnotationCall>) += annotations
+        fir.replaceDeprecation(fir.getDeprecationInfos(session.languageVersionSettings.apiVersion))
+        fir.replaceExperimentalities(
+            fir.experimentalities + fir.annotations.calculateOwnExperimentalitiesFromAnnotations(session, false)
+        )
     }
 
     private fun readClassFromClassFile(classId: ClassId, classFile: KotlinClassFinder.Result.ClassFileContent): FirRegularClassSymbol? {

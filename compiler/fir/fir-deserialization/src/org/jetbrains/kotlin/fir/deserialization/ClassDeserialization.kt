@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.fir.declarations.utils.addDeclarations
 import org.jetbrains.kotlin.fir.declarations.utils.moduleName
 import org.jetbrains.kotlin.fir.declarations.utils.sourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
+import org.jetbrains.kotlin.fir.resolve.calculateOwnExperimentalitiesFromAnnotations
 import org.jetbrains.kotlin.fir.resolve.providers.impl.FirCloneableSymbolProvider.Companion.CLONE
 import org.jetbrains.kotlin.fir.resolve.providers.impl.FirCloneableSymbolProvider.Companion.CLONEABLE_CLASS_ID
 import org.jetbrains.kotlin.fir.scopes.FirScopeProvider
@@ -220,6 +221,7 @@ fun deserializeClassToSymbol(
         it.sourceElement = containerSource
 
         it.replaceDeprecation(it.getDeprecationInfos(session.languageVersionSettings.apiVersion))
+        it.replaceExperimentalities(it.annotations.calculateOwnExperimentalitiesFromAnnotations(session, false))
 
         classProto.getExtensionOrNull(JvmProtoBuf.classModuleName)?.let { idx ->
             it.moduleName = nameResolver.getString(idx)

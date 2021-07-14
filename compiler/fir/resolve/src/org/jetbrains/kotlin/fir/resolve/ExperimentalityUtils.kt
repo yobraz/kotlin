@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.fir.FirAnnotationContainer
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirConstExpression
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
 import org.jetbrains.kotlin.fir.references.FirNamedReference
@@ -23,8 +24,15 @@ import org.jetbrains.kotlin.utils.addIfNotNull
 
 
 fun FirAnnotationContainer.calculateOwnExperimentalities(session: FirSession, fromSetter: Boolean = false): List<Experimentality> {
+    return annotations.calculateOwnExperimentalitiesFromAnnotations(session, fromSetter)
+}
+
+fun List<FirAnnotationCall>.calculateOwnExperimentalitiesFromAnnotations(
+    session: FirSession,
+    fromSetter: Boolean
+): List<Experimentality> {
     val result = mutableListOf<Experimentality>()
-    for (annotation in annotations) {
+    for (annotation in this) {
         if (annotation.useSiteTarget != AnnotationUseSiteTarget.PROPERTY_SETTER || fromSetter) {
             val annotationType = annotation.annotationTypeRef.coneTypeSafe<ConeClassLikeType>()
             result.addIfNotNull(
