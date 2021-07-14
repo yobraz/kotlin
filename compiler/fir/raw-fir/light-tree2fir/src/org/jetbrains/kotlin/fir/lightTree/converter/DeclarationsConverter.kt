@@ -1211,10 +1211,11 @@ class DeclarationsConverter(
         var modifiers = Modifier()
         var isGetter = true
         var returnType: FirTypeRef? = null
+        val propertyTypeRefToUse = propertyTypeRef.copyWithNewSourceKind(FirFakeSourceElementKind.ImplicitTypeRef)
         var firValueParameters: FirValueParameter = buildDefaultSetterValueParameter {
             moduleData = baseModuleData
             origin = FirDeclarationOrigin.Source
-            returnTypeRef = propertyTypeRef
+            returnTypeRef = propertyTypeRefToUse
             symbol = FirValueParameterSymbol(NAME_FOR_DEFAULT_VALUE_PARAMETER)
         }
         var block: LighterASTNode? = null
@@ -1226,7 +1227,7 @@ class DeclarationsConverter(
                 SET_KEYWORD -> isGetter = false
                 MODIFIER_LIST -> modifiers = convertModifierList(it)
                 TYPE_REFERENCE -> returnType = convertType(it)
-                VALUE_PARAMETER_LIST -> firValueParameters = convertSetterParameter(it, propertyTypeRef)
+                VALUE_PARAMETER_LIST -> firValueParameters = convertSetterParameter(it, propertyTypeRefToUse)
                 CONTRACT_EFFECT_LIST -> outerContractDescription = obtainContractDescription(it)
                 BLOCK -> block = it
                 else -> if (it.isExpression()) expression = it
@@ -1250,7 +1251,7 @@ class DeclarationsConverter(
                     sourceElement,
                     baseModuleData,
                     FirDeclarationOrigin.Source,
-                    propertyTypeRef,
+                    propertyTypeRefToUse,
                     accessorVisibility,
                     isGetter
                 )
@@ -1265,7 +1266,7 @@ class DeclarationsConverter(
             source = sourceElement
             moduleData = baseModuleData
             origin = FirDeclarationOrigin.Source
-            returnTypeRef = returnType ?: if (isGetter) propertyTypeRef else implicitUnitType
+            returnTypeRef = returnType ?: if (isGetter) propertyTypeRefToUse else implicitUnitType
             symbol = FirPropertyAccessorSymbol()
             this.isGetter = isGetter
             this.status = status
