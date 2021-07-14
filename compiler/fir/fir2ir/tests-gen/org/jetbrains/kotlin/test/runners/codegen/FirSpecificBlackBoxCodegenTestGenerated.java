@@ -41,6 +41,60 @@ public class FirSpecificBlackBoxCodegenTestGenerated extends AbstractFirBlackBox
         }
 
         @Test
+        @TestMetadata("applicability.kt")
+        public void testApplicability() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/applicability.kt");
+        }
+
+        @Test
+        @TestMetadata("callFromCatch.kt")
+        public void testCallFromCatch() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/callFromCatch.kt");
+        }
+
+        @Test
+        @TestMetadata("callResolution.kt")
+        public void testCallResolution() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/callResolution.kt");
+        }
+
+        @Test
+        @TestMetadata("inapplicableJavaCall.kt")
+        public void testInapplicableJavaCall() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/inapplicableJavaCall.kt");
+        }
+
+        @Test
+        @TestMetadata("interfacesApplicability.kt")
+        public void testInterfacesApplicability() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/interfacesApplicability.kt");
+        }
+
+        @Test
+        @TestMetadata("localVariable.kt")
+        public void testLocalVariable() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/localVariable.kt");
+        }
+
+        @Test
+        @TestMetadata("mayBe.kt")
+        public void testMayBe() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/mayBe.kt");
+        }
+
+        @Test
+        @TestMetadata("propertyInConstructor.kt")
+        public void testPropertyInConstructor() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/propertyInConstructor.kt");
+        }
+
+        @Test
+        @TestMetadata("refiedTypeParameters.kt")
+        public void testRefiedTypeParameters() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/refiedTypeParameters.kt");
+        }
+
+        @Test
         @TestMetadata("simpleMulticatch.kt")
         public void testSimpleMulticatch() throws Exception {
             runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/simpleMulticatch.kt");
