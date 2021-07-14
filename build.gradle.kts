@@ -329,7 +329,11 @@ extra["tasksWithWarnings"] = listOf(
     ":plugins:uast-kotlin:compileKotlin",
     ":plugins:uast-kotlin:compileTestKotlin",
     ":plugins:uast-kotlin-fir:compileKotlin",
-    ":plugins:uast-kotlin-fir:compileTestKotlin"
+    ":plugins:uast-kotlin-fir:compileTestKotlin",
+    //TODO: investigate "Runtime JAR files in the classpath should have the same version."
+    ":kotlin-scripting-compiler-impl:compileKotlin",
+    ":kotlin-scripting-compiler:compileKotlin",
+    ":kotlin-scripting-compiler-impl:compileKotlin"
 )
 
 val tasksWithWarnings: List<String> by extra
