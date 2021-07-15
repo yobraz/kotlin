@@ -1,8 +1,5 @@
-// FIR_IDENTICAL
+// SKIP_KT_DUMP
 // !LANGUAGE: +SuspendConversion
-// !DIAGNOSTICS: -UNUSED_PARAMETER
-// IGNORE_BACKEND: JVM
-// IGNORE_BACKEND_FIR: JVM_IR
 
 fun interface SuspendRunnable {
     suspend fun invoke()
@@ -16,11 +13,9 @@ fun bar2(s: String = ""): Int = 0
 fun bar3() {}
 suspend fun bar3(s: String = ""): Int = 0
 
-fun box(): String {
+fun box() {
     foo1(::bar1)
     foo1(::bar2)
 
     foo1(::bar3) // Should be ambiguity
-
-    return "OK"
 }

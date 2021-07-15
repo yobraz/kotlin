@@ -1,5 +1,7 @@
 // !LANGUAGE: +SuspendConversion
 // !DIAGNOSTICS: -UNUSED_PARAMETER
+// IGNORE_BACKEND: JVM
+// IGNORE_BACKEND: WASM
 
 fun foo(x: () -> Int) {}
 fun foo(x: suspend () -> Int) {}
