@@ -59,7 +59,7 @@ abstract class PromisedValue(val codegen: ExpressionCodegen, val type: Type, val
         }
 
         if (type != target || (castForReified && irType.anyTypeArgument { it.isReified })) {
-            StackValue.coerce(type, target, mv, type == target)
+            StackValue.coerce(type, target, mv, type == target, irType.isSubtypeOf(irTarget))
         }
     }
 
@@ -70,6 +70,9 @@ abstract class PromisedValue(val codegen: ExpressionCodegen, val type: Type, val
 
     val typeMapper: IrTypeMapper
         get() = codegen.typeMapper
+
+    private fun IrType.isSubtypeOf(irTarget: IrType): Boolean =
+        irTarget.classOrNull != null && this.isSubtypeOfClass(irTarget.classOrNull!!)
 }
 
 
