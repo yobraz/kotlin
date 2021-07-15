@@ -15054,11 +15054,6 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
             runTest("compiler/testData/codegen/box/suspendConversion/basicSuspendConversionForCallableReference.kt");
         }
 
-        @TestMetadata("basicSuspendConversionGenerics.kt")
-        public void testBasicSuspendConversionGenerics() throws Exception {
-            runTest("compiler/testData/codegen/box/suspendConversion/basicSuspendConversionGenerics.kt");
-        }
-
         @TestMetadata("chainedFunSuspendConversionForSimpleExpression.kt")
         public void testChainedFunSuspendConversionForSimpleExpression() throws Exception {
             runTest("compiler/testData/codegen/box/suspendConversion/chainedFunSuspendConversionForSimpleExpression.kt");
