@@ -786,11 +786,6 @@ public class CliTestGenerated extends AbstractCliTest {
             runTest("compiler/testData/cli/jvm/standaloneSamConversionsAreEnabledWithNewInferenceInternalFlag.args");
         }
 
-        @TestMetadata("standaloneSamConversionsBaseline_1_3.args")
-        public void testStandaloneSamConversionsBaseline_1_3() throws Exception {
-            runTest("compiler/testData/cli/jvm/standaloneSamConversionsBaseline_1_3.args");
-        }
-
         @TestMetadata("suppressAllWarningsJvm.args")
         public void testSuppressAllWarningsJvm() throws Exception {
             runTest("compiler/testData/cli/jvm/suppressAllWarningsJvm.args");
@@ -967,16 +962,6 @@ public class CliTestGenerated extends AbstractCliTest {
         @TestMetadata("inlineCycle.args")
         public void testInlineCycle() throws Exception {
             runTest("compiler/testData/cli/js/inlineCycle.args");
-        }
-
-        @TestMetadata("irApiVersionUnsupported.args")
-        public void testIrApiVersionUnsupported() throws Exception {
-            runTest("compiler/testData/cli/js/irApiVersionUnsupported.args");
-        }
-
-        @TestMetadata("irLanguageVersionUnsupported.args")
-        public void testIrLanguageVersionUnsupported() throws Exception {
-            runTest("compiler/testData/cli/js/irLanguageVersionUnsupported.args");
         }
 
         @TestMetadata("jsExtraHelp.args")
