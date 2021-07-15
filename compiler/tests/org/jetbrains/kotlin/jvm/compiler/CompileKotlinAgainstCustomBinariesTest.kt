@@ -549,12 +549,6 @@ class CompileKotlinAgainstCustomBinariesTest : AbstractKotlinCompilerIntegration
         val library = compileLibrary("library", additionalOptions = listOf("-jvm-target", "11"))
 
         compileKotlin("source.kt", tmpdir, listOf(library), additionalOptions = listOf("-jvm-target", "1.8"))
-
-        compileKotlin(
-            "warningsOnly_1_3.kt", tmpdir, listOf(library),
-            additionalOptions = listOf("-language-version", "1.3"),
-            expectedFileName = "warningsOnly_1_3.txt"
-        )
     }
 
     fun testInlineFunctionsWithMatchingJvmSignatures() {
@@ -770,7 +764,14 @@ class CompileKotlinAgainstCustomBinariesTest : AbstractKotlinCompilerIntegration
     fun testActualTypealiasToCompiledInlineClass() {
         val library14 = compileLibrary(
             "library14",
-            additionalOptions = listOf("-language-version", "1.4")
+            additionalOptions = listOf("-language-version", "1.4"),
+            checkKotlinOutput = { result ->
+                KotlinTestUtils.assertEqualsToFile(
+                    "Expected output check failed",
+                    File(testDataDirectory, "output14.txt"),
+                    result
+                )
+            }
         )
         val library15 = compileLibrary(
             "library15",
