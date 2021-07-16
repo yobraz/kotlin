@@ -505,7 +505,7 @@ class CallExpressionResolver(
 
     companion object {
 
-        private fun canInstantiateAnnotationClass(expression: KtCallExpression, trace: BindingTrace): Boolean {
+        fun canInstantiateAnnotationClass(expression: KtCallExpression, trace: BindingTrace): Boolean {
             //noinspection unchecked
             var parent: PsiElement? = PsiTreeUtil.getParentOfType(expression, KtValueArgument::class.java, KtParameter::class.java)
             if (parent is KtValueArgument) {
