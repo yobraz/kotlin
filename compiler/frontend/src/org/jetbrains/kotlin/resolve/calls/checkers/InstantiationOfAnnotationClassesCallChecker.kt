@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
  */
 object InstantiationOfAnnotationClassesCallChecker : CallChecker {
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
+        if (!context.languageVersionSettings.supportsFeature(LanguageFeature.InstantiationOfAnnotationClasses)) return
         val calledDescriptor = resolvedCall.resultingDescriptor as? ConstructorDescriptor ?: return
         val constructedClass = calledDescriptor.constructedClass
         val expression = resolvedCall.call.callElement as? KtCallExpression ?: return
@@ -28,8 +29,7 @@ object InstantiationOfAnnotationClassesCallChecker : CallChecker {
                 context.trace
             )
         ) {
-            val supported =
-                context.languageVersionSettings.supportsFeature(LanguageFeature.InstantiationOfAnnotationClasses) && constructedClass.declaredTypeParameters.isEmpty()
+            val supported = constructedClass.declaredTypeParameters.isEmpty()
             if (supported) {
                 context.trace.report(Errors.ANNOTATION_CLASS_CONSTRUCTOR_CALL.on(expression))
             } else {
