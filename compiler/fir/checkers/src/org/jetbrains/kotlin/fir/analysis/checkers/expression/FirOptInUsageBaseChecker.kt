@@ -79,6 +79,7 @@ object FirOptInUsageBaseChecker {
                     ProcessorAction.NEXT
                 }
             }
+            return result
         }
 
         if (fir is FirMemberDeclaration) {
