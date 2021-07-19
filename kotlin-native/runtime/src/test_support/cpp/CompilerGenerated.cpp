@@ -8,6 +8,14 @@
 #include "ObjectTestSupport.hpp"
 #include "Types.h"
 
+using kotlin::test_support::internal::createCleanerWorkerMock;
+using kotlin::test_support::internal::shutdownCleanerWorkerMock;
+using kotlin::test_support::internal::onUnhandledExceptionMock;
+
+testing::MockFunction<KInt()>* kotlin::test_support::internal::createCleanerWorkerMock = nullptr;
+testing::MockFunction<void(KInt, bool)>* kotlin::test_support::internal::shutdownCleanerWorkerMock = nullptr;
+testing::MockFunction<void(KRef)>* kotlin::test_support::internal::onUnhandledExceptionMock = nullptr;
+
 namespace {
 
 struct EmptyPayload {
@@ -48,9 +56,6 @@ struct KBox {
     ObjHeader header;
     const T value;
 };
-
-testing::StrictMock<testing::MockFunction<KInt()>>* createCleanerWorkerMock = nullptr;
-testing::StrictMock<testing::MockFunction<void(KInt, bool)>>* shutdownCleanerWorkerMock = nullptr;
 
 } // namespace
 
@@ -198,7 +203,9 @@ RUNTIME_NORETURN OBJ_GETTER(DescribeObjectForDebugging, KConstNativePtr typeInfo
 }
 
 void OnUnhandledException(KRef throwable) {
-    throw std::runtime_error("Not implemented for tests");
+    if (!onUnhandledExceptionMock) throw std::runtime_error("Not implemented for tests");
+
+    onUnhandledExceptionMock->Call(throwable);
 }
 
 void Kotlin_WorkerBoundReference_freezeHook(KRef thiz) {
@@ -277,11 +284,3 @@ KInt Kotlin_CleanerImpl_createCleanerWorker() {
 }
 
 } // extern "C"
-
-ScopedStrictMockFunction<KInt()> ScopedCreateCleanerWorkerMock() {
-    return ScopedStrictMockFunction<KInt()>(&createCleanerWorkerMock);
-}
-
-ScopedStrictMockFunction<void(KInt, bool)> ScopedShutdownCleanerWorkerMock() {
-    return ScopedStrictMockFunction<void(KInt, bool)>(&shutdownCleanerWorkerMock);
-}
