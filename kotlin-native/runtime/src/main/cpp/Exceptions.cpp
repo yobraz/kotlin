@@ -43,6 +43,16 @@ void ThrowException(KRef exception) {
 
 namespace {
 
+[[nodiscard]] kotlin::ThreadStateGuard setNativeStateForRegisteredThread(bool reentrant = true) {
+    if (kotlin::IsCurrentThreadRegistered()) {
+        return kotlin::ThreadStateGuard(kotlin::ThreadState::kNative, reentrant);
+    } else {
+        // The current thread is not registered in the Kotlin runtime,
+        // just return an empty guard which doesn't actually switch the state.
+        return kotlin::ThreadStateGuard();
+    }
+}
+
 class {
     /**
      * Timeout 5 sec for concurrent (second) terminate attempt to give a chance the first one to finish.
@@ -57,6 +67,7 @@ class {
         // block() is supposed to be NORETURN, otherwise go to normal abort()
         konan::abort();
       } else {
+        auto guard = setNativeStateForRegisteredThread();
         sleep(timeoutSec);
         // We come here when another terminate handler hangs for 5 sec, that looks fatally broken. Go to forced exit now.
       }
@@ -66,10 +77,12 @@ class {
 
 //! Process exception hook (if any) or just printStackTrace + write crash log
 void processUnhandledKotlinException(KRef throwable) {
-  // Use the reentrant switch because both states are possible here:
-  //  - runnable, if the exception occured in a pure Kotlin thread (except initialization of globals).
-  //  - native, if the throwing code was called from ObjC/Swift or if the exception occured during initialization of globals.
-  kotlin::ThreadStateGuard guard(kotlin::ThreadState::kRunnable, /* reentrant = */ true);
+  // One of call sites for this function is the termination handler. Both thread states are allowed here because:
+  // 1. std::terminate may be called from any state.
+  // 2. There is no guarantee that C++ runtime will unwind stack in case of an unhandled exception.
+  //    Thus there is no guarantee that state switches made on interop borders will be rolled back.
+  // Moreover, the thread may be not attached to the Kotlin runtime at all. To handle this case, use the CalledFromNativeGuard.
+  kotlin::CalledFromNativeGuard guard(/* reentrant = */ true);
   OnUnhandledException(throwable);
 #if KONAN_REPORT_BACKTRACE_TO_IOS_CRASH_LOG
   ReportBacktraceToIosCrashLog(throwable);
@@ -111,10 +124,12 @@ class TerminateHandler : private kotlin::Pinned {
           konan::abort();
         } catch (...) {
           // Not a Kotlin exception - call default handler
+          auto guard = setNativeStateForRegisteredThread();
           instance().queuedHandler_();
         }
       }
       // Come here in case of direct terminate() call or unknown exception - go to default terminate handler.
+      auto guard = setNativeStateForRegisteredThread();
       instance().queuedHandler_();
     });
   }
