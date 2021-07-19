@@ -156,10 +156,11 @@ open class CompileToBitcode @Inject constructor(
     fun compile() {
         objDir.mkdirs()
         val plugin = project.convention.getPlugin(ExecClang::class.java)
-
+        // Avoid name collision between CompileToBitcode.executable and execKonanClang.action.executable.
+        val taskExecutable = executable
         plugin.execKonanClang(target) {
             workingDir = objDir
-            executable = executable
+            executable = taskExecutable
             args = compilerFlags + inputFiles.map { it.absolutePath }
         }
 
