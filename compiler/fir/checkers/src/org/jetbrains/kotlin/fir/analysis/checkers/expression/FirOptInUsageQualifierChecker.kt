@@ -13,7 +13,7 @@ object FirOptInUsageQualifierChecker : FirResolvedQualifierChecker() {
     override fun check(expression: FirResolvedQualifier, context: CheckerContext, reporter: DiagnosticReporter) {
         val fir = expression.symbol ?: return
         with(FirOptInUsageBaseChecker) {
-            val experimentalities = fir.loadExperimentalities(context)
+            val experimentalities = fir.loadExperimentalities(context, fromSetter = false)
             reportNotAcceptedExperimentalities(experimentalities, expression, context, reporter)
         }
     }
