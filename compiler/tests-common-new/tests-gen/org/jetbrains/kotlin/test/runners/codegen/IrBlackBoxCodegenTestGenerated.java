@@ -438,6 +438,12 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
             }
 
             @Test
+            @TestMetadata("multimoduleInlining.kt")
+            public void testMultimoduleInlining() throws Exception {
+                runTest("compiler/testData/codegen/box/annotations/instances/multimoduleInlining.kt");
+            }
+
+            @Test
             @TestMetadata("multiplatformInstantiation.kt")
             public void testMultiplatformInstantiation() throws Exception {
                 runTest("compiler/testData/codegen/box/annotations/instances/multiplatformInstantiation.kt");

@@ -39,6 +39,12 @@ public class JvmIrAgainstOldBoxInlineTestGenerated extends AbstractJvmIrAgainstO
         public void testAnnotationInstanceInlining() throws Exception {
             runTest("compiler/testData/codegen/boxInline/annotations/annotationInstanceInlining.kt");
         }
+
+        @Test
+        @TestMetadata("instanceInAnonymousClass.kt")
+        public void testInstanceInAnonymousClass() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/annotations/instanceInAnonymousClass.kt");
+        }
     }
 
     @Nested
