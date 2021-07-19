@@ -9,7 +9,6 @@ import org.gradle.api.artifacts.transform.*
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile.Companion.CLASSPATH_ENTRY_SNAPSHOT_ARTIFACT_TYPE
 import org.jetbrains.kotlin.gradle.incremental.ClasspathEntrySnapshotter
 import org.jetbrains.kotlin.gradle.incremental.ClasspathEntrySnapshotSerializer
 
