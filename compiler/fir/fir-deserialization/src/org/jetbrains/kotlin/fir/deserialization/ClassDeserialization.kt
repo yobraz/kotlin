@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.checkers.Experimentality
 import org.jetbrains.kotlin.serialization.deserialization.ProtoEnumFlags
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.serialization.deserialization.getName
@@ -221,11 +222,26 @@ fun deserializeClassToSymbol(
         it.sourceElement = containerSource
 
         it.replaceDeprecation(it.getDeprecationInfos(session.languageVersionSettings.apiVersion))
-        it.replaceExperimentalities(it.annotations.calculateOwnExperimentalitiesFromAnnotations(session, false))
+        val experimentalities = it.annotations.calculateOwnExperimentalitiesFromAnnotations(session, false)
+        if (experimentalities.isNotEmpty()) {
+            it.replaceExperimentalities(experimentalities)
+            for (declaration in it.declarations) {
+                declaration.addParentExperimentalities(experimentalities)
+            }
+        }
 
         classProto.getExtensionOrNull(JvmProtoBuf.classModuleName)?.let { idx ->
             it.moduleName = nameResolver.getString(idx)
         }
+    }
+}
+
+private fun FirDeclaration.addParentExperimentalities(experimentalities: List<Experimentality>) {
+    if (this !is FirMemberDeclaration) return
+    replaceExperimentalities(this.experimentalities + experimentalities)
+    if (this !is FirRegularClass) return
+    for (declaration in declarations) {
+        declaration.addParentExperimentalities(experimentalities)
     }
 }
 

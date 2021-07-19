@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.extractClassesFromArgument
-import org.jetbrains.kotlin.fir.analysis.checkers.outerClassSymbol
 import org.jetbrains.kotlin.fir.analysis.checkers.unsubstitutedScope
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
@@ -24,7 +23,6 @@ import org.jetbrains.kotlin.fir.scopes.processDirectlyOverriddenProperties
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.ensureResolved
-import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.checkers.Experimentality
@@ -65,9 +63,11 @@ object FirOptInUsageBaseChecker {
         ensureResolved(FirResolvePhase.STATUS)
         val result = SmartSet.create<Experimentality>()
         val fir = fir as? FirAnnotatedDeclaration ?: return result
-        val session = context.session
-        if (fir is FirCallableDeclaration && fir.isSubstitutionOrIntersectionOverride) {
-            val parentClassScope = fir.containingClass()?.toFirRegularClass(session)?.unsubstitutedScope(context)
+        val origin = fir.origin
+        if (fir is FirCallableDeclaration &&
+            (origin == FirDeclarationOrigin.SubstitutionOverride || origin == FirDeclarationOrigin.IntersectionOverride)
+        ) {
+            val parentClassScope = fir.containingClass()?.toFirRegularClass(context.session)?.unsubstitutedScope(context)
             if (fir is FirSimpleFunction) {
                 parentClassScope?.processDirectlyOverriddenFunctions(fir.symbol) {
                     result.addAll(it.loadExperimentalities(context, fromSetter = false))
@@ -89,7 +89,7 @@ object FirOptInUsageBaseChecker {
             result.addAll(fir.setter?.calculateOwnExperimentalities(context.session, fromSetter = true).orEmpty())
         }
 
-        if (fir.origin == FirDeclarationOrigin.Library || fir.origin == FirDeclarationOrigin.Enhancement) {
+        if (origin == FirDeclarationOrigin.Library || origin == FirDeclarationOrigin.Enhancement) {
             result.addAll(loadExperimentalitiesFromDeserialized(context))
         }
 
@@ -99,24 +99,12 @@ object FirOptInUsageBaseChecker {
     @OptIn(SymbolInternals::class)
     private fun FirBasedSymbol<*>.loadExperimentalitiesFromDeserialized(context: CheckerContext): SmartSet<Experimentality> {
         val result = SmartSet.create<Experimentality>()
-        val fir = fir as? FirAnnotatedDeclaration ?: return result
-        val session = context.session
-        if (fir is FirCallableDeclaration) {
-            result.addAll(fir.returnTypeRef.coneTypeSafe<ConeKotlinType>().loadExperimentalities(context.session))
-            result.addAll(fir.receiverTypeRef?.coneTypeSafe<ConeKotlinType>().loadExperimentalities(context.session))
-            if (fir is FirSimpleFunction) {
-                fir.valueParameters.forEach {
-                    result.addAll(it.returnTypeRef.coneTypeSafe<ConeKotlinType>().loadExperimentalities(context.session))
-                }
-            }
-            val parentClass = fir.containingClass()?.toFirRegularClass(session)
-            if (parentClass != null) {
-                result.addAll(parentClass.experimentalities)
-            }
-        } else if (fir is FirRegularClass) {
-            val parentClassSymbol = fir.symbol.outerClassSymbol(context)
-            if (parentClassSymbol is FirRegularClassSymbol) {
-                result.addAll(parentClassSymbol.fir.experimentalities)
+        val fir = fir as? FirCallableDeclaration ?: return result
+        result.addAll(fir.returnTypeRef.coneTypeSafe<ConeKotlinType>().loadExperimentalities(context.session))
+        result.addAll(fir.receiverTypeRef?.coneTypeSafe<ConeKotlinType>().loadExperimentalities(context.session))
+        if (fir is FirSimpleFunction) {
+            fir.valueParameters.forEach {
+                result.addAll(it.returnTypeRef.coneTypeSafe<ConeKotlinType>().loadExperimentalities(context.session))
             }
         }
         return result
