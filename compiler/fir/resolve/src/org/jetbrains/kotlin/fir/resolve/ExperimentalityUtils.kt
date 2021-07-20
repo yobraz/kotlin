@@ -50,12 +50,23 @@ fun ConeKotlinType?.loadExperimentalities(session: FirSession): List<Experimenta
         !is ConeClassLikeType -> emptyList()
         else -> {
             val expandedType = fullyExpandedType(session)
-            expandedType.lookupTag.toFirRegularClass(session)?.experimentalities.orEmpty() + expandedType.typeArguments.flatMap {
-                if (it.isStarProjection) emptyList()
-                else it.type?.loadExperimentalities(session).orEmpty()
-            } + if (this !== expandedType) {
-                lookupTag.toFirTypeAlias(session)?.experimentalities.orEmpty()
-            } else emptyList()
+            val result = mutableListOf<Experimentality>()
+            val regularClass = expandedType.lookupTag.toFirRegularClass(session)
+            if (regularClass != null) {
+                result += regularClass.experimentalities
+            }
+            expandedType.typeArguments.forEach {
+                if (it is ConeKotlinTypeProjection) {
+                    result += it.type.loadExperimentalities(session)
+                }
+            }
+            if (this !== expandedType) {
+                val typeAlias = lookupTag.toFirTypeAlias(session)
+                if (typeAlias != null) {
+                    result += typeAlias.experimentalities
+                }
+            }
+            result
         }
     }
 
