@@ -211,7 +211,7 @@ tasks.named<Copy>("processResources") {
     }
 
     from(provider { project(":compiler:cli-common").mainSourceSet.resources }) {
-        include("META-INF/extensions/compiler.xml")
+        include("META-INF/extensions/compiler-extension-points.xml")
     }
 }
 
