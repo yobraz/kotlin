@@ -36,7 +36,7 @@ fun List<FirAnnotationCall>.calculateOwnExperimentalitiesFromAnnotations(
         if (annotation.useSiteTarget != AnnotationUseSiteTarget.PROPERTY_SETTER || fromSetter) {
             val annotationType = annotation.annotationTypeRef.coneTypeSafe<ConeClassLikeType>()
             result.addIfNotNull(
-                (annotationType?.fullyExpandedType(session)?.lookupTag?.toSymbol(
+                (annotationType?.lookupTag?.toSymbol(
                     session
                 ) as? FirRegularClassSymbol)?.loadExperimentalityForMarkerAnnotation()
             )
