@@ -5,7 +5,6 @@
 import org.jetbrains.kotlin.*
 import org.jetbrains.kotlin.testing.native.*
 import org.jetbrains.kotlin.bitcode.CompileToBitcode
-import org.jetbrains.kotlin.bitcode.CompileToBitcodeExtension
 import org.jetbrains.kotlin.konan.target.*
 
 plugins {
@@ -32,6 +31,7 @@ bitcode {
             "${target}StdAlloc",
             "${target}OptAlloc",
             "${target}Mimalloc",
+            "${target}Libbacktrace",
             "${target}Launcher",
             "${target}Debug",
             "${target}Release",
@@ -62,6 +62,43 @@ bitcode {
 
         onlyIf { targetSupportsMimallocAllocator(target) }
     }
+
+    create("libbacktrace") {
+        val hostTarget = HostManager().targetByName(target)
+        language = CompileToBitcode.Language.C
+        val useMachO = hostTarget.family.isAppleFamily
+        val useElf = hostTarget.family in listOf(Family.LINUX, Family.ANDROID)
+        val usePE = hostTarget.family == Family.MINGW
+        includeFiles = listOfNotNull(
+                "alloc.c".takeIf { usePE },
+                "atomic.c",
+                "backtrace.c",
+                "dwarf.c",
+                "elf.c".takeIf { useElf },
+                "fileline.c",
+                "macho.c".takeIf { useMachO },
+                "mmap.c".takeIf { !usePE },
+                "mmapio.c".takeIf { !usePE },
+                "pecoff.c".takeIf { usePE },
+                "posix.c",
+                "print.c",
+                "read.c".takeIf { usePE },
+                "simple.c",
+                "sort.c",
+                "state.c"
+        )
+        srcDirs = files("$srcRoot/c")
+        compilerArgs.addAll(listOfNotNull(
+                "-funwind-tables",
+                "-W", "-Wall", "-Wwrite-strings", "-Wstrict-prototypes", "-Wmissing-prototypes",
+                "-Wold-style-definition", "-Wmissing-format-attribute", "-Wcast-qual", "-O2",
+                "-DBACKTRACE_ELF_SIZE=${hostTarget.architecture.bitness}".takeIf { useElf }
+        ))
+        headersDirs = files("$srcRoot/c/include")
+
+        onlyIf { useMacho || useElf || usePE }
+    }
+
 
     create("launcher") {
         includeRuntime()
