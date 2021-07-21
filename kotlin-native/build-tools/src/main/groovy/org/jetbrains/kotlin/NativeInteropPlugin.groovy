@@ -189,11 +189,11 @@ class NamedNativeInteropConfig implements Named {
             interopStubs.kotlin.srcDirs generatedSrcDir
 
             project.dependencies {
-                add interopStubs.getCompileConfigurationName(), project(path: ':kotlin-native:Interop:Runtime')
-                add interopStubs.getCompileConfigurationName(), "org.jetbrains.kotlin:kotlin-stdlib:${project.bootstrapKotlinVersion}"
+                add interopStubs.getApiConfigurationName(), project(path: ':kotlin-native:Interop:Runtime')
+                add interopStubs.getApiConfigurationName(), "org.jetbrains.kotlin:kotlin-stdlib:${project.bootstrapKotlinVersion}"
             }
 
-            this.configuration.extendsFrom project.configurations[interopStubs.runtimeConfigurationName]
+            this.configuration.extendsFrom project.configurations[interopStubs.runtimeOnlyConfigurationName]
             project.dependencies.add(this.configuration.name, interopStubs.output)
         }
 
