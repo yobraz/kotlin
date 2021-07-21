@@ -489,7 +489,7 @@ allprojects {
             tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile> {
                 if (path !in tasksWithWarnings) {
                     kotlinOptions {
-                        allWarningsAsErrors = true
+                        // allWarningsAsErrors = true
                     }
                 }
             }
@@ -532,8 +532,6 @@ allprojects {
 
     tasks {
         register("listArchives") { listConfigurationContents("archives") }
-
-        register("listRuntimeJar") { listConfigurationContents("runtimeJar") }
 
         register("listDistJar") { listConfigurationContents("distJar") }
 
