@@ -59,7 +59,6 @@ import org.jetbrains.kotlin.resolve.PlatformDependentAnalyzerServices
 import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatformAnalyzerServices
 import org.jetbrains.kotlin.resolve.multiplatform.isCommonSource
 import org.jetbrains.kotlin.utils.addToStdlib.flattenTo
-import org.jetbrains.kotlin.utils.addToStdlib.runIf
 import org.jetbrains.kotlin.utils.newLinkedHashMapWithExpectedSize
 import java.io.File
 import kotlin.collections.set
@@ -156,12 +155,6 @@ object FirKotlinToJvmBytecodeCompiler {
     }
 
     private fun CompilationContext.runFrontend(ktFiles: List<KtFile>): FirAnalyzerFacade? {
-        @Suppress("NAME_SHADOWING")
-        var ktFiles = ktFiles
-        val syntaxErrors = ktFiles.fold(false) { errorsFound, ktFile ->
-            AnalyzerWithCompilerReport.reportSyntaxErrors(ktFile, environment.messageCollector).isHasErrors or errorsFound
-        }
-
         var sourceScope = GlobalSearchScope.filesWithoutLibrariesScope(project, ktFiles.map { it.virtualFile })
             .uniteWith(TopDownAnalyzerFacadeForJVM.AllJavaSourcesInProjectScope(project))
 
@@ -212,18 +205,25 @@ object FirKotlinToJvmBytecodeCompiler {
             )
         }
 
-        val commonSession = runIf(
-            languageVersionSettings.supportsFeature(LanguageFeature.MultiPlatformProjects) && commonKtFiles.isNotEmpty()
-        ) {
+
+        val moduleKtFiles: List<KtFile>
+        val commonSession: FirSession?
+
+        if (languageVersionSettings.supportsFeature(LanguageFeature.MultiPlatformProjects) && commonKtFiles.isNotEmpty()) {
             val commonSourcesScope = GlobalSearchScope.filesWithoutLibrariesScope(project, commonKtFiles.map { it.virtualFile })
             sourceScope = sourceScope.intersectWith(GlobalSearchScope.notScope(commonSourcesScope))
-            ktFiles = ktFiles.filterNot { it.isCommonSource == true }
-            createSession(
-                "${module.getModuleName()}-common",
-                CommonPlatforms.defaultCommonPlatform,
-                CommonPlatformAnalyzerServices,
-                commonSourcesScope
-            )
+
+            moduleKtFiles = ktFiles.filterNot { it.isCommonSource == true }
+            commonSession =
+                createSession(
+                    "${module.getModuleName()}-common",
+                    CommonPlatforms.defaultCommonPlatform,
+                    CommonPlatformAnalyzerServices,
+                    commonSourcesScope
+                )
+        } else {
+            moduleKtFiles = ktFiles
+            commonSession = null
         }
 
         val session = createSession(
@@ -238,7 +238,7 @@ object FirKotlinToJvmBytecodeCompiler {
         }
 
         val commonAnalyzerFacade = commonSession?.let { FirAnalyzerFacade(it, languageVersionSettings, commonKtFiles) }
-        val firAnalyzerFacade = FirAnalyzerFacade(session, languageVersionSettings, ktFiles)
+        val firAnalyzerFacade = FirAnalyzerFacade(session, languageVersionSettings, moduleKtFiles)
 
         commonAnalyzerFacade?.runResolution()
         val allFirDiagnostics = mutableListOf<FirDiagnostic>()
@@ -246,6 +246,10 @@ object FirKotlinToJvmBytecodeCompiler {
         firAnalyzerFacade.runResolution()
         firAnalyzerFacade.runCheckers().values.flattenTo(allFirDiagnostics)
         val hasErrors = FirDiagnosticsCompilerResultsReporter.reportDiagnostics(allFirDiagnostics, environment.messageCollector)
+
+        val syntaxErrors = ktFiles.fold(false) { errorsFound, ktFile ->
+            AnalyzerWithCompilerReport.reportSyntaxErrors(ktFile, environment.messageCollector).isHasErrors or errorsFound
+        }
 
         return firAnalyzerFacade.takeUnless { syntaxErrors || hasErrors }
     }
