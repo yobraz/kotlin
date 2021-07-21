@@ -43,7 +43,7 @@ class MethodsFromAnyGeneratorForLowerings(val context: BackendContext, val irCla
         val selectEquals: IrBlockBodyBuilder.(IrType, IrExpression, IrExpression) -> IrExpression,
     ) :
         DataClassMembersGenerator(
-            IrLoweringContext(context),
+            IrGeneratorContextBase(context.irBuiltIns),
             context.ir.symbols.externalSymbolTable,
             irClass,
             origin
@@ -64,12 +64,6 @@ class MethodsFromAnyGeneratorForLowerings(val context: BackendContext, val irCla
         override fun transform(typeParameterDescriptor: TypeParameterDescriptor): IrType {
             error("Descriptor API shouldn't be used in lowerings")
         }
-
-        override val intPlusSymbol: IrSimpleFunctionSymbol =
-            context.irBuiltIns.intClass.functions.single { it.owner.name.asString() == "plus" && it.owner.valueParameters[0].type == context.irBuiltIns.intType }
-
-        override val intTimesSymbol: IrSimpleFunctionSymbol =
-            context.irBuiltIns.intClass.functions.single { it.owner.name.asString() == "times" && it.owner.valueParameters[0].type == context.irBuiltIns.intType }
 
         override fun getHashCodeFunctionInfo(type: IrType): HashCodeFunctionInfo {
             val symbol = if (type.isArray() || type.isPrimitiveArray()) {

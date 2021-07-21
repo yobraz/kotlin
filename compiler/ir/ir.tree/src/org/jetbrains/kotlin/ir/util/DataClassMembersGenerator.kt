@@ -46,19 +46,6 @@ abstract class DataClassMembersGenerator(
             }
         }
 
-    private val intClass = context.builtIns.int
-    private val intType = context.builtIns.intType
-
-    open val intTimesSymbol: IrSimpleFunctionSymbol =
-        intClass.unsubstitutedMemberScope.findFirstFunction("times") {
-            KotlinTypeChecker.DEFAULT.equalTypes(it.valueParameters[0].type, intType)
-        }.let { symbolTable.referenceSimpleFunction(it) }
-
-    open val intPlusSymbol: IrSimpleFunctionSymbol =
-        intClass.unsubstitutedMemberScope.findFirstFunction("plus") {
-            KotlinTypeChecker.DEFAULT.equalTypes(it.valueParameters[0].type, intType)
-        }.let { symbolTable.referenceSimpleFunction(it) }
-
     private inner class MemberFunctionBuilder(
         startOffset: Int = UNDEFINED_OFFSET,
         endOffset: Int = UNDEFINED_OFFSET,

@@ -8,9 +8,9 @@ package org.jetbrains.kotlin.backend.jvm.lower
 import org.jetbrains.kotlin.backend.common.lower.ANNOTATION_IMPLEMENTATION
 import org.jetbrains.kotlin.backend.common.lower.AnnotationImplementationLowering
 import org.jetbrains.kotlin.backend.common.lower.AnnotationImplementationTransformer
-import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
+import org.jetbrains.kotlin.backend.jvm.ir.createJvmIrBuilder
 import org.jetbrains.kotlin.backend.jvm.lower.FunctionReferenceLowering.Companion.javaClassReference
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.addFunction
@@ -78,8 +78,10 @@ class JvmAnnotationImplementationTransformer(val jvmContext: JvmBackendContext, 
             origin = ANNOTATION_IMPLEMENTATION,
             isStatic = false
         ).apply {
-            body = jvmContext.createIrBuilder(symbol).irBlockBody {
-                +irReturn(javaClassReference(annotationClass.defaultType, jvmContext))
+            body = jvmContext.createJvmIrBuilder(symbol).run {
+                irBlockBody {
+                    +irReturn(javaClassReference(annotationClass.defaultType))
+                }
             }
         }
     }
