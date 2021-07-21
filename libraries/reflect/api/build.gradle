@@ -67,4 +67,5 @@ task java9Jar(type: Jar) {
 
 artifacts {
     archives java9Jar
+    runtimeElements java9Jar
 }

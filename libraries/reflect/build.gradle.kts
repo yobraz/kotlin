@@ -229,9 +229,6 @@ val result by task<Jar> {
     from {
         zipTree(intermediate.get().singleOutputFile())
     }
-    from(zipTree(provider { reflectShadowJar.get().archiveFile.get().asFile })) {
-        include("META-INF/versions/**")
-    }
     callGroovy("manifestAttributes", manifest, project, "Main", true)
 }
 
@@ -241,9 +238,6 @@ modularJar {
     dependsOn(intermediate)
     from {
         zipTree(intermediate.get().singleOutputFile())
-    }
-    from(zipTree(provider { reflectShadowJar.get().archiveFile.get().asFile })) {
-        include("META-INF/versions/**")
     }
     callGroovy("manifestAttributes", manifest, project, "Main", true)
 }
