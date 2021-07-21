@@ -46,7 +46,14 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
 
     // TODO: Use buildList
     private fun getCommonClangArgs(jni: Boolean = false): List<String> = mutableListOf<List<String>>().apply {
-        add(listOf("-B$binDir", "-fno-stack-protector"))
+        // Currently, MinGW toolchain contains old LLVM 8, and -fuse-ld=lld picks linker from there.
+        // And, unfortunately, `-fuse-ld=<absolute path>` doesn't work correctly for MSVC toolchain.
+        // That's why we just don't add $absoluteTargetToolchain/bin to binary search path in case of JNI compilation.
+        // TODO: Can be removed after MinGW sysroot update.
+        if (target == KonanTarget.MINGW_X64 && !jni) {
+            add(listOf("-B$binDir"))
+        }
+        add(listOf("-fno-stack-protector"))
         if (configurables is GccConfigurables) {
             add(listOf("--gcc-toolchain=${configurables.absoluteGccToolchain}"))
         }
@@ -97,8 +104,8 @@ class ClangArgs(private val configurables: Configurables) : Configurables by con
 
         if (target == KonanTarget.MINGW_X64 && jni) {
             require(configurables is MingwConfigurables)
-            add(configurables.windowsKit.compilerFlags())
             add(configurables.msvc.compilerFlags())
+            add(configurables.windowsKit.compilerFlags())
 
 //            add(listOf("-isystem", "C:/ucrt/ucrt", "-isystem", "C:/VS2019BT/VC/Tools/MSVC/14.29.30037/include"))
 //            add(listOf("-L", "C:/VS2019BT/VC/Tools/MSVC/14.29.30037/lib/x64", "-L", "C:/ucrt/ucrt_lib_x64", "-L", "C:/ucrt/x64"))

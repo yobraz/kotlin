@@ -37,7 +37,7 @@ Prerequisites:
     create `local.properties` file with `kotlin.native.enabled=true` line
 *   on macOS install Xcode 12 or newer
 *   on Linux GLIBC 2.23 (TODO: re-check) or newer
-*   on Windows: Visual Studio 2019 with C++ build tools
+*   on Windows: Visual Studio 2019 with C++ build tools (14.29.30037 or newer).
 
 The commands below should be run from either repository root or this (`kotlin-native/`) directory.
 For the latter, `:kotlin-native:` task name prefix can be omitted.

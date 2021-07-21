@@ -76,6 +76,8 @@ sealed class Msvc {
             private val includeDirectories: List<Path>,
             private val libraryDirectories: List<Path>
     ) : Msvc() {
+        // Note that this approach doesn't exclude default VS path.
+        // TODO: A better (but harder) way would be LIB environment variable.
         override fun compilerFlags(): List<String> =
                 includeDirectories.flatMap { listOf("-isystem", it.toAbsolutePath().toString()) } +
                         libraryDirectories.flatMap { listOf("-L", it.toAbsolutePath().toString()) }
@@ -94,6 +96,8 @@ sealed class WindowsKit {
             private val includeDirectories: List<Path>,
             private val libraryDirectories: List<Path>
     ) : WindowsKit() {
+        // Note that this approach doesn't exclude default Windows Kit path.
+        // TODO: A better (but harder) way would be LIB environment variable.
         override fun compilerFlags(): List<String> =
                 includeDirectories.flatMap { listOf("-isystem", it.toAbsolutePath().toString()) } +
                         libraryDirectories.flatMap { listOf("-L", it.toAbsolutePath().toString()) }
