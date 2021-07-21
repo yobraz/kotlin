@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirOuterClassTypeParameterRef
 import org.jetbrains.kotlin.fir.declarations.utils.expandedConeType
 import org.jetbrains.kotlin.fir.declarations.utils.isInner
+import org.jetbrains.kotlin.fir.declarations.utils.visibility
 import org.jetbrains.kotlin.fir.diagnostics.ConeDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.ConeSimpleDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.ConeStubDiagnostic
@@ -503,4 +504,34 @@ fun getOuterClass(klass: FirRegularClass, session: FirSession): FirRegularClass?
     }
 
     return null
+}
+
+/**
+ * If this is a property with a getter
+ * whose visibility is more permissive than
+ * the visibility of this, returns that getter.
+ * Returns null otherwise.
+ */
+fun FirDeclaration.getExposingGetter(): FirPropertyAccessor? {
+    if (this !is FirProperty) {
+        return null
+    }
+
+    val getterVisibility = getter?.visibility
+    val difference = getterVisibility?.compareTo(visibility)
+
+    if (difference != null && difference > 0) {
+        return getter
+    }
+
+    return null
+}
+
+/**
+ * Returns true if this is a property with a getter
+ * whose visibility is more permissive than
+ * the visibility of this. Returns false otherwise.
+ */
+fun FirDeclaration.hasExposingGetter(): Boolean {
+    return getExposingGetter() != null
 }

@@ -96,13 +96,16 @@ abstract class AbstractConeCallConflictResolver(
         }
     }
 
-    protected fun createFlatSignature(call: Candidate): FlatSignature<Candidate> {
-        return when (val declaration = call.symbol.fir) {
-            is FirSimpleFunction -> createFlatSignature(call, declaration)
-            is FirConstructor -> createFlatSignature(call, declaration)
-            is FirVariable -> createFlatSignature(call, declaration)
-            is FirClass -> createFlatSignature(call, declaration)
-            is FirTypeAlias -> createFlatSignature(call, declaration)
+    protected fun createFlatSignature(call: Candidate): FlatSignature<Candidate>? {
+        val declaration = call.symbol.fir
+        return when {
+            declaration is FirSimpleFunction -> createFlatSignature(call, declaration)
+            declaration is FirConstructor -> createFlatSignature(call, declaration)
+            declaration is FirVariable -> createFlatSignature(call, declaration)
+            declaration is FirClass -> createFlatSignature(call, declaration)
+            declaration is FirTypeAlias -> createFlatSignature(call, declaration)
+            // It's an exposing getter
+            declaration is FirPropertyAccessor && declaration.isGetter -> null
             else -> error("Not supported: $declaration")
         }
     }
