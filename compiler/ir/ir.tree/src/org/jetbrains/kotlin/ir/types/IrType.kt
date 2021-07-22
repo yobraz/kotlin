@@ -56,7 +56,7 @@ interface IrTypeAbbreviation : IrAnnotationContainer {
     val arguments: List<IrTypeArgument>
 }
 
-interface IrUnionType : IrSimpleType {
+interface IrUnionType : IrSimpleType, UnionTypeConstructorMarker {
     val nestedTypes: Set<IrType>
     val commonSuperType: IrSimpleType
 }
