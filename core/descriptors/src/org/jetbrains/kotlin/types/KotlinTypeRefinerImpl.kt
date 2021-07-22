@@ -89,15 +89,15 @@ class KotlinTypeRefinerImpl(
     }
 
     private fun KotlinType.refineWithRespectToAbbreviatedTypes(refiner: KotlinTypeRefiner): KotlinType {
-        var unrefinedType: KotlinType
-        var refinedType: KotlinType = this
+        var previousRefinement: KotlinType
+        var currentRefinement: KotlinType = this
 
         do {
-            unrefinedType = refinedType
-            refinedType = unrefinedType.refine(refiner)
-        } while (refinedType is AbbreviatedType && refinedType != unrefinedType)
+            previousRefinement = currentRefinement
+            currentRefinement = previousRefinement.refine(refiner)
+        } while (currentRefinement is AbbreviatedType && currentRefinement != previousRefinement)
 
-        return refinedType
+        return currentRefinement
     }
 
     private fun KotlinType.needsRefinement(): Boolean = isRefinementNeededForTypeConstructor(constructor)
