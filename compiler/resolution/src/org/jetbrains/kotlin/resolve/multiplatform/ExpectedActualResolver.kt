@@ -257,37 +257,58 @@ object ExpectedActualResolver {
         if (a == null) return b == null
         if (b == null) return false
 
-        val platformModuleTypeRefiner = if (platformModule.isTypeRefinementEnabled()) {
-            val moduleRefiner = platformModule.getKotlinTypeRefiner()
+        return if (platformModule.isTypeRefinementEnabled()) {
+            areCompatibleTypesViaTypeRefinement(a, b, platformModule)
+        } else {
+            areCompatibleTypesViaTypeContext(a, b, platformModule)
+        }
+    }
+
+    @OptIn(TypeRefinement::class)
+    private fun areCompatibleTypesViaTypeRefinement(a: KotlinType, b: KotlinType, platformModule: ModuleDescriptor): Boolean {
+        val typeRefinerForPlatformModule = platformModule.getKotlinTypeRefiner().let { moduleRefiner ->
             if (moduleRefiner is KotlinTypeRefiner.Default)
                 KotlinTypeRefinerImpl.createStandaloneInstanceFor(platformModule)
             else
                 moduleRefiner
-        } else {
-            KotlinTypeRefiner.Default
         }
 
-        // Type refinement is used for detecting actualization via type alias (if enabled).
-        // Otherwise custom type checking logic is necessary.
-        val typeSystemContext = if (platformModuleTypeRefiner is KotlinTypeRefiner.Default) {
-            object : ClassicTypeSystemContext {
-                override fun areEqualTypeConstructors(c1: TypeConstructorMarker, c2: TypeConstructorMarker): Boolean {
-                    require(c1 is TypeConstructor)
-                    require(c2 is TypeConstructor)
-                    return isExpectedClassAndActualTypeAlias(c1, c2, platformModule) ||
-                            isExpectedClassAndActualTypeAlias(c2, c1, platformModule) ||
-                            super.areEqualTypeConstructors(c1, c2)
-                }
+        return areCompatibleTypes(
+            a, b,
+            typeSystemContext = SimpleClassicTypeSystemContext,
+            kotlinTypeRefiner = typeRefinerForPlatformModule,
+        )
+    }
+
+    private fun areCompatibleTypesViaTypeContext(a: KotlinType, b: KotlinType, platformModule: ModuleDescriptor): Boolean {
+        val typeSystemContext = object : ClassicTypeSystemContext {
+            override fun areEqualTypeConstructors(c1: TypeConstructorMarker, c2: TypeConstructorMarker): Boolean {
+                require(c1 is TypeConstructor)
+                require(c2 is TypeConstructor)
+                return isExpectedClassAndActualTypeAlias(c1, c2, platformModule) ||
+                        isExpectedClassAndActualTypeAlias(c2, c1, platformModule) ||
+                        super.areEqualTypeConstructors(c1, c2)
             }
-        } else {
-            SimpleClassicTypeSystemContext
         }
 
-        with(NewKotlinTypeCheckerImpl(platformModuleTypeRefiner)) {
+        return areCompatibleTypes(
+            a, b,
+            typeSystemContext = typeSystemContext,
+            kotlinTypeRefiner = KotlinTypeRefiner.Default,
+        )
+    }
+
+    private fun areCompatibleTypes(
+        a: KotlinType,
+        b: KotlinType,
+        typeSystemContext: ClassicTypeSystemContext,
+        kotlinTypeRefiner: KotlinTypeRefiner,
+    ): Boolean {
+        with(NewKotlinTypeCheckerImpl(kotlinTypeRefiner)) {
             return ClassicTypeCheckerContext(
                 errorTypeEqualsToAnything = false,
                 typeSystemContext = typeSystemContext,
-                kotlinTypeRefiner = platformModuleTypeRefiner,
+                kotlinTypeRefiner = kotlinTypeRefiner,
             ).equalTypes(a.unwrap(), b.unwrap())
         }
     }
