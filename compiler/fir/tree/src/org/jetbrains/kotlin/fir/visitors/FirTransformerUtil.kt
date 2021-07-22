@@ -21,6 +21,15 @@ fun <T : FirElement, D> MutableList<T>.transformInplace(transformer: FirTransfor
     }
 }
 
+fun <T : FirElement, D> List<T>.transformNoInplace(transformer: FirTransformer<D>, data: D) {
+    val iterator = this.listIterator()
+    while (iterator.hasNext()) {
+        val next = iterator.next() as FirPureAbstractElement
+        val result = next.transform<T, D>(transformer, data)
+        check(next === result)
+    }
+}
+
 sealed class TransformData<out D> {
     class Data<D>(val value: D) : TransformData<D>()
     object Nothing : TransformData<kotlin.Nothing>()

@@ -38,27 +38,32 @@ internal object LazyTransformerFactory {
             designation,
             designation.firFile.moduleData.session,
             scopeSession,
+            moduleFileCache,
         )
         FirResolvePhase.STATUS -> FirDesignatedStatusResolveTransformerForIDE(
             designation,
             designation.firFile.moduleData.session,
             scopeSession,
+            moduleFileCache,
         )
         FirResolvePhase.CONTRACTS -> FirDesignatedContractsResolveTransformerForIDE(
             designation,
             designation.firFile.moduleData.session,
             scopeSession,
+            moduleFileCache,
         )
         FirResolvePhase.IMPLICIT_TYPES_BODY_RESOLVE -> FirDesignatedImplicitTypesTransformerForIDE(
             designation,
             designation.firFile.moduleData.session,
             scopeSession,
+            moduleFileCache,
             towerDataContextCollector
         )
         FirResolvePhase.BODY_RESOLVE -> FirDesignatedBodyResolveTransformerForIDE(
             designation,
             designation.firFile.moduleData.session,
             scopeSession,
+            moduleFileCache,
             towerDataContextCollector,
             firProviderInterceptor,
         )

@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
 import org.jetbrains.kotlin.fir.declarations.builder.FirDeclarationBuilder
 import org.jetbrains.kotlin.fir.declarations.builder.FirTypeParametersOwnerBuilder
 import org.jetbrains.kotlin.fir.declarations.impl.FirTypeAliasImpl
+import org.jetbrains.kotlin.fir.declarations.impl.IDEFirTypeAliasImpl
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
 import org.jetbrains.kotlin.fir.types.FirTypeRef
@@ -63,6 +64,23 @@ class FirTypeAliasBuilder : FirDeclarationBuilder, FirTypeParametersOwnerBuilder
         )
     }
 
+    override fun IDEbuild(): FirTypeAlias {
+        return IDEFirTypeAliasImpl(
+            source,
+            moduleData,
+            resolvePhase,
+            origin,
+            attributes,
+            deprecation,
+            status,
+            typeParameters,
+            name,
+            symbol,
+            expandedTypeRef,
+            annotations,
+        )
+    }
+
 }
 
 @OptIn(ExperimentalContracts::class)
@@ -71,6 +89,14 @@ inline fun buildTypeAlias(init: FirTypeAliasBuilder.() -> Unit): FirTypeAlias {
         callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
     }
     return FirTypeAliasBuilder().apply(init).build()
+}
+
+@OptIn(ExperimentalContracts::class)
+inline fun buildIDETypeAlias(init: FirTypeAliasBuilder.() -> Unit): FirTypeAlias {
+    contract {
+        callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
+    }
+    return FirTypeAliasBuilder().apply(init).IDEbuild()
 }
 
 @OptIn(ExperimentalContracts::class)

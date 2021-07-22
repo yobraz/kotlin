@@ -41,6 +41,7 @@ internal fun FirLazyDeclarationResolver.lazyResolveDeclaration(
             require(firDeclaration is FirCallableDeclaration) {
                 "CallableReturnType type cannot be applied to ${firDeclaration::class.qualifiedName}"
             }
+            if (firDeclaration.returnTypeRef is FirResolvedTypeRef) return
 
             if (firDeclaration.resolvePhase < FirResolvePhase.TYPES) {
                 if (firDeclaration.returnTypeRef is FirResolvedTypeRef) return

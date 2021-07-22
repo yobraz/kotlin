@@ -79,16 +79,14 @@ internal class FirDesignatedSupertypeResolverTransformerForIDE(
             for (nowVisit in toVisit) {
                 if (checkPCE) checkCanceled()
                 val resolver = DesignatedFirSupertypeResolverVisitor(nowVisit)
-                moduleFileCache.firFileLockProvider.runCustomResolveUnderLock(nowVisit.firFile, checkPCE) {
-                    firLazyDeclarationResolver.lazyResolveFileDeclaration(
-                        firFile = nowVisit.firFile,
-                        moduleFileCache = moduleFileCache,
-                        toPhase = FirResolvePhase.IMPORTS,
-                        scopeSession = scopeSession,
-                        checkPCE = true,
-                    )
-                    nowVisit.firFile.accept(resolver, null)
-                }
+                firLazyDeclarationResolver.lazyResolveFileDeclaration(
+                    firFile = nowVisit.firFile,
+                    moduleFileCache = moduleFileCache,
+                    toPhase = FirResolvePhase.IMPORTS,
+                    scopeSession = scopeSession,
+                    checkPCE = true,
+                )
+                nowVisit.firFile.accept(resolver, null)
                 resolver.declarationTransformer.ensureDesignationPassed()
                 visited[nowVisit.declaration] = nowVisit
             }
@@ -122,9 +120,7 @@ internal class FirDesignatedSupertypeResolverTransformerForIDE(
         val filesToDesignations = visited.groupBy { it.firFile }
         for (designationsPerFile in filesToDesignations) {
             if (checkPCE) checkCanceled()
-            moduleFileCache.firFileLockProvider.runCustomResolveUnderLock(designationsPerFile.key, checkPCE) {
-                applyToFileSymbols(designationsPerFile.value)
-            }
+            applyToFileSymbols(designationsPerFile.value)
         }
     }
 
@@ -143,14 +139,16 @@ internal class FirDesignatedSupertypeResolverTransformerForIDE(
             FirDeclarationDesignationWithFile(targetPath, resolvableTarget, designation.firFile)
         } else designation
 
-        phaseRunner.runPhaseWithCustomResolve(FirResolvePhase.SUPER_TYPES) {
-            val collected = collect(targetDesignation)
-            supertypeComputationSession.breakLoops(session)
-            apply(collected)
+        val collected = collect(targetDesignation)
+        supertypeComputationSession.breakLoops(session)
+        apply(collected)
+
+        ///LOCK ONLY HERE
+        moduleFileCache.firFileLockProvider.runCustomResolveUnderLock(designation.firFile, true) {
+            updatePhaseDeep(designation.declaration, FirResolvePhase.SUPER_TYPES)
+            ensureResolved(designation.declaration)
+            ensureResolvedDeep(designation.declaration)
         }
-        updatePhaseDeep(designation.declaration, FirResolvePhase.SUPER_TYPES)
-        ensureResolved(designation.declaration)
-        ensureResolvedDeep(designation.declaration)
     }
 
     override fun ensureResolved(declaration: FirDeclaration) {

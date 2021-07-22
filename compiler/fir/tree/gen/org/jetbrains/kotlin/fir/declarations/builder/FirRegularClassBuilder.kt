@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.fir.declarations.FirTypeParameterRef
 import org.jetbrains.kotlin.fir.declarations.builder.FirClassBuilder
 import org.jetbrains.kotlin.fir.declarations.builder.FirTypeParameterRefsOwnerBuilder
 import org.jetbrains.kotlin.fir.declarations.impl.FirRegularClassImpl
+import org.jetbrains.kotlin.fir.declarations.impl.IDEFirRegularClassImpl
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.references.FirControlFlowGraphReference
 import org.jetbrains.kotlin.fir.scopes.FirScopeProvider
@@ -75,6 +76,27 @@ open class FirRegularClassBuilder : FirClassBuilder, FirTypeParameterRefsOwnerBu
         )
     }
 
+    override fun IDEbuild(): FirRegularClass {
+        return IDEFirRegularClassImpl(
+            source,
+            moduleData,
+            resolvePhase,
+            origin,
+            attributes,
+            deprecation,
+            typeParameters,
+            classKind,
+            declarations,
+            annotations,
+            scopeProvider,
+            status,
+            name,
+            symbol,
+            companionObject,
+            superTypeRefs,
+        )
+    }
+
 }
 
 @OptIn(ExperimentalContracts::class)
@@ -83,6 +105,14 @@ inline fun buildRegularClass(init: FirRegularClassBuilder.() -> Unit): FirRegula
         callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
     }
     return FirRegularClassBuilder().apply(init).build()
+}
+
+@OptIn(ExperimentalContracts::class)
+inline fun buildIDERegularClass(init: FirRegularClassBuilder.() -> Unit): FirRegularClass {
+    contract {
+        callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
+    }
+    return FirRegularClassBuilder().apply(init).IDEbuild()
 }
 
 @OptIn(ExperimentalContracts::class)

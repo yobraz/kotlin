@@ -13,6 +13,8 @@ import org.jetbrains.kotlin.fir.resolve.transformers.FirStatusResolveTransformer
 import org.jetbrains.kotlin.fir.resolve.transformers.StatusComputationSession
 import org.jetbrains.kotlin.idea.fir.low.level.api.FirPhaseRunner
 import org.jetbrains.kotlin.idea.fir.low.level.api.api.FirDeclarationDesignationWithFile
+import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.ModuleFileCache
+import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.runCustomResolveUnderLock
 import org.jetbrains.kotlin.idea.fir.low.level.api.transformers.FirLazyTransformerForIDE.Companion.updatePhaseDeep
 import org.jetbrains.kotlin.idea.fir.low.level.api.util.ensurePhase
 
@@ -23,6 +25,7 @@ internal class FirDesignatedStatusResolveTransformerForIDE(
     private val designation: FirDeclarationDesignationWithFile,
     private val session: FirSession,
     private val scopeSession: ScopeSession,
+    private val moduleFileCache: ModuleFileCache,
 ) : FirLazyTransformerForIDE {
     private inner class FirDesignatedStatusResolveTransformerForIDE :
         FirStatusResolveTransformer(session, scopeSession, StatusComputationSession.Regular()) {
@@ -40,14 +43,16 @@ internal class FirDesignatedStatusResolveTransformerForIDE(
         designation.declaration.ensurePhase(FirResolvePhase.TYPES)
 
         val transformer = FirDesignatedStatusResolveTransformerForIDE()
-        phaseRunner.runPhaseWithCustomResolve(FirResolvePhase.STATUS) {
-            designation.firFile.transform<FirElement, FirResolvedDeclarationStatus?>(transformer, null)
-        }
+        moduleFileCache.firFileLockProvider.runCustomResolveUnderLock(designation.firFile, true) {
+            phaseRunner.runPhaseWithCustomResolve(FirResolvePhase.STATUS) {
+                designation.firFile.transform<FirElement, FirResolvedDeclarationStatus?>(transformer, null)
+            }
 
-        transformer.designationTransformer.ensureDesignationPassed()
-        updatePhaseDeep(designation.declaration, FirResolvePhase.STATUS)
-        ensureResolved(designation.declaration)
-        ensureResolvedDeep(designation.declaration)
+            transformer.designationTransformer.ensureDesignationPassed()
+            updatePhaseDeep(designation.declaration, FirResolvePhase.STATUS)
+            ensureResolved(designation.declaration)
+            ensureResolvedDeep(designation.declaration)
+        }
     }
 
     override fun ensureResolved(declaration: FirDeclaration) {

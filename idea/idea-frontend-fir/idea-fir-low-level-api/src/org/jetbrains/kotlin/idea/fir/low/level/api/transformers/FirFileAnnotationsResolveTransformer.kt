@@ -14,12 +14,15 @@ import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.ImplicitBodyRe
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.createReturnTypeCalculatorForIDE
 import org.jetbrains.kotlin.idea.fir.low.level.api.FirPhaseRunner
 import org.jetbrains.kotlin.idea.fir.low.level.api.element.builder.FirIdeDesignatedImpliciteTypesBodyResolveTransformerForReturnTypeCalculator
+import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.ModuleFileCache
+import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.runCustomResolveUnderLock
 
 internal class FirFileAnnotationsResolveTransformer(
     private val firFile: FirFile,
     private val annotations: List<FirAnnotationCall>,
     session: FirSession,
     scopeSession: ScopeSession,
+    private val moduleFileCache: ModuleFileCache,
     implicitBodyResolveComputationSession: ImplicitBodyResolveComputationSession = ImplicitBodyResolveComputationSession(),
     firTowerDataContextCollector: FirTowerDataContextCollector? = null,
 ) : FirBodyResolveTransformer(
@@ -50,7 +53,9 @@ internal class FirFileAnnotationsResolveTransformer(
         if (annotations.all { it.resolveStatus == FirAnnotationResolveStatus.Resolved }) return
         check(firFile.resolvePhase >= FirResolvePhase.IMPORTS) { "Invalid file resolve phase ${firFile.resolvePhase}" }
 
-        firFile.accept(this, ResolutionMode.ContextDependent)
+        moduleFileCache.firFileLockProvider.runCustomResolveUnderLock(firFile, true) {
+            firFile.accept(this, ResolutionMode.ContextDependent)
+        }
         check(annotations.all { it.resolveStatus == FirAnnotationResolveStatus.Resolved }) { "Annotation was not resolved" }
     }
 

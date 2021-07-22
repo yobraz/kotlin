@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.fir.declarations.FirTypeParameterRef
 import org.jetbrains.kotlin.fir.declarations.builder.FirClassBuilder
 import org.jetbrains.kotlin.fir.declarations.builder.FirDeclarationBuilder
 import org.jetbrains.kotlin.fir.declarations.impl.FirAnonymousObjectImpl
+import org.jetbrains.kotlin.fir.declarations.impl.IDEFirAnonymousObjectImpl
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.references.FirControlFlowGraphReference
 import org.jetbrains.kotlin.fir.scopes.FirScopeProvider
@@ -67,6 +68,24 @@ class FirAnonymousObjectBuilder : FirDeclarationBuilder, FirClassBuilder, FirAnn
         )
     }
 
+    override fun IDEbuild(): FirAnonymousObject {
+        return IDEFirAnonymousObjectImpl(
+            source,
+            moduleData,
+            resolvePhase,
+            origin,
+            attributes,
+            deprecation,
+            typeParameters,
+            classKind,
+            superTypeRefs,
+            declarations,
+            annotations,
+            scopeProvider,
+            symbol,
+        )
+    }
+
 }
 
 @OptIn(ExperimentalContracts::class)
@@ -75,4 +94,12 @@ inline fun buildAnonymousObject(init: FirAnonymousObjectBuilder.() -> Unit): Fir
         callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
     }
     return FirAnonymousObjectBuilder().apply(init).build()
+}
+
+@OptIn(ExperimentalContracts::class)
+inline fun buildIDEAnonymousObject(init: FirAnonymousObjectBuilder.() -> Unit): FirAnonymousObject {
+    contract {
+        callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
+    }
+    return FirAnonymousObjectBuilder().apply(init).IDEbuild()
 }

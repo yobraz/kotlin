@@ -13,6 +13,8 @@ import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclaration
 import org.jetbrains.kotlin.fir.resolve.transformers.contracts.FirContractResolveTransformer
 import org.jetbrains.kotlin.idea.fir.low.level.api.FirPhaseRunner
 import org.jetbrains.kotlin.idea.fir.low.level.api.api.FirDeclarationDesignationWithFile
+import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.ModuleFileCache
+import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.runCustomResolveUnderLock
 import org.jetbrains.kotlin.idea.fir.low.level.api.lazy.resolve.FirLazyBodiesCalculator
 import org.jetbrains.kotlin.idea.fir.low.level.api.transformers.FirLazyTransformerForIDE.Companion.updatePhaseDeep
 import org.jetbrains.kotlin.idea.fir.low.level.api.util.ensurePhase
@@ -24,7 +26,8 @@ internal class FirDesignatedContractsResolveTransformerForIDE(
     private val designation: FirDeclarationDesignationWithFile,
     session: FirSession,
     scopeSession: ScopeSession,
-) : FirLazyTransformerForIDE, FirContractResolveTransformer(session, scopeSession) {
+    private val moduleFileCache: ModuleFileCache,
+    ) : FirLazyTransformerForIDE, FirContractResolveTransformer(session, scopeSession) {
 
     private val ideDeclarationTransformer = IDEDeclarationTransformer(designation)
 
@@ -46,15 +49,17 @@ internal class FirDesignatedContractsResolveTransformerForIDE(
         if (designation.declaration.resolvePhase >= FirResolvePhase.CONTRACTS) return
         designation.declaration.ensurePhase(FirResolvePhase.STATUS)
 
-        FirLazyBodiesCalculator.calculateLazyBodiesInside(designation)
-        phaseRunner.runPhaseWithCustomResolve(FirResolvePhase.CONTRACTS) {
-            designation.firFile.transform<FirFile, ResolutionMode>(this, ResolutionMode.ContextIndependent)
-        }
+        moduleFileCache.firFileLockProvider.runCustomResolveUnderLock(designation.firFile, true) {
+            FirLazyBodiesCalculator.calculateLazyBodiesInside(designation)
+            phaseRunner.runPhaseWithCustomResolve(FirResolvePhase.CONTRACTS) {
+                designation.firFile.transform<FirFile, ResolutionMode>(this, ResolutionMode.ContextIndependent)
+            }
 
-        ideDeclarationTransformer.ensureDesignationPassed()
-        updatePhaseDeep(designation.declaration, FirResolvePhase.CONTRACTS)
-        ensureResolved(designation.declaration)
-        ensureResolvedDeep(designation.declaration)
+            ideDeclarationTransformer.ensureDesignationPassed()
+            updatePhaseDeep(designation.declaration, FirResolvePhase.CONTRACTS)
+            ensureResolved(designation.declaration)
+            ensureResolvedDeep(designation.declaration)
+        }
     }
 
     override fun ensureResolved(declaration: FirDeclaration) {

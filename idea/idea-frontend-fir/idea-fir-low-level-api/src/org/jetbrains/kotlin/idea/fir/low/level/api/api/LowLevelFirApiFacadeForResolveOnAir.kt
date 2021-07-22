@@ -247,8 +247,8 @@ object LowLevelFirApiFacadeForResolveOnAir {
 
         val isInBodyReplacement = isInBodyReplacement(nonLocalDeclaration, replacement)
 
-        return state.rootModuleSession.cache.firFileLockProvider.runCustomResolveUnderLock(originalFirFile, true) {
-            val copiedFirDeclaration = if (isInBodyReplacement) {
+        val copiedFirDeclaration = state.rootModuleSession.cache.firFileLockProvider.runCustomResolveUnderLock(originalFirFile, true) {
+            if (isInBodyReplacement) {
                 when (originalDeclaration) {
                     is FirSimpleFunction ->
                         originalDeclaration.withBodyFrom(newDeclarationWithReplacement as FirSimpleFunction)
@@ -260,22 +260,22 @@ object LowLevelFirApiFacadeForResolveOnAir {
                     else -> error("Not supported type ${originalDeclaration::class.simpleName}")
                 }
             } else newDeclarationWithReplacement
-
-            val onAirDesignation = FirDeclarationDesignationWithFile(
-                path = originalDesignation.path,
-                declaration = copiedFirDeclaration,
-                firFile = originalFirFile
-            )
-            state.firLazyDeclarationResolver.runLazyDesignatedOnAirResolveToBodyWithoutLock(
-                designation = onAirDesignation,
-                moduleFileCache = state.rootModuleSession.cache,
-                checkPCE = true,
-                onAirCreatedDeclaration = onAirCreatedDeclaration,
-                towerDataContextCollector = collector,
-            )
-            copiedFirDeclaration
         }
 
+        val onAirDesignation = FirDeclarationDesignationWithFile(
+            path = originalDesignation.path,
+            declaration = copiedFirDeclaration,
+            firFile = originalFirFile
+        )
+        state.firLazyDeclarationResolver.runLazyDesignatedOnAirResolveToBodyWithoutLock(
+            designation = onAirDesignation,
+            moduleFileCache = state.rootModuleSession.cache,
+            checkPCE = true,
+            onAirCreatedDeclaration = onAirCreatedDeclaration,
+            towerDataContextCollector = collector,
+        )
+
+        return copiedFirDeclaration
     }
 
     private fun isInBodyReplacement(ktDeclaration: KtDeclaration, replacement: RawFirReplacement): Boolean = when (ktDeclaration) {

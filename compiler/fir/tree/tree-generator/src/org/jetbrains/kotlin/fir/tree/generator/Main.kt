@@ -5,24 +5,25 @@
 
 package org.jetbrains.kotlin.fir.tree.generator
 
-import org.jetbrains.kotlin.fir.tree.generator.printer.generateElements
-import org.jetbrains.kotlin.fir.tree.generator.util.*
-import org.jetbrains.kotlin.generators.util.GeneratorsFileUtil
-import java.io.File
+//import org.jetbrains.kotlin.fir.tree.generator.printer.generateElements
+//import org.jetbrains.kotlin.fir.tree.generator.util.*
+//import org.jetbrains.kotlin.generators.util.GeneratorsFileUtil
+//import java.io.File
 
 
 fun main(args: Array<String>) {
-    val generationPath = args.firstOrNull()?.let { File(it) }
-        ?: File("../../tree/gen").canonicalFile
-
-    NodeConfigurator.configureFields()
-    detectBaseTransformerTypes(FirTreeBuilder)
-    ImplementationConfigurator.configureImplementations()
-    configureInterfacesAndAbstractClasses(FirTreeBuilder)
-    BuilderConfigurator.configureBuilders()
-    val previouslyGeneratedFiles = collectPreviouslyGeneratedFiles(generationPath)
-    val generatedFiles = generateElements(FirTreeBuilder, generationPath)
-    generatedFiles.forEach { GeneratorsFileUtil.writeFileIfContentChanged(it.file, it.newText, logNotChanged = false) }
-    removeExtraFilesFromPreviousGeneration(previouslyGeneratedFiles, generatedFiles.map { it.file })
+    args.size
+//    val generationPath = args.firstOrNull()?.let { File(it) }
+//        ?: File("../../tree/gen").canonicalFile
+//
+//    NodeConfigurator.configureFields()
+//    detectBaseTransformerTypes(FirTreeBuilder)
+//    ImplementationConfigurator.configureImplementations()
+//    configureInterfacesAndAbstractClasses(FirTreeBuilder)
+//    BuilderConfigurator.configureBuilders()
+//    val previouslyGeneratedFiles = collectPreviouslyGeneratedFiles(generationPath)
+//    val generatedFiles = generateElements(FirTreeBuilder, generationPath)
+//    generatedFiles.forEach { GeneratorsFileUtil.writeFileIfContentChanged(it.file, it.newText, logNotChanged = false) }
+//    removeExtraFilesFromPreviousGeneration(previouslyGeneratedFiles, generatedFiles.map { it.file })
 }
 

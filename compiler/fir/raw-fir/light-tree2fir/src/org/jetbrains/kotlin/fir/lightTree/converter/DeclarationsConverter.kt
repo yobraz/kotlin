@@ -566,7 +566,7 @@ class DeclarationsConverter(
                 val objectDeclaration = objectLiteral.getChildNodesByType(OBJECT_DECLARATION).first()
                 val sourceElement = objectDeclaration.toFirSourceElement()
                 source = sourceElement
-                anonymousObject = buildAnonymousObject {
+                anonymousObject = buildIDEAnonymousObject {
                     source = objectDeclaration.toFirSourceElement()
                     origin = FirDeclarationOrigin.Source
                     moduleData = baseModuleData
@@ -681,7 +681,7 @@ class DeclarationsConverter(
                 buildAnonymousObjectExpression {
                     val entrySource = enumEntry.toFirSourceElement(FirFakeSourceElementKind.EnumInitializer)
                     source = entrySource
-                    anonymousObject = buildAnonymousObject {
+                    anonymousObject = buildIDEAnonymousObject build@{
                         source = entrySource
                         moduleData = baseModuleData
                         origin = FirDeclarationOrigin.Source
@@ -695,7 +695,7 @@ class DeclarationsConverter(
                             hasDefaultConstructor = false,
                             delegatedSelfTypeRef = buildResolvedTypeRef {
                                 type = ConeClassLikeTypeImpl(
-                                    this@buildAnonymousObject.symbol.toLookupTag(),
+                                    this@build.symbol.toLookupTag(),
                                     emptyArray(),
                                     isNullable = false
                                 )
@@ -992,7 +992,7 @@ class DeclarationsConverter(
                     firTypeParameters += convertTypeParameters(it, emptyList(), classSymbol)
                 }
             }
-            return@withChildClassName buildTypeAlias {
+            return@withChildClassName buildIDETypeAlias {
                 source = typeAlias.toFirSourceElement()
                 moduleData = baseModuleData
                 origin = FirDeclarationOrigin.Source
