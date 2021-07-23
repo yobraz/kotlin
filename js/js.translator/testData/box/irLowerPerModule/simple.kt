@@ -1,0 +1,4 @@
+// TARGET_BACKEND: JS_IR
+// LOWER_PER_MODULE
+
+fun box() = "OK"

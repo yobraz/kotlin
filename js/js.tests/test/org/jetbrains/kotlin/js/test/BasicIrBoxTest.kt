@@ -60,9 +60,9 @@ abstract class BasicIrBoxTest(
 
     private val runIcMode: Boolean = getBoolean("kotlin.js.ir.icMode")
 
-    private val lowerPerModule: Boolean = runIcMode || getBoolean("kotlin.js.ir.lowerPerModule")
+    private val lowerPerModule: Boolean = getBoolean("kotlin.js.ir.lowerPerModule")
 
-    private val klibMainModule: Boolean = false || getBoolean("kotlin.js.ir.klibMainModule")
+    private val klibMainModule: Boolean = getBoolean("kotlin.js.ir.klibMainModule")
 
     override val skipRegularMode: Boolean = getBoolean("kotlin.js.ir.skipRegularMode")
 
@@ -111,8 +111,15 @@ abstract class BasicIrBoxTest(
         safeExternalBooleanDiagnostic: RuntimeDiagnostic?,
         skipMangleVerification: Boolean,
         abiVersion: KotlinAbiVersion,
-        icCache: MutableMap<String, SerializedIcData>
+        icCache: MutableMap<String, SerializedIcData>,
+        runIcPipeline: Boolean,
+        lowerPerModule: Boolean,
+        klibMainModule: Boolean,
     ) {
+        val runIcMode = runIcPipeline || this.runIcMode
+        val lowerPerModule = lowerPerModule || runIcMode || this.lowerPerModule
+        val klibMainModule = klibMainModule || this.klibMainModule
+
         val filesToCompile = units.map { (it as TranslationUnit.SourceFile).file }
 
         val runtimeKlibs = if (needsFullIrRuntime) listOf(fullRuntimeKlib, kotlinTestKLib) else listOf(defaultRuntimeKlib)

@@ -153,6 +153,9 @@ abstract class BasicBoxTest(
         val skipDceDriven = SKIP_DCE_DRIVEN.matcher(fileContent).find()
         val splitPerModule = SPLIT_PER_MODULE.matcher(fileContent).find()
         val skipMangleVerification = SKIP_MANGLE_VERIFICATION.matcher(fileContent).find()
+        val runIcPipeline = RUN_IC_PIPELINE.matcher(fileContent).find()
+        val lowerPerModule = LOWER_PER_MODULE.matcher(fileContent).find()
+        val klibMainModule = KLIB_MAIN_MODULE.matcher(fileContent).find()
 
         val propertyLazyInitialization = PROPERTY_LAZY_INITIALIZATION.matcher(fileContent).find()
         val safeExternalBoolean = SAFE_EXTERNAL_BOOLEAN.matcher(fileContent).find()
@@ -233,7 +236,10 @@ abstract class BasicBoxTest(
                     safeExternalBooleanDiagnostic,
                     skipMangleVerification,
                     abiVersion,
-                    icCache
+                    icCache,
+                    runIcPipeline,
+                    lowerPerModule,
+                    klibMainModule,
                 )
 
                 when {
@@ -491,7 +497,10 @@ abstract class BasicBoxTest(
         safeExternalBooleanDiagnostic: RuntimeDiagnostic?,
         skipMangleVerification: Boolean,
         abiVersion: KotlinAbiVersion,
-        icCache: MutableMap<String, SerializedIcData>
+        icCache: MutableMap<String, SerializedIcData>,
+        runIcPipeline: Boolean,
+        lowerPerModule: Boolean,
+        klibMainModule: Boolean,
     ) {
         val kotlinFiles = module.files.filter { it.fileName.endsWith(".kt") }
         val testFiles = kotlinFiles.map { it.fileName }
@@ -546,7 +555,10 @@ abstract class BasicBoxTest(
             safeExternalBooleanDiagnostic,
             skipMangleVerification,
             abiVersion,
-            icCache
+            icCache,
+            runIcPipeline,
+            lowerPerModule,
+            klibMainModule,
         )
 
         if (incrementalCompilationChecksEnabled && module.hasFilesToRecompile) {
@@ -645,7 +657,10 @@ abstract class BasicBoxTest(
             safeExternalBooleanDiagnostic = null,
             skipMangleVerification = false,
             abiVersion = KotlinAbiVersion.CURRENT,
-            mutableMapOf()
+            mutableMapOf(),
+            runIcPipeline = false,
+            lowerPerModule = false,
+            klibMainModule = false,
         )
 
         val originalOutput = FileUtil.loadFile(outputFile)
@@ -729,7 +744,10 @@ abstract class BasicBoxTest(
         safeExternalBooleanDiagnostic: RuntimeDiagnostic?,
         skipMangleVerification: Boolean,
         abiVersion: KotlinAbiVersion,
-        icCache: MutableMap<String, SerializedIcData>
+        icCache: MutableMap<String, SerializedIcData>,
+        runIcPipeline: Boolean,
+        lowerPerModule: Boolean,
+        klibMainModule: Boolean,
     ) {
         val translator = K2JSTranslator(config, false)
         val translationResult = translator.translateUnits(ExceptionThrowingReporter, units, mainCallParameters)
@@ -1142,6 +1160,10 @@ abstract class BasicBoxTest(
 
         private val SAFE_EXTERNAL_BOOLEAN = Pattern.compile("^// *SAFE_EXTERNAL_BOOLEAN *$", Pattern.MULTILINE)
         private val SAFE_EXTERNAL_BOOLEAN_DIAGNOSTIC = Pattern.compile("^// *SAFE_EXTERNAL_BOOLEAN_DIAGNOSTIC: *(.+)$", Pattern.MULTILINE)
+
+        private val RUN_IC_PIPELINE = Pattern.compile("^// *RUN_IC_PIPELINE *$", Pattern.MULTILINE)
+        private val LOWER_PER_MODULE = Pattern.compile("^// *LOWER_PER_MODULE *$", Pattern.MULTILINE)
+        private val KLIB_MAIN_MODULE = Pattern.compile("^// *KLIB_MAIN_MODULE *$", Pattern.MULTILINE)
 
         @JvmStatic
         protected val runTestInNashorn = getBoolean("kotlin.js.useNashorn")

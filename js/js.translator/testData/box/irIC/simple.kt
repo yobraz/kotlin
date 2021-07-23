@@ -1,0 +1,4 @@
+// TARGET_BACKEND: JS_IR
+// RUN_IC_PIPELINE
+
+fun box() = "OK"

@@ -1,0 +1,4 @@
+// TARGET_BACKEND: JS_IR
+// KLIB_MAIN_MODULE
+
+fun box() = "OK"
