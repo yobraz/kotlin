@@ -14,9 +14,9 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.FileCollection
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.dsl.pm20Extension
 import org.jetbrains.kotlin.gradle.dsl.topLevelExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.PlainDependencyArtifactsResolver
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinPm20ProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.toSingleModuleIdentifier
 import org.jetbrains.kotlin.gradle.plugin.sources.KotlinDependencyScope
@@ -51,10 +51,12 @@ internal sealed class MetadataDependencyResolution(
         return "$verb, dependency = $dependency"
     }
 
-    class KeepOriginalDependency(
+    abstract class KeepOriginalDependency(
         dependency: ResolvedComponentResult,
         projectDependency: Project?
-    ) : MetadataDependencyResolution(dependency, projectDependency)
+    ) : MetadataDependencyResolution(dependency, projectDependency) {
+        abstract fun getDependencyArtifacts(): Iterable<File>
+    }
 
     class ExcludeAsUnrequested(
         dependency: ResolvedComponentResult,
@@ -215,7 +217,11 @@ internal class GranularMetadataTransformation(
         val resolvedToProject: Project? = module.toProjectOrNull(project)
 
         val projectStructureMetadata = mppDependencyMetadataExtractor?.getProjectStructureMetadata()
-            ?: return MetadataDependencyResolution.KeepOriginalDependency(module, resolvedToProject)
+            ?: return KeepOriginalDependencyImpl(
+                module,
+                resolvedToProject,
+                PlainDependencyArtifactsResolver.getResolvedDependencyArtifacts(project, configurationToResolve, module)
+            )
 
         val sourceSetVisibility =
             SourceSetVisibilityProvider(project).getVisibleSourceSets(
@@ -259,6 +265,14 @@ internal class GranularMetadataTransformation(
             transitiveDependenciesToVisit, mppDependencyMetadataExtractor
         )
     }
+}
+
+internal class KeepOriginalDependencyImpl(
+    dependency: ResolvedComponentResult,
+    projectDependency: Project?,
+    private val dependencyArtifacts: Iterable<File>
+) : MetadataDependencyResolution.KeepOriginalDependency(dependency, projectDependency) {
+    override fun getDependencyArtifacts(): Iterable<File> = dependencyArtifacts
 }
 
 internal class ChooseVisibleSourceSetsImpl(

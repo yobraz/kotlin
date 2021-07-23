@@ -6,14 +6,18 @@
 package org.jetbrains.kotlin.gradle.plugin.mpp.pm20
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.ChooseVisibleSourceSetsImpl
 import org.jetbrains.kotlin.gradle.plugin.mpp.MetadataDependencyResolution
 import org.jetbrains.kotlin.gradle.plugin.mpp.getMetadataExtractor
-import org.jetbrains.kotlin.gradle.plugin.mpp.getProjectStructureMetadata
+import org.jetbrains.kotlin.gradle.utils.getOrPut
 import org.jetbrains.kotlin.project.model.*
 import org.jetbrains.kotlin.utils.addToStdlib.flattenTo
+import java.io.File
 import java.util.ArrayDeque
 
 internal class FragmentGranularMetadataResolver(
@@ -77,7 +81,15 @@ internal class FragmentGranularMetadataResolver(
             val isResolvedAsProject = resolvedComponentResult.toProjectOrNull(project)
             val result = when (dependencyModule) {
                 is ExternalPlainKotlinModule -> {
-                    MetadataDependencyResolution.KeepOriginalDependency(resolvedComponentResult, isResolvedAsProject)
+                    KeepOriginalDependencyImpl(
+                        resolvedComponentResult,
+                        isResolvedAsProject,
+                        PlainDependencyArtifactsResolver.getResolvedDependencyArtifacts(
+                            project,
+                            configurationToResolve,
+                            dependencyNode.selectedComponent
+                        )
+                    )
                 }
                 else -> run {
                     val metadataSourceComponent = dependencyNode.run { metadataSourceComponent ?: selectedComponent }
@@ -155,4 +167,23 @@ internal class FragmentGranularMetadataResolver(
         }
         metadataExtractor.metadataArtifactBySourceSet.putAll(hostSpecificFragmentToArtifact)
     }
+}
+
+internal object PlainDependencyArtifactsResolver {
+    private class ConfigurationArtifactsCache(configuration: Configuration) {
+        private val artifactsByResolvedComponentResult: Map<ComponentIdentifier, Iterable<File>> =
+            configuration.incoming.artifacts.groupBy { it.id.componentIdentifier }.mapValues { (_, artifacts) -> artifacts.map { it.file } }
+
+        fun getArtifactFilesByComponentIdentifier(componentIdentifier: ComponentIdentifier): Iterable<File>? =
+            artifactsByResolvedComponentResult[componentIdentifier]
+    }
+
+    fun getResolvedDependencyArtifacts(
+        project: Project,
+        configuration: Configuration,
+        dependency: ResolvedComponentResult
+    ): Iterable<File> =
+        project.extensions.extraProperties.getOrPut("kotlin.internal.configurationArtifactsCache.${configuration.name}") {
+            ConfigurationArtifactsCache(configuration)
+        }.getArtifactFilesByComponentIdentifier(dependency.id) ?: emptyList()
 }
