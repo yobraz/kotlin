@@ -5,12 +5,12 @@
 
 package org.jetbrains.kotlin.scripting.ide_services.test_util
 
-import kotlinx.coroutines.runBlocking
 import java.io.File
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.dependencies.*
 import kotlin.script.experimental.dependencies.maven.MavenDependenciesResolver
+import kotlin.script.experimental.impl.internalScriptingRunSuspend
 import kotlin.script.experimental.jvm.withUpdatedClasspath
 
 // in case of flat or direct resolvers the value should be a direct path or file name of a jar respectively
@@ -33,7 +33,8 @@ open class ScriptDependenciesResolver {
             when (annotation) {
                 is DependsOn -> {
                     try {
-                        when (val result = runBlocking { resolver.resolve(annotation.value) }) {
+                        @Suppress("DEPRECATION_ERROR")
+                        when (val result = internalScriptingRunSuspend { resolver.resolve(annotation.value) }) {
                             is ResultWithDiagnostics.Failure -> {
                                 val diagnostics = ScriptDiagnostic(
                                     ScriptDiagnostic.unspecifiedError,

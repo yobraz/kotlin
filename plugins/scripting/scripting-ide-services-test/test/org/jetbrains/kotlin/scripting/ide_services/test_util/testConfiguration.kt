@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.scripting.ide_services.test_util
 
 import junit.framework.TestCase
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.scripting.ide_services.compiler.KJvmReplCompilerWithIdeServices
 import org.junit.Assert
 import java.io.Writer
@@ -14,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
 import kotlin.script.experimental.api.*
+import kotlin.script.experimental.impl.internalScriptingRunSuspend
 import kotlin.system.measureTimeMillis
 
 class TestConf {
@@ -104,7 +104,8 @@ class TestConf {
 fun test(setup: (TestConf).() -> Unit) {
     val test = TestConf()
     test.setup()
-    runBlocking { checkEvaluateInRepl(simpleScriptCompilationConfiguration, test.collect()) }
+    @Suppress("DEPRECATION_ERROR")
+    internalScriptingRunSuspend { checkEvaluateInRepl(simpleScriptCompilationConfiguration, test.collect()) }
 }
 
 enum class ComparisonType {

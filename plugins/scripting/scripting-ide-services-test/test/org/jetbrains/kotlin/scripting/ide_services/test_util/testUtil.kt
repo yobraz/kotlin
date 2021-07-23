@@ -5,16 +5,16 @@
 
 package org.jetbrains.kotlin.scripting.ide_services.test_util
 
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.scripting.ide_services.compiler.KJvmReplCompilerWithIdeServices
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.script.experimental.api.*
+import kotlin.script.experimental.impl.internalScriptingRunSuspend
 import kotlin.script.experimental.jvm.BasicJvmReplEvaluator
 import kotlin.script.experimental.util.LinkedSnippet
 import kotlin.script.experimental.jvm.util.toSourceCodePosition
 
-internal class JvmTestRepl (
+internal class JvmTestRepl(
     private val compileConfiguration: ScriptCompilationConfiguration = simpleScriptCompilationConfiguration,
     private val evalConfiguration: ScriptEvaluationConfiguration = simpleScriptEvaluationConfiguration,
 ) : Closeable {
@@ -34,10 +34,16 @@ internal class JvmTestRepl (
         BasicJvmReplEvaluator()
     }
 
-    fun compile(code: SourceCode) = runBlocking { replCompiler.compile(code, compileConfiguration) }
-    fun complete(code: SourceCode, cursor: Int) = runBlocking { replCompiler.complete(code, cursor.toSourceCodePosition(code), compileConfiguration) }
+    @Suppress("DEPRECATION_ERROR")
+    fun compile(code: SourceCode) = internalScriptingRunSuspend { replCompiler.compile(code, compileConfiguration) }
 
-    fun eval(snippet: LinkedSnippet<out CompiledSnippet>) = runBlocking { compiledEvaluator.eval(snippet, evalConfiguration) }
+    @Suppress("DEPRECATION_ERROR")
+    fun complete(code: SourceCode, cursor: Int) =
+        internalScriptingRunSuspend { replCompiler.complete(code, cursor.toSourceCodePosition(code), compileConfiguration) }
+
+    @Suppress("DEPRECATION_ERROR")
+    fun eval(snippet: LinkedSnippet<out CompiledSnippet>) =
+        internalScriptingRunSuspend { compiledEvaluator.eval(snippet, evalConfiguration) }
 
     override fun close() {
 
