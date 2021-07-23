@@ -317,7 +317,7 @@ class K2NativeCompilerArguments : CommonCompilerArguments() {
     @Argument(
             value = "-Xcheck-compatibility-with-lld",
             valueDescription = "{disable|enable}",
-            description = "Check that linker flags are compatible with LLD."
+            description = "(Deprecated option) Check that linker flags are compatible with LLD."
     )
     var checkLldCompatibility: String? = null
 
