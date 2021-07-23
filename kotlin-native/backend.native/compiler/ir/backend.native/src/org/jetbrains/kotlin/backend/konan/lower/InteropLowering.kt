@@ -904,7 +904,7 @@ private class InteropTransformer(val context: Context, override val irFile: IrFi
                             val newArgument = irBlock {
                                 val oldArgument = irTemporary(expression.getValueArgument(index)!!)
                                 if (irConstructor.valueParameters[index].type.isManagedType()) {
-                                    +irNullOrCall(irGet(oldArgument), listOf((irConstructor.valueParameters[index].type as IrSimpleType).arguments.single()), symbols.interopGetPtr)
+                                    +irNullOrCall(irGet(oldArgument), listOf((correspondingCppConstructor.valueParameters[index].type as IrSimpleType).arguments.single()), symbols.interopGetPtr)
                                 } else {
                                     +irGet(oldArgument)
                                 }
