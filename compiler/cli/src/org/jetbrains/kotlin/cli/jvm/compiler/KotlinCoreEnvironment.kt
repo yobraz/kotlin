@@ -468,7 +468,7 @@ class KotlinCoreEnvironment private constructor(
         @PublishedApi
         internal val APPLICATION_LOCK = Object()
 
-        private var ourApplicationEnvironment: KotlinCoreApplicationEnvironment? = null
+        private var ourApplicationEnvironmentDisposable: Disposable? = null
         private var ourProjectCount = 0
 
         inline fun <R> underApplicationLock(action: () -> R): R =
@@ -531,7 +531,9 @@ class KotlinCoreEnvironment private constructor(
         }
 
         // used in the daemon for jar cache cleanup
-        val applicationEnvironment: KotlinCoreApplicationEnvironment? get() = ourApplicationEnvironment
+        val applicationEnvironment: KotlinCoreApplicationEnvironment?
+            // TODO: consider fatal error if application environment is registered but is not a KotlinCoreApplicationEnvironment
+            get() = ApplicationManager.getApplication() as? KotlinCoreApplicationEnvironment
 
         fun getOrCreateApplicationEnvironmentForProduction(
             parentDisposable: Disposable, configuration: CompilerConfiguration
@@ -545,7 +547,8 @@ class KotlinCoreEnvironment private constructor(
             parentDisposable: Disposable, configuration: CompilerConfiguration, unitTestMode: Boolean
         ): KotlinCoreApplicationEnvironment {
             synchronized(APPLICATION_LOCK) {
-                if (ourApplicationEnvironment == null) {
+                val applicationEnvironment = (ApplicationManager.getApplication() as? KotlinCoreApplicationEnvironment) ?: run {
+                    if (ourApplicationEnvironmentDisposable != null) disposeApplicationEnvironment()
                     val disposable = if (unitTestMode) {
                         parentDisposable
                     } else {
@@ -554,13 +557,14 @@ class KotlinCoreEnvironment private constructor(
                         // they was disposed, this needs to be fixed
                         Disposer.newDisposable("Disposable for the KotlinCoreApplicationEnvironment")
                     }
-                    ourApplicationEnvironment = createApplicationEnvironment(disposable, configuration, unitTestMode)
                     ourProjectCount = 0
-                    Disposer.register(disposable, Disposable {
-                        synchronized(APPLICATION_LOCK) {
-                            ourApplicationEnvironment = null
-                        }
-                    })
+                    createApplicationEnvironment(disposable, configuration, unitTestMode).also {
+                        Disposer.register(disposable, Disposable {
+                            synchronized(APPLICATION_LOCK) {
+                                disposeApplicationEnvironment()
+                            }
+                        })
+                    }
                 }
                 // Disposing of the environment is unsafe in production then parallel builds are enabled, but turning it off universally
                 // breaks a lot of tests, therefore it is disabled for production and enabled for tests
@@ -576,18 +580,16 @@ class KotlinCoreEnvironment private constructor(
                     })
                 }
 
-                return ourApplicationEnvironment!!
+                return applicationEnvironment
             }
         }
 
-        /**
-         * This method is also used in Gradle after configuration phase finished.
-         */
+        // also used in tests
         fun disposeApplicationEnvironment() {
             synchronized(APPLICATION_LOCK) {
-                val environment = ourApplicationEnvironment ?: return
-                ourApplicationEnvironment = null
-                Disposer.dispose(environment.parentDisposable)
+                ourApplicationEnvironmentDisposable?.let {
+                    Disposer.dispose(it)
+                }
                 ZipHandler.clearFileAccessorCache()
             }
         }
