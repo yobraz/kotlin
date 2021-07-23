@@ -27,5 +27,4 @@ interface FirDeclarationBuilder {
     abstract var origin: FirDeclarationOrigin
     abstract var attributes: FirDeclarationAttributes
     fun build(): FirDeclaration
-    fun IDEbuild(): FirDeclaration = TODO("Not implemented")
 }

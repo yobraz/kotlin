@@ -838,7 +838,7 @@ open class RawFirBuilder(
                     buildAnonymousObjectExpression {
                         val enumEntrySource = toFirSourceElement(FirFakeSourceElementKind.EnumInitializer)
                         source = enumEntrySource
-                        anonymousObject = buildIDEAnonymousObject build@{
+                        anonymousObject = buildAnonymousObject {
                             source = enumEntrySource
                             moduleData = baseModuleData
                             origin = FirDeclarationOrigin.Source
@@ -848,7 +848,7 @@ open class RawFirBuilder(
 
                             val delegatedEntrySelfType = buildResolvedTypeRef {
                                 type =
-                                    ConeClassLikeTypeImpl(this@build.symbol.toLookupTag(), emptyArray(), isNullable = false)
+                                    ConeClassLikeTypeImpl(this@buildAnonymousObject.symbol.toLookupTag(), emptyArray(), isNullable = false)
                             }
                             registerSelfType(delegatedEntrySelfType)
 
@@ -925,7 +925,7 @@ open class RawFirBuilder(
                 }
 
                 withCapturedTypeParameters(status.isInner, listOf()) {
-                    buildIDERegularClass {
+                    buildRegularClass {
                         source = classOrObject.toFirSourceElement()
                         moduleData = baseModuleData
                         origin = FirDeclarationOrigin.Source
@@ -1030,7 +1030,7 @@ open class RawFirBuilder(
                 buildAnonymousObjectExpression {
                     val sourceElement = objectDeclaration.toFirSourceElement()
                     source = sourceElement
-                    anonymousObject = buildIDEAnonymousObject {
+                    anonymousObject = buildAnonymousObject {
                         source = sourceElement
                         moduleData = baseModuleData
                         origin = FirDeclarationOrigin.Source
@@ -1049,7 +1049,7 @@ open class RawFirBuilder(
                             null,
                             ClassKind.CLASS,
                             containerTypeParameters = emptyList(),
-                            containingClassIsExpectClass = false
+                        containingClassIsExpectClass = false
                         )
 
                         for (declaration in objectDeclaration.declarations) {
@@ -1069,7 +1069,7 @@ open class RawFirBuilder(
         override fun visitTypeAlias(typeAlias: KtTypeAlias, data: Unit): FirElement {
             val typeAliasIsExpect = typeAlias.hasExpectModifier() || context.containerIsExpect
             return withChildClassName(typeAlias.nameAsSafeName, isExpect = typeAliasIsExpect) {
-                buildIDETypeAlias {
+                buildTypeAlias {
                     source = typeAlias.toFirSourceElement()
                     moduleData = baseModuleData
                     origin = FirDeclarationOrigin.Source

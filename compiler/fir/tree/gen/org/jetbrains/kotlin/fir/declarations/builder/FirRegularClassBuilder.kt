@@ -56,27 +56,6 @@ open class FirRegularClassBuilder : FirClassBuilder, FirTypeParameterRefsOwnerBu
     override val superTypeRefs: MutableList<FirTypeRef> = mutableListOf()
 
     override fun build(): FirRegularClass {
-        return FirRegularClassImpl(
-            source,
-            moduleData,
-            resolvePhase,
-            origin,
-            attributes,
-            deprecation,
-            typeParameters,
-            classKind,
-            declarations,
-            annotations,
-            scopeProvider,
-            status,
-            name,
-            symbol,
-            companionObject,
-            superTypeRefs,
-        )
-    }
-
-    override fun IDEbuild(): FirRegularClass {
         return IDEFirRegularClassImpl(
             source,
             moduleData,
@@ -105,14 +84,6 @@ inline fun buildRegularClass(init: FirRegularClassBuilder.() -> Unit): FirRegula
         callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
     }
     return FirRegularClassBuilder().apply(init).build()
-}
-
-@OptIn(ExperimentalContracts::class)
-inline fun buildIDERegularClass(init: FirRegularClassBuilder.() -> Unit): FirRegularClass {
-    contract {
-        callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
-    }
-    return FirRegularClassBuilder().apply(init).IDEbuild()
 }
 
 @OptIn(ExperimentalContracts::class)

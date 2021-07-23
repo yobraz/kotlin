@@ -43,11 +43,10 @@ internal class FirDesignatedStatusResolveTransformerForIDE(
         designation.declaration.ensurePhase(FirResolvePhase.TYPES)
 
         val transformer = FirDesignatedStatusResolveTransformerForIDE()
+        phaseRunner.runPhaseWithCustomResolve(FirResolvePhase.STATUS) {
+            designation.firFile.transform<FirElement, FirResolvedDeclarationStatus?>(transformer, null)
+        }
         moduleFileCache.firFileLockProvider.runCustomResolveUnderLock(designation.firFile, true) {
-            phaseRunner.runPhaseWithCustomResolve(FirResolvePhase.STATUS) {
-                designation.firFile.transform<FirElement, FirResolvedDeclarationStatus?>(transformer, null)
-            }
-
             transformer.designationTransformer.ensureDesignationPassed()
             updatePhaseDeep(designation.declaration, FirResolvePhase.STATUS)
             ensureResolved(designation.declaration)

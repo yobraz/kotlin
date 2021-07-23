@@ -51,24 +51,6 @@ class FirAnonymousObjectBuilder : FirDeclarationBuilder, FirClassBuilder, FirAnn
     lateinit var symbol: FirAnonymousObjectSymbol
 
     override fun build(): FirAnonymousObject {
-        return FirAnonymousObjectImpl(
-            source,
-            moduleData,
-            resolvePhase,
-            origin,
-            attributes,
-            deprecation,
-            typeParameters,
-            classKind,
-            superTypeRefs,
-            declarations,
-            annotations,
-            scopeProvider,
-            symbol,
-        )
-    }
-
-    override fun IDEbuild(): FirAnonymousObject {
         return IDEFirAnonymousObjectImpl(
             source,
             moduleData,
@@ -94,12 +76,4 @@ inline fun buildAnonymousObject(init: FirAnonymousObjectBuilder.() -> Unit): Fir
         callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
     }
     return FirAnonymousObjectBuilder().apply(init).build()
-}
-
-@OptIn(ExperimentalContracts::class)
-inline fun buildIDEAnonymousObject(init: FirAnonymousObjectBuilder.() -> Unit): FirAnonymousObject {
-    contract {
-        callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
-    }
-    return FirAnonymousObjectBuilder().apply(init).IDEbuild()
 }

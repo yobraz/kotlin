@@ -48,23 +48,6 @@ class FirTypeAliasBuilder : FirDeclarationBuilder, FirTypeParametersOwnerBuilder
     override val annotations: MutableList<FirAnnotationCall> = mutableListOf()
 
     override fun build(): FirTypeAlias {
-        return FirTypeAliasImpl(
-            source,
-            moduleData,
-            resolvePhase,
-            origin,
-            attributes,
-            deprecation,
-            status,
-            typeParameters,
-            name,
-            symbol,
-            expandedTypeRef,
-            annotations,
-        )
-    }
-
-    override fun IDEbuild(): FirTypeAlias {
         return IDEFirTypeAliasImpl(
             source,
             moduleData,
@@ -89,14 +72,6 @@ inline fun buildTypeAlias(init: FirTypeAliasBuilder.() -> Unit): FirTypeAlias {
         callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
     }
     return FirTypeAliasBuilder().apply(init).build()
-}
-
-@OptIn(ExperimentalContracts::class)
-inline fun buildIDETypeAlias(init: FirTypeAliasBuilder.() -> Unit): FirTypeAlias {
-    contract {
-        callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
-    }
-    return FirTypeAliasBuilder().apply(init).IDEbuild()
 }
 
 @OptIn(ExperimentalContracts::class)

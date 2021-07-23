@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.fir.references.FirControlFlowGraphReference
 import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
+import org.jetbrains.kotlin.fir.types.impl.ideWrappers.IDEFirPrimaryConstructor
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
@@ -56,7 +57,7 @@ class FirPrimaryConstructorBuilder : FirAbstractConstructorBuilder, FirAnnotatio
     override var body: FirBlock? = null
 
     override fun build(): FirConstructor {
-        return FirPrimaryConstructor(
+        return IDEFirPrimaryConstructor(
             source,
             moduleData,
             resolvePhase,

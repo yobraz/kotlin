@@ -1,0 +1,109 @@
+/*
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
+ */
+
+package org.jetbrains.kotlin.fir.declarations.impl
+
+import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.fir.FirModuleData
+import org.jetbrains.kotlin.fir.FirSourceElement
+import org.jetbrains.kotlin.fir.declarations.DeprecationsPerUseSite
+import org.jetbrains.kotlin.fir.declarations.FirAnonymousObject
+import org.jetbrains.kotlin.fir.declarations.FirDeclaration
+import org.jetbrains.kotlin.fir.declarations.FirDeclarationAttributes
+import org.jetbrains.kotlin.fir.declarations.FirDeclarationOrigin
+import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
+import org.jetbrains.kotlin.fir.declarations.FirTypeParameterRef
+import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
+import org.jetbrains.kotlin.fir.references.FirControlFlowGraphReference
+import org.jetbrains.kotlin.fir.scopes.FirScopeProvider
+import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousObjectSymbol
+import org.jetbrains.kotlin.fir.types.FirTypeRef
+import org.jetbrains.kotlin.fir.types.impl.ideWrappers.IDEFirDeclarationMarker
+import org.jetbrains.kotlin.fir.visitors.*
+import java.util.concurrent.atomic.AtomicReference
+
+/*
+ * This file was generated manually
+ * DO MODIFY IT AUTOMATICALLY
+ */
+
+internal class IDEFirAnonymousObjectImpl(
+    override val source: FirSourceElement?,
+    override val moduleData: FirModuleData,
+    @Volatile
+    override var resolvePhase: FirResolvePhase,
+    override val origin: FirDeclarationOrigin,
+    override val attributes: FirDeclarationAttributes,
+    override var deprecation: DeprecationsPerUseSite?,
+    override val typeParameters: MutableList<FirTypeParameterRef>,
+    override val classKind: ClassKind,
+    private val originalSuperTypeRefs: List<FirTypeRef>,
+    override val declarations: MutableList<FirDeclaration>,
+    override val annotations: MutableList<FirAnnotationCall>,
+    override val scopeProvider: FirScopeProvider,
+    override val symbol: FirAnonymousObjectSymbol,
+) : FirAnonymousObject(), IDEFirDeclarationMarker {
+    override var controlFlowGraphReference: FirControlFlowGraphReference? = null
+
+    private val atomicSuperTypeRefs: AtomicReference<List<FirTypeRef>> = AtomicReference<List<FirTypeRef>>(originalSuperTypeRefs)
+    override val superTypeRefs: List<FirTypeRef> get() = atomicSuperTypeRefs.get()
+
+    init {
+        symbol.bind(this)
+    }
+
+    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
+        typeParameters.forEach { it.accept(visitor, data) }
+        superTypeRefs.forEach { it.accept(visitor, data) }
+        declarations.forEach { it.accept(visitor, data) }
+        annotations.forEach { it.accept(visitor, data) }
+        controlFlowGraphReference?.accept(visitor, data)
+    }
+
+    override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): IDEFirAnonymousObjectImpl {
+        transformTypeParameters(transformer, data)
+        transformSuperTypeRefs(transformer, data)
+        transformDeclarations(transformer, data)
+        transformAnnotations(transformer, data)
+        controlFlowGraphReference = controlFlowGraphReference?.transform(transformer, data)
+        return this
+    }
+
+    override fun <D> transformTypeParameters(transformer: FirTransformer<D>, data: D): IDEFirAnonymousObjectImpl {
+        typeParameters.transformInplace(transformer, data)
+        return this
+    }
+
+    override fun <D> transformSuperTypeRefs(transformer: FirTransformer<D>, data: D): IDEFirAnonymousObjectImpl {
+        superTypeRefs.transformNoInplace(transformer, data)
+        return this
+    }
+
+    override fun <D> transformDeclarations(transformer: FirTransformer<D>, data: D): IDEFirAnonymousObjectImpl {
+        declarations.transformInplace(transformer, data)
+        return this
+    }
+
+    override fun <D> transformAnnotations(transformer: FirTransformer<D>, data: D): IDEFirAnonymousObjectImpl {
+        annotations.transformInplace(transformer, data)
+        return this
+    }
+
+    override fun replaceResolvePhase(newResolvePhase: FirResolvePhase) {
+        resolvePhase = newResolvePhase
+    }
+
+    override fun replaceDeprecation(newDeprecation: DeprecationsPerUseSite?) {
+        deprecation = newDeprecation
+    }
+
+    override fun replaceSuperTypeRefs(newSuperTypeRefs: List<FirTypeRef>) {
+        atomicSuperTypeRefs.compareAndSet(originalSuperTypeRefs, newSuperTypeRefs)
+    }
+
+    override fun replaceControlFlowGraphReference(newControlFlowGraphReference: FirControlFlowGraphReference?) {
+        controlFlowGraphReference = newControlFlowGraphReference
+    }
+}

@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.fir.references.FirControlFlowGraphReference
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
+import org.jetbrains.kotlin.fir.types.impl.ideWrappers.IDEFirPropertyAccessorImpl
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
@@ -60,7 +61,7 @@ class FirPropertyAccessorBuilder : FirFunctionBuilder, FirAnnotationContainerBui
 
     @OptIn(FirImplementationDetail::class)
     override fun build(): FirPropertyAccessor {
-        return FirPropertyAccessorImpl(
+        return IDEFirPropertyAccessorImpl(
             source,
             moduleData,
             resolvePhase,

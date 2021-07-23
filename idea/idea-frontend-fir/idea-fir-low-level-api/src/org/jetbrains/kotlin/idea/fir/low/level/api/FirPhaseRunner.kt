@@ -16,10 +16,10 @@ internal class FirPhaseRunner {
     private val implicitTypesResolveLock = ReentrantLock()
 
     inline fun runPhaseWithCustomResolve(phase: FirResolvePhase, crossinline resolve: () -> Unit) = when (phase) {
-        FirResolvePhase.SUPER_TYPES -> superTypesBodyResolveLock.withLock {
+        FirResolvePhase.SUPER_TYPES -> /*superTypesBodyResolveLock.withLock*/ {
             runPhaseWithCustomResolveWithoutLock(resolve)
         }
-        FirResolvePhase.STATUS -> statusResolveLock.withLock {
+        FirResolvePhase.STATUS -> /*statusResolveLock.withLock*/ {
             runPhaseWithCustomResolveWithoutLock(resolve)
         }
         FirResolvePhase.IMPLICIT_TYPES_BODY_RESOLVE -> implicitTypesResolveLock.withLock {

@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.symbols.impl.FirEnumEntrySymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
+import org.jetbrains.kotlin.fir.types.impl.ideWrappers.IDEFirEnumEntryImpl
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
@@ -52,7 +53,7 @@ class FirEnumEntryBuilder : FirAnnotationContainerBuilder {
     lateinit var symbol: FirEnumEntrySymbol
 
     override fun build(): FirEnumEntry {
-        return FirEnumEntryImpl(
+        return IDEFirEnumEntryImpl(
             source,
             moduleData,
             resolvePhase,
