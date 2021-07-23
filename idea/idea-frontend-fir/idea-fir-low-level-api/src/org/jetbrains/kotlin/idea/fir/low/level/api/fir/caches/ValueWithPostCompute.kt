@@ -36,6 +36,8 @@ internal class ValueWithPostCompute<KEY, VALUE, DATA>(
     @Volatile
     private var value: Any? = ValueIsNotComputed
 
+    val x = ThreadLocal.withInitial { 0 }
+
     @Suppress("UNCHECKED_CAST")
     fun getValue(): VALUE {
         when (val stateSnapshot = value) {
@@ -56,7 +58,10 @@ internal class ValueWithPostCompute<KEY, VALUE, DATA>(
                     return value as VALUE
                 }
                 val calculatedValue = try {
+                    if (x.get() != 0) return null as VALUE
+                    x.set(x.get() + 1)
                     val (calculated, data) = _calculate!!(key)
+                    x.set(x.get() - 1)
                     value = ValueIsPostComputingNow(calculated, Thread.currentThread().id) // only current thread may see the value
                     _postCompute!!(key, calculated, data)
                     calculated
