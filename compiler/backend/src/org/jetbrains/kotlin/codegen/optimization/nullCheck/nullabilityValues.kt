@@ -16,36 +16,60 @@
 
 package org.jetbrains.kotlin.codegen.optimization.nullCheck
 
-import org.jetbrains.kotlin.codegen.optimization.boxing.ProgressionIteratorBasicValue
-import org.jetbrains.kotlin.codegen.optimization.common.StrictBasicValue
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes
 import org.jetbrains.org.objectweb.asm.Type
-import org.jetbrains.org.objectweb.asm.tree.analysis.BasicValue
-
-class NotNullBasicValue(type: Type?) : StrictBasicValue(type) {
-    override fun equals(other: Any?): Boolean = other is NotNullBasicValue && other.type == type
-    // We do not differ not-nullable values, so we should always return the same hashCode
-    // Actually it doesn't really matter because analyzer is not supposed to store values in hashtables
-    override fun hashCode() = 0
-
-    companion object {
-        val NOT_NULL_REFERENCE_VALUE = NotNullBasicValue(StrictBasicValue.REFERENCE_VALUE.type)
-    }
-}
-
-object NullBasicValue : StrictBasicValue(AsmTypes.OBJECT_TYPE)
+import org.jetbrains.org.objectweb.asm.tree.analysis.Value
 
 enum class Nullability {
-    NULL, NOT_NULL, NULLABLE;
-
-    fun isNull() = this == NULL
-    fun isNotNull() = this == NOT_NULL
+    NULL, NOT_NULL, NULLABLE
 }
 
-fun BasicValue.getNullability(): Nullability =
-    when (this) {
-        is NullBasicValue -> Nullability.NULL
-        is NotNullBasicValue -> Nullability.NOT_NULL
-        is ProgressionIteratorBasicValue -> Nullability.NOT_NULL
-        else -> Nullability.NULLABLE
+sealed class NullabilityValue(private val _size: Int, val nullability: Nullability) : Value {
+    override fun getSize() = _size
+
+    interface Ref {
+        val type: Type
     }
+
+    object Primitive1 : NullabilityValue(1, Nullability.NOT_NULL) {
+        override fun toString(): String = "P1"
+    }
+
+    object Primitive2 : NullabilityValue(2, Nullability.NOT_NULL) {
+        override fun toString(): String = "P2"
+    }
+
+    object Null : NullabilityValue(1, Nullability.NULL), Ref {
+        override val type: Type
+            get() = AsmTypes.OBJECT_TYPE
+
+        override fun toString(): String = "NULL"
+    }
+
+    class NotNull(override val type: Type) : NullabilityValue(1, Nullability.NOT_NULL), Ref {
+        override fun toString(): String =
+            "NotNull:${type.descriptor}"
+
+        override fun equals(other: kotlin.Any?): Boolean =
+            this === other || other is NotNull && other.type == type
+
+        override fun hashCode(): Int =
+            type.hashCode()
+    }
+
+    class Nullable(override val type: Type) : NullabilityValue(1, Nullability.NULLABLE), Ref {
+        override fun toString(): String =
+            "Nullable:${type.descriptor}"
+
+        override fun equals(other: kotlin.Any?): Boolean =
+            this === other || other is Nullable && other.type == type
+
+        override fun hashCode(): Int =
+            type.hashCode() + 1
+    }
+
+    object Any : NullabilityValue(1, Nullability.NULLABLE) {
+        override fun toString(): String =
+            "ANY"
+    }
+}

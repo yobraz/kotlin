@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.codegen.coroutines.withInstructionAdapter
 import org.jetbrains.kotlin.codegen.inline.ReifiedTypeInliner
 import org.jetbrains.kotlin.codegen.intrinsics.IntrinsicMethods
 import org.jetbrains.kotlin.codegen.linkWithLabel
-import org.jetbrains.kotlin.codegen.optimization.common.StrictBasicValue
 import org.jetbrains.kotlin.codegen.optimization.common.debugText
 import org.jetbrains.kotlin.codegen.optimization.common.isInsn
 import org.jetbrains.kotlin.codegen.optimization.fixStack.peek
@@ -48,23 +47,19 @@ class RedundantNullCheckMethodTransformer(private val generationState: Generatio
         private var changes = false
 
         fun run(): Boolean {
-            if (methodNode.instructions.toArray().none { it.isOptimizable() }) return false
-
+            if (methodNode.instructions.toArray().none { it.isOptimizable() })
+                return false
             val nullabilityAssumptions = NullabilityAssumptionsBuilder().injectNullabilityAssumptions()
-
             val nullabilityMap = analyzeNullabilities()
-
             nullabilityAssumptions.revert()
-
             transformTrivialChecks(nullabilityMap)
-
             return changes
         }
 
-        private fun analyzeNullabilities(): Map<AbstractInsnNode, StrictBasicValue> {
+        private fun analyzeNullabilities(): Map<AbstractInsnNode, NullabilityValue> {
             val frames = analyze(internalClassName, methodNode, NullabilityInterpreter(generationState))
             val insns = methodNode.instructions.toArray()
-            val nullabilityMap = LinkedHashMap<AbstractInsnNode, StrictBasicValue>()
+            val nullabilityMap = LinkedHashMap<AbstractInsnNode, NullabilityValue>()
             for (i in insns.indices) {
                 val frame = frames[i] ?: continue
                 val insn = insns[i]
@@ -74,10 +69,9 @@ class RedundantNullCheckMethodTransformer(private val generationState: Generatio
                     insn.isCheckNotNull() -> frame.top()
                     insn.isCheckExpressionValueIsNotNull() -> frame.peek(1)
                     else -> null
-                } as? StrictBasicValue ?: continue
+                } ?: continue
 
-                val nullability = value.getNullability()
-                if (nullability == Nullability.NULLABLE) continue
+                if (value.nullability == Nullability.NULLABLE) continue
                 nullabilityMap[insn] = value
             }
             return nullabilityMap
@@ -90,9 +84,9 @@ class RedundantNullCheckMethodTransformer(private val generationState: Generatio
                     isCheckNotNull() ||
                     isCheckExpressionValueIsNotNull()
 
-        private fun transformTrivialChecks(nullabilityMap: Map<AbstractInsnNode, StrictBasicValue>) {
+        private fun transformTrivialChecks(nullabilityMap: Map<AbstractInsnNode, NullabilityValue>) {
             for ((insn, value) in nullabilityMap) {
-                val nullability = value.getNullability()
+                val nullability = value.nullability
                 when (insn.opcode) {
                     Opcodes.IFNULL -> transformTrivialNullJump(insn as JumpInsnNode, nullability == Nullability.NULL)
                     Opcodes.IFNONNULL -> transformTrivialNullJump(insn as JumpInsnNode, nullability == Nullability.NOT_NULL)
@@ -123,12 +117,12 @@ class RedundantNullCheckMethodTransformer(private val generationState: Generatio
             }
         }
 
-        private fun transformInstanceOf(insn: TypeInsnNode, nullability: Nullability, value: StrictBasicValue) {
+        private fun transformInstanceOf(insn: TypeInsnNode, nullability: Nullability, value: NullabilityValue) {
             if (ReifiedTypeInliner.isOperationReifiedMarker(insn.previous)) return
             if (nullability == Nullability.NULL) {
                 changes = true
                 transformTrivialInstanceOf(insn, false)
-            } else if (nullability == Nullability.NOT_NULL && value.type.internalName == insn.desc) {
+            } else if (value is NullabilityValue.NotNull && value.type.internalName == insn.desc) {
                 changes = true
                 transformTrivialInstanceOf(insn, true)
             }
@@ -222,9 +216,8 @@ class RedundantNullCheckMethodTransformer(private val generationState: Generatio
             }
 
             private fun addDependentCheck(insn: AbstractInsnNode, aLoadInsn: VarInsnNode) {
-                checksDependingOnVariable.getOrPut(aLoadInsn.`var`) {
-                    SmartList()
-                }.add(insn)
+                checksDependingOnVariable.getOrPut(aLoadInsn.`var`) { SmartList() }
+                    .add(insn)
             }
 
             private fun injectAssumptions(): NullabilityAssumptions {

@@ -128,11 +128,8 @@ open class FixStackInterpreter : Interpreter<FixStackValue>(API_VERSION) {
                 null
             GETFIELD ->
                 newValue(Type.getType((insn as FieldInsnNode).desc))
-            NEWARRAY ->
+            NEWARRAY, ANEWARRAY ->
                 FixStackValue.OBJECT
-            ANEWARRAY -> {
-                FixStackValue.OBJECT
-            }
             ARRAYLENGTH ->
                 FixStackValue.INT
             ATHROW ->
