@@ -4555,6 +4555,24 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
         }
 
         @Test
+        @TestMetadata("kt11700.kt")
+        public void testKt11700() throws Exception {
+            runTest("compiler/testData/codegen/box/checkcastOptimization/kt11700.kt");
+        }
+
+        @Test
+        @TestMetadata("kt11700_castToCallableOwner.kt")
+        public void testKt11700_castToCallableOwner() throws Exception {
+            runTest("compiler/testData/codegen/box/checkcastOptimization/kt11700_castToCallableOwner.kt");
+        }
+
+        @Test
+        @TestMetadata("kt11700_packagePrivateSuper.kt")
+        public void testKt11700_packagePrivateSuper() throws Exception {
+            runTest("compiler/testData/codegen/box/checkcastOptimization/kt11700_packagePrivateSuper.kt");
+        }
+
+        @Test
         @TestMetadata("kt19128.kt")
         public void testKt19128() throws Exception {
             runTest("compiler/testData/codegen/box/checkcastOptimization/kt19128.kt");

@@ -1021,6 +1021,18 @@ public class FirBytecodeTextTestGenerated extends AbstractFirBytecodeTextTest {
         }
 
         @Test
+        @TestMetadata("kt11700.kt")
+        public void testKt11700() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/checkcast/kt11700.kt");
+        }
+
+        @Test
+        @TestMetadata("kt11700_packagePrivateSuper.kt")
+        public void testKt11700_packagePrivateSuper() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/checkcast/kt11700_packagePrivateSuper.kt");
+        }
+
+        @Test
         @TestMetadata("kt14811.kt")
         public void testKt14811() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/checkcast/kt14811.kt");

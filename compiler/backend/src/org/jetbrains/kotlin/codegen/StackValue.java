@@ -640,10 +640,16 @@ public abstract class StackValue {
     }
 
     public static void coerce(@NotNull Type fromType, @NotNull Type toType, @NotNull InstructionAdapter v) {
-        coerce(fromType, toType, v, false);
+        coerce(fromType, toType, v, false, false);
     }
 
-    public static void coerce(@NotNull Type fromType, @NotNull Type toType, @NotNull InstructionAdapter v, boolean forceSelfCast) {
+    public static void coerce(
+            @NotNull Type fromType,
+            @NotNull Type toType,
+            @NotNull InstructionAdapter v,
+            boolean forceSelfCast,
+            boolean avoidCheckcast
+    ) {
         if (toType.equals(fromType) && !forceSelfCast) return;
 
         if (toType.getSort() == Type.VOID) {
@@ -679,7 +685,7 @@ public abstract class StackValue {
         }
         else if (toType.getSort() == Type.OBJECT) {
             if (fromType.getSort() == Type.OBJECT || fromType.getSort() == Type.ARRAY) {
-                if (!toType.equals(OBJECT_TYPE)) {
+                if (!toType.equals(OBJECT_TYPE) && !avoidCheckcast) {
                     v.checkcast(toType);
                 }
             }
