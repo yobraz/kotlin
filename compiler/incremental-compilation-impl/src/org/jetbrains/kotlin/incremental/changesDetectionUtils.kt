@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.incremental
 
 import org.jetbrains.kotlin.build.report.BuildReporter
-import org.jetbrains.kotlin.build.report.metrics.BuildTime
+import org.jetbrains.kotlin.build.report.metrics.BuildMetric
 import org.jetbrains.kotlin.build.report.metrics.BuildAttribute
 import org.jetbrains.kotlin.build.report.metrics.measure
 import org.jetbrains.kotlin.incremental.multiproject.ModulesApiHistory
@@ -63,7 +63,7 @@ internal fun getClasspathChanges(
             }
             return ChangesEither.Known(symbols, fqNames)
         }
-        return reporter.measure(BuildTime.IC_ANALYZE_JAR_FILES) {
+        return reporter.measure(BuildMetric.IC_ANALYZE_JAR_FILES) {
             analyzeJarFiles()
         }
     } else {
@@ -73,7 +73,7 @@ internal fun getClasspathChanges(
         val fqNames = HashSet<FqName>()
 
         val historyFilesEither =
-            reporter.measure(BuildTime.IC_FIND_HISTORY_FILES) {
+            reporter.measure(BuildMetric.IC_FIND_HISTORY_FILES) {
                 modulesApiHistory.historyFilesForChangedFiles(modifiedClasspath)
             }
 
@@ -115,7 +115,7 @@ internal fun getClasspathChanges(
             return ChangesEither.Known(symbols, fqNames)
         }
 
-        return reporter.measure(BuildTime.IC_ANALYZE_HISTORY_FILES) {
+        return reporter.measure(BuildMetric.IC_ANALYZE_HISTORY_FILES) {
             analyzeHistoryFiles()
         }
     }

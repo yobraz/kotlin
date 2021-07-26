@@ -19,7 +19,7 @@ package org.jetbrains.kotlin.incremental
 import org.jetbrains.kotlin.build.DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS
 import org.jetbrains.kotlin.build.GeneratedFile
 import org.jetbrains.kotlin.build.report.BuildReporter
-import org.jetbrains.kotlin.build.report.metrics.BuildTime
+import org.jetbrains.kotlin.build.report.metrics.BuildMetric
 import org.jetbrains.kotlin.build.report.metrics.BuildAttribute
 import org.jetbrains.kotlin.build.report.metrics.measure
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
@@ -77,7 +77,7 @@ abstract class IncrementalCompilerRunner<
         // otherwise we track source files changes ourselves.
         providedChangedFiles: ChangedFiles?,
         projectDir: File? = null
-    ): ExitCode = reporter.measure(BuildTime.INCREMENTAL_COMPILATION) {
+    ): ExitCode = reporter.measure(BuildMetric.INCREMENTAL_COMPILATION) {
         compileImpl(allSourceFiles, args, messageCollector, providedChangedFiles, projectDir)
     }
 
@@ -97,7 +97,7 @@ abstract class IncrementalCompilerRunner<
         //TODO if abi-snapshot is corrupted unable to rebuild. Should roll back to withSnapshot = false?
         val classpathAbiSnapshot =
             if (withSnapshot) {
-                reporter.measure(BuildTime.SET_UP_ABI_SNAPSHOTS) {
+                reporter.measure(BuildMetric.SET_UP_ABI_SNAPSHOTS) {
                     setupJarDependencies(args, withSnapshot, reporter)
                 }
             } else {
@@ -108,7 +108,7 @@ abstract class IncrementalCompilerRunner<
             reporter.report { "Non-incremental compilation will be performed: $reason" }
             caches.close(false)
             // todo: we can recompile all files incrementally (not cleaning caches), so rebuild won't propagate
-            reporter.measure(BuildTime.CLEAR_OUTPUT_ON_REBUILD) {
+            reporter.measure(BuildMetric.CLEAR_OUTPUT_ON_REBUILD) {
                 clearLocalStateOnRebuild(args)
             }
             caches = createCacheManager(args, projectDir)
@@ -232,7 +232,7 @@ abstract class IncrementalCompilerRunner<
         caches: CacheManager, changedFiles: ChangedFiles.Known, args: Args, messageCollector: MessageCollector,
         abiSnapshots: Map<String, AbiSnapshot>
     ): CompilationMode =
-        reporter.measure(BuildTime.IC_CALCULATE_INITIAL_DIRTY_SET) {
+        reporter.measure(BuildMetric.IC_CALCULATE_INITIAL_DIRTY_SET) {
             calculateSourcesToCompileImpl(caches, changedFiles, args, messageCollector, abiSnapshots)
         }
 
@@ -309,14 +309,14 @@ abstract class IncrementalCompilerRunner<
     ): ExitCode {
         preBuildHook(args, compilationMode)
 
-        val buildTimeMode: BuildTime
+        val buildMetricMode: BuildMetric
         val dirtySources = when (compilationMode) {
             is CompilationMode.Incremental -> {
-                buildTimeMode = BuildTime.INCREMENTAL_ITERATION
+                buildMetricMode = BuildMetric.INCREMENTAL_ITERATION
                 compilationMode.dirtyFiles.toMutableList()
             }
             is CompilationMode.Rebuild -> {
-                buildTimeMode = BuildTime.NON_INCREMENTAL_ITERATION
+                buildMetricMode = BuildMetric.NON_INCREMENTAL_ITERATION
                 reporter.addAttribute(compilationMode.reason)
                 allKotlinSources.toMutableList()
             }
@@ -354,7 +354,7 @@ abstract class IncrementalCompilerRunner<
             val bufferingMessageCollector = BufferingMessageCollector()
             val messageCollectorAdapter = MessageCollectorToOutputItemsCollectorAdapter(bufferingMessageCollector, outputItemsCollector)
 
-            exitCode = reporter.measure(buildTimeMode) {
+            exitCode = reporter.measure(buildMetricMode) {
                 runCompiler(sourcesToCompile.toSet(), args, caches, services, messageCollectorAdapter)
             }
 
@@ -378,7 +378,7 @@ abstract class IncrementalCompilerRunner<
             dirtySourcesSinceLastTimeFile.delete()
 
             val changesCollector = ChangesCollector()
-            reporter.measure(BuildTime.IC_UPDATE_CACHES) {
+            reporter.measure(BuildMetric.IC_UPDATE_CACHES) {
                 caches.platformCache.updateComplementaryFiles(dirtySources, expectActualTracker)
                 caches.inputsCache.registerOutputForSourceFiles(generatedFiles)
                 caches.lookupCache.update(lookupTracker, sourcesToCompile, removedKotlinSources)
@@ -424,7 +424,7 @@ abstract class IncrementalCompilerRunner<
         }
 
         if (exitCode == ExitCode.OK) {
-            reporter.measure(BuildTime.STORE_BUILD_INFO) {
+            reporter.measure(BuildMetric.STORE_BUILD_INFO) {
                 BuildInfo.write(currentBuildInfo, lastBuildInfoFile)
 
                 //write abi snapshot
@@ -474,7 +474,7 @@ abstract class IncrementalCompilerRunner<
         compilationMode: CompilationMode,
         currentBuildInfo: BuildInfo,
         dirtyData: DirtyData
-    ) = reporter.measure(BuildTime.IC_WRITE_HISTORY_FILE) {
+    ) = reporter.measure(BuildMetric.IC_WRITE_HISTORY_FILE) {
         val prevDiffs = BuildDiffsStorage.readFromFile(buildHistoryFile, reporter)?.buildDiffs ?: emptyList()
         val newDiff = if (compilationMode is CompilationMode.Incremental) {
             BuildDifference(currentBuildInfo.startTS, true, dirtyData)

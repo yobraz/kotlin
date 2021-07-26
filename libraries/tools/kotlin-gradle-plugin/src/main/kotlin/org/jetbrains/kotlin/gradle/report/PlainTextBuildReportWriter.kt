@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.gradle.report
 import org.gradle.api.logging.Logger
 import org.jetbrains.kotlin.build.report.metrics.BuildAttributes
 import org.jetbrains.kotlin.build.report.metrics.BuildMetrics
-import org.jetbrains.kotlin.build.report.metrics.BuildTime
+import org.jetbrains.kotlin.build.report.metrics.BuildMetric
 import org.jetbrains.kotlin.build.report.metrics.BuildTimes
 import org.jetbrains.kotlin.gradle.report.data.BuildExecutionData
 import org.jetbrains.kotlin.gradle.report.data.BuildExecutionDataProcessor
@@ -72,18 +72,18 @@ internal class PlainTextBuildReportWriter(
 
         p.println("Time metrics:")
         p.withIndent {
-            val visitedBuildTimes = HashSet<BuildTime>()
-            fun printBuildTime(buildTime: BuildTime) {
-                if (!visitedBuildTimes.add(buildTime)) return
+            val visitedBuildTimes = HashSet<BuildMetric>()
+            fun printBuildTime(buildMetric: BuildMetric) {
+                if (!visitedBuildTimes.add(buildMetric)) return
 
-                val timeNs = collectedBuildTimes[buildTime] ?: return
-                p.println("${buildTime.name}: ${formatTime(timeNs)}")
+                val timeNs = collectedBuildTimes[buildMetric] ?: return
+                p.println("${buildMetric.name}: ${formatTime(timeNs)}")
                 p.withIndent {
-                    BuildTime.children[buildTime]?.forEach { printBuildTime(it) }
+                    BuildMetric.children[buildMetric]?.forEach { printBuildTime(it) }
                 }
             }
 
-            for (buildTime in BuildTime.values()) {
+            for (buildTime in BuildMetric.values()) {
                 if (buildTime.parent != null) continue
 
                 printBuildTime(buildTime)

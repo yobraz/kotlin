@@ -183,7 +183,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         val daemonMessageCollector =
             if (isDebugEnabled) messageCollector else MessageCollector.NONE
         val connection =
-            metrics.measure(BuildTime.CONNECT_TO_DAEMON) {
+            metrics.measure(BuildMetric.CONNECT_TO_DAEMON) {
                 try {
                     GradleCompilerRunner.getDaemonConnectionImpl(
                         clientIsAliveFlagFile,
@@ -240,7 +240,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         // often source of the NoSuchObjectException and UnmarshalException, probably caused by the failed/crashed/exited daemon
         // TODO: implement a proper logic to avoid remote calls in such cases
         try {
-            metrics.measure(BuildTime.CLEAR_JAR_CACHE) {
+            metrics.measure(BuildMetric.CLEAR_JAR_CACHE) {
                 daemon.clearJarCache()
             }
         } catch (e: RemoteException) {
@@ -266,7 +266,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
             kotlinScriptExtensions = kotlinScriptExtensions
         )
         val servicesFacade = GradleCompilerServicesFacadeImpl(log, bufferingMessageCollector)
-        return metrics.measure(BuildTime.NON_INCREMENTAL_COMPILATION_DAEMON) {
+        return metrics.measure(BuildMetric.NON_INCREMENTAL_COMPILATION_DAEMON) {
             daemon.compile(sessionId, compilerArgs, compilationOptions, servicesFacade, compilationResults = null)
         }
     }
@@ -301,7 +301,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         log.info("Options for KOTLIN DAEMON: $compilationOptions")
         val servicesFacade = GradleIncrementalCompilerServicesFacadeImpl(log, bufferingMessageCollector)
         val compilationResults = GradleCompilationResults(log, projectRootFile)
-        return metrics.measure(BuildTime.RUN_COMPILER) {
+        return metrics.measure(BuildMetric.RUN_COMPILER) {
             daemon.compile(sessionId, compilerArgs, compilationOptions, servicesFacade, compilationResults)
         }.also {
             metrics.addMetrics(compilationResults.buildMetrics)
@@ -313,7 +313,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         metrics.addAttribute(BuildAttribute.OUT_OF_PROCESS_EXECUTION)
         clearLocalState(outputFiles, log, metrics, reason = "out-of-process execution strategy is non-incremental")
 
-        return metrics.measure(BuildTime.NON_INCREMENTAL_COMPILATION_OUT_OF_PROCESS) {
+        return metrics.measure(BuildMetric.NON_INCREMENTAL_COMPILATION_OUT_OF_PROCESS) {
             runToolInSeparateProcess(compilerArgs, compilerClassName, compilerFullClasspath, log, buildDir)
         }
     }
@@ -322,7 +322,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         metrics.addAttribute(BuildAttribute.IN_PROCESS_EXECUTION)
         clearLocalState(outputFiles, log, metrics, reason = "in-process execution strategy is non-incremental")
 
-        metrics.startMeasure(BuildTime.NON_INCREMENTAL_COMPILATION_IN_PROCESS, System.nanoTime())
+        metrics.startMeasure(BuildMetric.NON_INCREMENTAL_COMPILATION_IN_PROCESS, System.nanoTime())
         // in-process compiler should always be run in a different thread
         // to avoid leaking thread locals from compiler (see KT-28037)
         val threadPool = Executors.newSingleThreadExecutor()
@@ -336,7 +336,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
             bufferingMessageCollector.flush(messageCollector)
             threadPool.shutdown()
 
-            metrics.endMeasure(BuildTime.NON_INCREMENTAL_COMPILATION_IN_PROCESS, System.nanoTime())
+            metrics.endMeasure(BuildMetric.NON_INCREMENTAL_COMPILATION_IN_PROCESS, System.nanoTime())
         }
     }
 
