@@ -15,17 +15,21 @@ class BuildMetricsReporterImpl : BuildMetricsReporter {
     private val myBuildTimes = BuildTimes()
     private val myBuildAttributes = BuildAttributes()
 
-    override fun startMeasure(metric: BuildTime, startNs: Long) {
-        if (metric in myBuildTimeStartNs) {
-            error("$metric was restarted before it finished")
+    override fun startMeasure(time: BuildTime, startNs: Long) {
+        if (time in myBuildTimeStartNs) {
+            error("$time was restarted before it finished")
         }
-        myBuildTimeStartNs[metric] = startNs
+        myBuildTimeStartNs[time] = startNs
     }
 
-    override fun endMeasure(metric: BuildTime, endNs: Long) {
-        val startNs = myBuildTimeStartNs.remove(metric) ?: error("$metric finished before it started")
+    override fun endMeasure(time: BuildTime, endNs: Long) {
+        val startNs = myBuildTimeStartNs.remove(time) ?: error("$time finished before it started")
         val durationNs = endNs - startNs
-        myBuildTimes.add(metric, durationNs)
+        myBuildTimes.add(time, durationNs)
+    }
+
+    override fun addMetric(metric: BuildTime, value: Long) {
+        myBuildTimes.add(metric, value)
     }
 
     override fun addAttribute(attribute: BuildAttribute) {
