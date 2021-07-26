@@ -5523,6 +5523,12 @@ public class FirDiagnosticsWithLightTreeTestGenerated extends AbstractFirDiagnos
                 }
 
                 @Test
+                @TestMetadata("protectedInternal.kt")
+                public void testProtectedInternal() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/publicType/protectedInternal.kt");
+                }
+
+                @Test
                 @TestMetadata("protectedOverrides.kt")
                 public void testProtectedOverrides() throws Exception {
                     runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/publicType/protectedOverrides.kt");
