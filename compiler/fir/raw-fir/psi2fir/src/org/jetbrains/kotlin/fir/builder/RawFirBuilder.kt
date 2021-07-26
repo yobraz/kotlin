@@ -415,7 +415,7 @@ open class RawFirBuilder(
                         contractDescription?.let {
                             this.contractDescription = it
                         }
-                        containingDeclarationSymbol = propertySymbol
+                        this.propertySymbol = propertySymbol
                     }.also {
                         it.initContainingClassAttr()
                         bindFunctionTarget(accessorTarget, it)

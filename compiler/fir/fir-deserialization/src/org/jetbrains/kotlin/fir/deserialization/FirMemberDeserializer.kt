@@ -245,7 +245,7 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
                 }
                 this.symbol = FirPropertyAccessorSymbol()
                 dispatchReceiverType = c.dispatchReceiver
-                containingDeclarationSymbol = propertySymbol
+                this.propertySymbol = propertySymbol
             }.apply {
                 versionRequirementsTable = c.versionRequirementTable
             }
@@ -301,7 +301,7 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
                     AbstractAnnotationDeserializer.CallableKind.PROPERTY_SETTER,
                     classProto
                 )
-                containingDeclarationSymbol = propertySymbol
+                this.propertySymbol = propertySymbol
             }.apply {
                 versionRequirementsTable = c.versionRequirementTable
             }

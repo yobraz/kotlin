@@ -48,7 +48,7 @@ open class FirPropertyAccessorImpl @FirImplementationDetail constructor(
     override var body: FirBlock?,
     override var contractDescription: FirContractDescription,
     override val symbol: FirPropertyAccessorSymbol,
-    override val containingDeclarationSymbol: FirPropertySymbol?,
+    override val propertySymbol: FirPropertySymbol?,
     override val isGetter: Boolean,
     override val annotations: MutableList<FirAnnotationCall>,
     override val typeParameters: MutableList<FirTypeParameter>,

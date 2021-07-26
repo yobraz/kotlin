@@ -1117,7 +1117,7 @@ class Fir2IrDeclarationStorage(
     }
 
     fun getIrPropertyAccessorSymbol(accessorSymbol: FirPropertyAccessorSymbol): IrSymbol? {
-        val propertySymbol = accessorSymbol.fir.containingDeclarationSymbol ?: return null
+        val propertySymbol = accessorSymbol.fir.propertySymbol ?: return null
         return getIrPropertySymbol(propertySymbol)
     }
 

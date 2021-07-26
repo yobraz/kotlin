@@ -432,7 +432,7 @@ fun FirPropertyBuilder.generateAccessorsByDelegate(
             if (annotations != null) {
                 this.annotations.addAll(annotations)
             }
-            containingDeclarationSymbol = this@generateAccessorsByDelegate.symbol
+            propertySymbol = this@generateAccessorsByDelegate.symbol
         }.also {
             returnTarget.bind(it)
         }
@@ -484,7 +484,7 @@ fun FirPropertyBuilder.generateAccessorsByDelegate(
             if (annotations != null) {
                 this.annotations.addAll(annotations)
             }
-            containingDeclarationSymbol = this@generateAccessorsByDelegate.symbol
+            propertySymbol = this@generateAccessorsByDelegate.symbol
         }
     }
 }

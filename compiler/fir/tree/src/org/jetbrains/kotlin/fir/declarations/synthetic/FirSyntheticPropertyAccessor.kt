@@ -77,7 +77,7 @@ class FirSyntheticPropertyAccessor(
     }
 
     // NB: unused
-    override val containingDeclarationSymbol: FirPropertySymbol? = null
+    override val propertySymbol: FirPropertySymbol? = null
 
     override val controlFlowGraphReference: FirControlFlowGraphReference? = null
 

@@ -289,7 +289,9 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
         typeParameter.configure {
             +name
             +symbol("FirTypeParameterSymbol")
-            +field("containingDeclarationSymbol", firBasedSymbolType, "*", nullable = true)
+            +field("containingDeclarationSymbol", firBasedSymbolType, "*", nullable = true).apply {
+                withBindThis = false
+            }
             +field(varianceType)
             +booleanField("isReified")
             +fieldList("bounds", typeRef, withReplace = true)
@@ -318,7 +320,9 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
 
         propertyAccessor.configure {
             +symbol("FirPropertyAccessorSymbol")
-            +field("containingDeclarationSymbol", firPropertySymbolType, nullable = true)
+            +field("propertySymbol", firPropertySymbolType, nullable = true).apply {
+                withBindThis = false
+            }
             +booleanField("isGetter")
             +booleanField("isSetter")
             +annotations

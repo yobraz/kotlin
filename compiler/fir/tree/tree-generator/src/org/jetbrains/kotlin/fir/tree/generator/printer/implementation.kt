@@ -101,9 +101,8 @@ fun SmartPrinter.printImplementation(implementation: Implementation) {
                 }
             }
 
-
             element.allFields.filter {
-                it.name != "containingDeclarationSymbol" && it.type.contains("Symbol") && it !is FieldList
+                it.withBindThis && it.type.contains("Symbol") && it !is FieldList
             }.takeIf {
                 it.isNotEmpty() && !isInterface && !isAbstract &&
                         !element.type.contains("Reference")

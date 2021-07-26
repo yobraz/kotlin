@@ -1317,7 +1317,7 @@ class DeclarationsConverter(
                 this.contractDescription = it
             }
             context.firFunctionTargets.removeLast()
-            containingDeclarationSymbol = propertySymbol
+            this.propertySymbol = propertySymbol
         }.also {
             target.bind(it)
             it.initContainingClassAttr()

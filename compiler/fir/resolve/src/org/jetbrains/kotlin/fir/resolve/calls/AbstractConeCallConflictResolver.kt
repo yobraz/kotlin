@@ -111,7 +111,7 @@ abstract class AbstractConeCallConflictResolver(
     }
 
     protected fun createFlatSignature(call: Candidate, accessor: FirPropertyAccessor): FlatSignature<Candidate> {
-        val property = accessor.containingDeclarationSymbol?.fir
+        val property = accessor.propertySymbol?.fir
 
         return FlatSignature(
             call,
