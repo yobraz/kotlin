@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.resolve.calls.tower
 
+import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.declarations.FirProperty
 import org.jetbrains.kotlin.fir.declarations.utils.visibility
 import org.jetbrains.kotlin.fir.resolve.calls.*
@@ -137,16 +138,12 @@ private class TowerScopeLevelProcessor(
         builtInExtensionFunctionReceiverValue: ReceiverValue?
     ): Candidate? {
         val getter = property.getter ?: return null
+        val difference = Visibilities.compare(getter.visibility, property.visibility) ?: return null
 
-        // Right now a getter can't have
-        // a visibility smaller than the
-        // property
-        if (getter.visibility == property.visibility) {
+        if (difference <= 0) {
             return null
         }
 
-        // So here the getter has a greater
-        // visibility
         return candidateFactory.createCandidate(
             callInfo,
             getter.symbol,

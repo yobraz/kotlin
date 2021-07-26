@@ -5493,6 +5493,12 @@ public class FirDiagnosticTestGenerated extends AbstractFirDiagnosticTest {
                 }
 
                 @Test
+                @TestMetadata("multiPackage.kt")
+                public void testMultiPackage() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/publicType/multiPackage.kt");
+                }
+
+                @Test
                 @TestMetadata("normalOverride.kt")
                 public void testNormalOverride() throws Exception {
                     runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/publicType/normalOverride.kt");
@@ -5508,6 +5514,12 @@ public class FirDiagnosticTestGenerated extends AbstractFirDiagnosticTest {
                 @TestMetadata("overridesChain.kt")
                 public void testOverridesChain() throws Exception {
                     runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/publicType/overridesChain.kt");
+                }
+
+                @Test
+                @TestMetadata("protectedImposter.kt")
+                public void testProtectedImposter() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/publicType/protectedImposter.kt");
                 }
 
                 @Test

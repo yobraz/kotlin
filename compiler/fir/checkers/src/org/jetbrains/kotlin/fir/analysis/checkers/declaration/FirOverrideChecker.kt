@@ -286,7 +286,7 @@ object FirOverrideChecker : FirClassChecker() {
 
         ensureResolved(FirResolvePhase.RAW_FIR)
         @OptIn(SymbolInternals::class)
-        val bounds = if (isVar || fir.hasExposingGetter()) {
+        val bounds = if (isVar || fir.hasExposingGetter() || visibility != Visibilities.Private) {
             // We should check the property's own type against parent
             // properties' own types, and their exposing getters will
             // be checked by `checkPermissiveGetter()`.
