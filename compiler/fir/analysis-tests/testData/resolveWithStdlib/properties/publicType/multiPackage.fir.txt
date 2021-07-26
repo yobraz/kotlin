@@ -1,0 +1,25 @@
+FILE: Test.kt
+    private final val thing: R|kotlin/collections/MutableList<kotlin/String>| = R|kotlin/collections/mutableListOf|<R|kotlin/String|>(vararg(String(x), String(y)))
+        public get(): R|kotlin/collections/List<kotlin/String>|
+FILE: Fest.kt
+    private final val thing: R|kotlin/Int| = Int(4)
+        public get(): R|kotlin/Number|
+FILE: Main.kt
+    public final fun main(): R|kotlin/Unit| {
+        R|kotlin/io/println|(R|special/accessor|.R|kotlin/collections/List.size|)
+        R|kotlin/io/println|(R|special/accessor|.R|kotlin/collections/plus|<R|it(kotlin/Comparable<*> & java/io/Serializable)|>(Int(1)))
+        R|kotlin/io/println|(R|special/accessor|)
+        R|kotlin/io/println|(R|special/accessor|.R|kotlin/Any.toString|())
+    }
+    public final val testA: R|kotlin/Int| = Int(10)
+        public get(): R|kotlin/Int|
+    public final val testA: R|kotlin/String| = String(test)
+        public get(): R|kotlin/String|
+    public final fun test(): R|kotlin/Unit| {
+        R|kotlin/io/println|(R|c/testA|)
+    }
+    public final fun fest(): R|kotlin/Unit| {
+        lval festA: R|kotlin/Int| = Int(10)
+        lval festA: R|kotlin/String| = String(test)
+        R|kotlin/io/println|(R|<local>/festA|)
+    }

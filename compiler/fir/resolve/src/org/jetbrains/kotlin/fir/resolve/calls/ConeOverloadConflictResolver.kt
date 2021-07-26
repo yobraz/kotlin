@@ -127,7 +127,7 @@ class ConeOverloadConflictResolver(
     ): Candidate? {
         if (candidates.size <= 1) return candidates.singleOrNull()
 
-        val conflictingCandidates = candidates.mapNotNull { candidateCall ->
+        val conflictingCandidates = candidates.map { candidateCall ->
             createFlatSignature(candidateCall)
         }
 
