@@ -20,16 +20,16 @@ import org.jetbrains.kotlin.fir.resolve.hasExposingGetter
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.lexer.KtTokens.*
 
-private fun <T> forPairs(list: List<T>, action: (Pair<T, T>) -> Unit) {
-    for (it in list.indices) {
-        for (that in it + 1 until list.size) {
-            action(list[it] to list[that])
+private fun <T> List<T>.forPairs(action: (Pair<T, T>) -> Unit) {
+    for (it in this.indices) {
+        for (that in it + 1 until this.size) {
+            action(this[it] to this[that])
         }
     }
 }
 
-private fun <T> forPairs(array: Array<T>, action: (Pair<T, T>) -> Unit) {
-    return forPairs(array.asList(), action)
+private fun <T> Array<T>.forPairs(action: (Pair<T, T>) -> Unit) {
+    return this.asList().forPairs(action)
 }
 
 private fun <T> Pair<T, T>.reverse() = second to first
@@ -90,7 +90,7 @@ object FirModifierChecker : FirBasicDeclarationChecker() {
         vararg array: KtModifierKeywordToken,
         configure: CompatibilityInfo.() -> Unit
     ) {
-        forPairs(array) { pair ->
+        array.forPairs { pair ->
             // must be symmetric
             val compatibility = CompatibilityInfo().apply(configure)
             val reversePair = pair.reverse()
@@ -256,7 +256,7 @@ object FirModifierChecker : FirBasicDeclarationChecker() {
         // therefore, a track of nodes with already reported errors should be kept
         val reportedNodes = hashSetOf<FirModifier<*>>()
 
-        forPairs(list.modifiers) {
+        list.modifiers.forPairs {
             checkCompatibilityType(it.first, it.second, reporter, reportedNodes, owner, context)
         }
     }
