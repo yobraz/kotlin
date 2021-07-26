@@ -222,7 +222,7 @@ class IncrementalJvmCompilerRunner(
             is ClasspathChanges.Available -> ChangesEither.Known(classpathChanges.lookupSymbols, classpathChanges.fqNames)
             is ClasspathChanges.NotAvailable -> when (classpathChanges) {
                 is UnableToCompute, is ClasspathSnapshotIsDisabled, is ReservedForTestsOnly -> {
-                    reporter.measure(BuildTime.IC_ANALYZE_CHANGES_IN_DEPENDENCIES) {
+                    reporter.measure(BuildMetric.IC_ANALYZE_CHANGES_IN_DEPENDENCIES) {
                         val scopes = caches.lookupCache.lookupMap.keys.map { if (it.scope.isBlank()) it.name else it.scope }.distinct()
                         getClasspathChanges(
                             args.classpathAsList, changedFiles, lastBuildInfo, modulesApiHistory, reporter, abiSnapshots, withSnapshot,
@@ -251,7 +251,7 @@ class IncrementalJvmCompilerRunner(
             }
         }
 
-        reporter.measure(BuildTime.IC_ANALYZE_CHANGES_IN_JAVA_SOURCES) {
+        reporter.measure(BuildMetric.IC_ANALYZE_CHANGES_IN_JAVA_SOURCES) {
             if (!usePreciseJavaTracking) {
                 val javaFilesChanges = javaFilesProcessor!!.process(changedFiles)
                 val affectedJavaSymbols = when (javaFilesChanges) {
@@ -265,10 +265,10 @@ class IncrementalJvmCompilerRunner(
             }
         }
 
-        val androidLayoutChanges = reporter.measure(BuildTime.IC_ANALYZE_CHANGES_IN_ANDROID_LAYOUTS) {
+        val androidLayoutChanges = reporter.measure(BuildMetric.IC_ANALYZE_CHANGES_IN_ANDROID_LAYOUTS) {
             processLookupSymbolsForAndroidLayouts(changedFiles)
         }
-        val removedClassesChanges = reporter.measure(BuildTime.IC_DETECT_REMOVED_CLASSES) {
+        val removedClassesChanges = reporter.measure(BuildMetric.IC_DETECT_REMOVED_CLASSES) {
             getRemovedClassesChanges(caches, changedFiles)
         }
 

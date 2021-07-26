@@ -6,8 +6,9 @@
 package org.jetbrains.kotlin.build.report.metrics
 
 interface BuildMetricsReporter {
-    fun startMeasure(metric: BuildTime, startNs: Long)
-    fun endMeasure(metric: BuildTime, endNs: Long)
+    fun startMeasure(metric: BuildMetric, startNs: Long)
+    fun endMeasure(metric: BuildMetric, endNs: Long)
+    fun addMetric(metric: BuildMetric, value: Long)
 
     fun addAttribute(attribute: BuildAttribute)
 
@@ -15,7 +16,7 @@ interface BuildMetricsReporter {
     fun addMetrics(metrics: BuildMetrics?)
 }
 
-inline fun <T> BuildMetricsReporter.measure(metric: BuildTime, fn: () -> T): T {
+inline fun <T> BuildMetricsReporter.measure(metric: BuildMetric, fn: () -> T): T {
     val start = System.nanoTime()
     startMeasure(metric, start)
 

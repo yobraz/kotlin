@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.build.report.metrics
 import java.io.Serializable
 
 @Suppress("Reformat")
-enum class BuildTime(val parent: BuildTime? = null) : Serializable {
+enum class BuildMetric(val parent: BuildMetric? = null) : Serializable {
     GRADLE_TASK_ACTION,
     GRADLE_TASK,
         CLEAR_OUTPUT(GRADLE_TASK),
@@ -16,6 +16,7 @@ enum class BuildTime(val parent: BuildTime? = null) : Serializable {
         RESTORE_OUTPUT_FROM_BACKUP(GRADLE_TASK),
         CONNECT_TO_DAEMON(GRADLE_TASK),
         CLEAR_JAR_CACHE(GRADLE_TASK),
+        CALCULATE_OUTPUT_SIZE(GRADLE_TASK),
         RUN_COMPILER(GRADLE_TASK),
             NON_INCREMENTAL_COMPILATION_IN_PROCESS(RUN_COMPILER),
             NON_INCREMENTAL_COMPILATION_OUT_OF_PROCESS(RUN_COMPILER),
@@ -36,7 +37,11 @@ enum class BuildTime(val parent: BuildTime? = null) : Serializable {
                 IC_UPDATE_CACHES(INCREMENTAL_COMPILATION),
                 INCREMENTAL_ITERATION(INCREMENTAL_COMPILATION),
                 NON_INCREMENTAL_ITERATION(INCREMENTAL_COMPILATION),
-                IC_WRITE_HISTORY_FILE(INCREMENTAL_COMPILATION);
+                IC_WRITE_HISTORY_FILE(INCREMENTAL_COMPILATION),
+    OUTPUT_SIZE,
+        LOOKUP_SIZE(OUTPUT_SIZE),
+        SNAPSHOT_SIZE(OUTPUT_SIZE)
+    ;
 
     companion object {
         const val serialVersionUID = 0L

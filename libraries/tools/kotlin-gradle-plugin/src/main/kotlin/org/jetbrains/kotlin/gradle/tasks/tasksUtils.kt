@@ -2,7 +2,7 @@ package org.jetbrains.kotlin.gradle.tasks
 
 import org.gradle.api.GradleException
 import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporter
-import org.jetbrains.kotlin.build.report.metrics.BuildTime
+import org.jetbrains.kotlin.build.report.metrics.BuildMetric
 import org.jetbrains.kotlin.build.report.metrics.measure
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.compilerRunner.KotlinLogger
@@ -39,7 +39,7 @@ internal fun clearLocalState(
         "Clearing output$suffix:"
     }
 
-    metrics.measure(BuildTime.CLEAR_OUTPUT) {
+    metrics.measure(BuildMetric.CLEAR_OUTPUT) {
         for (file in outputFiles) {
             if (!file.exists()) continue
             when {

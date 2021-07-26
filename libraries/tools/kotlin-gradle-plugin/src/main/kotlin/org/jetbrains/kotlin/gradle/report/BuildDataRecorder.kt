@@ -12,7 +12,7 @@ import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.TaskState
 import org.jetbrains.kotlin.build.report.metrics.BuildMetrics
-import org.jetbrains.kotlin.build.report.metrics.BuildTime
+import org.jetbrains.kotlin.build.report.metrics.BuildMetric
 import org.jetbrains.kotlin.gradle.internal.tasks.TaskWithLocalState
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskExecutionResults
 import org.jetbrains.kotlin.gradle.report.data.BuildExecutionData
@@ -87,7 +87,7 @@ private class TaskRecord(
     fun processResult(state: TaskState, executionResult: TaskExecutionResult?) {
         myEndNs = System.nanoTime()
         myTaskState = state
-        myBuildMetrics.buildTimes.add(BuildTime.GRADLE_TASK, totalTimeNs)
+        myBuildMetrics.buildTimes.add(BuildMetric.GRADLE_TASK, totalTimeNs)
 
         if (executionResult != null) {
             myBuildMetrics.addAll(executionResult.buildMetrics)

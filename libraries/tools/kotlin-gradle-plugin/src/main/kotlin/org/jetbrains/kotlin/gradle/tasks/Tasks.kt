@@ -321,7 +321,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments> : AbstractKotl
 
     @TaskAction
     fun execute(inputs: IncrementalTaskInputs) {
-        metrics.measure(BuildTime.GRADLE_TASK_ACTION) {
+        metrics.measure(BuildMetric.GRADLE_TASK_ACTION) {
             systemPropertiesService.get().startIntercept()
             CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.value = "true"
 
@@ -330,7 +330,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments> : AbstractKotl
             // To prevent this, we backup outputs before incremental build and restore when exception is thrown
             val outputsBackup: TaskOutputsBackup? =
                 if (isIncrementalCompilationEnabled() && inputs.isIncremental)
-                    metrics.measure(BuildTime.BACKUP_OUTPUT) {
+                    metrics.measure(BuildMetric.BACKUP_OUTPUT) {
                         TaskOutputsBackup(allOutputFiles())
                     }
                 else null
@@ -343,9 +343,21 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments> : AbstractKotl
 
             try {
                 executeImpl(inputs)
+                metrics.measure(BuildMetric.CALCULATE_OUTPUT_SIZE) {
+                    metrics.addMetric(
+                        BuildMetric.SNAPSHOT_SIZE,
+                        taskBuildDirectory.file("build-history.bin").get().asFile.length() +
+                                taskBuildDirectory.file("last-build.bin").get().asFile.length() +
+                                taskBuildDirectory.file("abi-snapshot.bin").get().asFile.length()
+                    )
+                    metrics.addMetric(BuildMetric.OUTPUT_SIZE,
+                                      taskBuildDirectory.dir("caches-jvm").get().asFileTree.files.filter { it.isFile }.map { it.length() }
+                                          .sum()
+                    )
+                }
             } catch (t: Throwable) {
                 if (outputsBackup != null) {
-                    metrics.measure(BuildTime.RESTORE_OUTPUT_FROM_BACKUP) {
+                    metrics.measure(BuildMetric.RESTORE_OUTPUT_FROM_BACKUP) {
                         outputsBackup.restoreOutputs()
                     }
                 }

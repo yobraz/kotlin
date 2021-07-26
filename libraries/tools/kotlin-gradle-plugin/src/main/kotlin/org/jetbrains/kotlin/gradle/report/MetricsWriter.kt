@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.gradle.report
 
 import org.gradle.api.logging.Logger
 import org.jetbrains.kotlin.build.report.metrics.BuildAttribute
-import org.jetbrains.kotlin.build.report.metrics.BuildTime
+import org.jetbrains.kotlin.build.report.metrics.BuildMetric
 import org.jetbrains.kotlin.gradle.internal.build.metrics.GradleBuildMetricsData
 import org.jetbrains.kotlin.gradle.internal.build.metrics.TaskData
 import org.jetbrains.kotlin.gradle.logging.kotlinDebug
@@ -27,7 +27,7 @@ internal class MetricsWriter(
             outputFile.parentFile?.apply { mkdirs() }
 
             val buildMetricsData = GradleBuildMetricsData()
-            for (metric in BuildTime.values()) {
+            for (metric in BuildMetric.values()) {
                 buildMetricsData.parentMetric[metric.name] = metric.parent?.name
             }
             for (attr in BuildAttribute.values()) {
