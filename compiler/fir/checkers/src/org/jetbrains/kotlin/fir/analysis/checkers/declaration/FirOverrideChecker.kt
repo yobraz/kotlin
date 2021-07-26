@@ -138,13 +138,7 @@ object FirOverrideChecker : FirClassChecker() {
      * further use.
      */
     private class VisibilityInfoProvider(val symbol: FirCallableSymbol<*>) {
-        val exposingGetter: FirPropertyAccessorSymbol?
-
-        init {
-            symbol.ensureResolved(FirResolvePhase.RAW_FIR)
-            @OptIn(SymbolInternals::class)
-            exposingGetter = symbol.fir.getExposingGetter()?.symbol
-        }
+        val exposingGetter = symbol.getExposingGetter()
 
         val hasExposingGetter: Boolean
             get() = exposingGetter != null
@@ -283,10 +277,7 @@ object FirOverrideChecker : FirClassChecker() {
         }
 
         val isVar = this is FirPropertySymbol && this.isVar
-
-        ensureResolved(FirResolvePhase.RAW_FIR)
-        @OptIn(SymbolInternals::class)
-        val bounds = if (isVar || fir.hasExposingGetter() || visibility != Visibilities.Private) {
+        val bounds = if (isVar || this.hasExposingGetter() || visibility != Visibilities.Private) {
             // We should check the property's own type against parent
             // properties' own types, and their exposing getters will
             // be checked by `checkPermissiveGetter()`.
@@ -298,10 +289,8 @@ object FirOverrideChecker : FirClassChecker() {
             // type must be consistent either with the parent property's
             // own type or its exposing getter if present.
             overriddenSymbols.map {
-                it.ensureResolved(FirResolvePhase.RAW_FIR)
-                @OptIn(SymbolInternals::class)
-                val typeHolder = it.fir.getExposingGetter() ?: it.fir
-                context.returnTypeCalculator.tryCalculateReturnType(typeHolder.symbol).coneType.upperBoundIfFlexible()
+                val typeHolder = it.getExposingGetter() ?: it
+                context.returnTypeCalculator.tryCalculateReturnType(typeHolder).coneType.upperBoundIfFlexible()
             }
         }
 
@@ -329,12 +318,10 @@ object FirOverrideChecker : FirClassChecker() {
         typeCheckerContext: AbstractTypeCheckerContext,
         context: CheckerContext,
     ): Triple<FirPropertyAccessorSymbol, ConeKotlinType, ConeKotlinType>? {
-        ensureResolved(FirResolvePhase.RAW_FIR)
-        @OptIn(SymbolInternals::class)
-        val exposingGetter = fir.getExposingGetter()
+        val exposingGetter = this.getExposingGetter()
             ?: return null
 
-        val exposingGetterReturnType = exposingGetter.returnTypeRef.coneType
+        val exposingGetterReturnType = exposingGetter.resolvedReturnTypeRef.coneType
 
         // Don't report *_ON_OVERRIDE diagnostics according to an error return type. That should be reported separately.
         if (exposingGetterReturnType is ConeKotlinErrorType) {
@@ -342,9 +329,7 @@ object FirOverrideChecker : FirClassChecker() {
         }
 
         val superExposingGetters = overriddenSymbols.mapNotNull {
-            it.ensureResolved(FirResolvePhase.RAW_FIR)
-            @OptIn(SymbolInternals::class)
-            it.fir.getExposingGetter()?.symbol
+            it.getExposingGetter()
         }
 
         for (getter in superExposingGetters) {
@@ -364,7 +349,7 @@ object FirOverrideChecker : FirClassChecker() {
             )
 
             if (!isReturnTypeOkForOverride) {
-                return Triple(exposingGetter.symbol, exposingGetterReturnType, superExposingGetterReturnType)
+                return Triple(exposingGetter, exposingGetterReturnType, superExposingGetterReturnType)
             }
         }
 

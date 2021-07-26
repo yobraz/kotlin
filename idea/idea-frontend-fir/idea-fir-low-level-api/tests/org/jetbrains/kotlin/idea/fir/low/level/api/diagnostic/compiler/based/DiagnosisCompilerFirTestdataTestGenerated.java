@@ -5493,6 +5493,12 @@ public class DiagnosisCompilerFirTestdataTestGenerated extends AbstractDiagnosis
                 }
 
                 @Test
+                @TestMetadata("multiPackage.kt")
+                public void testMultiPackage() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/publicType/multiPackage.kt");
+                }
+
+                @Test
                 @TestMetadata("normalOverride.kt")
                 public void testNormalOverride() throws Exception {
                     runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/publicType/normalOverride.kt");
@@ -5508,6 +5514,18 @@ public class DiagnosisCompilerFirTestdataTestGenerated extends AbstractDiagnosis
                 @TestMetadata("overridesChain.kt")
                 public void testOverridesChain() throws Exception {
                     runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/publicType/overridesChain.kt");
+                }
+
+                @Test
+                @TestMetadata("protectedImposter.kt")
+                public void testProtectedImposter() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/publicType/protectedImposter.kt");
+                }
+
+                @Test
+                @TestMetadata("protectedInternal.kt")
+                public void testProtectedInternal() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/publicType/protectedInternal.kt");
                 }
 
                 @Test
