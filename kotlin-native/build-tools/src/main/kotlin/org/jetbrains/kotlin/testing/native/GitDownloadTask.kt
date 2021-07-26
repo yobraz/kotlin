@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.testing.native
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.process.ExecResult
@@ -23,23 +24,30 @@ import javax.inject.Inject
  */
 @Suppress("UnstableApiUsage")
 open class GitDownloadTask @Inject constructor(
-        val repositoryProvider: Provider<URL>,
-        val revisionProvider: Provider<String>,
-        val outputDirectoryProvider: Provider<File>
+        private val repositoryProvider: Provider<URL>,
+        private val revisionProvider: Provider<String>,
+        private val outputDirectoryProvider: Provider<File>
 ) : DefaultTask() {
 
-    private val repository: URL
+    @get:Input
+    val repository: URL
         get() = repositoryProvider.get()
 
-    private val revision: String
+    @get:Input
+    val revision: String
         get() = revisionProvider.get()
 
     private val outputDirectory: File
         get() = outputDirectoryProvider.get()
 
+    @get:Input
+    val outputDirectoryPath: String
+        get() = outputDirectory.canonicalPath
+
     @Option(option = "refresh",
             description = "Fetch and checkout the revision even if the output directory already contains it. " +
                     "All changes in the output directory will be overwritten")
+    @Input
     val refresh: Property<Boolean> = project.objects.property(Boolean::class.java).apply {
         set(false)
     }
