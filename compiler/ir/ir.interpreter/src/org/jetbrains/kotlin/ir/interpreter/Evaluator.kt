@@ -256,7 +256,10 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         callStack.removeAllMutatedVariablesAndFields {
             while (true) {
                 val condition = evalIrWhileCondition(expression)?.asBooleanOrNull()
-                if (condition == null) return@removeAllMutatedVariablesAndFields true
+                if (condition == null) {
+                    expression.body?.transformChildren(transformer, null) // transform for 2 reasons: 1. remove mutated vars; 2. optimize that is possible
+                    return@removeAllMutatedVariablesAndFields true
+                }
                 if (condition == false) {
                     competed = true
                     break

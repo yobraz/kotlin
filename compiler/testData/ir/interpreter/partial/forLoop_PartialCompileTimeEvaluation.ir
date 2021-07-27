@@ -40,6 +40,15 @@ MODULE_FRAGMENT name:<main>
         overridden:
           public open fun toString (): kotlin.String declared in kotlin.Any
         $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+    FUN name:nonConstArray visibility:public modality:FINAL <> () returnType:kotlin.Array<kotlin.Int>
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nonConstArray (): kotlin.Array<kotlin.Int> declared in <root>'
+          CALL 'public final fun arrayOf <T> (vararg elements: T of kotlin.arrayOf): kotlin.Array<T of kotlin.arrayOf> [inline] declared in kotlin' type=kotlin.Array<kotlin.Int> origin=null
+            <T>: kotlin.Int
+            elements: VARARG type=kotlin.Array<out kotlin.Int> varargElementType=kotlin.Int
+              CONST Int type=kotlin.Int value=1
+              CONST Int type=kotlin.Int value=2
+              CONST Int type=kotlin.Int value=3
     FUN name:loop1 visibility:public modality:FINAL <> (array:kotlin.IntArray) returnType:kotlin.Int [inline]
       annotations:
         PartialEvaluation
@@ -127,8 +136,8 @@ MODULE_FRAGMENT name:<main>
                     other: GET_VAR 'val i: kotlin.Int [val] declared in <root>.loop3' type=kotlin.Int origin=null
         RETURN type=kotlin.Nothing from='public final fun loop3 (): kotlin.Int [inline] declared in <root>'
           GET_VAR 'var sum: kotlin.Int [var] declared in <root>.loop3' type=kotlin.Int origin=null
-    PROPERTY name:a visibility:public modality:FINAL [val]
-      FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:private [final,static]
+    PROPERTY name:a1 visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:a1 type:kotlin.Int visibility:private [final,static]
         EXPRESSION_BODY
           BLOCK type=kotlin.Int origin=null
             VAR name:sum_1 type:kotlin.Int [var]
@@ -144,37 +153,72 @@ MODULE_FRAGMENT name:<main>
                 BLOCK type=kotlin.Unit origin=FOR_LOOP_INNER_WHILE
                   VAR FOR_LOOP_VARIABLE name:i_3 type:kotlin.Int [val]
                     CALL 'public final fun next (): kotlin.Int [operator] declared in kotlin.collections.IntIterator' type=kotlin.Int origin=FOR_LOOP_NEXT
-                      $this: GET_VAR 'val tmp0_iterator_2: kotlin.collections.IntIterator [val] declared in <root>.a' type=kotlin.collections.IntIterator origin=null
+                      $this: GET_VAR 'val tmp0_iterator_2: kotlin.collections.IntIterator [val] declared in <root>.a1' type=kotlin.collections.IntIterator origin=null
                   BLOCK type=kotlin.Unit origin=null
-                    SET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a' type=kotlin.Unit origin=PLUSEQ
+                    SET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a1' type=kotlin.Unit origin=PLUSEQ
                       CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
-                        $this: GET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a' type=kotlin.Int origin=PLUSEQ
-                        other: GET_VAR 'val i_3: kotlin.Int [val] declared in <root>.a' type=kotlin.Int origin=null
+                        $this: GET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a1' type=kotlin.Int origin=PLUSEQ
+                        other: GET_VAR 'val i_3: kotlin.Int [val] declared in <root>.a1' type=kotlin.Int origin=null
                 BLOCK type=kotlin.Unit origin=FOR_LOOP_INNER_WHILE
                   VAR FOR_LOOP_VARIABLE name:i_3 type:kotlin.Int [val]
                     CALL 'public final fun next (): kotlin.Int [operator] declared in kotlin.collections.IntIterator' type=kotlin.Int origin=FOR_LOOP_NEXT
-                      $this: GET_VAR 'val tmp0_iterator_2: kotlin.collections.IntIterator [val] declared in <root>.a' type=kotlin.collections.IntIterator origin=null
+                      $this: GET_VAR 'val tmp0_iterator_2: kotlin.collections.IntIterator [val] declared in <root>.a1' type=kotlin.collections.IntIterator origin=null
                   BLOCK type=kotlin.Unit origin=null
-                    SET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a' type=kotlin.Unit origin=PLUSEQ
+                    SET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a1' type=kotlin.Unit origin=PLUSEQ
                       CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
-                        $this: GET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a' type=kotlin.Int origin=PLUSEQ
-                        other: GET_VAR 'val i_3: kotlin.Int [val] declared in <root>.a' type=kotlin.Int origin=null
+                        $this: GET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a1' type=kotlin.Int origin=PLUSEQ
+                        other: GET_VAR 'val i_3: kotlin.Int [val] declared in <root>.a1' type=kotlin.Int origin=null
                 BLOCK type=kotlin.Unit origin=FOR_LOOP_INNER_WHILE
                   VAR FOR_LOOP_VARIABLE name:i_3 type:kotlin.Int [val]
                     CALL 'public final fun next (): kotlin.Int [operator] declared in kotlin.collections.IntIterator' type=kotlin.Int origin=FOR_LOOP_NEXT
-                      $this: GET_VAR 'val tmp0_iterator_2: kotlin.collections.IntIterator [val] declared in <root>.a' type=kotlin.collections.IntIterator origin=null
+                      $this: GET_VAR 'val tmp0_iterator_2: kotlin.collections.IntIterator [val] declared in <root>.a1' type=kotlin.collections.IntIterator origin=null
                   BLOCK type=kotlin.Unit origin=null
-                    SET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a' type=kotlin.Unit origin=PLUSEQ
+                    SET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a1' type=kotlin.Unit origin=PLUSEQ
                       CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
-                        $this: GET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a' type=kotlin.Int origin=PLUSEQ
-                        other: GET_VAR 'val i_3: kotlin.Int [val] declared in <root>.a' type=kotlin.Int origin=null
+                        $this: GET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a1' type=kotlin.Int origin=PLUSEQ
+                        other: GET_VAR 'val i_3: kotlin.Int [val] declared in <root>.a1' type=kotlin.Int origin=null
             RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
               CONST Int type=kotlin.Int value=6
-      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-a> visibility:public modality:FINAL <> () returnType:kotlin.Int
-        correspondingProperty: PROPERTY name:a visibility:public modality:FINAL [val]
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-a1> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:a1 visibility:public modality:FINAL [val]
         BLOCK_BODY
-          RETURN type=kotlin.Nothing from='public final fun <get-a> (): kotlin.Int declared in <root>'
-            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+          RETURN type=kotlin.Nothing from='public final fun <get-a1> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a1 type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+    PROPERTY name:a2 visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:a2 type:kotlin.Int visibility:private [final,static]
+        EXPRESSION_BODY
+          BLOCK type=kotlin.Int origin=null
+            VAR IR_TEMPORARY_VARIABLE name:tmp0_loop1_0 type:kotlin.IntArray [val]
+              BLOCK type=kotlin.IntArray origin=(InlinerExpressionLocationHint : FIELD PROPERTY_BACKING_FIELD name:a2 type:kotlin.Int visibility:private [final,static] @null)
+                VARARG type=kotlin.IntArray varargElementType=kotlin.Int
+                  SPREAD_ELEMENT
+                    TYPE_OP type=kotlin.IntArray origin=IMPLICIT_CAST typeOperand=kotlin.IntArray
+                      CALL 'public final fun nonConstArray (): kotlin.Array<kotlin.Int> declared in <root>' type=kotlin.Array<kotlin.Int> origin=null
+            VAR name:sum_1 type:kotlin.Int [var]
+              CONST Int type=kotlin.Int value=0
+            BLOCK type=kotlin.Unit origin=FOR_LOOP
+              VAR FOR_LOOP_ITERATOR name:tmp0_iterator_2 type:kotlin.collections.IntIterator [val]
+                CALL 'public final fun iterator (): kotlin.collections.IntIterator [operator] declared in kotlin.IntArray' type=kotlin.collections.IntIterator origin=FOR_LOOP_ITERATOR
+                  $this: GET_VAR 'val tmp0_loop1_0: kotlin.IntArray [val] declared in <root>.a2' type=kotlin.IntArray origin=null
+              WHILE label=null origin=FOR_LOOP_INNER_WHILE
+                condition: CALL 'public abstract fun hasNext (): kotlin.Boolean [fake_override,operator] declared in kotlin.collections.IntIterator' type=kotlin.Boolean origin=FOR_LOOP_HAS_NEXT
+                  $this: GET_VAR 'val tmp0_iterator_2: kotlin.collections.IntIterator [val] declared in <root>.a2' type=kotlin.collections.IntIterator origin=null
+                body: BLOCK type=kotlin.Unit origin=FOR_LOOP_INNER_WHILE
+                  VAR FOR_LOOP_VARIABLE name:i_3 type:kotlin.Int [val]
+                    CALL 'public final fun next (): kotlin.Int [operator] declared in kotlin.collections.IntIterator' type=kotlin.Int origin=FOR_LOOP_NEXT
+                      $this: GET_VAR 'val tmp0_iterator_2: kotlin.collections.IntIterator [val] declared in <root>.a2' type=kotlin.collections.IntIterator origin=null
+                  BLOCK type=kotlin.Unit origin=null
+                    SET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a2' type=kotlin.Int origin=PLUSEQ
+                        other: GET_VAR 'val i_3: kotlin.Int [val] declared in <root>.a2' type=kotlin.Int origin=null
+            RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+              GET_VAR 'var sum_1: kotlin.Int [var] declared in <root>.a2' type=kotlin.Int origin=null
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-a2> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:a2 visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-a2> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a2 type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
   FILE fqName:kotlin fileName:/CompileTimeCalculation.kt
     CLASS ANNOTATION_CLASS name:CompileTimeCalculation modality:FINAL visibility:public superTypes:[kotlin.Annotation]
       annotations:
