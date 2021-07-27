@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.cli.common.toBooleanLenient
 import java.io.DataInput
 import java.io.DataInputStream
 import java.io.DataOutput
-import java.io.File
 import java.util.*
 
 /**
@@ -52,7 +51,7 @@ object LookupSymbolKeyDescriptor : KeyDescriptor<LookupSymbolKey> {
         }
     }
 
-    private val storeFullFqName = CompilerSystemProperties.COMPILE_INCREMENTAL_WITH_CLASSPATH_SHAPSHOTS.value.toBooleanLenient() ?: false
+    private val storeFullFqName = CompilerSystemProperties.COMPILE_INCREMENTAL_WITH_CLASSPATH_SNAPSHOTS.value.toBooleanLenient() ?: false
 
     override fun save(output: DataOutput, value: LookupSymbolKey) {
         if (storeFullFqName) {
