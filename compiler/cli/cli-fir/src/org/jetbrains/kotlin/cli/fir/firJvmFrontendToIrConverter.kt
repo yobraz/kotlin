@@ -54,7 +54,9 @@ class FirJvmFrontendToIrConverter internal constructor(
 
         val outputs = FrontendToIrConverterResult(
             moduleFragment, emptyList(),
-            symbolTable, null,
+            emptyList(), symbolTable, components.irBuiltIns,
+            components.irFactory,
+            null,
             input.project,
             input.sourceFiles,
             emptyList(),

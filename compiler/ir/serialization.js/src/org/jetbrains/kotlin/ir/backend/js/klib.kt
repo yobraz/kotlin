@@ -203,6 +203,7 @@ fun prepareIncrementalCompilationData(
 ): Pair<List<KotlinFileSerializedData>, List<SerializedIrFile>?> {
     val incrementalDataProvider = configuration.get(JSConfigurationKeys.INCREMENTAL_DATA_PROVIDER)
 
+    // TODO: rename to cleanFiles (check the usage)
     val icData: List<KotlinFileSerializedData>
     val serializedIrFiles: List<SerializedIrFile>?
 

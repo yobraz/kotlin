@@ -56,7 +56,7 @@ class ClassicJsKLibGenerator internal constructor(
 
         val moduleName = configuration[CommonConfigurationKeys.MODULE_NAME]!!
 
-        val (moduleFragment, icData, symbolTable, bindingContext, project, files, dependenciesList, expectDescriptorToSymbol, hasErrors) = input
+        val (moduleFragment, _, cleanFiles, symbolTable, _, _, bindingContext, project, files, dependenciesList, expectDescriptorToSymbol, hasErrors) = input
 
         if (!configuration.expectActualLinker) {
             moduleFragment.acceptVoid(ExpectDeclarationRemover(symbolTable, false))
@@ -73,7 +73,7 @@ class ClassicJsKLibGenerator internal constructor(
             dependenciesList.map { it.library },
             moduleFragment,
             expectDescriptorToSymbol,
-            icData,
+            cleanFiles,
             nopack,
             perFile = false,
             hasErrors,

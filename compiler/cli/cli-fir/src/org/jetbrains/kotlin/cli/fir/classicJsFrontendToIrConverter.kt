@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.codegen.JvmBackendClassResolver
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.backend.js.KotlinFileSerializedData
 import org.jetbrains.kotlin.ir.backend.js.generateModuleFragmentWithPlugins
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsIrLinker
@@ -31,6 +32,7 @@ import org.jetbrains.kotlin.ir.backend.js.sortDependencies
 import org.jetbrains.kotlin.ir.declarations.IrFactory
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.persistent.PersistentIrFactory
+import org.jetbrains.kotlin.ir.linkage.IrDeserializer
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.util.IrMessageLogger
 import org.jetbrains.kotlin.ir.util.SymbolTable
@@ -46,8 +48,11 @@ import org.jetbrains.kotlin.resolve.BindingContext
 
 data class FrontendToIrConverterResult(
     val moduleFragment: IrModuleFragment,
-    val icData: List<KotlinFileSerializedData>,
+    val dependencyModules: List<IrModuleFragment>,
+    val cleanFiles: List<KotlinFileSerializedData>,
     val symbolTable: SymbolTable,
+    val irBuiltIns: IrBuiltIns,
+    val irFactory: IrFactory,
     val bindingContext: BindingContext?,
     val project: Project,
     val sourceFiles: List<KtFile>,
@@ -58,7 +63,8 @@ data class FrontendToIrConverterResult(
     val module: Module?,
     val jvmBackendClassResolver: JvmBackendClassResolver?,
     val backendExtensions: JvmBackendExtension?,
-    val frontendBindingContext: BindingContext
+    val frontendBindingContext: BindingContext,
+    val irDeserializer: IrDeserializer? = null
 )
 
 class ClassicJsFrontendToIrConverterBuilder : CompilationStageBuilder<ClassicJsFrontendResult, FrontendToIrConverterResult> {
@@ -104,7 +110,7 @@ class ClassicJsFrontendToIrConverter internal constructor(
             JsIrLinker.JsFePluginContext(moduleDescriptor, symbolTable, typeTranslator, irBuiltIns)
         }
 
-        val (icData, serializedIrFiles) = prepareIncrementalCompilationData(configuration, input.sourceFiles)
+        val (cleanFiles, serializedIrFiles) = prepareIncrementalCompilationData(configuration, input.sourceFiles)
 
         val irLinker = JsIrLinker(
             psi2IrContext.moduleDescriptor,
@@ -117,7 +123,7 @@ class ClassicJsFrontendToIrConverter internal constructor(
 
         val dependenciesList = input.descriptors.allDependencies
 
-        sortDependencies(dependenciesList, input.descriptors.descriptors).map {
+        val dependenciesModules = sortDependencies(dependenciesList, input.descriptors.descriptors).map {
             irLinker.deserializeOnlyHeaderModule(input.descriptors.getModuleDescriptor(it), it)
         }
 
@@ -135,8 +141,11 @@ class ClassicJsFrontendToIrConverter internal constructor(
         return ExecutionResult.Success(
             FrontendToIrConverterResult(
                 moduleFragment = moduleFragment,
-                icData = icData,
+                dependencyModules = dependenciesModules,
+                cleanFiles = cleanFiles,
                 symbolTable = psi2IrContext.symbolTable,
+                irBuiltIns = irBuiltIns,
+                irFactory = irFactory,
                 bindingContext = psi2IrContext.bindingContext,
                 project = input.descriptors.project,
                 sourceFiles = input.sourceFiles,
@@ -147,7 +156,8 @@ class ClassicJsFrontendToIrConverter internal constructor(
                 module = null,
                 jvmBackendClassResolver = null,
                 backendExtensions = null,
-                frontendBindingContext = NoScopeRecordCliBindingTrace().bindingContext
+                frontendBindingContext = NoScopeRecordCliBindingTrace().bindingContext,
+                irDeserializer = irLinker
             ),
             emptyList()
         )

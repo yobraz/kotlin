@@ -13,11 +13,13 @@ package org.jetbrains.kotlin.cli.fir
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.kotlin.backend.jvm.jvmPhases
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
+import org.jetbrains.kotlin.cli.common.createPhaseConfig
 import org.jetbrains.kotlin.cli.common.messages.*
 import org.jetbrains.kotlin.cli.common.setupCommonArguments
 import org.jetbrains.kotlin.cli.js.setupJsSpecificArguments
@@ -84,7 +86,7 @@ class ClassicJsFrontend internal constructor(
         // TODO: Handle non-empty main call arguments
         @Suppress("UNUSED_VARIABLE") val mainCallArguments = if (K2JsArgumentConstants.NO_CALL == arguments.main) null else emptyList<String>()
 
-        val libraries = configuration.getList(JSConfigurationKeys.LIBRARIES)
+        val libraries = configuration.getList(JSConfigurationKeys.LIBRARIES) //+ JsConfig.JS_STDLIB
 
         val descriptors = ModulesStructure(
             project,
@@ -107,7 +109,7 @@ class ClassicJsFrontend internal constructor(
 }
 
 @Suppress("unused")
-private fun example(args: List<String>, outStream: PrintStream) {
+fun classicJSCompile(args: List<String>, outStream: PrintStream): ExecutionResult<List<File>> {
 
     val service = LocalCompilationServiceBuilder().build()
 
@@ -128,7 +130,7 @@ private fun example(args: List<String>, outStream: PrintStream) {
         val outputFilePath = arguments.outputFile
         if (outputFilePath == null) {
             collector.report(CompilerMessageSeverity.ERROR, "IR: Specify output file via -output", null)
-            return //ExitCode.COMPILATION_ERROR
+            return collector.makeCompilationFailureResult()
         }
 
         val jsFrontendBuilder = session.createStageBuilder(ClassicJsFrontend::class) as ClassicJsFrontendBuilder
@@ -179,24 +181,32 @@ private fun example(args: List<String>, outStream: PrintStream) {
             // defaults are ok
         }.build()
 
-        val jsKLibGeneratorBuilder = session.createStageBuilder(ClassicJsKLibGenerator::class) as ClassicJsKLibGeneratorBuilder
-        val jsKLibGenerator = jsKLibGeneratorBuilder {
-            outputKlibPath =
-                if (arguments.irProduceKlibDir)
-                    File(outputFilePath).parent
-                else
-                    outputFilePath
-            nopack = arguments.irProduceKlibDir
-        }.build()
-
         val frontendRes = jsFrontend.execute(arguments to environment!!.getSourceFiles())
         if (frontendRes is ExecutionResult.Success) {
             val convertorRes = jsFrontendToIrConverter.execute(frontendRes.value)
 
             if (convertorRes is ExecutionResult.Success) {
-                jsKLibGenerator.execute(convertorRes.value)
+                if (arguments.irProduceKlibDir || arguments.irProduceKlibFile) {
+                    val jsKLibGeneratorBuilder = session.createStageBuilder(ClassicJsKLibGenerator::class) as ClassicJsKLibGeneratorBuilder
+                    val jsKLibGenerator = jsKLibGeneratorBuilder {
+                        outputKlibPath = outputFilePath
+                        nopack = arguments.irProduceKlibDir
+                    }.build()
+
+                    jsKLibGenerator.execute(convertorRes.value)
+                } else {
+                    // assume produce js, TODO: repeat cli compiler logic
+                    convertorRes.value.configuration.put(CLIConfigurationKeys.PHASE_CONFIG, createPhaseConfig(jsPhases, arguments, collector))
+                    val jsGeneratorBuilder = session.createStageBuilder(ClassicJsIrBackend::class) as ClassicJsIrBackendBuilder
+                    val jsGenerator = jsGeneratorBuilder {
+                        this.outputFilePath = outputFilePath
+                    }.build()
+
+                    jsGenerator.execute(convertorRes.value)
+                }
             }
         }
+        return ExecutionResult.Success(emptyList(), emptyList()) //TODO: list of files, diagnostics
     } finally {
         // TODO: error handling
         rootDisposable.dispose()
@@ -214,6 +224,7 @@ private fun String.splitByPathSeparator(): List<String> {
 fun CompilationService.createLocalJsOldFeIrCompilationSession() = createLocalCompilationSession {
     registerStage<ClassicJsFrontend, ClassicJsFrontendBuilder> { ClassicJsFrontendBuilder() }
     registerStage<ClassicJsFrontendToIrConverter, ClassicJsFrontendToIrConverterBuilder> { ClassicJsFrontendToIrConverterBuilder() }
-    registerStage<ClassicJsFrontendToIrConverter, ClassicJsFrontendToIrConverterBuilder> { ClassicJsFrontendToIrConverterBuilder() }
+    registerStage<ClassicJsKLibGenerator, ClassicJsKLibGeneratorBuilder> { ClassicJsKLibGeneratorBuilder() }
+    registerStage<ClassicJsIrBackend, ClassicJsIrBackendBuilder> { ClassicJsIrBackendBuilder() }
     registerStage<IrJvmBackend, IrJvmBackendBuilder> { IrJvmBackendBuilder() }
 }
