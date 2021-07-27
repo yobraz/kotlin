@@ -106,4 +106,8 @@ abstract class PartialIrInterpreter(val irBuiltIns: IrBuiltIns) : IrElementTrans
             loop
         )
     }
+
+    override fun visitBreakContinue(jump: IrBreakContinue): IrExpression {
+        return jump
+    }
 }

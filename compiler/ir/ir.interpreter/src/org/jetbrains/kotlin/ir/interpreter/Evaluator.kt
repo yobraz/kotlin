@@ -11,14 +11,19 @@ import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrVariable
+import org.jetbrains.kotlin.ir.declarations.copyAttributes
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrBlockImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrBreakImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrContinueImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
 import org.jetbrains.kotlin.ir.interpreter.stack.CallStack
 import org.jetbrains.kotlin.ir.interpreter.state.State
 import org.jetbrains.kotlin.ir.interpreter.state.asBooleanOrNull
 import org.jetbrains.kotlin.ir.interpreter.state.isUnit
-import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 
@@ -47,7 +52,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
 
     fun interpret(block: IrReturnableBlock): IrElement {
         callStack.newFrame(block)
-        fallbackIrStatements(block.statements)
+        fallbackIrStatements(block)
         callStack.dropFrame()
         return block
     }
@@ -85,7 +90,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         (0 until expression.valueArgumentsCount).forEach {
             args += callStack.tryToPopState()
         }
-        return args
+        return args.reversed()
     }
 
     fun fallbackIrCall(expression: IrCall, dispatchReceiver: State?, extensionReceiver: State?, args: List<State?>): IrCall {
@@ -113,7 +118,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
 
     fun fallbackIrBlock(expression: IrBlock): IrExpression {
         callStack.newSubFrame(expression)
-        fallbackIrStatements(expression.statements)
+        fallbackIrStatements(expression)
         callStack.dropSubFrame()
         if (expression.origin == IrStatementOrigin.FOR_LOOP && expression.statements.last() !is IrWhileLoop) {
             return IrBlockImpl(expression.startOffset, expression.endOffset, expression.type, origin = null, expression.statements)
@@ -121,11 +126,16 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         return expression
     }
 
-    private fun fallbackIrStatements(statements: MutableList<IrStatement>) {
-        for (i in 0 until statements.size) {
-            statements[i] = statements[i].transform(transformer, null) as IrStatement
-            if (i != statements.lastIndex && callStack.peekState().isUnit()) callStack.popState()
+    private fun fallbackIrStatements(container: IrContainerExpression) {
+        val newStatements = mutableListOf<IrStatement>()
+        for (i in container.statements.indices) {
+            val newStatement = container.statements[i].transform(transformer, null) as IrStatement
+            if (newStatement is IrBreakContinue) break
+            newStatements += newStatement
+            if (i != container.statements.lastIndex && callStack.peekState().isUnit()) callStack.popState()
         }
+        container.statements.clear()
+        container.statements.addAll(newStatements)
     }
 
     fun evalIrBranchCondition(branch: IrBranch): State? {
@@ -247,6 +257,16 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         return callStack.tryToPopState()
     }
 
+    private class Copier(symbolRemapper: SymbolRemapper, typeRemapper: TypeRemapper) : DeepCopyIrTreeWithSymbols(symbolRemapper, typeRemapper) {
+        override fun visitBreak(jump: IrBreak): IrBreak {
+            return IrBreakImpl(jump.startOffset, jump.endOffset, jump.type, jump.loop)
+        }
+
+        override fun visitContinue(jump: IrContinue): IrContinue {
+            return IrContinueImpl(jump.startOffset, jump.endOffset, jump.type, jump.loop)
+        }
+    }
+
     fun fallbackIrWhileLoop(expression: IrWhileLoop): IrExpression {
         val newBlock = IrBlockImpl(0, 0, expression.body!!.type)
         var competed = false
@@ -263,7 +283,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
                     break
                 }
 
-                val newBody = expression.body!!.deepCopyWithSymbols(ParentFinder().apply { expression.accept(this, null) }.parent)
+                val newBody = expression.body!!.deepCopyWithSymbols(ParentFinder().apply { expression.accept(this, null) }.parent, ::Copier)
 //                if (newBody is IrBlock) {
 //                    newBlock.statements += newBody.statements[1]
 //                } else {
@@ -271,6 +291,22 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
 //                }
                 newBlock.statements += newBody
                 newBody.transformChildren(transformer, null)
+
+                val jump = when {
+                    newBody is IrBreakContinue -> {
+                        newBlock.statements.removeLast()
+                        newBody
+                    }
+                    newBody is IrContainerExpression && newBody.statements.last() is IrBreakContinue -> {
+                        newBody.statements.removeLast() as IrBreakContinue
+                    }
+                    else -> null
+                }
+                if (jump is IrBreak) {
+                    if (jump.loop == expression) { competed = true; break } else return jump
+                } else if (jump is IrContinue) {
+                    if (jump.loop == expression) continue else return jump
+                }
             }
             false
         }
