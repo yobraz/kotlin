@@ -104,38 +104,83 @@ MODULE_FRAGMENT name:<main>
                       $this: GET_VAR 'val obj: <root>.A [val] declared in <root>.loop2' type=<root>.A origin=null
         RETURN type=kotlin.Nothing from='public final fun loop2 (): kotlin.Int [inline] declared in <root>'
           GET_VAR 'var sum: kotlin.Int [var] declared in <root>.loop2' type=kotlin.Int origin=null
-    FUN name:loop3 visibility:public modality:FINAL <> () returnType:kotlin.Int [inline]
+    FUN name:withBreak visibility:public modality:FINAL <> (limit:kotlin.Int) returnType:kotlin.Int [inline]
+      annotations:
+        PartialEvaluation
+      VALUE_PARAMETER name:limit index:0 type:kotlin.Int
+      BLOCK_BODY
+        VAR name:x type:kotlin.Int [var]
+          CONST Int type=kotlin.Int value=0
+        WHILE label=null origin=WHILE_LOOP
+          condition: CONST Boolean type=kotlin.Boolean value=true
+          body: BLOCK type=kotlin.Unit origin=null
+            WHEN type=kotlin.Unit origin=IF
+              BRANCH
+                if: CALL 'public final fun less (arg0: kotlin.Int, arg1: kotlin.Int): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=LT
+                  arg0: GET_VAR 'var x: kotlin.Int [var] declared in <root>.withBreak' type=kotlin.Int origin=null
+                  arg1: GET_VAR 'limit: kotlin.Int declared in <root>.withBreak' type=kotlin.Int origin=null
+                then: TYPE_OP type=kotlin.Unit origin=IMPLICIT_COERCION_TO_UNIT typeOperand=kotlin.Unit
+                  BLOCK type=kotlin.Int origin=POSTFIX_INCR
+                    VAR IR_TEMPORARY_VARIABLE name:tmp0 type:kotlin.Int [val]
+                      GET_VAR 'var x: kotlin.Int [var] declared in <root>.withBreak' type=kotlin.Int origin=POSTFIX_INCR
+                    SET_VAR 'var x: kotlin.Int [var] declared in <root>.withBreak' type=kotlin.Unit origin=POSTFIX_INCR
+                      CALL 'public final fun inc (): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=POSTFIX_INCR
+                        $this: GET_VAR 'val tmp0: kotlin.Int [val] declared in <root>.withBreak' type=kotlin.Int origin=null
+                    GET_VAR 'val tmp0: kotlin.Int [val] declared in <root>.withBreak' type=kotlin.Int origin=null
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: BREAK label=null loop.label=null
+        RETURN type=kotlin.Nothing from='public final fun withBreak (limit: kotlin.Int): kotlin.Int [inline] declared in <root>'
+          GET_VAR 'var x: kotlin.Int [var] declared in <root>.withBreak' type=kotlin.Int origin=null
+    FUN name:withInnerContinue visibility:public modality:FINAL <> () returnType:kotlin.Int [inline]
       annotations:
         PartialEvaluation
       BLOCK_BODY
-        VAR name:sum type:kotlin.Int [var]
+        VAR name:cycles type:kotlin.Int [var]
           CONST Int type=kotlin.Int value=0
-        BLOCK type=kotlin.Unit origin=FOR_LOOP
-          VAR FOR_LOOP_ITERATOR name:tmp0_iterator type:kotlin.collections.IntIterator [val]
-            CALL 'public open fun iterator (): kotlin.collections.IntIterator [fake_override,operator] declared in kotlin.ranges.IntRange' type=kotlin.collections.IntIterator origin=FOR_LOOP_ITERATOR
-              $this: CALL 'public final fun rangeTo (other: kotlin.Int): kotlin.ranges.IntRange [operator] declared in kotlin.Int' type=kotlin.ranges.IntRange origin=RANGE
-                $this: CONST Int type=kotlin.Int value=0
-                other: CONST Int type=kotlin.Int value=10
-          WHILE label=null origin=FOR_LOOP_INNER_WHILE
-            condition: CALL 'public abstract fun hasNext (): kotlin.Boolean [fake_override,operator] declared in kotlin.collections.IntIterator' type=kotlin.Boolean origin=FOR_LOOP_HAS_NEXT
-              $this: GET_VAR 'val tmp0_iterator: kotlin.collections.IntIterator [val] declared in <root>.loop3' type=kotlin.collections.IntIterator origin=null
-            body: BLOCK type=kotlin.Unit origin=FOR_LOOP_INNER_WHILE
-              VAR FOR_LOOP_VARIABLE name:i type:kotlin.Int [val]
-                CALL 'public final fun next (): kotlin.Int [operator] declared in kotlin.collections.IntIterator' type=kotlin.Int origin=FOR_LOOP_NEXT
-                  $this: GET_VAR 'val tmp0_iterator: kotlin.collections.IntIterator [val] declared in <root>.loop3' type=kotlin.collections.IntIterator origin=null
-              BLOCK type=kotlin.Unit origin=null
+        VAR name:i type:kotlin.Int [var]
+          CONST Int type=kotlin.Int value=1
+        VAR name:j type:kotlin.Int [var]
+          CONST Int type=kotlin.Int value=1
+        WHILE label=L origin=WHILE_LOOP
+          condition: CALL 'public final fun lessOrEqual (arg0: kotlin.Int, arg1: kotlin.Int): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=LTEQ
+            arg0: GET_VAR 'var i: kotlin.Int [var] declared in <root>.withInnerContinue' type=kotlin.Int origin=null
+            arg1: CONST Int type=kotlin.Int value=5
+          body: BLOCK type=kotlin.Unit origin=null
+            SET_VAR 'var j: kotlin.Int [var] declared in <root>.withInnerContinue' type=kotlin.Unit origin=EQ
+              CONST Int type=kotlin.Int value=1
+            WHILE label=null origin=WHILE_LOOP
+              condition: CALL 'public final fun lessOrEqual (arg0: kotlin.Int, arg1: kotlin.Int): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=LTEQ
+                arg0: GET_VAR 'var j: kotlin.Int [var] declared in <root>.withInnerContinue' type=kotlin.Int origin=null
+                arg1: CONST Int type=kotlin.Int value=5
+              body: BLOCK type=kotlin.Unit origin=null
                 WHEN type=kotlin.Unit origin=IF
                   BRANCH
-                    if: CALL 'public final fun greaterOrEqual (arg0: kotlin.Int, arg1: kotlin.Int): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=GTEQ
-                      arg0: GET_VAR 'val i: kotlin.Int [val] declared in <root>.loop3' type=kotlin.Int origin=null
-                      arg1: CONST Int type=kotlin.Int value=5
-                    then: BREAK label=null loop.label=null
-                SET_VAR 'var sum: kotlin.Int [var] declared in <root>.loop3' type=kotlin.Unit origin=PLUSEQ
+                    if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                      arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                        $this: GET_VAR 'var i: kotlin.Int [var] declared in <root>.withInnerContinue' type=kotlin.Int origin=null
+                        other: CONST Int type=kotlin.Int value=2
+                      arg1: CONST Int type=kotlin.Int value=0
+                    then: BLOCK type=kotlin.Unit origin=null
+                      SET_VAR 'var i: kotlin.Int [var] declared in <root>.withInnerContinue' type=kotlin.Unit origin=PLUSEQ
+                        CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                          $this: GET_VAR 'var i: kotlin.Int [var] declared in <root>.withInnerContinue' type=kotlin.Int origin=PLUSEQ
+                          other: CONST Int type=kotlin.Int value=1
+                      CONTINUE label=L loop.label=L
+                SET_VAR 'var cycles: kotlin.Int [var] declared in <root>.withInnerContinue' type=kotlin.Unit origin=PLUSEQ
                   CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
-                    $this: GET_VAR 'var sum: kotlin.Int [var] declared in <root>.loop3' type=kotlin.Int origin=PLUSEQ
-                    other: GET_VAR 'val i: kotlin.Int [val] declared in <root>.loop3' type=kotlin.Int origin=null
-        RETURN type=kotlin.Nothing from='public final fun loop3 (): kotlin.Int [inline] declared in <root>'
-          GET_VAR 'var sum: kotlin.Int [var] declared in <root>.loop3' type=kotlin.Int origin=null
+                    $this: GET_VAR 'var cycles: kotlin.Int [var] declared in <root>.withInnerContinue' type=kotlin.Int origin=PLUSEQ
+                    other: CONST Int type=kotlin.Int value=1
+                SET_VAR 'var j: kotlin.Int [var] declared in <root>.withInnerContinue' type=kotlin.Unit origin=PLUSEQ
+                  CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                    $this: GET_VAR 'var j: kotlin.Int [var] declared in <root>.withInnerContinue' type=kotlin.Int origin=PLUSEQ
+                    other: CONST Int type=kotlin.Int value=1
+            SET_VAR 'var i: kotlin.Int [var] declared in <root>.withInnerContinue' type=kotlin.Unit origin=PLUSEQ
+              CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                $this: GET_VAR 'var i: kotlin.Int [var] declared in <root>.withInnerContinue' type=kotlin.Int origin=PLUSEQ
+                other: CONST Int type=kotlin.Int value=1
+        RETURN type=kotlin.Nothing from='public final fun withInnerContinue (): kotlin.Int [inline] declared in <root>'
+          GET_VAR 'var cycles: kotlin.Int [var] declared in <root>.withInnerContinue' type=kotlin.Int origin=null
     PROPERTY name:a1 visibility:public modality:FINAL [val]
       FIELD PROPERTY_BACKING_FIELD name:a1 type:kotlin.Int visibility:private [final,static]
         EXPRESSION_BODY
@@ -219,6 +264,422 @@ MODULE_FRAGMENT name:<main>
         BLOCK_BODY
           RETURN type=kotlin.Nothing from='public final fun <get-a2> (): kotlin.Int declared in <root>'
             GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a2 type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+    PROPERTY name:c1 visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:c1 type:kotlin.Int visibility:private [final,static]
+        EXPRESSION_BODY
+          BLOCK type=kotlin.Int origin=null
+            VAR name:x_1 type:kotlin.Int [var]
+              CONST Int type=kotlin.Int value=0
+            BLOCK type=kotlin.Unit origin=null
+              BLOCK type=kotlin.Unit origin=null
+                TYPE_OP type=kotlin.Unit origin=IMPLICIT_COERCION_TO_UNIT typeOperand=kotlin.Unit
+                  BLOCK type=kotlin.Int origin=POSTFIX_INCR
+                    VAR IR_TEMPORARY_VARIABLE name:tmp0_2 type:kotlin.Int [val]
+                      GET_VAR 'var x_1: kotlin.Int [var] declared in <root>.c1' type=kotlin.Int origin=POSTFIX_INCR
+                    SET_VAR 'var x_1: kotlin.Int [var] declared in <root>.c1' type=kotlin.Unit origin=POSTFIX_INCR
+                      CALL 'public final fun inc (): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=POSTFIX_INCR
+                        $this: GET_VAR 'val tmp0_2: kotlin.Int [val] declared in <root>.c1' type=kotlin.Int origin=null
+                    GET_VAR 'val tmp0_2: kotlin.Int [val] declared in <root>.c1' type=kotlin.Int origin=null
+              BLOCK type=kotlin.Unit origin=null
+                TYPE_OP type=kotlin.Unit origin=IMPLICIT_COERCION_TO_UNIT typeOperand=kotlin.Unit
+                  BLOCK type=kotlin.Int origin=POSTFIX_INCR
+                    VAR IR_TEMPORARY_VARIABLE name:tmp0_2 type:kotlin.Int [val]
+                      GET_VAR 'var x_1: kotlin.Int [var] declared in <root>.c1' type=kotlin.Int origin=POSTFIX_INCR
+                    SET_VAR 'var x_1: kotlin.Int [var] declared in <root>.c1' type=kotlin.Unit origin=POSTFIX_INCR
+                      CALL 'public final fun inc (): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=POSTFIX_INCR
+                        $this: GET_VAR 'val tmp0_2: kotlin.Int [val] declared in <root>.c1' type=kotlin.Int origin=null
+                    GET_VAR 'val tmp0_2: kotlin.Int [val] declared in <root>.c1' type=kotlin.Int origin=null
+              BLOCK type=kotlin.Unit origin=null
+                TYPE_OP type=kotlin.Unit origin=IMPLICIT_COERCION_TO_UNIT typeOperand=kotlin.Unit
+                  BLOCK type=kotlin.Int origin=POSTFIX_INCR
+                    VAR IR_TEMPORARY_VARIABLE name:tmp0_2 type:kotlin.Int [val]
+                      GET_VAR 'var x_1: kotlin.Int [var] declared in <root>.c1' type=kotlin.Int origin=POSTFIX_INCR
+                    SET_VAR 'var x_1: kotlin.Int [var] declared in <root>.c1' type=kotlin.Unit origin=POSTFIX_INCR
+                      CALL 'public final fun inc (): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=POSTFIX_INCR
+                        $this: GET_VAR 'val tmp0_2: kotlin.Int [val] declared in <root>.c1' type=kotlin.Int origin=null
+                    GET_VAR 'val tmp0_2: kotlin.Int [val] declared in <root>.c1' type=kotlin.Int origin=null
+              BLOCK type=kotlin.Unit origin=null
+                TYPE_OP type=kotlin.Unit origin=IMPLICIT_COERCION_TO_UNIT typeOperand=kotlin.Unit
+                  BLOCK type=kotlin.Int origin=POSTFIX_INCR
+                    VAR IR_TEMPORARY_VARIABLE name:tmp0_2 type:kotlin.Int [val]
+                      GET_VAR 'var x_1: kotlin.Int [var] declared in <root>.c1' type=kotlin.Int origin=POSTFIX_INCR
+                    SET_VAR 'var x_1: kotlin.Int [var] declared in <root>.c1' type=kotlin.Unit origin=POSTFIX_INCR
+                      CALL 'public final fun inc (): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=POSTFIX_INCR
+                        $this: GET_VAR 'val tmp0_2: kotlin.Int [val] declared in <root>.c1' type=kotlin.Int origin=null
+                    GET_VAR 'val tmp0_2: kotlin.Int [val] declared in <root>.c1' type=kotlin.Int origin=null
+              BLOCK type=kotlin.Unit origin=null
+                TYPE_OP type=kotlin.Unit origin=IMPLICIT_COERCION_TO_UNIT typeOperand=kotlin.Unit
+                  BLOCK type=kotlin.Int origin=POSTFIX_INCR
+                    VAR IR_TEMPORARY_VARIABLE name:tmp0_2 type:kotlin.Int [val]
+                      GET_VAR 'var x_1: kotlin.Int [var] declared in <root>.c1' type=kotlin.Int origin=POSTFIX_INCR
+                    SET_VAR 'var x_1: kotlin.Int [var] declared in <root>.c1' type=kotlin.Unit origin=POSTFIX_INCR
+                      CALL 'public final fun inc (): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=POSTFIX_INCR
+                        $this: GET_VAR 'val tmp0_2: kotlin.Int [val] declared in <root>.c1' type=kotlin.Int origin=null
+                    GET_VAR 'val tmp0_2: kotlin.Int [val] declared in <root>.c1' type=kotlin.Int origin=null
+              BLOCK type=kotlin.Unit origin=null
+            RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+              CONST Int type=kotlin.Int value=5
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-c1> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:c1 visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-c1> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:c1 type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+    PROPERTY name:c2 visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:c2 type:kotlin.Int visibility:private [final,static]
+        EXPRESSION_BODY
+          BLOCK type=kotlin.Int origin=null
+            VAR name:cycles_1 type:kotlin.Int [var]
+              CONST Int type=kotlin.Int value=0
+            VAR name:i_2 type:kotlin.Int [var]
+              CONST Int type=kotlin.Int value=1
+            VAR name:j_3 type:kotlin.Int [var]
+              CONST Int type=kotlin.Int value=1
+            BLOCK type=kotlin.Unit origin=null
+              BLOCK type=kotlin.Unit origin=null
+                SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=EQ
+                  CONST Int type=kotlin.Int value=1
+                BLOCK type=kotlin.Unit origin=null
+                  BLOCK type=kotlin.Unit origin=null
+                    WHEN type=kotlin.Unit origin=IF
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                            $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=null
+                            other: CONST Int type=kotlin.Int value=2
+                          arg1: CONST Int type=kotlin.Int value=0
+                        then: BLOCK type=kotlin.Unit origin=null
+                          SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                            CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                              $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                              other: CONST Int type=kotlin.Int value=1
+                          CONTINUE label=null loop.label=L
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                  BLOCK type=kotlin.Unit origin=null
+                    WHEN type=kotlin.Unit origin=IF
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                            $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=null
+                            other: CONST Int type=kotlin.Int value=2
+                          arg1: CONST Int type=kotlin.Int value=0
+                        then: BLOCK type=kotlin.Unit origin=null
+                          SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                            CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                              $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                              other: CONST Int type=kotlin.Int value=1
+                          CONTINUE label=null loop.label=L
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                  BLOCK type=kotlin.Unit origin=null
+                    WHEN type=kotlin.Unit origin=IF
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                            $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=null
+                            other: CONST Int type=kotlin.Int value=2
+                          arg1: CONST Int type=kotlin.Int value=0
+                        then: BLOCK type=kotlin.Unit origin=null
+                          SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                            CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                              $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                              other: CONST Int type=kotlin.Int value=1
+                          CONTINUE label=null loop.label=L
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                  BLOCK type=kotlin.Unit origin=null
+                    WHEN type=kotlin.Unit origin=IF
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                            $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=null
+                            other: CONST Int type=kotlin.Int value=2
+                          arg1: CONST Int type=kotlin.Int value=0
+                        then: BLOCK type=kotlin.Unit origin=null
+                          SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                            CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                              $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                              other: CONST Int type=kotlin.Int value=1
+                          CONTINUE label=null loop.label=L
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                  BLOCK type=kotlin.Unit origin=null
+                    WHEN type=kotlin.Unit origin=IF
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                            $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=null
+                            other: CONST Int type=kotlin.Int value=2
+                          arg1: CONST Int type=kotlin.Int value=0
+                        then: BLOCK type=kotlin.Unit origin=null
+                          SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                            CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                              $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                              other: CONST Int type=kotlin.Int value=1
+                          CONTINUE label=null loop.label=L
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                  CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                    $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                    other: CONST Int type=kotlin.Int value=1
+              BLOCK type=kotlin.Unit origin=null
+                SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=EQ
+                  CONST Int type=kotlin.Int value=1
+                BLOCK type=kotlin.Unit origin=null
+                  BLOCK type=kotlin.Unit origin=null
+                    BLOCK type=kotlin.Unit origin=null
+                      SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                        CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                          $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                          other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                  BLOCK type=kotlin.Unit origin=null
+                    WHEN type=kotlin.Unit origin=IF
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                            $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=null
+                            other: CONST Int type=kotlin.Int value=2
+                          arg1: CONST Int type=kotlin.Int value=0
+                        then: BLOCK type=kotlin.Unit origin=null
+                          SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                            CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                              $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                              other: CONST Int type=kotlin.Int value=1
+                          CONTINUE label=null loop.label=L
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                  BLOCK type=kotlin.Unit origin=null
+                    WHEN type=kotlin.Unit origin=IF
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                            $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=null
+                            other: CONST Int type=kotlin.Int value=2
+                          arg1: CONST Int type=kotlin.Int value=0
+                        then: BLOCK type=kotlin.Unit origin=null
+                          SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                            CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                              $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                              other: CONST Int type=kotlin.Int value=1
+                          CONTINUE label=null loop.label=L
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                  BLOCK type=kotlin.Unit origin=null
+                    WHEN type=kotlin.Unit origin=IF
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                            $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=null
+                            other: CONST Int type=kotlin.Int value=2
+                          arg1: CONST Int type=kotlin.Int value=0
+                        then: BLOCK type=kotlin.Unit origin=null
+                          SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                            CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                              $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                              other: CONST Int type=kotlin.Int value=1
+                          CONTINUE label=null loop.label=L
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                  BLOCK type=kotlin.Unit origin=null
+                    WHEN type=kotlin.Unit origin=IF
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                            $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=null
+                            other: CONST Int type=kotlin.Int value=2
+                          arg1: CONST Int type=kotlin.Int value=0
+                        then: BLOCK type=kotlin.Unit origin=null
+                          SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                            CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                              $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                              other: CONST Int type=kotlin.Int value=1
+                          CONTINUE label=null loop.label=L
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                  CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                    $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                    other: CONST Int type=kotlin.Int value=1
+              BLOCK type=kotlin.Unit origin=null
+                SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=EQ
+                  CONST Int type=kotlin.Int value=1
+                BLOCK type=kotlin.Unit origin=null
+                  BLOCK type=kotlin.Unit origin=null
+                    BLOCK type=kotlin.Unit origin=null
+                      SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                        CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                          $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                          other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                  BLOCK type=kotlin.Unit origin=null
+                    WHEN type=kotlin.Unit origin=IF
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                            $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=null
+                            other: CONST Int type=kotlin.Int value=2
+                          arg1: CONST Int type=kotlin.Int value=0
+                        then: BLOCK type=kotlin.Unit origin=null
+                          SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                            CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                              $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                              other: CONST Int type=kotlin.Int value=1
+                          CONTINUE label=null loop.label=L
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                  BLOCK type=kotlin.Unit origin=null
+                    WHEN type=kotlin.Unit origin=IF
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                            $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=null
+                            other: CONST Int type=kotlin.Int value=2
+                          arg1: CONST Int type=kotlin.Int value=0
+                        then: BLOCK type=kotlin.Unit origin=null
+                          SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                            CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                              $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                              other: CONST Int type=kotlin.Int value=1
+                          CONTINUE label=null loop.label=L
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                  BLOCK type=kotlin.Unit origin=null
+                    WHEN type=kotlin.Unit origin=IF
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                            $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=null
+                            other: CONST Int type=kotlin.Int value=2
+                          arg1: CONST Int type=kotlin.Int value=0
+                        then: BLOCK type=kotlin.Unit origin=null
+                          SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                            CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                              $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                              other: CONST Int type=kotlin.Int value=1
+                          CONTINUE label=null loop.label=L
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                  BLOCK type=kotlin.Unit origin=null
+                    WHEN type=kotlin.Unit origin=IF
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PERC
+                            $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=null
+                            other: CONST Int type=kotlin.Int value=2
+                          arg1: CONST Int type=kotlin.Int value=0
+                        then: BLOCK type=kotlin.Unit origin=null
+                          SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                            CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                              $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                              other: CONST Int type=kotlin.Int value=1
+                          CONTINUE label=null loop.label=L
+                    SET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var cycles_1: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                    SET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                      CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'var j_3: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                        other: CONST Int type=kotlin.Int value=1
+                SET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Unit origin=PLUSEQ
+                  CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                    $this: GET_VAR 'var i_2: kotlin.Int [var] declared in <root>.c2' type=kotlin.Int origin=PLUSEQ
+                    other: CONST Int type=kotlin.Int value=1
+            RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+              CONST Int type=kotlin.Int value=15
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-c2> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:c2 visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-c2> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:c2 type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
   FILE fqName:kotlin fileName:/CompileTimeCalculation.kt
     CLASS ANNOTATION_CLASS name:CompileTimeCalculation modality:FINAL visibility:public superTypes:[kotlin.Annotation]
       annotations:

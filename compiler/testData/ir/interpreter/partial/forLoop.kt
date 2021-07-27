@@ -25,16 +25,37 @@ inline fun loop2(): Int {
 }
 
 @PartialEvaluation
-inline fun loop3(): Int {
-    var sum = 0
-    for (i in 0..10) {
-        if (i >= 5) break
-        sum += i
+inline fun withBreak(limit: Int): Int {
+    var x = 0
+    while(true) {
+        if(x < limit) x++ else break
     }
-    return sum
+    return x
+}
+
+@PartialEvaluation
+inline fun withInnerContinue(): Int {
+    var cycles = 0
+    var i = 1
+    var j = 1
+    L@while (i <= 5) {
+        j = 1
+        while (j <= 5) {
+            if (i % 2 == 0) {
+                i += 1
+                continue@L
+            }
+            cycles += 1
+            j += 1
+        }
+        i += 1
+    }
+
+    return cycles
 }
 
 val a1 = loop1(1, 2, 3)
 val a2 = loop1(*nonConstArray())
 //val b = loop2() // TODO need serialization/bodies for ranges
-//val c = loop3()
+val c1 = withBreak(5)
+val c2 = withInnerContinue()
