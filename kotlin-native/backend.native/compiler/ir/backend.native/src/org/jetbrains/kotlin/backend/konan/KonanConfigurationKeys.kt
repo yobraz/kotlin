@@ -167,6 +167,7 @@ class KonanConfigKeys {
         val WORKER_EXCEPTION_HANDLING: CompilerConfigurationKey<WorkerExceptionHandling> = CompilerConfigurationKey.create("unhandled exception processing in Worker.executeAfter")
         val EXTERNAL_DEPENDENCIES: CompilerConfigurationKey<String?> =
                 CompilerConfigurationKey.create("use external dependencies to enhance IR linker error messages")
+        val ENABLE_RUNTIME_LOGGING: CompilerConfigurationKey<String> = CompilerConfigurationKey.create("enable runtime logging")
     }
 }
 

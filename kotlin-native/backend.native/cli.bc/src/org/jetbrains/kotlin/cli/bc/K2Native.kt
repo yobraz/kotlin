@@ -340,6 +340,8 @@ class K2Native : CLICompiler<K2NativeCompilerArguments>() {
                 })
 
                 arguments.externalDependencies?.let { put(EXTERNAL_DEPENDENCIES, it) }
+
+                putIfNotNull(ENABLE_RUNTIME_LOGGING, arguments.enableRuntimeLogging)
             }
         }
     }

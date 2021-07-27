@@ -7,6 +7,18 @@
 #define RUNTIME_COMPILER_CONSTANTS_H
 
 #include <cstdint>
+#if __has_include(<string_view>)
+#include <string_view>
+#elif __has_include(<experimental/string_view>)
+// TODO: Remove when wasm32 is gone.
+#include <xlocale.h>
+#include <experimental/string_view>
+namespace std {
+using string_view = std::experimental::string_view;
+}
+#else
+#error "No <string_view>"
+#endif
 
 #include "Common.h"
 
@@ -15,6 +27,7 @@
 // These are defined by setRuntimeConstGlobals in IrToBitcode.kt
 extern "C" const int32_t KonanNeedDebugInfo;
 extern "C" const int32_t Kotlin_runtimeAssertsMode;
+extern "C" const char* const Kotlin_enableRuntimeLogging;
 
 namespace kotlin {
 namespace compiler {
@@ -51,6 +64,10 @@ ALWAYS_INLINE inline RuntimeAssertsMode runtimeAssertsMode() noexcept {
 }
 
 WorkerExceptionHandling workerExceptionHandling() noexcept;
+
+ALWAYS_INLINE inline std::string_view enableRuntimeLogging() noexcept {
+    return Kotlin_enableRuntimeLogging == nullptr ? std::string_view() : std::string_view(Kotlin_enableRuntimeLogging);
+}
 
 } // namespace compiler
 } // namespace kotlin

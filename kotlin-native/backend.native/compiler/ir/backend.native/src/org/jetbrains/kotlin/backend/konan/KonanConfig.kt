@@ -53,6 +53,7 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
     val gcAggressive: Boolean get() = configuration.get(KonanConfigKeys.GARBAGE_COLLECTOR_AGRESSIVE)!!
     val runtimeAssertsMode: RuntimeAssertsMode get() = configuration.get(KonanConfigKeys.RUNTIME_ASSERTS_MODE)!!
     val workerExceptionHandling: WorkerExceptionHandling get() = configuration.get(KonanConfigKeys.WORKER_EXCEPTION_HANDLING)!!
+    val enableRuntimeLogging: String? get() = configuration.get(KonanConfigKeys.ENABLE_RUNTIME_LOGGING)
 
     val needVerifyIr: Boolean
         get() = configuration.get(KonanConfigKeys.VERIFY_IR) == true
