@@ -367,12 +367,6 @@ object Generators : TemplateGroupBase() {
         }
     }
 
-    private fun elementsConversionClause(elements: Family) =
-            """
-            The [elements] ${elements.doc.collection} may be converted to a [HashSet] to speed up the operation, thus the elements are required to have
-            a correct and stable implementation of `hashCode()` that doesn't change between successive invocations.
-            """
-
     val f_minus_iterable = fn("minus(elements: Iterable<T>)") {
         include(Iterables, Sets, Sequences)
     } builder {
@@ -439,9 +433,6 @@ object Generators : TemplateGroupBase() {
             }
 
         }
-        doc {
-            doc + elementsConversionClause(Iterables)
-        }
     }
 
     val f_minus_array = fn("minus(elements: Array<out T>)") {
@@ -497,9 +488,6 @@ object Generators : TemplateGroupBase() {
                 }
                 """
             }
-        }
-        doc {
-            doc + elementsConversionClause(ArraysOfObjects)
         }
     }
 
@@ -561,9 +549,6 @@ object Generators : TemplateGroupBase() {
                 }
                 """
             }
-        }
-        doc {
-            doc + elementsConversionClause(Sequences)
         }
     }
 
