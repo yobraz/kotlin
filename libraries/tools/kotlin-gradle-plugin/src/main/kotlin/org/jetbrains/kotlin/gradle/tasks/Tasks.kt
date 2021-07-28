@@ -22,6 +22,8 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.build.event.BuildEventsListenerRegistry
+import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.work.ChangeType
 import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
@@ -146,6 +148,13 @@ abstract class GradleCompileTaskProvider @Inject constructor(
     val projectName: Provider<String> = objectFactory
         .property(project.rootProject.name.normalizeForFlagFile())
 
+    /**
+     * Returns different value rather than [rootDir] in case of composite builds or buildSrc module
+     */
+    @get:Internal
+    val rootBuildDir: Provider<File> = objectFactory
+        .property(project.gradle.rootBuild.rootProject.projectDir)
+
     @get:Internal
     val buildModulesInfo: Provider<out IncrementalModuleInfoProvider> = objectFactory.property(
         /**
@@ -198,6 +207,15 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments> : AbstractKotl
             task.localStateDirectories.from(task.taskBuildDirectory).disallowChanges()
 
             PropertiesProvider(task.project).mapKotlinDaemonProperties(task)
+
+            val rootProject = project.gradle.rootBuild.rootProject
+            SingleActionPerBuild.run(rootProject, "register-multiple-daemons-detector") {
+                project.serviceOf<BuildEventsListenerRegistry>().onTaskCompletion(
+                    project.gradle.sharedServices.registerIfAbsent("multiple-daemons-detector", MultipleDaemonsDetectionService::class.java) {
+                        it.parameters.rootBuildDir.set(rootProject.layout.projectDirectory)
+                    }
+                )
+            }
         }
 
         private fun getKotlinBuildDir(task: T): Provider<Directory> =
