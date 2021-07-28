@@ -292,7 +292,7 @@ abstract class BasicBoxTest(
                 additionalFiles += additionalJsFile
             }
 
-            if (targetBackend != TargetBackend.JS || !skipEsModules) {
+            if (targetBackend != TargetBackend.JS && !skipEsModules) {
                 val additionalMainJsFile =
                     (filePath.removeSuffix("." + KotlinFileType.EXTENSION) + "__main.js").takeIf { File(it).exists() }
 
