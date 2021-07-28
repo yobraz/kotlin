@@ -83,7 +83,7 @@ internal class ConeTypeIdeRenderer(
             }
             is ConeUnionType -> {
                 renderAnnotationList(annotations)
-                type.nestedTypes.joinTo(this, "|", prefix = "(", postfix = ")") {
+                type.nestedTypes.joinTo(this, " | ") {
                     renderType(it)
                 }
             }

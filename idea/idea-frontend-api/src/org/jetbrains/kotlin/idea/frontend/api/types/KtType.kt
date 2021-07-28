@@ -82,3 +82,9 @@ public abstract class KtIntersectionType : KtType {
 
     override fun toString(): String = asStringForDebugging()
 }
+
+public abstract class KtUnionType : KtType {
+    public abstract val nestedTypes: List<KtType>
+
+    override fun toString(): String = asStringForDebugging()
+}
