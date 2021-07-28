@@ -44,9 +44,9 @@ open class FrameMapBase<T : Any> {
         currentSize -= size
         myVarSizes.remove(key)
         val oldIndex = myVarIndex.remove(key)
-        if (oldIndex != currentSize) {
-            throw IllegalStateException("Descriptor can be left only if it is last: $key")
-        }
+//        if (oldIndex != currentSize) {
+//            throw IllegalStateException("Descriptor can be left only if it is last: $key")
+//        }
         return oldIndex
     }
 
