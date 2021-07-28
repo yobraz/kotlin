@@ -7,4 +7,4 @@ class B : O(""), I
 
 fun foo(): A | B = A()
 
-fun box() = foo().o + "K" //TODO: foo().k() resolution
+fun box() = foo().o + foo().k()
