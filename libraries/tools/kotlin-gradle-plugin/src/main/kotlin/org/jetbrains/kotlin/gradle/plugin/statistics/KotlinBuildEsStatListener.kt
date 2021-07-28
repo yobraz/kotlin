@@ -56,9 +56,12 @@ class KotlinBuildEsStatListener(val projectName: String) : OperationCompletionLi
             return;
         }
         val taskExecutionResult = TaskExecutionResults[taskPath]
-        val statData = taskExecutionResult?.buildMetrics?.buildTimes?.asMap()?.mapKeys { (key, _) -> key.name } ?: emptyMap()
-        val changedFiles = taskExecutionResult?.taskInfo?.changedFiles
-        val changes = when (changedFiles) {
+        val statData = hashMapOf<String, Long>()
+        taskExecutionResult?.buildMetrics?.buildTimes?.asMap()?.filterValues { value -> value != 0L }
+            ?.forEach { (key, value) -> statData[key.name] = value }
+        taskExecutionResult?.buildMetrics?.buildPerformanceMetrics?.asMap()?.filterValues { value -> value != 0L }
+            ?.forEach { (key, value) -> statData[key.name] = value }
+        val changes = when (val changedFiles = taskExecutionResult?.taskInfo?.changedFiles) {
             is ChangedFiles.Known -> changedFiles.modified.map { it.absolutePath } + changedFiles.removed.map { it.absolutePath }
             is ChangedFiles.Dependencies -> changedFiles.modified.map { it.absolutePath } + changedFiles.removed.map { it.absolutePath }
             else -> emptyList<String>()
