@@ -108,6 +108,30 @@ fun loadKonanLibrary(name: String) {
     } catch (e: UnsatisfiedLinkError) {
         val fullLibraryName = System.mapLibraryName(name)
         val dir = "${KonanHomeProvider.determineKonanHome()}/konan/nativelib"
+        if (fullLibraryName.endsWith(".dylib")) {
+            /**
+             * Sometimes on Apple targets (for example, if one downloads distribution with browser instead of gradle/curl)
+             * dylib can be not loadable, because quarantine attribute is set on such files.
+             *
+             * This would lead to ununderstandable errors, which could be only fixed by removing quarantine attribute.
+             * API for doing that in java-way is available only in jdk17 (https://bugs.openjdk.java.net/browse/JDK-8030048),
+             * so for now we will just use spawning external process.
+             *
+             * For optimisation purposes, xattrflag file is used. If it exists, and older than library xattr -d is already done.
+             */
+            try {
+                val flag = File("$dir/$fullLibraryName.xattrflag")
+                if (!flag.exists() || flag.lastModified() < File("$dir/$fullLibraryName").lastModified()) {
+                    val builder = ProcessBuilder("xattr", "-d", "com.apple.quarantine", "$dir/$fullLibraryName")
+                    val process = builder.start()
+                    process.waitFor()
+                    flag.delete()
+                    flag.printWriter()
+                }
+            } catch (e: Throwable) {
+                // we are trying to make workaround on quite rare case, if something went wrong, let's just ignore it
+            }
+        }
         try {
             System.load("$dir/$fullLibraryName")
         } catch (e: UnsatisfiedLinkError) {
