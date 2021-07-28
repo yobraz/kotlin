@@ -3139,4 +3139,10 @@ internal val KT_DIAGNOSTIC_CONVERTER = KtDiagnosticConverterBuilder.buildConvert
             token,
         )
     }
+    add(FirJvmErrors.ILLEGAL_JVM_NAME) { firDiagnostic ->
+        IllegalJvmNameImpl(
+            firDiagnostic as FirPsiDiagnostic,
+            token,
+        )
+    }
 }
