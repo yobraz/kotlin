@@ -327,9 +327,16 @@ abstract class BasicBoxTest(
                 }
 
                 fun File.getTestDir(): File =
-                    File(generatedJsFiles.single().first.replace(outputDir.absolutePath, this.absolutePath))
+                    File(
+                        File(generatedJsFiles.single().first).absolutePath
+                            .replace(outputDir.absolutePath, this.absolutePath)
+                    )
 
                 if (!skipRegularMode) {
+                    println("ESM: outputDir                                          $outputDir")
+                    println("ESM: generatedJsFiles.single().first                    ${generatedJsFiles.single().first}")
+                    println("ESM: File(generatedJsFiles.single().first).absolutePath ${File(generatedJsFiles.single().first).absolutePath}")
+
                     runIrEsmTests(outputDir.getTestDir())
                     performAdditionalChecks(file, File(outputDir.getTestDir().esModulesSubDir, mainModuleName))
 
