@@ -2193,6 +2193,10 @@ sealed class KtFirDiagnostic<PSI : PsiElement> : KtDiagnosticWithPsi<PSI> {
         override val diagnosticClass get() = ConflictingJvmDeclarations::class
     }
 
+    abstract class OverrideCannotBeStatic : KtFirDiagnostic<PsiElement>() {
+        override val diagnosticClass get() = OverrideCannotBeStatic::class
+    }
+
     abstract class InapplicableJvmName : KtFirDiagnostic<PsiElement>() {
         override val diagnosticClass get() = InapplicableJvmName::class
     }
