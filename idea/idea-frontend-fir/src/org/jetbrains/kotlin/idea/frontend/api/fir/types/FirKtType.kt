@@ -174,3 +174,18 @@ internal class KtFirIntersectionType(
 
     override fun asStringForDebugging(): String = withValidityAssertion { coneType.render() }
 }
+
+internal class KtFirUnionType(
+    _coneType: ConeUnionType,
+    override val token: ValidityToken,
+    _builder: KtSymbolByFirBuilder,
+) : KtUnionType(), KtFirType {
+    override val coneType by weakRef(_coneType)
+    private val builder by weakRef(_builder)
+
+    override val nestedTypes: List<KtType> by cached {
+        coneType.nestedTypes.map { builder.typeBuilder.buildKtType(it) }
+    }
+
+    override fun asStringForDebugging(): String = withValidityAssertion { coneType.render() }
+}
