@@ -48,4 +48,10 @@ public class IrPartialInterpreterTestGenerated extends AbstractIrPartialInterpre
     public void testSimpleCostructorCall() throws Exception {
         runTest("compiler/testData/ir/interpreter/partial/simpleCostructorCall.kt");
     }
+
+    @Test
+    @TestMetadata("typeOperators.kt")
+    public void testTypeOperators() throws Exception {
+        runTest("compiler/testData/ir/interpreter/partial/typeOperators.kt");
+    }
 }

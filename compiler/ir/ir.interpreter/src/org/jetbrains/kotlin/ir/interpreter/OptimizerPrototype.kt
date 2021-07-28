@@ -26,7 +26,7 @@ class OptimizerPrototype(irBuiltIns: IrBuiltIns) : PartialIrInterpreter(irBuiltI
             when {
                 condition == null -> return evaluator.fallbackIrWhen(expression, i, inclusive = false)
                 condition.asBoolean() -> {
-                    evaluator.evalIrBranchResult(branch)
+                    evaluator.evalIrBranchResult(branch)?.let { evaluator.callStack.pushState(it) }
                     return branch.result
                 }
                 // else -> ignore

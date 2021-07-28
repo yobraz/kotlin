@@ -110,4 +110,11 @@ abstract class PartialIrInterpreter(val irBuiltIns: IrBuiltIns) : IrElementTrans
     override fun visitBreakContinue(jump: IrBreakContinue): IrExpression {
         return jump
     }
+
+    override fun visitTypeOperator(expression: IrTypeOperatorCall): IrExpression {
+        return evaluator.fallbackIrTypeOperator(
+            expression,
+            evaluator.evalIrTypeOperatorValue(expression)
+        )
+    }
 }

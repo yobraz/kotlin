@@ -288,10 +288,7 @@ MODULE_FRAGMENT name:<main>
         EXPRESSION_BODY
           BLOCK type=kotlin.Boolean origin=null
             RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Boolean origin=null'
-              BLOCK type=kotlin.Boolean origin=WHEN
-                VAR IR_TEMPORARY_VARIABLE name:tmp0_subject_1 type:kotlin.Int [val]
-                  CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
-                CONST Boolean type=kotlin.Boolean value=true
+              CONST Boolean type=kotlin.Boolean value=true
       FUN DEFAULT_PROPERTY_ACCESSOR name:<get-a> visibility:public modality:FINAL <> () returnType:kotlin.Boolean
         correspondingProperty: PROPERTY name:a visibility:public modality:FINAL [val]
         BLOCK_BODY
@@ -302,10 +299,7 @@ MODULE_FRAGMENT name:<main>
         EXPRESSION_BODY
           BLOCK type=kotlin.Boolean origin=null
             RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Boolean origin=null'
-              BLOCK type=kotlin.Boolean origin=WHEN
-                VAR IR_TEMPORARY_VARIABLE name:tmp0_subject_1 type:kotlin.Int [val]
-                  CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
-                CONST Boolean type=kotlin.Boolean value=true
+              CONST Boolean type=kotlin.Boolean value=true
       FUN DEFAULT_PROPERTY_ACCESSOR name:<get-b> visibility:public modality:FINAL <> () returnType:kotlin.Boolean
         correspondingProperty: PROPERTY name:b visibility:public modality:FINAL [val]
         BLOCK_BODY
