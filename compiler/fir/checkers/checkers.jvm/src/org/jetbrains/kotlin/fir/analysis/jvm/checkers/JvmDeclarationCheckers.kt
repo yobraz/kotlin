@@ -8,10 +8,12 @@ package org.jetbrains.kotlin.fir.analysis.jvm.checkers
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.DeclarationCheckers
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirBasicDeclarationChecker
 import org.jetbrains.kotlin.fir.analysis.jvm.checkers.declaration.FirJvmExternalDeclarationChecker
+import org.jetbrains.kotlin.fir.analysis.jvm.checkers.declaration.FirJvmNameChecker
 
 object JvmDeclarationCheckers : DeclarationCheckers() {
     override val basicDeclarationCheckers: Set<FirBasicDeclarationChecker>
         get() = setOf(
             FirJvmExternalDeclarationChecker,
+            FirJvmNameChecker,
         )
 }
