@@ -1,5 +1,4 @@
-fun test(s: ULong) {
+fun test() {
     "".lowercase()
     1.digitToChar()
-    s.inv()
 }
