@@ -161,6 +161,7 @@ class IrToJs(
 
         val rootContext = JsGenerationContext(
             currentFunction = null,
+            currentFile = null,
             staticContext = staticContext,
             localNames = LocalNameGenerator(NameTable())
         )

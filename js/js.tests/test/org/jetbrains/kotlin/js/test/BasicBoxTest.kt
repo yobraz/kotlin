@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.incremental.js.IncrementalDataProviderImpl
 import org.jetbrains.kotlin.incremental.js.IncrementalResultsConsumerImpl
 import org.jetbrains.kotlin.incremental.js.TranslationResultValue
+import org.jetbrains.kotlin.ir.backend.js.codegen.JsGenerationGranularity
 import org.jetbrains.kotlin.ir.backend.js.ic.SerializedIcData
 import org.jetbrains.kotlin.js.JavaScript
 import org.jetbrains.kotlin.js.backend.JsToStringGenerationVisitor
@@ -245,9 +246,8 @@ abstract class BasicBoxTest(
                     safeExternalBooleanDiagnostic,
                     skipMangleVerification,
                     abiVersion,
-                    icCache
-                    propertyLazyInitialization,
-                    customTestModule
+                    icCache,
+                    customTestModule,
                 )
 
                 when {
@@ -1270,7 +1270,7 @@ class KotlinJsTestLogger {
 
 fun RuntimeDiagnostic.Companion.resolve(
     value: String?,
-): RuntimeDiagnostic? = when (value?.lowercase()) {
+): RuntimeDiagnostic? = when (value?.toLowerCase()) {
     K2JsArgumentConstants.RUNTIME_DIAGNOSTIC_LOG -> RuntimeDiagnostic.LOG
     K2JsArgumentConstants.RUNTIME_DIAGNOSTIC_EXCEPTION -> RuntimeDiagnostic.EXCEPTION
     null -> null

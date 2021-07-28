@@ -9,8 +9,6 @@ import org.jetbrains.kotlin.backend.common.phaser.AnyNamedPhase
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.common.phaser.toPhaseMap
 import org.jetbrains.kotlin.cli.common.messages.AnalyzerWithCompilerReport
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.cli.js.messageCollectorLogger
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.ir.backend.js.*
 import org.jetbrains.kotlin.ir.backend.js.codegen.CompilerOutputSink
@@ -196,7 +194,7 @@ abstract class BasicIrBoxTest(
                     analyzer = AnalyzerWithCompilerReport(config.configuration),
                     configuration = config.configuration,
                     phaseConfig = phaseConfig,
-                    irFactory = irFactory,
+                    irFactory = if (lowerPerModule) PersistentIrFactory() else IrFactoryImpl,
                     dependencies = allKlibPaths,
                     friendDependencies = emptyList(),
                     exportedDeclarations = setOf(FqName.fromSegments(listOfNotNull(testPackage, testFunction))),
@@ -257,7 +255,7 @@ abstract class BasicIrBoxTest(
                 )
                 val generatedModule: CompilerResult = transformer.generateModule(ir.allModules)
 
-                generatedModule.jsCode!!.writeTo(
+                generatedModule.outputs!!.writeTo(
                     outputFile,
                     config
                 )

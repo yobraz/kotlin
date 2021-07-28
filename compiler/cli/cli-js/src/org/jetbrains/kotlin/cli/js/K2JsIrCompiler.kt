@@ -41,7 +41,6 @@ import org.jetbrains.kotlin.ir.backend.js.*
 import org.jetbrains.kotlin.ir.backend.js.ic.buildCache
 import org.jetbrains.kotlin.ir.backend.js.ic.checkCaches
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
-import org.jetbrains.kotlin.ir.backend.js.codegen.CompilerOutputSink
 import org.jetbrains.kotlin.ir.backend.js.codegen.JsGenerationGranularity
 import org.jetbrains.kotlin.ir.backend.js.codegen.JsGenerationOptions
 import org.jetbrains.kotlin.ir.backend.js.codegen.generateEsModules
@@ -184,6 +183,7 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
 
         // TODO: Handle non-empty main call arguments
         val mainCallArguments = if (K2JsArgumentConstants.NO_CALL == arguments.main) null else emptyList<String>()
+        mainCallArguments.let {} // TODO
 
         val icCaches = configureLibraries(arguments.cacheDirectories)
 
@@ -307,9 +307,6 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
                 if (arguments.irDceDriven) PersistentIrFactory() else IrFactoryImpl,
                 dependencies = libraries,
                 friendDependencies = friendLibraries,
-                mainArguments = mainCallArguments,
-                generateFullJs = !arguments.irDce,
-                generateDceJs = arguments.irDce,
                 dceRuntimeDiagnostic = RuntimeDiagnostic.resolve(
                     arguments.irDceRuntimeDiagnostic,
                     messageCollector
@@ -333,6 +330,7 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
 
             messageCollector.report(INFO, "Executable production duration: ${System.currentTimeMillis() - start}ms")
 
+            /* TODO: Generate JS
             val outputs = if (arguments.irDce && !arguments.irDceDriven) compiledModule.outputsAfterDce!! else compiledModule.outputs!!
             outputFile.write(outputs)
             outputs.dependencies.forEach { (name, content) ->
@@ -349,6 +347,7 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
             )
 
             generateEsModules(ir, outputSink = basicOutputSink, mainCallArguments, granularity, jsGenerationOptions)
+            */
         }
 
         return OK
