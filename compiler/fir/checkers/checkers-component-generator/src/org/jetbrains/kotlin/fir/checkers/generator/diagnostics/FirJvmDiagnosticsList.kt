@@ -14,6 +14,8 @@ import org.jetbrains.kotlin.fir.checkers.generator.diagnostics.model.*
 object JVM_DIAGNOSTICS_LIST : DiagnosticList("FirJvmErrors") {
     val DECLARATIONS by object : DiagnosticGroup("Declarations") {
         val CONFLICTING_JVM_DECLARATIONS by error<PsiElement>()
+
+        val INAPPLICABLE_JVM_NAME by error<PsiElement>()
         val ILLEGAL_JVM_NAME by error<PsiElement>()
     }
 }
