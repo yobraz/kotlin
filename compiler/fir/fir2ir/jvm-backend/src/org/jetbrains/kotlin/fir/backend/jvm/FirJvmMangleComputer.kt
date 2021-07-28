@@ -37,6 +37,11 @@ open class FirJvmMangleComputer(
 
     private var isRealExpect = false
 
+    fun reset(): FirJvmMangleComputer {
+        builder.clear()
+        return this
+    }
+
     open fun FirFunction.platformSpecificFunctionName(): String? = null
 
     open fun FirFunction.platformSpecificSuffix(): String? =

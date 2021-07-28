@@ -14,6 +14,8 @@ import org.jetbrains.kotlin.fir.signaturer.FirMangler
 @NoMutableState
 class FirJvmKotlinMangler(private val session: FirSession) : AbstractKotlinMangler<FirDeclaration>(), FirMangler {
 
+    private val computerForSignature = FirJvmMangleComputer(java.lang.StringBuilder(256), MangleMode.SIGNATURE, session)
+
     override fun FirDeclaration.mangleString(): String = getMangleComputer(MangleMode.FULL).computeMangle(this)
 
     override fun FirDeclaration.signatureString(): String = getMangleComputer(MangleMode.SIGNATURE).computeMangle(this)
@@ -31,6 +33,9 @@ class FirJvmKotlinMangler(private val session: FirSession) : AbstractKotlinMangl
     }
 
     override fun getMangleComputer(mode: MangleMode): KotlinMangleComputer<FirDeclaration> {
+        if (mode == MangleMode.SIGNATURE) {
+            return computerForSignature.reset()
+        }
         return FirJvmMangleComputer(StringBuilder(256), mode, session)
     }
 }
