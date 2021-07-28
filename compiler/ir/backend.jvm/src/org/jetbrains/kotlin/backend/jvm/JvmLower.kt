@@ -41,18 +41,6 @@ private class PatchDeclarationParents : FileLoweringPass {
     }
 }
 
-private val validateIrBeforeLowering = makeCustomPhase<JvmBackendContext, IrModuleFragment>(
-    { context, module -> validationCallback(context, module, checkProperties = true) },
-    name = "ValidateIrBeforeLowering",
-    description = "Validate IR before lowering"
-)
-
-private val validateIrAfterLowering = makeCustomPhase<JvmBackendContext, IrModuleFragment>(
-    { context, module -> validationCallback(context, module, checkProperties = true) },
-    name = "ValidateIrAfterLowering",
-    description = "Validate IR after lowering"
-)
-
 private val stripTypeAliasDeclarationsPhase = makeIrFilePhase<CommonBackendContext>(
     { StripTypeAliasDeclarationsLowering() },
     name = "StripTypeAliasDeclarations",
@@ -426,8 +414,7 @@ private val jvmLoweringPhases = NamedCompilerPhase(
     name = "IrLowering",
     description = "IR lowering",
     nlevels = 1,
-    lower = validateIrBeforeLowering then
-            processOptionalAnnotationsPhase then
+    lower = processOptionalAnnotationsPhase then
             expectDeclarationsRemovingPhase then
             serializeIrPhase then
             scriptsToClassesPhase then
@@ -437,8 +424,7 @@ private val jvmLoweringPhases = NamedCompilerPhase(
             generateMultifileFacadesPhase then
             resolveInlineCallsPhase then
             // should be last transformation
-            prepareForBytecodeInlining then
-            validateIrAfterLowering
+            prepareForBytecodeInlining
 )
 
 // Generate multifile facades first, to compute and store JVM signatures of const properties which are later used

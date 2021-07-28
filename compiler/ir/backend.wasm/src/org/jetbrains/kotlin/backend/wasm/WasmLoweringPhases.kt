@@ -37,18 +37,6 @@ private fun makeCustomWasmModulePhase(
         op, name, description, prerequisite, actions = setOf(defaultDumper, validationAction), nlevels = 0,
     )
 
-private val validateIrBeforeLowering = makeCustomWasmModulePhase(
-    { context, module -> validationCallback(context, module) },
-    name = "ValidateIrBeforeLowering",
-    description = "Validate IR before lowering"
-)
-
-private val validateIrAfterLowering = makeCustomWasmModulePhase(
-    { context, module -> validationCallback(context, module) },
-    name = "ValidateIrAfterLowering",
-    description = "Validate IR after lowering"
-)
-
 private val expectDeclarationsRemovingPhase = makeWasmModulePhase(
     ::ExpectDeclarationsRemoveLowering,
     name = "ExpectDeclarationsRemoving",
@@ -416,8 +404,7 @@ private val propertyAccessorInlinerLoweringPhase = makeWasmModulePhase(
 val wasmPhases = NamedCompilerPhase(
     name = "IrModuleLowering",
     description = "IR module lowering",
-    lower = validateIrBeforeLowering then
-            excludeDeclarationsFromCodegenPhase then
+    lower = excludeDeclarationsFromCodegenPhase then
             expectDeclarationsRemovingPhase then
 
             // TODO: Need some helpers from stdlib
@@ -498,6 +485,5 @@ val wasmPhases = NamedCompilerPhase(
             virtualDispatchReceiverExtractionPhase then
             wasmThrowDebugLoweringPhase then
             staticMembersLoweringPhase then
-            wasmNullSpecializationLowering then
-            validateIrAfterLowering
+            wasmNullSpecializationLowering
 )
