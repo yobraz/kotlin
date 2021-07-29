@@ -443,6 +443,7 @@ fun generateEsModules(
         val name = sanitizeName((declaration as IrDeclarationWithName).fqNameWhenAvailable.toString())
         val number = numerator.numeration[declaration]
             ?: error("Can't find number for declaration ${declaration.fqNameWhenAvailable}")
+        // TODO: Use shorter names in release mode
         return "${name}_GUID_${number}"
     }
 

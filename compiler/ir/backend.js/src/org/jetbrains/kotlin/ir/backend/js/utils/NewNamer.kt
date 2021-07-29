@@ -120,6 +120,8 @@ class NewNamerImpl(
                 field.name.asString() + "_LIKELY_ELIMINATED_BY_DCE"
             }
         )
+        // TODO: Webpack not minimize member names, it is long name, which is not minimized, so it affects final JS bundle size
+        // Use shorter names
         return JsName(className.toString() + "_f_" + fieldName)
     }
 
