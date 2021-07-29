@@ -488,6 +488,9 @@ class IrInterpreter(internal val environment: IrInterpreterEnvironment, internal
                     else -> callStack.pushState(state)
                 }
             }
+            IrTypeOperator.SAM_CONVERSION -> {
+                // nothing for now
+            }
             else -> TODO("${expression.operator} not implemented")
         }
     }

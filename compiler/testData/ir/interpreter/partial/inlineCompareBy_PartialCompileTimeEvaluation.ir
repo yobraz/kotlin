@@ -185,14 +185,110 @@ MODULE_FRAGMENT name:<main>
                         BLOCK_BODY
                           RETURN type=kotlin.Nothing from='local final fun <anonymous>_1 (a: <root>.Foo, b: <root>.Foo): kotlin.Int declared in <root>.Foo.Companion.comparator'
                             BLOCK type=kotlin.Int origin=null
-                              BLOCK type=kotlin.Unit origin=FOR_LOOP
+                              BLOCK type=kotlin.Unit origin=null
                                 VAR FOR_LOOP_ITERATOR name:tmp0_iterator_1 type:kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> [val]
                                   CALL 'public final fun iterator (): kotlin.collections.Iterator<T of kotlin.Array> [operator] declared in kotlin.Array' type=kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> origin=FOR_LOOP_ITERATOR
                                     $this: GET_VAR 'val tmp0_compareBy_0: kotlin.Array<out kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> [val] declared in <root>.Foo.Companion.comparator' type=kotlin.Array<out kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> origin=null
-                                WHILE label=null origin=FOR_LOOP_INNER_WHILE
-                                  condition: CALL 'public abstract fun hasNext (): kotlin.Boolean [operator] declared in kotlin.collections.Iterator' type=kotlin.Boolean origin=FOR_LOOP_HAS_NEXT
-                                    $this: GET_VAR 'val tmp0_iterator_1: kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> origin=null
-                                  body: BLOCK type=kotlin.Unit origin=FOR_LOOP_INNER_WHILE
+                                BLOCK type=kotlin.Unit origin=null
+                                  BLOCK type=kotlin.Unit origin=FOR_LOOP_INNER_WHILE
+                                    VAR FOR_LOOP_VARIABLE name:fn_2 type:kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> [val]
+                                      CALL 'public abstract fun next (): T of kotlin.collections.Iterator [operator] declared in kotlin.collections.Iterator' type=kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> origin=FOR_LOOP_NEXT
+                                        $this: GET_VAR 'val tmp0_iterator_1: kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> origin=null
+                                    BLOCK type=kotlin.Unit origin=null
+                                      VAR name:v1_3 type:kotlin.Comparable<*>? [val]
+                                        CALL 'public abstract fun invoke (p1: P1 of kotlin.Function1): R of kotlin.Function1 [operator] declared in kotlin.Function1' type=kotlin.Comparable<*>? origin=INVOKE
+                                          $this: GET_VAR 'val fn_2: kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> origin=VARIABLE_AS_FUNCTION
+                                          p1: GET_VAR 'a: <root>.Foo declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=<root>.Foo origin=null
+                                      VAR name:v2_4 type:kotlin.Comparable<*>? [val]
+                                        CALL 'public abstract fun invoke (p1: P1 of kotlin.Function1): R of kotlin.Function1 [operator] declared in kotlin.Function1' type=kotlin.Comparable<*>? origin=INVOKE
+                                          $this: GET_VAR 'val fn_2: kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> origin=VARIABLE_AS_FUNCTION
+                                          p1: GET_VAR 'b: <root>.Foo declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=<root>.Foo origin=null
+                                      VAR name:diff_5 type:kotlin.Int [val]
+                                        BLOCK type=kotlin.Int origin=null
+                                          WHEN type=kotlin.Unit origin=IF
+                                            BRANCH
+                                              if: CALL 'public final fun EQEQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQEQ
+                                                arg0: GET_VAR 'val v1_3: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                                arg1: GET_VAR 'val v2_4: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                              then: RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+                                                CONST Int type=kotlin.Int value=0
+                                          WHEN type=kotlin.Unit origin=IF
+                                            BRANCH
+                                              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                                                arg0: GET_VAR 'val v1_3: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                                arg1: CONST Null type=kotlin.Nothing? value=null
+                                              then: RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+                                                CONST Int type=kotlin.Int value=-1
+                                          WHEN type=kotlin.Unit origin=IF
+                                            BRANCH
+                                              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                                                arg0: GET_VAR 'val v2_4: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                                arg1: CONST Null type=kotlin.Nothing? value=null
+                                              then: RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+                                                CONST Int type=kotlin.Int value=1
+                                          RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+                                            CALL 'public abstract fun compareTo (other: T of kotlin.Comparable): kotlin.Int [operator] declared in kotlin.Comparable' type=kotlin.Int origin=null
+                                              $this: TYPE_OP type=kotlin.Comparable<kotlin.Any> origin=CAST typeOperand=kotlin.Comparable<kotlin.Any>
+                                                GET_VAR 'val v1_3: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                              other: GET_VAR 'val v2_4: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                      WHEN type=kotlin.Unit origin=IF
+                                        BRANCH
+                                          if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                                            $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                                              arg0: GET_VAR 'val diff_5: kotlin.Int [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Int origin=null
+                                              arg1: CONST Int type=kotlin.Int value=0
+                                          then: RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+                                            GET_VAR 'val diff_5: kotlin.Int [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Int origin=null
+                                  BLOCK type=kotlin.Unit origin=FOR_LOOP_INNER_WHILE
+                                    VAR FOR_LOOP_VARIABLE name:fn_2 type:kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> [val]
+                                      CALL 'public abstract fun next (): T of kotlin.collections.Iterator [operator] declared in kotlin.collections.Iterator' type=kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> origin=FOR_LOOP_NEXT
+                                        $this: GET_VAR 'val tmp0_iterator_1: kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> origin=null
+                                    BLOCK type=kotlin.Unit origin=null
+                                      VAR name:v1_3 type:kotlin.Comparable<*>? [val]
+                                        CALL 'public abstract fun invoke (p1: P1 of kotlin.Function1): R of kotlin.Function1 [operator] declared in kotlin.Function1' type=kotlin.Comparable<*>? origin=INVOKE
+                                          $this: GET_VAR 'val fn_2: kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> origin=VARIABLE_AS_FUNCTION
+                                          p1: GET_VAR 'a: <root>.Foo declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=<root>.Foo origin=null
+                                      VAR name:v2_4 type:kotlin.Comparable<*>? [val]
+                                        CALL 'public abstract fun invoke (p1: P1 of kotlin.Function1): R of kotlin.Function1 [operator] declared in kotlin.Function1' type=kotlin.Comparable<*>? origin=INVOKE
+                                          $this: GET_VAR 'val fn_2: kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> origin=VARIABLE_AS_FUNCTION
+                                          p1: GET_VAR 'b: <root>.Foo declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=<root>.Foo origin=null
+                                      VAR name:diff_5 type:kotlin.Int [val]
+                                        BLOCK type=kotlin.Int origin=null
+                                          WHEN type=kotlin.Unit origin=IF
+                                            BRANCH
+                                              if: CALL 'public final fun EQEQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQEQ
+                                                arg0: GET_VAR 'val v1_3: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                                arg1: GET_VAR 'val v2_4: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                              then: RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+                                                CONST Int type=kotlin.Int value=0
+                                          WHEN type=kotlin.Unit origin=IF
+                                            BRANCH
+                                              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                                                arg0: GET_VAR 'val v1_3: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                                arg1: CONST Null type=kotlin.Nothing? value=null
+                                              then: RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+                                                CONST Int type=kotlin.Int value=-1
+                                          WHEN type=kotlin.Unit origin=IF
+                                            BRANCH
+                                              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                                                arg0: GET_VAR 'val v2_4: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                                arg1: CONST Null type=kotlin.Nothing? value=null
+                                              then: RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+                                                CONST Int type=kotlin.Int value=1
+                                          RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+                                            CALL 'public abstract fun compareTo (other: T of kotlin.Comparable): kotlin.Int [operator] declared in kotlin.Comparable' type=kotlin.Int origin=null
+                                              $this: TYPE_OP type=kotlin.Comparable<kotlin.Any> origin=CAST typeOperand=kotlin.Comparable<kotlin.Any>
+                                                GET_VAR 'val v1_3: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                              other: GET_VAR 'val v2_4: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                      WHEN type=kotlin.Unit origin=IF
+                                        BRANCH
+                                          if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                                            $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                                              arg0: GET_VAR 'val diff_5: kotlin.Int [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Int origin=null
+                                              arg1: CONST Int type=kotlin.Int value=0
+                                          then: RETURN type=kotlin.Nothing from='BLOCK type=kotlin.Int origin=null'
+                                            GET_VAR 'val diff_5: kotlin.Int [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Int origin=null
+                                  BLOCK type=kotlin.Unit origin=FOR_LOOP_INNER_WHILE
                                     VAR FOR_LOOP_VARIABLE name:fn_2 type:kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> [val]
                                       CALL 'public abstract fun next (): T of kotlin.collections.Iterator [operator] declared in kotlin.collections.Iterator' type=kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> origin=FOR_LOOP_NEXT
                                         $this: GET_VAR 'val tmp0_iterator_1: kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> origin=null
