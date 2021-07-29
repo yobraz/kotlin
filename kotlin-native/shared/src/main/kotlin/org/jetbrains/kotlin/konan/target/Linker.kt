@@ -441,11 +441,6 @@ class MingwLinker(targetProperties: MingwConfigurables)
         return if (dir != null) "$dir/lib/windows/libclang_rt.$libraryName-$targetSuffix.a" else null
     }
 
-    /**
-     * Handle to command that runs LLD -### (i.e. without actual linkage) with arguments from [finalLinkCommands].
-     */
-    var lldCompatibilityChecker: ((Command) -> Unit)? = null
-
     override fun finalLinkCommands(objectFiles: List<ObjectFile>, executable: ExecutableFile,
                                    libraries: List<String>, linkerArgs: List<String>,
                                    optimize: Boolean, debug: Boolean,
