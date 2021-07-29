@@ -829,7 +829,7 @@ private val loweringList = listOf<Lowering>(
 )
 
 // TODO comment? Eliminate ModuleLowering's? Don't filter them here?
-val pirLowerings = loweringList.filter { it is DeclarationLowering || it is BodyLowering }  + staticMembersLoweringPhase
+val pirLowerings = loweringList.filter { it is DeclarationLowering || it is BodyLowering }
 
 val jsPhases = NamedCompilerPhase(
     name = "IrModuleLowering",
