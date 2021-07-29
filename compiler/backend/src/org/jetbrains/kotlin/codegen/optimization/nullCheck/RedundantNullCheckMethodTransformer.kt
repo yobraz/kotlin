@@ -37,13 +37,15 @@ import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 import org.jetbrains.org.objectweb.asm.tree.*
 
 class RedundantNullCheckMethodTransformer(private val generationState: GenerationState) : MethodTransformer() {
+    private val valuesCache = NullabilityValuesCache()
+
     override fun transform(internalClassName: String, methodNode: MethodNode) {
         do {
-            val changes = TransformerPass(internalClassName, methodNode, generationState).run()
+            val changes = TransformerPass(internalClassName, methodNode).run()
         } while (changes)
     }
 
-    private class TransformerPass(val internalClassName: String, val methodNode: MethodNode, val generationState: GenerationState) {
+    private inner class TransformerPass(val internalClassName: String, val methodNode: MethodNode) {
         private var changes = false
 
         fun run(): Boolean {
@@ -57,7 +59,7 @@ class RedundantNullCheckMethodTransformer(private val generationState: Generatio
         }
 
         private fun analyzeNullabilities(): Map<AbstractInsnNode, NullabilityValue> {
-            val frames = analyze(internalClassName, methodNode, NullabilityInterpreter(generationState))
+            val frames = analyze(internalClassName, methodNode, NullabilityInterpreter(generationState, valuesCache))
             val insns = methodNode.instructions.toArray()
             val nullabilityMap = LinkedHashMap<AbstractInsnNode, NullabilityValue>()
             for (i in insns.indices) {

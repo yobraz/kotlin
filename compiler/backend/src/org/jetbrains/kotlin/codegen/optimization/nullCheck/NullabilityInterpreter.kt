@@ -35,22 +35,9 @@ import org.jetbrains.org.objectweb.asm.tree.analysis.Interpreter
 import java.lang.AssertionError
 
 class NullabilityInterpreter(
-    private val generationState: GenerationState
+    private val generationState: GenerationState,
+    private val valuesCache: NullabilityValuesCache
 ) : Interpreter<NullabilityValue>(Opcodes.API_VERSION) {
-
-    private val notNullBooleanArray = NullabilityValue.NotNull(Type.getType("[Z"))
-    private val notNullCharArray = NullabilityValue.NotNull(Type.getType("[C"))
-    private val notNullByteArray = NullabilityValue.NotNull(Type.getType("[B"))
-    private val notNullShortArray = NullabilityValue.NotNull(Type.getType("[S"))
-    private val notNullIntArray = NullabilityValue.NotNull(Type.getType("[I"))
-    private val notNullFloatArray = NullabilityValue.NotNull(Type.getType("[F"))
-    private val notNullDoubleArray = NullabilityValue.NotNull(Type.getType("[D"))
-    private val notNullLongArray = NullabilityValue.NotNull(Type.getType("[J"))
-
-    private val notNullString = NullabilityValue.NotNull(Type.getObjectType("java/lang/String"))
-    private val notNullClass = NullabilityValue.NotNull(Type.getObjectType("java/lang/Class"))
-    private val notNullMethod = NullabilityValue.NotNull(Type.getObjectType("java/lang/invoke/MethodType"))
-    private val notNullMethodHandle = NullabilityValue.NotNull(Type.getObjectType("java/lang/invoke/MethodHandle"))
 
     override fun newValue(type: Type?): NullabilityValue? =
         if (type == null) {
@@ -63,7 +50,7 @@ class NullabilityInterpreter(
             Type.BOOLEAN, Type.CHAR, Type.BYTE, Type.SHORT, Type.INT, Type.FLOAT ->
                 NullabilityValue.Primitive1
             Type.OBJECT, Type.ARRAY, Type.METHOD ->
-                NullabilityValue.Nullable(type)
+                valuesCache.nullable(type)
             else ->
                 throw IllegalArgumentException("Unknown type sort " + type.sort)
         }
@@ -90,19 +77,19 @@ class NullabilityInterpreter(
                     is Long, is Double ->
                         NullabilityValue.Primitive2
                     is String ->
-                        notNullString
+                        valuesCache.notNullString
                     is Type -> {
                         when (cst.sort) {
                             Type.OBJECT, Type.ARRAY ->
-                                notNullClass
+                                valuesCache.notNullClass
                             Type.METHOD ->
-                                notNullMethod
+                                valuesCache.notNullMethod
                             else ->
                                 throw IllegalArgumentException("Illegal LDC constant $cst")
                         }
                     }
                     is Handle ->
-                        notNullMethodHandle
+                        valuesCache.notNullMethodHandle
                     else ->
                         throw IllegalArgumentException("Illegal LDC constant $cst")
                 }
@@ -111,7 +98,7 @@ class NullabilityInterpreter(
                 newValue(Type.getType((insn as FieldInsnNode).desc))
                     ?: throw AssertionError("Unexpected void value: ${insn.insnText}")
             Opcodes.NEW ->
-                NullabilityValue.NotNull(Type.getObjectType((insn as TypeInsnNode).desc))
+                valuesCache.notNull(Type.getObjectType((insn as TypeInsnNode).desc))
             else ->
                 throw IllegalArgumentException("Unexpected instruction: " + insn.insnOpcodeText)
         }
@@ -128,7 +115,7 @@ class NullabilityInterpreter(
         if (insn.opcode == Opcodes.AALOAD && value1 is NullabilityValue.Ref) {
             val arrayType = value1.type
             if (arrayType.sort == Type.ARRAY) {
-                return NullabilityValue.Nullable(AsmUtil.correctElementType(arrayType))
+                return valuesCache.nullable(AsmUtil.correctElementType(arrayType))
             }
         }
 
@@ -145,7 +132,7 @@ class NullabilityInterpreter(
             Opcodes.DALOAD, Opcodes.DADD, Opcodes.DSUB, Opcodes.DMUL, Opcodes.DDIV, Opcodes.DREM ->
                 NullabilityValue.Primitive2
             Opcodes.AALOAD ->
-                NullabilityValue.Nullable(AsmTypes.OBJECT_TYPE)
+                valuesCache.nullableObject
             Opcodes.LCMP, Opcodes.FCMPL, Opcodes.FCMPG, Opcodes.DCMPL, Opcodes.DCMPG ->
                 NullabilityValue.Primitive1
             Opcodes.IF_ICMPEQ, Opcodes.IF_ICMPNE, Opcodes.IF_ICMPLT, Opcodes.IF_ICMPGE, Opcodes.IF_ICMPGT, Opcodes.IF_ICMPLE,
@@ -167,21 +154,21 @@ class NullabilityInterpreter(
     override fun naryOperation(insn: AbstractInsnNode, values: List<NullabilityValue>): NullabilityValue? =
         when (insn.opcode) {
             Opcodes.MULTIANEWARRAY ->
-                NullabilityValue.NotNull(Type.getType((insn as MultiANewArrayInsnNode).desc))
+                valuesCache.notNull(Type.getType((insn as MultiANewArrayInsnNode).desc))
             Opcodes.INVOKEDYNAMIC ->
-                NullabilityValue.NotNull(Type.getReturnType((insn as InvokeDynamicInsnNode).desc))
+                valuesCache.notNull(Type.getReturnType((insn as InvokeDynamicInsnNode).desc))
             else ->
                 when {
                     insn.isBoxing(generationState) ->
-                        NullabilityValue.NotNull(Type.getReturnType((insn as MethodInsnNode).desc))
+                        valuesCache.notNull(Type.getReturnType((insn as MethodInsnNode).desc))
                     insn.isPseudo(PseudoInsn.AS_NOT_NULL) ->
                         when (val v0 = values[0]) {
                             is NullabilityValue.Null ->
-                                NullabilityValue.NotNull(AsmTypes.OBJECT_TYPE)
+                                valuesCache.notNull(AsmTypes.OBJECT_TYPE)
                             is NullabilityValue.NotNull ->
                                 v0
                             is NullabilityValue.Nullable ->
-                                NullabilityValue.NotNull(v0.type)
+                                valuesCache.notNull(v0.type)
                             else ->
                                 v0
                         }
@@ -213,26 +200,26 @@ class NullabilityInterpreter(
             Opcodes.NEWARRAY ->
                 when (val operand = (insn as IntInsnNode).operand) {
                     Opcodes.T_BOOLEAN ->
-                        notNullBooleanArray
+                        valuesCache.notNullBooleanArray
                     Opcodes.T_CHAR ->
-                        notNullCharArray
+                        valuesCache.notNullCharArray
                     Opcodes.T_BYTE ->
-                        notNullByteArray
+                        valuesCache.notNullByteArray
                     Opcodes.T_SHORT ->
-                        notNullShortArray
+                        valuesCache.notNullShortArray
                     Opcodes.T_INT ->
-                        notNullIntArray
+                        valuesCache.notNullIntArray
                     Opcodes.T_FLOAT ->
-                        notNullFloatArray
+                        valuesCache.notNullFloatArray
                     Opcodes.T_DOUBLE ->
-                        notNullDoubleArray
+                        valuesCache.notNullDoubleArray
                     Opcodes.T_LONG ->
-                        notNullLongArray
+                        valuesCache.notNullLongArray
                     else ->
                         throw AnalyzerException(insn, "Invalid array type: $operand")
                 }
             Opcodes.ANEWARRAY ->
-                NullabilityValue.NotNull(Type.getType("[" + Type.getObjectType((insn as TypeInsnNode).desc)))
+                valuesCache.notNull(Type.getType("[" + Type.getObjectType((insn as TypeInsnNode).desc)))
             Opcodes.ARRAYLENGTH ->
                 NullabilityValue.Primitive1
             Opcodes.ATHROW ->
@@ -240,13 +227,13 @@ class NullabilityInterpreter(
             Opcodes.CHECKCAST -> {
                 val castType = Type.getObjectType((insn as TypeInsnNode).desc)
                 if (insn.isReifiedSafeAs())
-                    NullabilityValue.Nullable(castType)
+                    valuesCache.nullable(castType)
                 else {
                     when (value) {
                         is NullabilityValue.NotNull ->
-                            NullabilityValue.NotNull(castType)
+                            valuesCache.notNull(castType)
                         is NullabilityValue.Nullable ->
-                            NullabilityValue.Nullable(castType)
+                            valuesCache.nullable(castType)
                         else ->
                             value
                     }
@@ -267,64 +254,51 @@ class NullabilityInterpreter(
     }
 
     override fun merge(v: NullabilityValue, w: NullabilityValue): NullabilityValue =
-        when (v) {
-            NullabilityValue.Primitive1 ->
-                if (w == NullabilityValue.Primitive1)
-                    NullabilityValue.Primitive1
-                else
-                    NullabilityValue.Any
-            NullabilityValue.Primitive2 ->
-                if (w == NullabilityValue.Primitive2)
-                    NullabilityValue.Primitive2
-                else
-                    NullabilityValue.Any
-            NullabilityValue.Null ->
+        when {
+            v === w ->
+                v
+
+            v == NullabilityValue.Primitive1 || w == NullabilityValue.Primitive1 ||
+                    v == NullabilityValue.Primitive2 || w == NullabilityValue.Primitive2 ||
+                    v == NullabilityValue.Any || w == NullabilityValue.Any ->
+                NullabilityValue.Any
+
+            v is NullabilityValue.NotNull ->
                 when (w) {
-                    NullabilityValue.Primitive1, NullabilityValue.Primitive2, NullabilityValue.Any ->
-                        NullabilityValue.Any
-                    NullabilityValue.Null ->
-                        NullabilityValue.Null
-                    is NullabilityValue.NotNull ->
-                        NullabilityValue.Nullable(w.type)
-                    is NullabilityValue.Nullable ->
-                        w
-                }
-            is NullabilityValue.NotNull ->
-                when (w) {
-                    NullabilityValue.Primitive1, NullabilityValue.Primitive2, NullabilityValue.Any ->
-                        NullabilityValue.Any
-                    NullabilityValue.Null ->
-                        NullabilityValue.Nullable(v.type)
                     is NullabilityValue.NotNull ->
                         if (v.type == w.type)
                             v
                         else
-                            NullabilityValue.NotNull(AsmTypes.OBJECT_TYPE)
+                            valuesCache.notNull(AsmTypes.OBJECT_TYPE)
                     is NullabilityValue.Nullable ->
                         if (v.type == w.type)
                             w
                         else
-                            NullabilityValue.Nullable(AsmTypes.OBJECT_TYPE)
+                            valuesCache.nullable(AsmTypes.OBJECT_TYPE)
+                    else -> // w == NullabilityValue.Null
+                        valuesCache.nullable(v.type)
                 }
-            is NullabilityValue.Nullable ->
+
+            v is NullabilityValue.Nullable ->
                 when (w) {
-                    NullabilityValue.Primitive1, NullabilityValue.Primitive2, NullabilityValue.Any ->
-                        NullabilityValue.Any
-                    NullabilityValue.Null ->
-                        v
                     is NullabilityValue.NotNull ->
                         if (v.type == w.type)
                             v
                         else
-                            NullabilityValue.Nullable(AsmTypes.OBJECT_TYPE)
+                            valuesCache.nullable(AsmTypes.OBJECT_TYPE)
                     is NullabilityValue.Nullable ->
                         if (v.type == w.type)
                             v
                         else
-                            NullabilityValue.Nullable(AsmTypes.OBJECT_TYPE)
+                            valuesCache.nullable(AsmTypes.OBJECT_TYPE)
+                    else -> // w == NullabilityValue.Null
+                        v
                 }
-            NullabilityValue.Any ->
-                NullabilityValue.Any
-        }
 
+            else -> // v == NullabilityValue.Null
+                if (w is NullabilityValue.NotNull)
+                    valuesCache.nullable(w.type)
+                else  // w is NullabilityValue.Nullable
+                    w
+        }
 }

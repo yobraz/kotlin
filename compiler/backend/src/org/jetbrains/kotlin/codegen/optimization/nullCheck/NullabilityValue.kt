@@ -20,10 +20,6 @@ import org.jetbrains.kotlin.resolve.jvm.AsmTypes
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.tree.analysis.Value
 
-enum class Nullability {
-    NULL, NOT_NULL, NULLABLE
-}
-
 sealed class NullabilityValue(private val _size: Int, val nullability: Nullability) : Value {
     override fun getSize() = _size
 
