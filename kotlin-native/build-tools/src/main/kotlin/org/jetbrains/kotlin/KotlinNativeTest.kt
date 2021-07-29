@@ -18,6 +18,7 @@ import org.gradle.process.ExecSpec
 import org.jetbrains.kotlin.konan.exec.Command
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
+import org.jetbrains.kotlin.konan.target.Family
 import org.jetbrains.kotlin.konan.target.LinkerOutputKind
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -506,11 +507,11 @@ open class KonanDynamicTest : KonanStandaloneTest() {
         execResult.assertNormalExitValue()
 
         val linker = project.platformManager.platform(project.testTarget).linker
-        val linkerArgs = when (project.testTarget) {
+        val linkerArgs = when (project.testTarget.family) {
             // rpath is meaningless on Windows (and isn't supported by LLD).
             // --allow-multiple-definition is needed because finalLinkCommands statically links a lot of MinGW-specific libraries,
             // that are already included in DLL produced by Kotlin/Native.
-            KonanTarget.MINGW_X86, KonanTarget.MINGW_X64 -> listOf("-L", artifactsDir, "-Wl,--allow-multiple-definition")
+            Family.MINGW -> listOf("-L", artifactsDir, "-Wl,--allow-multiple-definition")
             else -> listOf("-L", artifactsDir, "-rpath", artifactsDir)
         }
         val commands = linker.finalLinkCommands(
