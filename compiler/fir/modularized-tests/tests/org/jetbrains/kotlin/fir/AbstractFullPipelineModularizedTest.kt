@@ -35,6 +35,8 @@ abstract class AbstractFullPipelineModularizedTest : AbstractModularizedTest() {
     private val errorModules = mutableListOf<ModuleStatus>()
     private val crashedModules = mutableListOf<ModuleStatus>()
 
+    open val includeCompileErrorInTime = false
+
     protected data class CumulativeTime(
         val gcInfo: Map<String, GCInfo>,
         val components: Map<String, Long>,
@@ -242,7 +244,7 @@ abstract class AbstractFullPipelineModularizedTest : AbstractModularizedTest() {
         PerformanceCounter.resetAllCounters()
 
         tmp.toFile().deleteRecursively()
-        if (result == ExitCode.OK) {
+        if (result == ExitCode.OK || (includeCompileErrorInTime && result == ExitCode.COMPILATION_ERROR)) {
             totalPassResult += resultTime
         }
 
