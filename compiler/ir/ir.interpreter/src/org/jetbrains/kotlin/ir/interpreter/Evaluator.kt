@@ -94,7 +94,6 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
     }
 
     fun fallbackIrCall(expression: IrCall, dispatchReceiver: State?, extensionReceiver: State?, args: List<State?>): IrCall {
-        // TODO convert invoke call of property to field access
         val actualArgs = listOf(dispatchReceiver, extensionReceiver, *args.toTypedArray()).filterNotNull()
         if (actualArgs.size != expression.getExpectedArgumentsCount()) return expression
 
