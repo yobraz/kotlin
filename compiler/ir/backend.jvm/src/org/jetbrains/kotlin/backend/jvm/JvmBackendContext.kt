@@ -116,6 +116,8 @@ class JvmBackendContext(
     internal val bridgeLoweringCache = BridgeLowering.BridgeLoweringCache(this)
     internal val functionsWithSpecialBridges: MutableSet<IrFunction> = ConcurrentHashMap.newKeySet()
 
+    internal val rawSignatureCache = JvmSignatureClashDetector.RawSignatureCache(this)
+
     override var inVerbosePhase: Boolean = false // TODO: needs parallelizing
 
     override val configuration get() = state.configuration

@@ -23,6 +23,16 @@ class JvmSignatureClashDetector(
     private val type: Type,
     private val context: JvmBackendContext
 ) {
+    class RawSignatureCache(private val context: JvmBackendContext) {
+        private val cache = HashMap<IrFunction, RawSignature>()
+
+        fun mapRawSignature(irFunction: IrFunction): RawSignature =
+            cache.getOrPut(irFunction) {
+                val jvmSignature = context.methodSignatureMapper.mapSignatureSkipGeneric(irFunction)
+                RawSignature(jvmSignature.asmMethod.name, jvmSignature.asmMethod.descriptor, MemberKind.METHOD)
+            }
+    }
+
     private val methodsBySignature = LinkedHashMap<RawSignature, MutableSet<IrFunction>>()
     private val fieldsBySignature = LinkedHashMap<RawSignature, MutableSet<IrField>>()
 
@@ -37,16 +47,11 @@ class JvmSignatureClashDetector(
     fun trackFakeOverrideMethod(irFunction: IrFunction) {
         if (irFunction.dispatchReceiverParameter != null) {
             for (overriddenFunction in getOverriddenFunctions(irFunction as IrSimpleFunction)) {
-                trackMethod(irFunction, mapRawSignature(overriddenFunction))
+                trackMethod(irFunction, context.rawSignatureCache.mapRawSignature(overriddenFunction))
             }
         } else {
-            trackMethod(irFunction, mapRawSignature(irFunction))
+            trackMethod(irFunction, context.rawSignatureCache.mapRawSignature(irFunction))
         }
-    }
-
-    private fun mapRawSignature(irFunction: IrFunction): RawSignature {
-        val jvmSignature = context.methodSignatureMapper.mapSignatureSkipGeneric(irFunction)
-        return RawSignature(jvmSignature.asmMethod.name, jvmSignature.asmMethod.descriptor, MemberKind.METHOD)
     }
 
     private fun getOverriddenFunctions(irFunction: IrSimpleFunction): Set<IrFunction> {
