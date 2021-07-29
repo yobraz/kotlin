@@ -105,7 +105,7 @@ interface AppleConfigurables : Configurables, ClangFlags {
 }
 
 interface MingwConfigurables : Configurables, ClangFlags {
-    val lldLocation get() = targetString("lldLocation")!!
+    val lldLocation get() = hostTargetString("lldLocation")!!
     val absoluteLldLocation get() = absolute(lldLocation)
 
     val windowsKit: WindowsKit

@@ -477,10 +477,7 @@ class MingwLinker(targetProperties: MingwConfigurables)
             +additionalArguments
         }
 
-        return listOf(when {
-            HostManager.hostIsMingw -> Command(linker)
-            else -> Command("wine64", "$linker.exe")
-        }.constructLinkerArguments(
+        return listOf(Command(linker).constructLinkerArguments(
                 additionalArguments = listOf("-fuse-ld=$absoluteLldLocation")
         ))
     }
