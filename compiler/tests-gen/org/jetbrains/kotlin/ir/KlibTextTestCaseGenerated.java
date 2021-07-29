@@ -1844,6 +1844,11 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/regressions/kt24114.kt");
         }
 
+        @TestMetadata("kt44855.kt")
+        public void testKt44855() throws Exception {
+            runTest("compiler/testData/ir/irText/regressions/kt44855.kt");
+        }
+
         @TestMetadata("kt45236.kt")
         public void testKt45236() throws Exception {
             runTest("compiler/testData/ir/irText/regressions/kt45236.kt");
