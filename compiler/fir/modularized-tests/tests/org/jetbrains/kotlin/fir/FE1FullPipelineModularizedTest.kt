@@ -12,6 +12,10 @@ import org.jetbrains.kotlin.cli.common.toBooleanLenient
 private val USE_BE_IR = System.getProperty("fir.bench.fe1.useIR", "false").toBooleanLenient()!!
 
 class FE1FullPipelineModularizedTest : AbstractFullPipelineModularizedTest() {
+
+    override val includeCompileErrorInTime: Boolean
+        get() = true
+
     override fun configureArguments(args: K2JVMCompilerArguments, moduleData: ModuleData) {
         args.useIR = USE_BE_IR
         args.useOldBackend = !USE_BE_IR
