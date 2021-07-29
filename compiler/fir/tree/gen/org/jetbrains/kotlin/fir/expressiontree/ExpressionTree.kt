@@ -193,7 +193,7 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
         ConstantValueKind.Int -> call("firInt", listOf(firInt(value as Int)))
         ConstantValueKind.IntegerLiteral -> call("firIntegerLiteral", listOf(firIntegerLiteral(value as Long)))
         ConstantValueKind.Long -> call("firLong", listOf(firLong(value as Long)))
-        ConstantValueKind.Null -> call("firNull", listOf(firNull()))
+        ConstantValueKind.Null -> callFirNull()
         ConstantValueKind.Short -> call("firShort", listOf(firShort(value as Short)))
         ConstantValueKind.String -> call("firString", listOf(firString(value as String)))
         ConstantValueKind.UnsignedByte -> call("firUnsignedByte", listOf(firUnsignedByte(value as Byte)))
@@ -205,7 +205,6 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
     is FirReturnExpression -> call(
         "firReturnExpression", listOf(
             annotations.buildList(),
-            typeRef.build(),
             (target as FirFunctionTarget).build(),
             result.build()
         )
@@ -481,6 +480,28 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
             label?.name.buildNullable(),
             block.build(),
             condition.build()
+        )
+    )
+    is FirTypeParameter -> call(
+        "firTypeParameter", listOf(
+            annotations.buildList(),
+            name.asString().build(),
+            variance.build(),
+            isReified.build(),
+            bounds.buildList()
+        )
+    )
+    is FirElvisExpression -> call(
+        "firElvisExpression", listOf(
+            annotations.buildList(),
+            lhs.build(),
+            rhs.build()
+        )
+    )
+    is FirCheckNotNullCall -> call(
+        "firCheckNotNullCall", listOf(
+            annotations.buildList(),
+            argumentList.arguments.buildList()
         )
     )
     else -> error("$this is unsupported")

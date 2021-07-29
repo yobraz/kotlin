@@ -34,11 +34,9 @@ import org.jetbrains.kotlin.fir.references.impl.FirExplicitThisReference
 import org.jetbrains.kotlin.fir.references.impl.FirSimpleNamedReference
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.types.*
-import org.jetbrains.kotlin.fir.types.builder.FirUserTypeRefBuilder
-import org.jetbrains.kotlin.fir.types.builder.buildFunctionTypeRef
-import org.jetbrains.kotlin.fir.types.builder.buildTypeProjectionWithVariance
-import org.jetbrains.kotlin.fir.types.builder.buildUserTypeRef
+import org.jetbrains.kotlin.fir.types.builder.*
 import org.jetbrains.kotlin.fir.types.impl.FirImplicitNothingTypeRef
 import org.jetbrains.kotlin.fir.types.impl.FirQualifierPartImpl
 import org.jetbrains.kotlin.fir.types.impl.FirTypeArgumentListImpl
@@ -201,6 +199,7 @@ fun firQualifierPart(
     name: String,
     typeArguments: List<FirTypeProjection>
 ): FirQualifierPart = FirQualifierPartImpl(
+    expressionTreeFirFakeSourceElement(filePsiElement!!),
     Name.identifier(name),
     FirTypeArgumentListImpl(
         expressionTreeFirFakeSourceElement(filePsiElement!!)
@@ -296,6 +295,8 @@ fun firExplicitThisReference(
 }
 
 fun firImplicitThisReference(): FirThisReference = buildImplicitThisReference()
+
+fun firImplicitTypeRef(): FirImplicitTypeRef = buildImplicitTypeRef {}
 
 fun firSafeCallExpression(
     annotations: List<FirAnnotationCall>,
@@ -481,6 +482,7 @@ fun firResolvedTypeRef(
     if (classId != null) {
         qualifier += classId.asSingleFqName().pathSegments().map {
             FirQualifierPartImpl(
+                expressionTreeFirFakeSourceElement(filePsiElement!!),
                 it, FirTypeArgumentListImpl(
                     expressionTreeFirFakeSourceElement(filePsiElement!!)
                 )
@@ -682,4 +684,51 @@ fun firDoWhileLoop(
     this.label = labelName?.let { FirLabelImpl(null, it) }
     this.block = block
     this.condition = condition
+}
+
+fun firTypeParameter(
+    annotations: List<FirAnnotationCall>,
+    name: String,
+    variance: Variance,
+    isReified: Boolean,
+    bounds: List<FirTypeRef>
+): FirTypeParameter = buildTypeParameter {
+    this.annotations += annotations
+    this.moduleData = syntheticModuleData
+    this.origin = FirDeclarationOrigin.Synthetic
+    this.name = Name.identifier(name)
+    this.symbol = FirTypeParameterSymbol()
+    this.variance = variance
+    this.isReified = isReified
+    this.bounds += bounds
+}
+
+fun firElvisExpression(
+    annotations: List<FirAnnotationCall>,
+    lhs: FirExpression,
+    rhs: FirExpression
+): FirElvisExpression = buildElvisExpression {
+    this.annotations += annotations
+    this.lhs = lhs
+    this.rhs = rhs
+}
+
+fun firCheckNotNullCall(
+    annotations: List<FirAnnotationCall>,
+    arguments: List<FirExpression>
+): FirCheckNotNullCall = buildCheckNotNullCall {
+    this.annotations += annotations
+    this.argumentList = buildArgumentList { this.arguments += arguments }
+}
+
+fun firBinaryLogicExpression(
+    annotations: List<FirAnnotationCall>,
+    leftOperand: FirExpression,
+    rightOperand: FirExpression,
+    kind: LogicOperationKind
+): FirBinaryLogicExpression = buildBinaryLogicExpression {
+    this.annotations += annotations
+    this.leftOperand = leftOperand
+    this.rightOperand = rightOperand
+    this.kind = kind
 }

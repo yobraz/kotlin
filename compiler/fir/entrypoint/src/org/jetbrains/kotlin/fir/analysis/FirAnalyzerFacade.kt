@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.fir.backend.jvm.FirJvmVisibilityConverter
 import org.jetbrains.kotlin.fir.builder.PsiHandlingMode
 import org.jetbrains.kotlin.fir.builder.RawFirBuilder
 import org.jetbrains.kotlin.fir.declarations.FirFile
+import org.jetbrains.kotlin.fir.expressiontree.replaceExpressionTreeIntrinsicCalls
 import org.jetbrains.kotlin.fir.lightTree.LightTree2Fir
 import org.jetbrains.kotlin.fir.moduleData
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
@@ -67,7 +68,7 @@ class FirAnalyzerFacade(
         } else {
             val builder = RawFirBuilder(session, firProvider.kotlinScopeProvider, PsiHandlingMode.COMPILER)
             ktFiles.map {
-                builder.buildFirFile(it).also { firFile ->
+                builder.buildFirFile(it).replaceExpressionTreeIntrinsicCalls().also { firFile ->
                     firProvider.recordFile(firFile)
                 }
             }
