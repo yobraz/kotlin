@@ -34,32 +34,18 @@ class StaticDeclarationNumerator {
     }
 
     fun add(packageFragment: IrPackageFragment) {
-        packageFragment.declarations.forEach {
-            add(it)
-            it.acceptChildrenVoid(object : IrElementVisitorVoid {
-                override fun visitElement(element: IrElement) {
-                    element.acceptChildrenVoid(this)
-                }
+        packageFragment.acceptChildrenVoid(object : IrElementVisitorVoid {
+            override fun visitElement(element: IrElement) {
+                element.acceptChildrenVoid(this)
+            }
 
-                override fun visitField(declaration: IrField) {
-                    if (declaration.parent is IrClass) {
-                        add(declaration)
-                    }
-                    super.visitField(declaration)
+            override fun visitDeclaration(declaration: IrDeclarationBase) {
+                if (declaration !is IrVariable) {
+                    add(declaration)
                 }
-
-                override fun visitSimpleFunction(declaration: IrSimpleFunction) {
-
-                    // Add interfaces default impls
-                    val parentClass = declaration.parent as? IrClass
-                    val isInterfaceImpl = parentClass?.isInterface ?: false
-                    if (isInterfaceImpl && declaration.body != null) {
-                        add(declaration)
-                    }
-                    super.visitSimpleFunction(declaration)
-                }
-            })
-        }
+                super.visitDeclaration(declaration)
+            }
+        })
     }
 }
 

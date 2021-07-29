@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.backend.js.LoweredIr
 import org.jetbrains.kotlin.ir.backend.js.codegen.JsGenerationGranularity.*
 import org.jetbrains.kotlin.ir.backend.js.export.*
+import org.jetbrains.kotlin.ir.backend.js.lower.StaticMembersLowering
 import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.IrFileToJsTransformer
 import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.processClassModels
 import org.jetbrains.kotlin.ir.backend.js.utils.*
@@ -150,6 +151,13 @@ class IrToJs(
     )
 
     fun generateUnit(unit: CodegenUnit): GeneratedUnit {
+        val exportedDeclarations: List<ExportedDeclaration> =
+            with(ExportModelGenerator(backendContext, generateNamespacesForPackages = false)) {
+                (unit.externalPackageFragments + unit.packageFragments).flatMap { packageFragment ->
+                    generateExport(packageFragment)
+                }
+            }
+
         val stableNames: Set<String> = collectStableNames(unit)
         val nameGenerator = NewNamerImpl(backendContext, unit, guid, stableNames)
 
@@ -168,6 +176,7 @@ class IrToJs(
 
 
         val declarationStatements: List<JsStatement> = unit.packageFragments.flatMap {
+            StaticMembersLowering(backendContext).lower(it as IrFile)
             it.accept(IrFileToJsTransformer(), rootContext).statements
         }
 
@@ -233,13 +242,6 @@ class IrToJs(
         statements += JsExport(JsExport.Subject.Elements(internalExports), null)
 
         // Generate external export
-
-        val exportedDeclarations: List<ExportedDeclaration> =
-            with(ExportModelGenerator(backendContext, generateNamespacesForPackages = false)) {
-                (unit.externalPackageFragments + unit.packageFragments).flatMap { packageFragment ->
-                    generateExport(packageFragment)
-                }
-            }
 
         val globalNames = NameTable<String>(nameGenerator.staticNames)
         val exporter = ExportModelToJsStatements(
