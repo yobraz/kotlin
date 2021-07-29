@@ -194,7 +194,7 @@ abstract class BasicIrBoxTest(
                     analyzer = AnalyzerWithCompilerReport(config.configuration),
                     configuration = config.configuration,
                     phaseConfig = phaseConfig,
-                    irFactory = if (lowerPerModule) PersistentIrFactory() else IrFactoryImpl,
+                    irFactory = if (lowerPerModule || dceDriven) PersistentIrFactory() else IrFactoryImpl,
                     dependencies = allKlibPaths,
                     friendDependencies = emptyList(),
                     exportedDeclarations = setOf(FqName.fromSegments(listOfNotNull(testPackage, testFunction))),

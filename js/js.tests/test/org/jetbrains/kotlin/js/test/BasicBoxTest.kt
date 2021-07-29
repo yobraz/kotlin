@@ -355,17 +355,17 @@ abstract class BasicBoxTest(
 
             // Old systems tests
 
-            val allJsFiles = additionalFiles + inputJsFiles + generatedJsFiles.map { it.first } + globalCommonFiles + localCommonFiles +
+            val allJsFiles = moduleEmulationFiles + additionalFiles + inputJsFiles + generatedJsFiles.map { it.first } + globalCommonFiles + localCommonFiles +
                     additionalCommonFiles
 
-            val dceAllJsFiles = additionalFiles + inputJsFiles + generatedJsFiles.map {
+            val dceAllJsFiles = moduleEmulationFiles+ additionalFiles + inputJsFiles + generatedJsFiles.map {
                 it.first.replace(
                     outputDir.absolutePath,
                     dceOutputDir.absolutePath
                 )
             } + globalCommonFiles + localCommonFiles + additionalCommonFiles
 
-            val pirAllJsFiles = additionalFiles + inputJsFiles + generatedJsFiles.map {
+            val pirAllJsFiles = moduleEmulationFiles + additionalFiles + inputJsFiles + generatedJsFiles.map {
                 it.first.replace(
                     outputDir.absolutePath,
                     pirOutputDir.absolutePath
