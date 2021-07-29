@@ -112,6 +112,7 @@ object StandardClassIds {
 
     val PublishedApi = "PublishedApi".baseId()
 
+    val JvmStatic = "JvmStatic".jvmId()
     val JvmName = "JvmName".jvmId()
 
     val Result = "Result".baseId()
