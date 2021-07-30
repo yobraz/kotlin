@@ -91,7 +91,7 @@ class SerializableCompanionIrGenerator(
 
         val kSerializerIrClass = compilerContext.referenceClass(SerialEntityNames.KSERIALIZER_NAME_FQ)!!.owner
         val targetIrType =
-            kSerializerIrClass.defaultType.substitute(mapOf(kSerializerIrClass.typeParameters[0].symbol to compilerContext.builtIns.anyType.toIrType()))
+            kSerializerIrClass.defaultType.substitute(mapOf(kSerializerIrClass.typeParameters[0].symbol to irClass.defaultType))
 
         val property = createLazyProperty(irClass, targetIrType, SerialEntityNames.CACHED_SERIALIZER_PROPERTY_NAME) {
             val expr = serializerInstance(
@@ -104,7 +104,7 @@ class SerializableCompanionIrGenerator(
         }
 
         irClass.contributeFunction(methodDescriptor) {
-            +irReturn(getLazyValueExpression(irClass, property))
+            +irReturn(getLazyValueExpression(it.dispatchReceiverParameter!!, property, targetIrType))
         }
         generateSerializerFactoryIfNeeded(methodDescriptor)
     }

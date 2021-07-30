@@ -128,22 +128,15 @@ interface IrBuilderExtension {
         val lazyIrClass = compilerContext.referenceClass(LAZY_FQ)!!.owner
         val lazyKotlinType = lazyIrClass.defaultType.substitute(mapOf(lazyIrClass.typeParameters[0].symbol to targetIrType)).toKotlinType()
 
-        val kPropertyIrClass = compilerContext.referenceClass(KPROPERTY1_FQ)!!.owner
-        val kPropertyKotlinType = kPropertyIrClass.defaultType.substitute(
-            mapOf(
-                kPropertyIrClass.typeParameters[0].symbol to targetIrType,
-                kPropertyIrClass.typeParameters[1].symbol to containingClass.defaultType,
-            )
-        ).toKotlinType()
-
-        val targetKotlinType = targetIrType.toKotlinType()
-
         val propertyDescriptor =
-            KSerializerDescriptorResolver.createValPropertyDescriptor(name, containingClass.descriptor, targetKotlinType)
+            KSerializerDescriptorResolver.createValPropertyDescriptor(
+                Name.identifier(name.asString() + "\$delegate"),
+                containingClass.descriptor,
+                lazyKotlinType,
+                createGetter = true
+            )
 
-        val delegate = IrPropertyDelegateDescriptorImpl(propertyDescriptor, lazyKotlinType, kPropertyKotlinType)
-
-        return generateSimplePropertyWithBackingField(delegate, containingClass, delegate.name).apply {
+        return generateSimplePropertyWithBackingField(propertyDescriptor, containingClass).apply {
             val builder = DeclarationIrBuilder(compilerContext, containingClass.symbol, startOffset, endOffset)
             val initializerBody = builder.run {
                 val enumElement = IrGetEnumValueImpl(
@@ -193,15 +186,16 @@ interface IrBuilderExtension {
         }
     }
 
-    fun IrBlockBodyBuilder.getLazyValueExpression(companionClass: IrClass, property: IrProperty): IrExpression {
+    fun IrBlockBodyBuilder.getLazyValueExpression(thisParam: IrValueParameter, property: IrProperty, type: IrType): IrExpression {
         val lazyIrClass = compilerContext.referenceClass(LAZY_FQ)!!.owner
         val valueGetter = lazyIrClass.getPropertyGetter("value")!!
 
-        val backingField = property.backingField!!
-        return irGet(
-            backingField.type,
-            irGetField(irGetObject(companionClass), backingField),
-            valueGetter
+        val xGetter = property.getter!!
+
+        return irInvoke(
+            irGet(xGetter.returnType, irGet(thisParam), xGetter.symbol),
+            valueGetter,
+            typeHint = type
         )
     }
 
