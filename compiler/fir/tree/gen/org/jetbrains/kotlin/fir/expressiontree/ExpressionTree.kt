@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.declarations.builder.buildImport
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyGetter
 import org.jetbrains.kotlin.fir.declarations.impl.FirPrimaryConstructor
 import org.jetbrains.kotlin.fir.declarations.utils.visibility
@@ -39,6 +40,7 @@ import org.jetbrains.kotlin.fir.types.impl.FirImplicitNothingTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.SimplePlatform
 import org.jetbrains.kotlin.platform.TargetPlatform
@@ -83,10 +85,20 @@ internal val syntheticModuleData = FirModuleDataImpl(
 
 fun FirFile.replaceExpressionTreeIntrinsicCalls(): FirFile {
     filePsiElement = psi
-    return transformDeclarations(ExpressionTreeTransformer(), false)
+    val transformer = ExpressionTreeTransformer()
+    val result = transformDeclarations(transformer, false)
+    if (transformer.addImport) {
+        (result.imports as MutableList<FirImport>) += buildImport {
+            this.importedFqName = FqName("org.jetbrains.kotlin.fir.expressiontree")
+            this.isAllUnder = true
+        }
+    }
+    return result
 }
 
 private class ExpressionTreeTransformer : FirTransformer<Boolean>() {
+    var addImport = false
+
     override fun <E : FirElement> transformElement(element: E, data: Boolean): E = element.transformChildren(this, data) as E
 
     override fun transformFunctionCall(functionCall: FirFunctionCall, data: Boolean): FirStatement =
@@ -95,6 +107,7 @@ private class ExpressionTreeTransformer : FirTransformer<Boolean>() {
             if (argumentExpression !is FirLambdaArgumentExpression) {
                 error("Expression tree should accept only one lambda argument")
             }
+            addImport = true
             (argumentExpression.expression as FirAnonymousFunctionExpression).anonymousFunction.body!!.build()
         } else {
             super.transformFunctionCall(functionCall, data)
