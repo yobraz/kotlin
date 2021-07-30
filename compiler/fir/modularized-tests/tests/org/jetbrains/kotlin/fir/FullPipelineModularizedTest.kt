@@ -9,9 +9,13 @@ import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 
 class FullPipelineModularizedTest : AbstractFullPipelineModularizedTest() {
 
+    override val includeCompileErrorInTime: Boolean
+        get() = true
+
     override fun configureArguments(args: K2JVMCompilerArguments, moduleData: ModuleData) {
         args.useFir = true
         args.useIR = true
+        args.apiVersion = "1.4"
     }
 
     fun testTotalKotlin() {
