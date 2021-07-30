@@ -97,7 +97,6 @@ class NewNamerImpl(
     }
 
     override fun getNameForMemberField(field: IrField): JsName {
-        val className = getNameForStaticDeclaration(field.parentAsClass)
         val fieldName = sanitizeName(
             try {
                 exportId(field)
@@ -108,7 +107,7 @@ class NewNamerImpl(
         )
         // TODO: Webpack not minimize member names, it is long name, which is not minimized, so it affects final JS bundle size
         // Use shorter names
-        return JsName(className.toString() + "_f_" + fieldName)
+        return JsName("f_$fieldName")
     }
 
     override fun getNameForStaticDeclaration(declaration: IrDeclarationWithName): JsName {

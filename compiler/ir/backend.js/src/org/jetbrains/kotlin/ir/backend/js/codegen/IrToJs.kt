@@ -442,7 +442,7 @@ fun generateEsModules(
     ir.allModules.forEach { numerator.add(it) }
 
     fun guid(declaration: IrDeclaration): String {
-        val name = sanitizeName((declaration as IrDeclarationWithName).fqNameWhenAvailable.toString())
+        val name = sanitizeName((declaration as IrDeclarationWithName).name.toString())
         val number = numerator.numeration[declaration]
             ?: error("Can't find number for declaration ${declaration.fqNameWhenAvailable}")
         // TODO: Use shorter names in release mode
