@@ -8,7 +8,6 @@ package org.jetbrains.kotlinx.serialization.compiler.backend.ir
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.ir.builders.*
-import org.jetbrains.kotlin.ir.builders.declarations.*
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -116,7 +115,7 @@ class SerializableCompanionIrGenerator(
         }
 
         irClass.contributeFunction(methodDescriptor) {
-            +irReturn(getLazyValueExpression(irClass, property))
+            +irReturn(getLazyValueExpression(it.dispatchReceiverParameter!!, property, targetIrType))
         }
         generateSerializerFactoryIfNeeded(methodDescriptor)
     }
