@@ -62,6 +62,12 @@ public class IrPartialInterpreterTestGenerated extends AbstractIrPartialInterpre
     }
 
     @Test
+    @TestMetadata("stringConcatenation.kt")
+    public void testStringConcatenation() throws Exception {
+        runTest("compiler/testData/ir/interpreter/partial/stringConcatenation.kt");
+    }
+
+    @Test
     @TestMetadata("typeOperators.kt")
     public void testTypeOperators() throws Exception {
         runTest("compiler/testData/ir/interpreter/partial/typeOperators.kt");

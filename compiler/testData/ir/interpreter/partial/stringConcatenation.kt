@@ -1,0 +1,2 @@
+@PartialEvaluation
+fun foo() {}
