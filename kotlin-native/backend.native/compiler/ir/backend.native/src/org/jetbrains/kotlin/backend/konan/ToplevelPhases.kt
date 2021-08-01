@@ -104,7 +104,7 @@ internal val objCExportPhase = konanUnitPhase(
 internal val buildCExportsPhase = konanUnitPhase(
         op = {
             if (this.isNativeLibrary) {
-                this.cAdapterGenerator = CAdapterGenerator(this).also {
+                this.cAdapterGenerator = CAdapterGenerator(this, this.llvmModule!!).also {
                     it.buildExports(this.symbolTable!!)
                 }
             }
