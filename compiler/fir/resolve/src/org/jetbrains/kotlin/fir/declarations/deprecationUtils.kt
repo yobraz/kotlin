@@ -67,7 +67,7 @@ fun getDeprecationsFromAccessors(
     setter: FirFunction?,
     currentVersion: ApiVersion
 ): DeprecationsPerUseSite {
-    val perUseSite = buildMap<AnnotationUseSiteTarget, Deprecation> {
+    val perUseSite = buildMap {
         setter?.getDeprecationInfos(currentVersion)?.all?.let { put(AnnotationUseSiteTarget.PROPERTY_SETTER, it) }
         getter?.getDeprecationInfos(currentVersion)?.all?.let { put(AnnotationUseSiteTarget.PROPERTY_GETTER, it) }
     }

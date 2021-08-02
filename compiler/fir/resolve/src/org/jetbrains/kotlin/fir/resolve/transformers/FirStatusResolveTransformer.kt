@@ -403,7 +403,7 @@ abstract class AbstractFirStatusResolveTransformer(
                 klass = designationMapForLocalClasses[klass]?.takeIf { it !is FirAnonymousObject } ?: break
             }
             reverse()
-        } else buildList<FirDeclaration> {
+        } else buildList {
             val firProvider = regularClass.moduleData.session.firProvider
             val outerClasses = generateSequence(symbol.classId) { classId ->
                 classId.outerClassId

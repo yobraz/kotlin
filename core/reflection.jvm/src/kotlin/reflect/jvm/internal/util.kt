@@ -50,7 +50,7 @@ import org.jetbrains.kotlin.serialization.deserialization.MemberDeserializer
 import java.lang.reflect.Type
 import kotlin.jvm.internal.FunctionReference
 import kotlin.jvm.internal.PropertyReference
-import kotlin.jvm.internal.RepeatableContainer
+//import kotlin.jvm.internal.RepeatableContainer
 import kotlin.reflect.KType
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.IllegalCallableAccessException
@@ -129,13 +129,13 @@ internal fun Annotated.computeAnnotations(): List<Annotation> =
 private fun List<Annotation>.unwrapRepeatableAnnotations(): List<Annotation> =
     if (any { it.annotationClass.java.simpleName == JvmAbi.REPEATABLE_ANNOTATION_CONTAINER_NAME })
         flatMap {
-            val klass = it.annotationClass.java
-            if (klass.simpleName == JvmAbi.REPEATABLE_ANNOTATION_CONTAINER_NAME &&
-                klass.getAnnotation(RepeatableContainer::class.java) != null
-            )
-                @Suppress("UNCHECKED_CAST")
-                (klass.getDeclaredMethod("value").invoke(it) as Array<out Annotation>).asList()
-            else
+//            val klass = it.annotationClass.java
+//            if (klass.simpleName == JvmAbi.REPEATABLE_ANNOTATION_CONTAINER_NAME &&
+//                klass.getAnnotation(RepeatableContainer::class.java) != null
+//            )
+//                @Suppress("UNCHECKED_CAST")
+//                (klass.getDeclaredMethod("value").invoke(it) as Array<out Annotation>).asList()
+//            else
                 listOf(it)
         }
     else

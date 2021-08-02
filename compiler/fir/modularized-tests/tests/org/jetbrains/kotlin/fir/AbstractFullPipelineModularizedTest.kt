@@ -276,7 +276,7 @@ abstract class AbstractFullPipelineModularizedTest : AbstractModularizedTest() {
             val irMeasurements = measurements.filterIsInstance<IRMeasurement>()
 
             @OptIn(ExperimentalStdlibApi::class)
-            val components = buildMap<String, Long> {
+            val components = buildMap {
                 put("Init", initMeasurement?.milliseconds ?: 0)
                 put("Analysis", analysisMeasurement?.milliseconds ?: 0)
 

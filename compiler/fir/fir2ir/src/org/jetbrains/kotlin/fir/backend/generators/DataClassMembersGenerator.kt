@@ -198,7 +198,7 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
             )
             val contributedFunctionsInSupertypes =
                 @OptIn(ExperimentalStdlibApi::class)
-                buildMap<Name, FirSimpleFunction> {
+                buildMap {
                     for (name in listOf(EQUALS, HASHCODE_NAME, TO_STRING)) {
                         // We won't synthesize a function if there is a user-contributed one.
                         if (contributedFunctionsInThisType.contains(name)) continue

@@ -29,7 +29,7 @@ internal class KtFirNonStarImportingScope(
     private val firScope: FirAbstractSimpleImportingScope by weakRef(firScope)
 
     @OptIn(ExperimentalStdlibApi::class)
-    override val imports: List<NonStarImport> by cached {
+    override val imports by cached {
         buildList {
             firScope.simpleImports.values.forEach { imports ->
                 imports.forEach { import ->

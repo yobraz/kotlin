@@ -92,7 +92,7 @@ class FakeOverrideGenerator(
         irClass: IrClass,
         name: Name,
         firClass: FirClass
-    ): List<IrDeclaration> = buildList {
+    ) = buildList {
         val useSiteMemberScope = firClass.unsubstitutedScope(session, scopeSession, withForcedTypeCalculator = true)
         generateFakeOverridesForName(
             irClass, useSiteMemberScope, name, firClass, this,

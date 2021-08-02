@@ -49,8 +49,8 @@ class JavaCompilerFacade(private val testServices: TestServices) {
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    private fun extractJavacOptions(module: TestModule, kotlinTarget: JvmTarget?, isJvmPreviewEnabled: Boolean): List<String> {
-        return buildList {
+    private fun extractJavacOptions(module: TestModule, kotlinTarget: JvmTarget?, isJvmPreviewEnabled: Boolean) =
+        buildList {
             addAll(module.directives[CodegenTestDirectives.JAVAC_OPTIONS])
             if (kotlinTarget != null && isJvmPreviewEnabled) {
                 add("--release")
@@ -65,7 +65,6 @@ class JavaCompilerFacade(private val testServices: TestServices) {
                 add(javaTarget)
             }
         }
-    }
 
     private fun compileJavaFiles(module: TestModule, jvmTarget: JvmTarget, files: List<File>, javacOptions: List<String>, ignoreErrors: Boolean) {
         val targetIsJava8OrLower = System.getProperty("java.version").startsWith("1.") && jvmTarget <= JvmTarget.JVM_1_6

@@ -53,7 +53,7 @@ object Visibilities {
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    private val ORDERED_VISIBILITIES: Map<Visibility, Int> = buildMap {
+    private val ORDERED_VISIBILITIES = buildMap {
         put(PrivateToThis, 0)
         put(Private, 0)
         put(Internal, 1)

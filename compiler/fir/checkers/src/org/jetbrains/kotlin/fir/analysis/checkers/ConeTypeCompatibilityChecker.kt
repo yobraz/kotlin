@@ -302,7 +302,7 @@ internal object ConeTypeCompatibilityChecker {
         envMapping: Map<FirTypeParameterSymbol, BoundTypeArgument> = emptyMap(),
     ): TypeArgumentMapping? {
         val typeParameterOwner = getClassLikeElement(ctx) ?: return null
-        val mapping = buildMap<FirTypeParameterSymbol, BoundTypeArgument> {
+        val mapping = buildMap {
             typeArguments.forEachIndexed { index, coneTypeProjection ->
                 val typeParameter = typeParameterOwner.getTypeParameter(index) ?: return@forEachIndexed
                 var boundTypeArgument: BoundTypeArgument = when (coneTypeProjection) {

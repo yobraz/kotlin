@@ -25,7 +25,7 @@ class TestModuleStructureImpl(
     override val allDirectives: RegisteredDirectives = ComposedRegisteredDirectives(modules.map { it.directives })
 
     @OptIn(ExperimentalStdlibApi::class)
-    private val targetArtifactsByModule: Map<String, List<BinaryKind<*>>> = buildMap {
+    private val targetArtifactsByModule = buildMap {
         for (module in modules) {
             val result = mutableListOf<BinaryKind<*>>()
             for (dependency in module.allDependencies) {
@@ -34,7 +34,7 @@ class TestModuleStructureImpl(
                 }
             }
             result += module.binaryKind
-            put(module.name, result)
+            put(module.name, result.toList())
         }
     }
 

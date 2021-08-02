@@ -85,7 +85,7 @@ private class FromModuleViewSessionCache(
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    private fun getSessions(): Map<ModuleSourceInfoBase, FirIdeSourcesSession> = buildMap {
+    private fun getSessions(): Map<ModuleSourceInfoBase, FirIdeSourcesSession> {
         val sessions = mappings.values
         val wasSessionInvalidated = sessions.associateWithTo(hashMapOf()) { false }
 

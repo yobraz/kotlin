@@ -445,6 +445,7 @@ allprojects {
 
     val commonCompilerArgs = listOfNotNull(
         "-Xopt-in=kotlin.RequiresOptIn",
+        "-XXLanguage:+UnrestrictedBuilderInference",
         "-progressive".takeIf { hasProperty("test.progressive.mode") }
     )
 

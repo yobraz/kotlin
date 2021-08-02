@@ -57,7 +57,7 @@ open class JvmForeignAnnotationsConfigurator(testServices: TestServices) : Envir
             FqName(name) to state
         }.toMap()
         val configuredReportLevels = NullabilityAnnotationStatesImpl(
-            buildMap<FqName, ReportLevel> {
+            buildMap {
                 directives.singleOrZeroValue(JSPECIFY_STATE)?.let { put(JSPECIFY_ANNOTATIONS_PACKAGE, it) }
                 for ((fqname, reportLevel) in directives[ForeignAnnotationsDirectives.NULLABILITY_ANNOTATIONS]) {
                     put(fqname, reportLevel)

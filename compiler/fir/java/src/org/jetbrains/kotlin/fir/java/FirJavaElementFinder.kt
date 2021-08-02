@@ -50,7 +50,7 @@ class FirJavaElementFinder(
     private val psiManager = PsiManager.getInstance(project)
 
     @OptIn(ExperimentalStdlibApi::class)
-    private val firProviders: List<FirProvider> = buildList {
+    private val firProviders = buildList {
         add(session.firProvider)
         session.collectAllDependentSourceSessions().mapTo(this) { it.firProvider }
     }

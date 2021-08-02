@@ -218,7 +218,7 @@ private fun mapSystemHasContradictionError(
     qualifiedAccessSource: FirSourceElement?,
 ): List<FirDiagnostic> {
     val errorsToIgnore = mutableSetOf<ConstraintSystemError>()
-    return buildList<FirDiagnostic> {
+    return buildList {
         for (error in diagnostic.candidate.system.errors) {
             addIfNotNull(
                 error.toDiagnostic(

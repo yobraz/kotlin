@@ -213,7 +213,7 @@ private class FirShorteningContext(val firResolveState: FirModuleResolveState) {
         towerContextProvider: FirTowerContextProvider
     ): List<FirScope>? {
         val towerDataContext = towerContextProvider.getClosestAvailableParentContext(position) ?: return null
-        val result = buildList<FirScope> {
+        val result = buildList {
             addAll(towerDataContext.nonLocalTowerDataElements.mapNotNull { it.scope })
             addIfNotNull(createFakeImportingScope(newImports))
             addAll(towerDataContext.localScopes)

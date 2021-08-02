@@ -66,8 +66,7 @@ class FirStatusResolver(
     fun resolveStatus(property: FirProperty, containingClass: FirClass?, isLocal: Boolean): FirResolvedDeclarationStatus {
         return resolveStatus(property, property.status, containingClass, null, isLocal) l@{
             if (containingClass == null) return@l emptyList()
-            @Suppress("RemoveExplicitTypeArguments") // Workaround for KT-42175
-            buildList<FirProperty> {
+            buildList {
                 val scope = containingClass.unsubstitutedScope(session, scopeSession, withForcedTypeCalculator = false)
                 scope.processPropertiesByName(property.name) {}
                 scope.processDirectOverriddenPropertiesWithBaseScope(property.symbol) { symbol, _ ->
@@ -84,13 +83,12 @@ class FirStatusResolver(
     fun resolveStatus(function: FirSimpleFunction, containingClass: FirClass?, isLocal: Boolean): FirResolvedDeclarationStatus {
         return resolveStatus(function, function.status, containingClass, null, isLocal) l@{
             if (containingClass == null) return@l emptyList()
-            @Suppress("RemoveExplicitTypeArguments") // Workaround for KT-42175
-            buildList<FirCallableDeclaration> {
+            buildList {
                 val scope = containingClass.unsubstitutedScope(session, scopeSession, withForcedTypeCalculator = false)
                 val symbol = function.symbol
                 scope.processFunctionsByName(function.name) {}
                 scope.processDirectOverriddenFunctionsWithBaseScope(symbol) { overriddenSymbol, _ ->
-                    this += overriddenSymbol.fir
+                    this += overriddenSymbol.fir as FirCallableDeclaration
                     ProcessorAction.NEXT
                 }
             }.mapNotNull {

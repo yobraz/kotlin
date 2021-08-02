@@ -69,7 +69,7 @@ object ErrorListDiagnosticListRenderer : DiagnosticListRenderer() {
 
 
     @OptIn(ExperimentalStdlibApi::class)
-    private fun DiagnosticData.getAllTypeArguments(): List<KType> = buildList {
+    private fun DiagnosticData.getAllTypeArguments() = buildList {
         add(psiType)
         parameters.mapTo(this) { it.type }
     }

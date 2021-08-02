@@ -29,25 +29,22 @@ abstract class FirSymbolProvider(val session: FirSession) : FirSessionComponent 
     abstract fun getClassLikeSymbolByFqName(classId: ClassId): FirClassLikeSymbol<*>?
 
     @OptIn(ExperimentalStdlibApi::class, FirSymbolProviderInternals::class)
-    open fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name): List<FirCallableSymbol<*>> {
-        return buildList { getTopLevelCallableSymbolsTo(this, packageFqName, name) }
-    }
+    open fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name) =
+        buildList { getTopLevelCallableSymbolsTo(this, packageFqName, name) }
 
     @FirSymbolProviderInternals
     abstract fun getTopLevelCallableSymbolsTo(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name)
 
     @OptIn(ExperimentalStdlibApi::class, FirSymbolProviderInternals::class)
-    open fun getTopLevelFunctionSymbols(packageFqName: FqName, name: Name): List<FirNamedFunctionSymbol> {
-        return buildList { getTopLevelFunctionSymbolsTo(this, packageFqName, name) }
-    }
+    open fun getTopLevelFunctionSymbols(packageFqName: FqName, name: Name) =
+        buildList { getTopLevelFunctionSymbolsTo(this, packageFqName, name) }
 
     @FirSymbolProviderInternals
     abstract fun getTopLevelFunctionSymbolsTo(destination: MutableList<FirNamedFunctionSymbol>, packageFqName: FqName, name: Name)
 
     @OptIn(ExperimentalStdlibApi::class, FirSymbolProviderInternals::class)
-    open fun getTopLevelPropertySymbols(packageFqName: FqName, name: Name): List<FirPropertySymbol> {
-        return buildList { getTopLevelPropertySymbolsTo(this, packageFqName, name) }
-    }
+    open fun getTopLevelPropertySymbols(packageFqName: FqName, name: Name) =
+        buildList { getTopLevelPropertySymbolsTo(this, packageFqName, name) }
 
     @FirSymbolProviderInternals
     abstract fun getTopLevelPropertySymbolsTo(destination: MutableList<FirPropertySymbol>, packageFqName: FqName, name: Name)

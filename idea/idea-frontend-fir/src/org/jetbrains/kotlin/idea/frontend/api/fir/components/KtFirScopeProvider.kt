@@ -178,7 +178,7 @@ internal class KtFirScopeProvider(
         val firLocalScopes = towerDataContext.localScopes
 
         @OptIn(ExperimentalStdlibApi::class)
-        val allKtScopes = buildList<KtScope> {
+        val allKtScopes = buildList {
             implicitReceiverScopes.mapTo(this, ::convertToKtScope)
             nonLocalScopes.mapTo(this, ::convertToKtScope)
             firLocalScopes.mapTo(this, ::convertToKtScope)

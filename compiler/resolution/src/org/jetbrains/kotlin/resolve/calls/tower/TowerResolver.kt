@@ -291,6 +291,7 @@ class TowerResolver {
 
         for (candidatesGroup in candidatesGroups) {
             resultCollector.pushCandidates(candidatesGroup)
+            // resultCollector.getSuccessfulCandidates() returns 1 or 3
             resultCollector.getSuccessfulCandidates()?.let { return it }
         }
 

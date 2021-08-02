@@ -97,7 +97,7 @@ internal open class FirElementsRecorder : FirVisitor<Unit, MutableMap<KtElement,
 
     companion object {
         @OptIn(ExperimentalStdlibApi::class)
-        fun recordElementsFrom(firElement: FirElement, recorder: FirElementsRecorder): Map<KtElement, FirElement> =
+        fun recordElementsFrom(firElement: FirElement, recorder: FirElementsRecorder) =
             buildMap { firElement.accept(recorder, this) }
     }
 }
