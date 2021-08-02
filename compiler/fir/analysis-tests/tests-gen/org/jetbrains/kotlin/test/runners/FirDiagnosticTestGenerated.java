@@ -5020,6 +5020,12 @@ public class FirDiagnosticTestGenerated extends AbstractFirDiagnosticTest {
             public void testDailyAggregatedDoubleFactor() throws Exception {
                 runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/intellij/DailyAggregatedDoubleFactor.kt");
             }
+
+            @Test
+            @TestMetadata("hideBySeverity.kt")
+            public void testHideBySeverity() throws Exception {
+                runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/intellij/hideBySeverity.kt");
+            }
         }
 
         @Nested
