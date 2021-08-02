@@ -83,14 +83,16 @@ object FirReassignmentAndInvisibleSetterChecker : FirVariableAssignmentChecker()
                     }
                 }
             }
-            reporter.reportOn(
-                expression.source,
-                FirErrors.INVISIBLE_SETTER,
-                callableSymbol,
-                callableSymbol.setterSymbol!!.visibility,
-                callableSymbol.callableId,
-                context
-            )
+            if (false) {
+                reporter.reportOn(
+                    expression.source,
+                    FirErrors.INVISIBLE_SETTER,
+                    callableSymbol,
+                    callableSymbol.setterSymbol!!.visibility,
+                    callableSymbol.callableId,
+                    context
+                )
+            }
         }
     }
 
