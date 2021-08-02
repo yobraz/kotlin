@@ -18,7 +18,6 @@ import org.jetbrains.kotlin.codegen.optimization.common.InsnSequence
 import org.jetbrains.kotlin.codegen.optimization.common.asSequence
 import org.jetbrains.kotlin.codegen.optimization.common.isMeaningful
 import org.jetbrains.kotlin.codegen.optimization.fixStack.*
-import org.jetbrains.kotlin.codegen.optimization.fixStack.FastStackAnalyzer
 import org.jetbrains.kotlin.codegen.optimization.nullCheck.isCheckParameterIsNotNull
 import org.jetbrains.kotlin.codegen.pseudoInsns.PseudoInsn
 import org.jetbrains.kotlin.config.LanguageFeature
@@ -747,6 +746,10 @@ class MethodInliner(
             ApiVersionCallsPreprocessingMethodTransformer(targetApiVersion).transform("fake", node)
         }
 
+        if (inliningContext.isRoot && inliningContext.callSiteInfo.isCalleeInlineOnly) {
+            removeFakeVariablesInitializationIfPresent(node)
+        }
+
         val frames = FastStackAnalyzer("<fake>", node, FixStackInterpreter()).analyze()
 
         val localReturnsNormalizer = LocalReturnsNormalizer()
@@ -767,6 +770,57 @@ class MethodInliner(
         }
 
         localReturnsNormalizer.transform(node)
+    }
+
+    private fun removeFakeVariablesInitializationIfPresent(node: MethodNode) {
+        // @InlineOnly functions may contain fake variable initialization instructions in the form
+        //      ICONST_0
+        //      ISTORE x
+        // Such variables are not used in the bytecode, and are not present in LVT.
+        val insnArray = node.instructions.toArray()
+
+        // Very conservative variable usage check.
+        // Here we look at integer variables only (this includes integral primitive types: byte, char, short, boolean).
+        // Variable is considered "used" if:
+        //  - it's loaded with ILOAD instruction
+        //  - it's incremented with IINC instruction
+        //  - there's a local variable table entry for this variable
+        val usedIntegerVar = BooleanArray(node.maxLocals)
+        for (insn in insnArray) {
+            if (insn.type == AbstractInsnNode.VAR_INSN && insn.opcode == Opcodes.ILOAD) {
+                usedIntegerVar[(insn as VarInsnNode).`var`] = true
+            } else if (insn.type == AbstractInsnNode.IINC_INSN) {
+                usedIntegerVar[(insn as IincInsnNode).`var`] = true
+            }
+        }
+        for (localVariable in node.localVariables) {
+            val d0 = localVariable.desc[0]
+            // byte || char || short || int || boolean
+            if (d0 == 'B' || d0 == 'C' || d0 == 'S' || d0 == 'I' || d0 == 'Z') {
+                usedIntegerVar[localVariable.index] = true
+            }
+        }
+
+        // Looking for sequences of instructions:
+        //  p0: ICONST_0
+        //  p1: ISTORE x
+        //  p2: <label>
+        // If variable 'x' is not "used" (see above), remove p0 and p1 instructions.
+        for (p0 in insnArray) {
+            if (p0.opcode != Opcodes.ICONST_0) continue
+
+            val p1 = p0.next ?: break
+            if (p1.opcode != Opcodes.ISTORE) continue
+
+            val p2 = p1.next ?: break
+            if (p2.type != AbstractInsnNode.LABEL) continue
+
+            val varIndex = (p1 as VarInsnNode).`var`
+            if (!usedIntegerVar[varIndex]) {
+                node.instructions.remove(p0)
+                node.instructions.remove(p1)
+            }
+        }
     }
 
     private fun isAnonymousClassThatMustBeRegenerated(type: Type?): Boolean {
