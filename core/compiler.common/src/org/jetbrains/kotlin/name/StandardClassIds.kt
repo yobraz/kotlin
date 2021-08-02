@@ -114,6 +114,7 @@ object StandardClassIds {
 
     val JvmStatic = "JvmStatic".jvmId()
     val JvmName = "JvmName".jvmId()
+    val JvmField = "JvmField".jvmId()
 
     val Result = "Result".baseId()
 }
