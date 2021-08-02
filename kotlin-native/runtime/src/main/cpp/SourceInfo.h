@@ -17,10 +17,15 @@
 #ifndef RUNTIME_SOURCEINFO_H
 #define RUNTIME_SOURCEINFO_H
 
-struct SourceInfo {
-    const char* fileName;
-    int lineNumber;
-    int column;
+#include <string>
+
+class SourceInfo {
+    std::string fileName;
+public:
+    int lineNumber = -1;
+    int column = -1;
+    std::string& getFileName() { return fileName; }
+    void setFilename(const char *newFileName) { fileName = newFileName ?: ""; }
 };
 
 #ifdef __cplusplus
@@ -29,7 +34,15 @@ extern "C" {
 
 // returns number of filled elements in buffer
 // there can be several frames because of inlining
-int Kotlin_getSourceInfo(void* addr, SourceInfo *result, int result_size);
+extern int (*Kotlin_getSourceInfo_Function)(void* addr, SourceInfo *result, int result_size);
+
+inline int Kotlin_getSourceInfo(void* addr, SourceInfo *result, int result_size) {
+    if (Kotlin_getSourceInfo_Function == nullptr) {
+        return 0;
+    } else {
+        return Kotlin_getSourceInfo_Function(addr, result, result_size);
+    }
+}
 
 #ifdef __cplusplus
 } // extern "C"

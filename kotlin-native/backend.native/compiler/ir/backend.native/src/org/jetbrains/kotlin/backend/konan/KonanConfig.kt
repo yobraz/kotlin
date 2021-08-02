@@ -50,6 +50,19 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
     val gc: GC get() = configuration.get(KonanConfigKeys.GARBAGE_COLLECTOR)!!
     val gcAggressive: Boolean get() = configuration.get(KonanConfigKeys.GARBAGE_COLLECTOR_AGRESSIVE)!!
     val runtimeAssertsMode: RuntimeAssertsMode get() = configuration.get(KonanConfigKeys.RUNTIME_ASSERTS_MODE)!!
+    private val autoSourceInfoType: SourceInfoType
+        get() = if (debug) {
+            if (target.family.isAppleFamily) {
+                SourceInfoType.CORESYMBOLICATION
+            } else {
+                SourceInfoType.LIBBACKTRACE
+            }
+        } else {
+            SourceInfoType.NOOP
+        }
+    val sourceInfoType: SourceInfoType
+        get() = configuration.get(KonanConfigKeys.SOURCE_INFO_TYPE) ?: autoSourceInfoType
+
 
     val needVerifyIr: Boolean
         get() = configuration.get(KonanConfigKeys.VERIFY_IR) == true
@@ -131,7 +144,7 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
     private val shouldCoverLibraries = !configuration.getList(KonanConfigKeys.LIBRARIES_TO_COVER).isNullOrEmpty()
 
     internal val runtimeNativeLibraries: List<String> = mutableListOf<String>().apply {
-        add(if (debug) "debug.bc" else "release.bc")
+        if (debug) add("debug.bc")
         val effectiveMemoryModel = when (memoryModel) {
             MemoryModel.STRICT -> MemoryModel.STRICT
             MemoryModel.RELAXED -> MemoryModel.RELAXED
@@ -184,6 +197,11 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
             }
         }
         if (shouldCoverLibraries || shouldCoverSources) add("profileRuntime.bc")
+        add("source_info_core_symbolication.bc")
+        if (target.supportsLibBacktrace()) {
+            add("source_info_libbacktrace.bc")
+            add("libbacktrace.bc")
+        }
         if (useMimalloc) {
             add("opt_alloc.bc")
             add("mimalloc.bc")

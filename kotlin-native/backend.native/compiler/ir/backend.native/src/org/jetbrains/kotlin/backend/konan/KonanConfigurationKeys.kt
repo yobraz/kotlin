@@ -154,6 +154,7 @@ class KonanConfigKeys {
                 = CompilerConfigurationKey.create("remap file source paths in debug info")
         val PRE_LINK_CACHES: CompilerConfigurationKey<Boolean>
                 = CompilerConfigurationKey.create("perform compiler caches pre-link")
+        val SOURCE_INFO_TYPE: CompilerConfigurationKey<SourceInfoType?> = CompilerConfigurationKey.create("Source info type")
         val OVERRIDE_KONAN_PROPERTIES: CompilerConfigurationKey<Map<String, String>>
                 = CompilerConfigurationKey.create("override konan.properties values")
         val DESTROY_RUNTIME_MODE: CompilerConfigurationKey<DestroyRuntimeMode>

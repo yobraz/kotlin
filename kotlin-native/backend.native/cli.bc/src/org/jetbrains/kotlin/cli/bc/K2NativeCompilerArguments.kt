@@ -311,6 +311,9 @@ class K2NativeCompilerArguments : CommonCompilerArguments() {
     @Argument(value="-Xgc", valueDescription = "<gc>", description = "GC to use, 'noop' and 'stms' are currently supported. Works only with -memory-model experimental")
     var gc: String? = null
 
+    @Argument(value="-Xsource-info-type", valueDescription = "<type>", description = "Way to provide source information to use, 'noop' for no source information, 'libbacktrace' for dwarf-based, 'coresymbolication' for CS-based")
+    var sourceInfoType: String? = null
+
     @Argument(value="-Xgc-aggressive", description = "Make GC agressive. Works only with -memory-model experimental")
     var gcAggressive: Boolean = false
 

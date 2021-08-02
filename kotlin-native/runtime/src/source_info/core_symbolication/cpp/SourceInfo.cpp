@@ -127,9 +127,9 @@ typedef struct {
   int end;
 } SymbolSourceInfoLimits;
 
-extern "C" int Kotlin_getSourceInfo(void* addr, SourceInfo *result_buffer, int result_size) {
+extern "C" int Kotlin_getSourceInfo_core_symbolication(void* addr, SourceInfo *result_buffer, int result_size) {
   if (result_size == 0) return 0;
-  __block SourceInfo result = { .fileName = nullptr, .lineNumber = -1, .column = -1 };
+  __block SourceInfo result;
   __block bool continueUpdateResult = true;
   __block SymbolSourceInfoLimits limits = {.start = -1, .end = -1};
 
@@ -168,7 +168,7 @@ extern "C" int Kotlin_getSourceInfo(void* addr, SourceInfo *result_buffer, int r
     });
 
     SYM_LOG("limits: {%s %d..%d}\n", limits.fileName, limits.start, limits.end);
-    result.fileName = limits.fileName;
+    result.setFilename(limits.fileName);
 
     CSSymbolForeachSourceInfo(symbol,
       ^(CSSourceInfoRef ref) {
@@ -208,11 +208,4 @@ extern "C" int Kotlin_getSourceInfo(void* addr, SourceInfo *result_buffer, int r
   result_buffer[0] = result;
   return 1;
 }
-
-#else // KONAN_CORE_SYMBOLICATION
-
-extern "C" int Kotlin_getSourceInfo(void* addr, SourceInfo *result, int result_size) {
-    return 0;
-}
-
 #endif // KONAN_CORE_SYMBOLICATION

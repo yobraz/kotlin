@@ -315,6 +315,17 @@ class K2Native : CLICompiler<K2NativeCompilerArguments>() {
                         GC.SAME_THREAD_MARK_AND_SWEEP
                     }
                 })
+                val sourceInfoType = when (arguments.sourceInfoType) {
+                    null -> null
+                    "noop" -> SourceInfoType.NOOP
+                    "libbacktrace" -> SourceInfoType.LIBBACKTRACE
+                    "coresymbolication" -> SourceInfoType.CORESYMBOLICATION
+                    else -> {
+                        configuration.report(ERROR, "Unsupported SOURCE_INFO_TYPE ${arguments.sourceInfoType}")
+                        null
+                    }
+                }
+                putIfNotNull(SOURCE_INFO_TYPE, sourceInfoType)
                 if (memoryModel != MemoryModel.EXPERIMENTAL && arguments.gcAggressive) {
                     configuration.report(ERROR, "-Xgc-aggressive is only supported for -memory-model experimental")
                 }

@@ -2631,6 +2631,17 @@ internal class CodeGeneratorVisitor(val context: Context, val lifetimes: Map<IrE
 
         overrideRuntimeGlobal("Kotlin_destroyRuntimeMode", Int32(context.config.destroyRuntimeMode.value))
         overrideRuntimeGlobal("Kotlin_gcAggressive", Int32(if (context.config.gcAggressive) 1 else 0))
+        val getSourceInfoFunctionName = when (context.config.sourceInfoType) {
+            SourceInfoType.NOOP -> null
+            SourceInfoType.LIBBACKTRACE -> "Kotlin_getSourceInfo_libbacktrace"
+            SourceInfoType.CORESYMBOLICATION -> "Kotlin_getSourceInfo_core_symbolication"
+        }
+        if (getSourceInfoFunctionName != null) {
+            val getSourceInfoFunction = LLVMGetNamedFunction(context.llvmModule, getSourceInfoFunctionName)
+                    ?: LLVMAddFunction(context.llvmModule, getSourceInfoFunctionName,
+                            functionType(int32Type, false, int8TypePtr, int8TypePtr, int32Type))
+            overrideRuntimeGlobal("Kotlin_getSourceInfo_Function", constValue(getSourceInfoFunction!!))
+        }
     }
 
     //-------------------------------------------------------------------------//
