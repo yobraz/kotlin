@@ -1,0 +1,4 @@
+FILE: use.kt
+    public final fun use(): R|kotlin/Unit| {
+        lval s: R|kotlin/String| = <strcat>(Q|UI|.R|/UI.scale|(Int(8)))
+    }

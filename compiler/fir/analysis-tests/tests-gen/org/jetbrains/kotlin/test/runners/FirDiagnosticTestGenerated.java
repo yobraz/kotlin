@@ -5014,6 +5014,12 @@ public class FirDiagnosticTestGenerated extends AbstractFirDiagnosticTest {
             public void testContainsKey() throws Exception {
                 runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/intellij/containsKey.kt");
             }
+
+            @Test
+            @TestMetadata("javaStaticInTemplate.kt")
+            public void testJavaStaticInTemplate() throws Exception {
+                runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/intellij/javaStaticInTemplate.kt");
+            }
         }
 
         @Nested
