@@ -36,3 +36,11 @@ test {
     systemProperty 'testCasesClassesDirs', sourceSets.test.output.classesDirs.asPath
     jvmArgs '-ea'
 }
+
+compileTestKotlin {
+    kotlinOptions {
+        // This language version needs to be advanced as soon as there's a version of binary-compatibility-validator that works with it.
+        languageVersion = "1.5"
+        apiVersion = "1.5"
+    }
+}
