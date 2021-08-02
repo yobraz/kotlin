@@ -77,8 +77,7 @@ class PsiSourceCompilerForInline(
                 signature.asmMethod,
                 context.functionDescriptor.isInlineOrInsideInline(),
                 callElement.containingFile,
-                CodegenUtil.getLineNumberForElement(callElement, false) ?: 0,
-                false // don't treat @InlineOnly functions specially in the old back-end
+                CodegenUtil.getLineNumberForElement(callElement, false) ?: 0
             )
         }
 

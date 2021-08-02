@@ -16,11 +16,5 @@ fun box(): String {
 // 0 component1
 // 0 component2
 
-// JVM_TEMPLATES
-// - fake variable for @InlineOnly 'listOf';
-// - Initializing the index in the lowered for-loop.
-// 2 ICONST_0
-
-// JVM_IR_TEMPLATES
 // - Initializing the index in the lowered for-loop.
 // 1 ICONST_0

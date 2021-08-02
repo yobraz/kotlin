@@ -319,8 +319,7 @@ class AnonymousObjectTransformer(
                 Method(sourceNode.name, if (isConstructor) transformationInfo.newConstructorDescriptor else sourceNode.desc),
                 inliningContext.callSiteInfo.isInlineOrInsideInline,
                 inliningContext.callSiteInfo.file,
-                inliningContext.callSiteInfo.lineNumber,
-                inliningContext.callSiteInfo.isCalleeInlineOnly
+                inliningContext.callSiteInfo.lineNumber
             ),
             null
         ).doInline(deferringVisitor, LocalVarRemapper(parameters, 0), false, mapOf())

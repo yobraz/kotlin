@@ -746,9 +746,7 @@ class MethodInliner(
             ApiVersionCallsPreprocessingMethodTransformer(targetApiVersion).transform("fake", node)
         }
 
-        if (inliningContext.isRoot && inliningContext.callSiteInfo.isCalleeInlineOnly) {
-            removeFakeVariablesInitializationIfPresent(node)
-        }
+        removeFakeVariablesInitializationIfPresent(node)
 
         val frames = FastStackAnalyzer("<fake>", node, FixStackInterpreter()).analyze()
 

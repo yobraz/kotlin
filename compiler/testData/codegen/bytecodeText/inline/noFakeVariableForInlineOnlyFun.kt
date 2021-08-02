@@ -12,8 +12,8 @@ fun test() = inlineOnlyFun()
 
 // JVM_TEMPLATES
 // 1 LDC 0
-// 7 ICONST_0
-// 8 ISTORE
+// 5 ICONST_0
+// 6 ISTORE
 
 // JVM_IR_TEMPLATES
 // 0 LDC 0

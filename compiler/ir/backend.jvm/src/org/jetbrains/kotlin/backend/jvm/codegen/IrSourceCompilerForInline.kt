@@ -50,8 +50,7 @@ class IrSourceCompilerForInline(
                 root.signature.asmMethod,
                 root.irFunction.isInlineOrInsideInline(),
                 root.irFunction.fileParent.getKtFile(),
-                callElement.psiElement?.let { CodegenUtil.getLineNumberForElement(it, false) } ?: 0,
-                callee.isInlineOnly()
+                callElement.psiElement?.let { CodegenUtil.getLineNumberForElement(it, false) } ?: 0
             )
         }
 

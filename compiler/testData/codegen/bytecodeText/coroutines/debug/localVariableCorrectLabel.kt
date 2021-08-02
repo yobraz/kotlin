@@ -14,12 +14,6 @@ fun main(args: Array<String>) {
 @BuilderInference
 suspend fun SequenceScope<Int>.awaitSeq(): Int = 42
 
-// JVM_TEMPLATES
-// 1 LINENUMBER 9 L19
-// 1 LOCALVARIABLE a I L[0-9]+ L18
-
-// JVM_IR_TEMPLATES
-// Stripped fake variable for @InlineOnly 'println'
 // 1 LINENUMBER 9 L18
 // 1 LOCALVARIABLE a I L[0-9]+ L17
 
