@@ -1020,7 +1020,7 @@ class ClassFileToSourceStubConverter(val kaptContext: KaptContextForStubGenerati
                             if (sourceElement == null) return@getNonErrorType null
 
                             if (sourceElement.hasDeclaredReturnType() && isContinuationParameter(parameterDescriptor)) {
-                                val continuationTypeFqName = getContinuationTypeFqName()
+                                val continuationTypeFqName = StandardNames.CONTINUATION_INTERFACE_FQ_NAME
                                 val functionReturnType = sourceElement.typeReference!!.text
                                 KtPsiFactory(kaptContext.project).createType("$continuationTypeFqName<$functionReturnType>")
                             } else {
@@ -1054,13 +1054,9 @@ class ClassFileToSourceStubConverter(val kaptContext: KaptContextForStubGenerati
         val containingCallable = descriptor.containingDeclaration
 
         return containingCallable.valueParameters.lastOrNull() == descriptor
-            && descriptor.name == CONTINUATION_PARAMETER_NAME
-            && descriptor.source == SourceElement.NO_SOURCE
-            && descriptor.type.constructor.declarationDescriptor?.fqNameSafe == getContinuationTypeFqName()
-    }
-
-    private fun getContinuationTypeFqName(): FqName {
-        return StandardNames.CONTINUATION_INTERFACE_FQ_NAME
+                && descriptor.name == CONTINUATION_PARAMETER_NAME
+                && descriptor.source == SourceElement.NO_SOURCE
+                && descriptor.type.constructor.declarationDescriptor?.fqNameSafe == StandardNames.CONTINUATION_INTERFACE_FQ_NAME
     }
 
     private fun <T : JCExpression?> getNonErrorType(

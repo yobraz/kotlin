@@ -51,8 +51,8 @@ class CoroutineTransformerMethodVisitor(
     private val reportSuspensionPointInsideMonitor: (String) -> Unit,
     private val lineNumber: Int,
     private val sourceFile: String,
-    private val needDispatchReceiver: Boolean = false,
     // It's only matters for named functions, may differ from '!isStatic(access)' in case of DefaultImpls
+    private val needDispatchReceiver: Boolean = false,
     private val internalNameForDispatchReceiver: String? = null,
     // May differ from containingClassInternalName in case of DefaultImpls
     private val putContinuationParameterToLvt: Boolean = true,
