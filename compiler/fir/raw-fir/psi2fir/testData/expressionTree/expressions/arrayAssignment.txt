@@ -1,6 +1,6 @@
 FILE: arrayAssignment.kt
     public? final? fun test(): <implicit> {
-        ^test firBlock#(listOf#(), listOf#(firProperty#(listOf#(), firNull#(), firString#(String("x")), firImplicitTypeRef#(), firFalse#(), firTrue#(), firNull#(), firNull#()), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("x")))), firSimpleNamedReference#(firString#(String("set"))))))
+        ^test firBlock#(listOf#(), listOf#(firProperty#(firDeclarationStatus#(firVisibilities_Local#(), firModality_FINAL#(), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false), Boolean(false)), listOf#(), Null(null), String("x"), firImplicitTypeRef#(), Boolean(false), Boolean(true), Null(null), Null(null), firCallableId#(String("<local>"), Null(null), String("x"))), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), Null(null), firSimpleNamedReference#(String("x"))), firSimpleNamedReference#(String("set")))))
     }
     public? final? fun foo(): <implicit> {
         ^foo IntegerLiteral(1)
@@ -9,5 +9,5 @@ FILE: arrayAssignment.kt
         TODO#(String(intrinsic))
     }
     public? final? fun test2(): <implicit> {
-        ^test2 firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firNull#(), firSimpleNamedReference#(firString#(String("intArrayOf")))), firSimpleNamedReference#(firString#(String("set"))))))
+        ^test2 firBlock#(listOf#(), listOf#(firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), firQualifiedAccessExpression#(listOf#(), listOf#(), firNoReceiverExpression#(), firNoReceiverExpression#(), Null(null), firSimpleNamedReference#(String("intArrayOf"))), firSimpleNamedReference#(String("set")))))
     }

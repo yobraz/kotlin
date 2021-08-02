@@ -116,7 +116,7 @@ private class ExpressionTreeTransformer : FirTransformer<Boolean>() {
 
 // transformers
 
-private fun FirElement.build(): FirFunctionCall = when (this) {
+private fun FirElement.build(): FirExpression = when (this) {
     is FirLambdaArgumentExpression -> call("firLambdaArgumentExpression", listOf(expression.build()))
     is FirAnonymousFunctionExpression -> call("firAnonymousFunctionExpression", listOf(anonymousFunction.build()))
     is FirAnonymousFunction -> call(
@@ -198,7 +198,7 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
     )
     FirNoReceiverExpression -> call("firNoReceiverExpression", emptyList())
     is FirConstExpression<*> -> when (kind) {
-        ConstantValueKind.Boolean -> (value as Boolean).build()
+        ConstantValueKind.Boolean -> if (value as Boolean) call("firTrue", listOf()) else call("firFalse", listOf())
         ConstantValueKind.Byte -> call("firByte", listOf(firByte(value as Byte)))
         ConstantValueKind.Char -> call("firChar", listOf(firChar(value as Char)))
         ConstantValueKind.Double -> call("firDouble", listOf(firDouble(value as Double)))
@@ -206,12 +206,15 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
         ConstantValueKind.Int -> call("firInt", listOf(firInt(value as Int)))
         ConstantValueKind.IntegerLiteral -> call("firIntegerLiteral", listOf(firIntegerLiteral(value as Long)))
         ConstantValueKind.Long -> call("firLong", listOf(firLong(value as Long)))
-        ConstantValueKind.Null -> callFirNull()
+        ConstantValueKind.Null -> call("firNull", listOf())
         ConstantValueKind.Short -> call("firShort", listOf(firShort(value as Short)))
         ConstantValueKind.String -> call("firString", listOf(firString(value as String)))
         ConstantValueKind.UnsignedByte -> call("firUnsignedByte", listOf(firUnsignedByte(value as Byte)))
         ConstantValueKind.UnsignedInt -> call("firUnsignedInt", listOf(firUnsignedInt(value as Int)))
-        ConstantValueKind.UnsignedIntegerLiteral -> call("firUnsignedIntegerLiteral", listOf(firUnsignedIntegerLiteral(value as Long)))
+        ConstantValueKind.UnsignedIntegerLiteral -> call(
+            "firUnsignedIntegerLiteral",
+            listOf(firUnsignedIntegerLiteral(value as Long))
+        )
         ConstantValueKind.UnsignedLong -> call("firUnsignedLong", listOf(firUnsignedLong(value as Long)))
         ConstantValueKind.UnsignedShort -> call("firUnsignedShort", listOf(firUnsignedShort(value as Short)))
     }
@@ -227,6 +230,7 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
     )
     is FirProperty -> call(
         "firProperty", listOf(
+            status.build(),
             typeParameters.buildList(),
             receiverTypeRef.buildNullable(),
             name.asString().build(),
@@ -234,7 +238,8 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
             isVar.build(),
             isLocal.build(),
             getter.buildNullable(),
-            setter.buildNullable()
+            setter.buildNullable(),
+            symbol.callableId.build()
         )
     )
     is FirElseIfTrueCondition -> call(
@@ -288,7 +293,8 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
             explicitReceiver.buildNullable(),
             dispatchReceiver.buildNullable(),
             extensionReceiver.buildNullable(),
-            rValue.build()
+            rValue.build(),
+            calleeReference.build()
         )
     )
     is FirGetClassCall -> call(
@@ -313,7 +319,7 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
     is FirWhileLoop -> call(
         "firWhileLoop", listOf(
             annotations.buildList(),
-            label.buildNullable(),
+            label?.name.buildNullable(),
             condition.build(),
             block.build()
         )
@@ -325,7 +331,8 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
     )
     is FirContinueExpression -> call(
         "firContinueExpression", listOf(
-            annotations.buildList()
+            annotations.buildList(),
+            target.labelName.buildNullable()
         )
     )
     is FirRegularClass -> call(
@@ -336,7 +343,8 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
             name.asString().build(),
             typeParameters.buildList(),
             declarations.buildList(),
-            companionObject.buildNullable()
+            companionObject.buildNullable(),
+            symbol.classId.build()
         )
     )
     is FirDeclarationStatus -> call(
@@ -366,18 +374,21 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
     is FirPrimaryConstructor -> call(
         "firPrimaryConstructor", listOf(
             annotations.buildList(),
+            status.build(),
             returnTypeRef.build(),
             receiverTypeRef.buildNullable(),
             typeParameters.buildList(),
             valueParameters.buildList(),
             delegatedConstructor.buildNullable(),
-            body.buildNullable()
+            body.buildNullable(),
+            symbol.callableId.build()
         )
     )
     is FirResolvedTypeRef -> call(
         "firResolvedTypeRef", listOf(
             annotations.buildList(),
-            type.classId.buildNullable()
+            type.classId.buildNullable(),
+            (type.nullability == ConeNullability.NULLABLE).build()
         )
     )
     is FirValueParameter -> call(
@@ -479,12 +490,14 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
             isGetter.build(),
             typeParameters.buildList(),
             valueParameters.buildList(),
-            body.buildNullable()
+            body.buildNullable(),
+            returnTypeRef.build()
         )
     )
     is FirBreakExpression -> call(
         "firBreakExpression", listOf(
-            annotations.buildList()
+            annotations.buildList(),
+            target.labelName.buildNullable()
         )
     )
     is FirDoWhileLoop -> call(
@@ -520,7 +533,7 @@ private fun FirElement.build(): FirFunctionCall = when (this) {
     else -> error("$this is unsupported")
 }
 
-private fun Variance.build(): FirFunctionCall = when(this) {
+private fun Variance.build(): FirFunctionCall = when (this) {
     Variance.INVARIANT -> call("firVariance_INVARIANT", emptyList())
     Variance.IN_VARIANCE -> call("firVariance_IN_VARIANCE", emptyList())
     Variance.OUT_VARIANCE -> call("firVariance_OUT_VARIANCE", emptyList())
@@ -534,7 +547,7 @@ private fun CallableId.build(): FirExpression = call(
     )
 )
 
-private fun ClassId?.buildNullable(): FirFunctionCall = this?.build() ?: callFirNull()
+private fun ClassId?.buildNullable(): FirExpression = this?.build() ?: firNull()
 
 private fun ClassId.build(): FirFunctionCall = call(
     "firClassId", listOf(
@@ -544,7 +557,7 @@ private fun ClassId.build(): FirFunctionCall = call(
     )
 )
 
-private fun Modality?.buildNullable(): FirFunctionCall = this?.build() ?: callFirNull()
+private fun Modality?.buildNullable(): FirExpression = this?.build() ?: firNull()
 
 private fun Modality.build(): FirFunctionCall = when (this) {
     Modality.FINAL -> call("firModality_FINAL", emptyList())
@@ -583,7 +596,7 @@ private fun FirFunctionTarget.build(): FirFunctionCall = call(
     )
 )
 
-private fun String?.buildNullable(): FirExpression = this?.build() ?: callFirNull()
+private fun String?.buildNullable(): FirExpression = this?.build() ?: firNull()
 
 @JvmName("buildFirQualifierPartList")
 private fun List<FirQualifierPart>.buildList(): FirFunctionCall = map { it.build() }.callListOf()
@@ -595,9 +608,9 @@ private fun FirQualifierPart.build(): FirFunctionCall = call(
     )
 )
 
-private fun String.build(): FirExpression = call("firString", listOf(firString("\"" + this + "\"")))
+private fun String.build(): FirExpression = firString("\"" + this + "\"")
 
-private fun AnnotationUseSiteTarget?.buildNullable(): FirFunctionCall = this?.build() ?: callFirNull()
+private fun AnnotationUseSiteTarget?.buildNullable(): FirExpression = this?.build() ?: firNull()
 
 private fun AnnotationUseSiteTarget.build(): FirFunctionCall = when (this) {
     AnnotationUseSiteTarget.FIELD -> call("annotationUseSiteTarget_FIELD", emptyList())
@@ -634,11 +647,9 @@ private fun FirOperation.build(): FirFunctionCall = when (this) {
     FirOperation.OTHER -> call("firOperation_OTHER", emptyList())
 }
 
-private fun Boolean.build(): FirFunctionCall = if (this) call("firTrue", emptyList()) else call("firFalse", emptyList())
+private fun Boolean.build(): FirExpression = if (this) firTrue() else firFalse()
 
-private fun FirElement?.buildNullable(): FirFunctionCall = this?.build() ?: callFirNull()
-
-private fun callFirNull() = call("firNull", emptyList())
+private fun FirElement?.buildNullable(): FirExpression = this?.build() ?: firNull()
 
 private fun List<FirElement>.buildList(): FirFunctionCall = map { it.build() }.callListOf()
 
@@ -649,6 +660,6 @@ private fun call(name: String, arguments: List<FirExpression>): FirFunctionCall 
 
 private fun List<FirExpression>.callListOf() = call("listOf", this)
 
-internal fun expressionTreeFirFakeSourceElement(filePsiElement: PsiElement) = FirFakeSourceElement(object : FakePsiElement() {
-    override fun getParent(): PsiElement = filePsiElement
+internal fun expressionTreeFirFakeSourceElement() = FirFakeSourceElement(object : FakePsiElement() {
+    override fun getParent(): PsiElement = filePsiElement!!
 }, FirFakeSourceElementKind.ExpressionTree)

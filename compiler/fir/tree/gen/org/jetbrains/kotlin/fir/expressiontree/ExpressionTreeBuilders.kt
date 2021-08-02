@@ -9,43 +9,31 @@
 
 package org.jetbrains.kotlin.fir.expressiontree
 
-import org.jetbrains.kotlin.descriptors.ClassKind
-import org.jetbrains.kotlin.descriptors.Modality
-import org.jetbrains.kotlin.descriptors.Visibilities
-import org.jetbrains.kotlin.descriptors.Visibility
-import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
+import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.annotations.*
 import org.jetbrains.kotlin.fir.*
-import org.jetbrains.kotlin.fir.builder.buildLabel
+import org.jetbrains.kotlin.fir.builder.*
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.builder.*
-import org.jetbrains.kotlin.fir.declarations.impl.FirDeclarationStatusImpl
-import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyGetter
-import org.jetbrains.kotlin.fir.declarations.impl.FirPrimaryConstructor
+import org.jetbrains.kotlin.fir.declarations.impl.*
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.*
-import org.jetbrains.kotlin.fir.expressions.impl.FirElseIfTrueCondition
-import org.jetbrains.kotlin.fir.expressions.impl.FirNoReceiverExpression
-import org.jetbrains.kotlin.fir.expressions.impl.FirUnitExpression
-import org.jetbrains.kotlin.fir.impl.FirLabelImpl
+import org.jetbrains.kotlin.fir.expressions.impl.*
+import org.jetbrains.kotlin.fir.impl.*
 import org.jetbrains.kotlin.fir.references.*
 import org.jetbrains.kotlin.fir.references.builder.*
-import org.jetbrains.kotlin.fir.references.impl.FirExplicitSuperReference
-import org.jetbrains.kotlin.fir.references.impl.FirExplicitThisReference
-import org.jetbrains.kotlin.fir.references.impl.FirSimpleNamedReference
-import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
+import org.jetbrains.kotlin.fir.references.impl.*
+import org.jetbrains.kotlin.fir.resolve.ScopeSession
+import org.jetbrains.kotlin.fir.scopes.FirScope
+import org.jetbrains.kotlin.fir.scopes.FirScopeProvider
+import org.jetbrains.kotlin.fir.scopes.FirTypeScope
+import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.*
-import org.jetbrains.kotlin.fir.types.impl.FirImplicitNothingTypeRef
-import org.jetbrains.kotlin.fir.types.impl.FirQualifierPartImpl
-import org.jetbrains.kotlin.fir.types.impl.FirTypeArgumentListImpl
-import org.jetbrains.kotlin.name.CallableId
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.types.ConstantValueKind
-import org.jetbrains.kotlin.types.Variance
+import org.jetbrains.kotlin.fir.types.impl.*
+import org.jetbrains.kotlin.name.*
+import org.jetbrains.kotlin.types.*
+import org.jetbrains.kotlin.util.OperatorNameConventions
 
 fun firWhenBranch(
     condition: FirExpression,
@@ -106,11 +94,15 @@ fun firAnonymousFunction(
     returnType: FirTypeRef,
     body: FirBlock
 ): FirAnonymousFunction = buildAnonymousFunction {
+    this.moduleData = syntheticModuleData
+    this.origin = FirDeclarationOrigin.Synthetic
+    this.symbol = FirAnonymousFunctionSymbol()
+
     this.annotations += annotations
     this.isLambda = isLambda
     this.receiverTypeRef = receiverType
     this.valueParameters += valueParameters
-    this.receiverTypeRef = receiverType
+    this.returnTypeRef = returnType
     this.body = body
 }
 
@@ -150,7 +142,7 @@ fun firQualifiedAccessExpression(
     typeArguments: List<FirTypeProjection>,
     dispatchReceiver: FirExpression,
     extensionReceiver: FirExpression,
-    explicitReceiver: FirExpression,
+    explicitReceiver: FirExpression?,
     calleeReference: FirReference
 ): FirQualifiedAccessExpression = buildQualifiedAccessExpression {
     this.annotations += annotations
@@ -199,10 +191,10 @@ fun firQualifierPart(
     name: String,
     typeArguments: List<FirTypeProjection>
 ): FirQualifierPart = FirQualifierPartImpl(
-    expressionTreeFirFakeSourceElement(filePsiElement!!),
+    expressionTreeFirFakeSourceElement(),
     Name.identifier(name),
     FirTypeArgumentListImpl(
-        expressionTreeFirFakeSourceElement(filePsiElement!!)
+        expressionTreeFirFakeSourceElement()
     ).apply { this.typeArguments += typeArguments }
 )
 
@@ -225,13 +217,14 @@ fun firReturnExpression(
 }
 
 fun firFunctionTarget(
-    labelName: String,
+    labelName: String?,
     isLambda: Boolean
 ): FirFunctionTarget = FirFunctionTarget(labelName, isLambda)
 
 fun firImplicitNothingTypeRef(): FirImplicitNothingTypeRef = FirImplicitNothingTypeRef(null)
 
 fun firProperty(
+    status: FirDeclarationStatus,
     typeParameters: List<FirTypeParameter>,
     receiverType: FirTypeRef?,
     name: String,
@@ -239,8 +232,14 @@ fun firProperty(
     isVar: Boolean,
     isLocal: Boolean,
     getter: FirPropertyAccessor?,
-    setter: FirPropertyAccessor?
+    setter: FirPropertyAccessor?,
+    callableId: CallableId
 ): FirProperty = buildProperty {
+    this.moduleData = syntheticModuleData
+    this.origin = FirDeclarationOrigin.Synthetic
+    this.symbol = FirPropertySymbol(callableId)
+
+    this.status = status
     this.typeParameters += typeParameters
     this.receiverTypeRef = receiverType
     this.name = Name.identifier(name)
@@ -254,11 +253,16 @@ fun firProperty(
 fun firComparisonExpression(
     annotations: List<FirAnnotationCall>,
     operation: FirOperation,
-    compareToCall: FirFunctionCall
+    compareToCall: FirQualifiedAccessExpression
 ): FirComparisonExpression = buildComparisonExpression {
     this.annotations += annotations
     this.operation = operation
-    this.compareToCall = compareToCall
+    this.compareToCall = buildFunctionCall {
+        calleeReference = buildSimpleNamedReference {
+            name = OperatorNameConventions.COMPARE_TO
+        }
+        explicitReceiver = compareToCall.explicitReceiver
+    }
 }
 
 fun firElseIfTrueCondition(
@@ -274,6 +278,7 @@ fun firWhenSubjectExpression(
     annotations: List<FirAnnotationCall>
 ): FirWhenSubjectExpression = buildWhenSubjectExpression {
     this.annotations += annotations
+    this.whenRef = FirExpressionRef()
 }
 
 fun firTypeOperatorCall(
@@ -306,9 +311,22 @@ fun firSafeCallExpression(
     this.annotations += annotations
     this.receiver = receiver
     this.regularQualifiedAccess = regularQualifiedAccess
+
+    val checkedSafeCallSubject = buildCheckedSafeCallSubject {
+        this.originalReceiverRef = FirExpressionRef<FirExpression>().apply {
+            bind(receiver)
+        }
+    }
+
+    regularQualifiedAccess.replaceExplicitReceiver(checkedSafeCallSubject)
+    this.checkedSubjectRef = FirExpressionRef<FirCheckedSafeCallSubject>().apply {
+        bind(checkedSafeCallSubject)
+    }
 }
 
-fun firCheckedSafeCallSubject(): FirCheckedSafeCallSubject = buildCheckedSafeCallSubject {}
+fun firCheckedSafeCallSubject(): FirCheckedSafeCallSubject = buildCheckedSafeCallSubject {
+    this.originalReceiverRef = FirExpressionRef()
+}
 
 fun firVariableAssignment(
     annotations: List<FirAnnotationCall>,
@@ -316,7 +334,8 @@ fun firVariableAssignment(
     explicitReceiver: FirExpression?,
     dispatchReceiver: FirExpression,
     extensionReceiver: FirExpression,
-    rValue: FirExpression
+    rValue: FirExpression,
+    calleeReference: FirReference
 ): FirVariableAssignment = buildVariableAssignment {
     this.annotations += annotations
     this.typeArguments += typeArguments
@@ -324,6 +343,7 @@ fun firVariableAssignment(
     this.dispatchReceiver = dispatchReceiver
     this.extensionReceiver = extensionReceiver
     this.rValue = rValue
+    this.calleeReference = calleeReference
 }
 
 fun firGetClassCall(
@@ -352,24 +372,37 @@ fun firAssignmentOperatorStatement(
     this.rightArgument = rightArgument
 }
 
+private val unboundLoopTargets = mutableMapOf<String?, MutableSet<FirLoopTarget>>()
+
+private fun bindLoopTargets(labelName: String?, loop: FirLoop) {
+    for (target in unboundLoopTargets[labelName] ?: emptyList()) {
+        target.bind(loop)
+    }
+    unboundLoopTargets[labelName]?.clear()
+}
+
 fun firWhileLoop(
     annotations: List<FirAnnotationCall>,
-    label: FirLabel?,
+    labelName: String?,
     condition: FirExpression,
     block: FirBlock
 ): FirWhileLoop = buildWhileLoop {
     this.annotations += annotations
-    this.label = label
+    this.label = labelName?.let { FirLabelImpl(null, it) }
     this.condition = condition
     this.block = block
-}
+}.also { bindLoopTargets(labelName, it) }
 
 fun firLabel(name: String): FirLabel = buildLabel { this.name = name }
 
 fun firContinueExpression(
-    annotations: List<FirAnnotationCall>
+    annotations: List<FirAnnotationCall>,
+    labelName: String?
 ): FirContinueExpression = buildContinueExpression {
     this.annotations += annotations
+    this.target = FirLoopTarget(labelName).also {
+        unboundLoopTargets.putIfAbsent(labelName, mutableSetOf())?.add(it)
+    }
 }
 
 fun firClassKind_CLASS(): ClassKind = ClassKind.CLASS
@@ -386,8 +419,14 @@ fun firRegularClass(
     name: String,
     typeParameters: List<FirTypeParameter>,
     declarations: List<FirDeclaration>,
-    companionObject: FirRegularClass?
+    companionObject: FirRegularClass?,
+    classId: ClassId
 ): FirRegularClass = buildRegularClass {
+    this.moduleData = syntheticModuleData
+    this.origin = FirDeclarationOrigin.Synthetic
+    this.scopeProvider = SyntheticScopeProvider
+    this.symbol = FirRegularClassSymbol(classId)
+
     this.annotations += annotations
     this.status = status
     this.classKind = classKind
@@ -395,6 +434,27 @@ fun firRegularClass(
     this.typeParameters += typeParameters
     this.declarations += declarations
     this.companionObject = companionObject
+}
+
+private object SyntheticScopeProvider : FirScopeProvider() {
+    override fun getUseSiteMemberScope(klass: FirClass, useSiteSession: FirSession, scopeSession: ScopeSession): FirTypeScope {
+        shouldNotBeCalled()
+    }
+
+    override fun getStaticMemberScopeForCallables(
+        klass: FirClass,
+        useSiteSession: FirSession,
+        scopeSession: ScopeSession
+    ): FirScope? {
+        shouldNotBeCalled()
+    }
+
+    override fun getNestedClassifierScope(klass: FirClass, useSiteSession: FirSession, scopeSession: ScopeSession): FirScope? {
+        shouldNotBeCalled()
+    }
+
+    private fun shouldNotBeCalled(): Nothing =
+        error("Should not be called in expression trees")
 }
 
 fun firVisibilities_Public(): Visibility = Visibilities.Public
@@ -452,14 +512,21 @@ fun firDeclarationStatus(
 
 fun firPrimaryConstructor(
     annotations: List<FirAnnotationCall>,
+    status: FirDeclarationStatus,
     returnType: FirTypeRef,
     receiverType: FirTypeRef?,
     typeParameters: List<FirTypeParameter>,
     valueParameters: List<FirValueParameter>,
     delegatedConstructor: FirDelegatedConstructorCall?,
-    body: FirBlock?
+    body: FirBlock?,
+    callableId: CallableId
 ): FirConstructor = buildPrimaryConstructor {
+    this.moduleData = syntheticModuleData
+    this.origin = FirDeclarationOrigin.Synthetic
+    this.symbol = FirConstructorSymbol(callableId)
+
     this.annotations += annotations
+    this.status = status
     this.returnTypeRef = returnType
     this.receiverTypeRef = receiverType
     this.typeParameters += typeParameters
@@ -476,19 +543,21 @@ fun firClassId(
 
 fun firResolvedTypeRef(
     annotations: List<FirAnnotationCall>,
-    classId: ClassId?
+    classId: ClassId?,
+    isMarkedNullable: Boolean
 ): FirTypeRef = buildUserTypeRef {
     this.annotations += annotations
     if (classId != null) {
         qualifier += classId.asSingleFqName().pathSegments().map {
             FirQualifierPartImpl(
-                expressionTreeFirFakeSourceElement(filePsiElement!!),
+                expressionTreeFirFakeSourceElement(),
                 it, FirTypeArgumentListImpl(
-                    expressionTreeFirFakeSourceElement(filePsiElement!!)
+                    expressionTreeFirFakeSourceElement()
                 )
             )
         }
     }
+    this.isMarkedNullable = isMarkedNullable
 }
 
 fun firValueParameter(
@@ -500,6 +569,10 @@ fun firValueParameter(
     isNoinline: Boolean,
     isVararg: Boolean
 ): FirValueParameter = buildValueParameter {
+    this.moduleData = syntheticModuleData
+    this.origin = FirDeclarationOrigin.Synthetic
+    this.symbol = FirValueParameterSymbol(Name.identifier(name))
+
     this.annotations += annotations
     this.returnTypeRef = returnType
     this.name = Name.identifier(name)
@@ -654,24 +727,30 @@ fun firPropertyAccessor(
     isGetter: Boolean,
     typeParameters: List<FirTypeParameter>,
     valueParameters: List<FirValueParameter>,
-    body: FirBlock?
+    body: FirBlock?,
+    returnType: FirTypeRef
 ): FirPropertyAccessor = buildPropertyAccessor {
     this.moduleData = syntheticModuleData
     this.origin = FirDeclarationOrigin.Synthetic
     this.symbol = FirPropertyAccessorSymbol()
+
     this.annotations += annotations
     this.status = status
     this.isGetter = isGetter
     this.typeParameters += typeParameters
     this.valueParameters += valueParameters
     this.body = body
+    this.returnTypeRef = returnType
 }
 
 fun firBreakExpression(
-    annotations: List<FirAnnotationCall>
+    annotations: List<FirAnnotationCall>,
+    labelName: String?
 ): FirBreakExpression = buildBreakExpression {
     this.annotations += annotations
-    // TODO: target
+    this.target = FirLoopTarget(labelName).also {
+        unboundLoopTargets.putIfAbsent(labelName, mutableSetOf())?.add(it)
+    }
 }
 
 fun firDoWhileLoop(
@@ -684,7 +763,7 @@ fun firDoWhileLoop(
     this.label = labelName?.let { FirLabelImpl(null, it) }
     this.block = block
     this.condition = condition
-}
+}.also { bindLoopTargets(labelName, it) }
 
 fun firTypeParameter(
     annotations: List<FirAnnotationCall>,
