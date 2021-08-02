@@ -3756,6 +3756,13 @@ internal class JvmStaticOnNonPublicMemberImpl(
     override val firDiagnostic: FirPsiDiagnostic by weakRef(firDiagnostic)
 }
 
+internal class JvmStaticOnConstOrJvmFieldImpl(
+    firDiagnostic: FirPsiDiagnostic,
+    override val token: ValidityToken,
+) : KtFirDiagnostic.JvmStaticOnConstOrJvmField(), KtAbstractFirDiagnostic<PsiElement> {
+    override val firDiagnostic: FirPsiDiagnostic by weakRef(firDiagnostic)
+}
+
 internal class InapplicableJvmNameImpl(
     firDiagnostic: FirPsiDiagnostic,
     override val token: ValidityToken,
