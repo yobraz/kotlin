@@ -3324,6 +3324,12 @@ internal val KT_DIAGNOSTIC_CONVERTER = KtDiagnosticConverterBuilder.buildConvert
             token,
         )
     }
+    add(FirJvmErrors.JVM_STATIC_ON_NON_PUBLIC_MEMBER) { firDiagnostic ->
+        JvmStaticOnNonPublicMemberImpl(
+            firDiagnostic as FirPsiDiagnostic,
+            token,
+        )
+    }
     add(FirJvmErrors.INAPPLICABLE_JVM_NAME) { firDiagnostic ->
         InapplicableJvmNameImpl(
             firDiagnostic as FirPsiDiagnostic,
