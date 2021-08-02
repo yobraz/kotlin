@@ -1,0 +1,12 @@
+Module: m1
+Module: m2
+FILE: use.kt
+    public final fun use(map: R|Int2IntMap|, arg: R|kotlin/Int|): R|kotlin/Boolean| {
+        when () {
+            R|<local>/map|.R|/Int2IntMap.containsKey|(R|<local>/arg|) ->  {
+                ^use Boolean(true)
+            }
+        }
+
+        ^use R|<local>/map|.R|/Int2IntMap.containsKey|(R|<local>/arg|)
+    }
