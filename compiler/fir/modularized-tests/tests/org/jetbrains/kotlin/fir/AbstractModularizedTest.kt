@@ -100,7 +100,7 @@ abstract class AbstractModularizedTest : KtUsefulTestCase() {
         configuration.addJvmClasspathRoots(moduleData.classpath)
 
         // ignored for modular jdks
-        configuration.put(JVMConfigurationKeys.NO_JDK, true)
+//        configuration.put(JVMConfigurationKeys.NO_JDK, true)
 
         // in case of modular jdk only
         configuration.putIfNotNull(JVMConfigurationKeys.JDK_HOME, moduleData.modularJdkRoot)
