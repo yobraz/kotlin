@@ -388,15 +388,13 @@ public:
 namespace kotlin {
 namespace mm {
 
-// Returns the MemoryState for the current thread. The runtime must be initialized.
+// Returns the MemoryState for the current thread.
+// If the memory subsystem isn't initialized for the current thread, returns nullptr.
 // Try not to use it very often, as (1) thread local access can be slow on some platforms,
 // (2) TLS gets deallocated before our thread destruction hooks run.
 MemoryState* GetMemoryState() noexcept;
 
 } // namespace mm
-
-// TODO: Use API of ThreadRegistry when the legacy MM is gone.
-bool IsCurrentThreadRegistered() noexcept;
 
 enum class ThreadState {
     kRunnable, kNative
@@ -438,12 +436,21 @@ public:
 
     // Set the state for the given thread.
     ThreadStateGuard(MemoryState* thread, ThreadState state, bool reentrant = false) noexcept : thread_(thread), reentrant_(reentrant) {
+        RuntimeAssert(thread_ != nullptr, "thread must not be nullptr");
         oldState_ = SwitchThreadState(thread_, state, reentrant_);
     }
 
-    // Sets the state for the current thread.
-    explicit ThreadStateGuard(ThreadState state, bool reentrant = false) noexcept
-        : ThreadStateGuard(mm::GetMemoryState(), state, reentrant) {};
+    // Set the state for the current thread.
+    // Does nothing if the current thread is not attached to the runtime and the reentrant switch to the native state is requested.
+    explicit ThreadStateGuard(ThreadState state, bool reentrant = false) noexcept : thread_(mm::GetMemoryState()), reentrant_(reentrant) {
+        if (thread_ == nullptr && reentrant_ && state == ThreadState::kNative) {
+            oldState_ = ThreadState::kNative; // Just a stub to not leave the field uninitialized.
+            return;
+        }
+
+        RuntimeAssert(thread_ != nullptr, "Cannot switch the thread state for a thread which is not attached to the runtime");
+        oldState_ = SwitchThreadState(thread_, state, reentrant_);
+    }
 
     ThreadStateGuard(ThreadStateGuard&& other) noexcept
         : thread_(other.thread_), oldState_(other.oldState_), reentrant_(other.reentrant_) {
