@@ -26,8 +26,9 @@ extern testing::MockFunction<void(KRef)>* onUnhandledExceptionMock;
 template <class F, bool Strict = true>
 class ScopedMockFunction : private kotlin::MoveOnly {
 public:
-    using Mock = typename std::
-            conditional<Strict, testing::StrictMock<testing::MockFunction<F>>, testing::NiceMock<testing::MockFunction<F>>>::type;
+    using Mock = typename std::conditional_t<Strict,
+                                             testing::StrictMock<testing::MockFunction<F>>,
+                                             testing::NiceMock<testing::MockFunction<F>>>;
 
     explicit ScopedMockFunction(testing::MockFunction<F>** globalMockLocation) : globalMockLocation_(globalMockLocation) {
         RuntimeCheck(globalMockLocation != nullptr, "ScopedMockFunction needs non-null global mock location");
