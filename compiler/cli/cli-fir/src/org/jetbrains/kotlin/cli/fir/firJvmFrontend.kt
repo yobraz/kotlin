@@ -11,9 +11,9 @@
 package org.jetbrains.kotlin.cli.fir
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.StandardFileSystems
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.ProjectScope
-import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.checkKotlinPackageUsage
 import org.jetbrains.kotlin.cli.common.fir.FirDiagnosticsCompilerResultsReporter
@@ -28,23 +28,17 @@ import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.languageVersionSettings
-import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.FirAnalyzerFacade
 import org.jetbrains.kotlin.fir.checkers.registerExtendedCommonCheckers
 import org.jetbrains.kotlin.fir.declarations.FirFile
-import org.jetbrains.kotlin.fir.java.FirProjectSessionProvider
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.session.FirSessionFactory
 import org.jetbrains.kotlin.load.kotlin.PackagePartProvider
 import org.jetbrains.kotlin.modules.Module
-import org.jetbrains.kotlin.modules.TargetId
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.resolve.PlatformDependentAnalyzerServices
-import org.jetbrains.kotlin.resolve.diagnostics.SimpleGenericDiagnostics
 import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatformAnalyzerServices
 import java.io.File
 import java.io.PrintStream
@@ -111,26 +105,16 @@ class FirJvmFrontend internal constructor(
             AnalyzerWithCompilerReport.reportSyntaxErrors(ktFile, messageCollector).isHasErrors or errorsFound
         }
 
-        val sourceScope = GlobalSearchScope.filesWithoutLibrariesScope(project, ktFiles.map { it.virtualFile })
-            .uniteWith(TopDownAnalyzerFacadeForJVM.AllJavaSourcesInProjectScope(project))
+        val projectEnvironment = PsiBasedProjectEnvironment(
+            project, VirtualFileManager.getInstance().getFileSystem(StandardFileSystems.FILE_PROTOCOL), getPackagePartProvider
+        )
 
-        val providerAndScopeForIncrementalCompilation: FirSessionFactory.ProviderAndScopeForIncrementalCompilation? = null
-//            getProviderAndScopeForIncrementalCompilation(
-//                project,
-//                configuration.get(JVMConfigurationKeys.MODULES)?.map(::TargetId),
-//                sourceScope,
-//                moduleConfiguration[JVMConfigurationKeys.OUTPUT_DIRECTORY],
-//                configuration.get(JVMConfigurationKeys.INCREMENTAL_COMPILATION_COMPONENTS),
-//                getPackagePartProvider,
-//                environment.projectEnvironment.environment.localFileSystem
-//            )
+        val sourceScope = (projectEnvironment as PsiBasedProjectEnvironment).getSearchScopeByPsiFiles(ktFiles) +
+                projectEnvironment.getSearchScopeForProjectJavaSources()
+
+        val librariesScope = projectEnvironment.getSearchScopeForProjectLibraries()
+
         val extendedAnalysisMode = false
-
-        val librariesScope = ProjectScope.getLibrariesScope(project).let {
-            if (providerAndScopeForIncrementalCompilation != null)
-                it.intersectWith(GlobalSearchScope.notScope(providerAndScopeForIncrementalCompilation.scope))
-            else it
-        }
 
         val languageVersionSettings = moduleConfiguration.languageVersionSettings
         val session = FirSessionFactory.createSessionWithDependencies(
@@ -138,24 +122,22 @@ class FirJvmFrontend internal constructor(
             JvmPlatforms.unspecifiedJvmPlatform,
             JvmPlatformAnalyzerServices,
             externalSessionProvider = null,
-            project,
+            projectEnvironment,
             languageVersionSettings,
             sourceScope,
             librariesScope,
             lookupTracker = configuration.get(CommonConfigurationKeys.LOOKUP_TRACKER),
-            providerAndScopeForIncrementalCompilation,
-            getPackagePartProvider,
+            null,
             dependenciesConfigurator = {
                 dependencies(moduleConfiguration.jvmClasspathRoots.map { it.toPath() })
                 dependencies(moduleConfiguration.jvmModularRoots.map { it.toPath() })
                 friendDependencies(moduleConfiguration[JVMConfigurationKeys.FRIEND_PATHS] ?: emptyList())
-            },
-            sessionConfigurator = {
-                if (extendedAnalysisMode) {
-                    registerExtendedCommonCheckers()
-                }
             }
-        )
+        ) {
+            if (extendedAnalysisMode) {
+                registerExtendedCommonCheckers()
+            }
+        }
 
         val firAnalyzerFacade = FirAnalyzerFacade(session, moduleConfiguration.languageVersionSettings, ktFiles)
 

@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import java.io.File
 
 fun Module.getSourceFiles(
-    environment: KotlinCoreEnvironment,
+    allSourceFiles: List<KtFile>,
     localFileSystem: VirtualFileSystem,
     multiModuleChunk: Boolean,
     buildFile: File?
@@ -42,14 +42,14 @@ fun Module.getSourceFiles(
                 .mapNotNull(localFileSystem::findFileByPath)
                 .partition(VirtualFile::isDirectory)
 
-        environment.getSourceFiles().filter { file ->
+        allSourceFiles.filter { file ->
             val virtualFile = file.virtualFile
             virtualFile in moduleSourceFiles || moduleSourceDirs.any { dir ->
                 VfsUtilCore.isAncestor(dir, virtualFile, true)
             }
         }
     } else {
-        environment.getSourceFiles()
+        allSourceFiles
     }
 }
 

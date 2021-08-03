@@ -7,6 +7,8 @@ package org.jetbrains.kotlin.benchmarks
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.CharsetToolkit
+import com.intellij.openapi.vfs.StandardFileSystems
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.impl.PsiFileFactoryImpl
@@ -153,7 +155,11 @@ abstract class AbstractSimpleFileBenchmark {
     private fun analyzeGreenFileIr(bh: Blackhole) {
         val scope = GlobalSearchScope.filesScope(env.project, listOf(file.virtualFile))
             .uniteWith(TopDownAnalyzerFacadeForJVM.AllJavaSourcesInProjectScope(env.project))
-        val session = createSessionForTests(env, scope)
+        val projEnv = PsiBasedProjectEnvironment(
+            env.project, VirtualFileManager.getInstance().getFileSystem(StandardFileSystems.FILE_PROTOCOL),
+            { env.createPackagePartProvider(it) }
+        )
+        val session = createSessionForTests(projEnv, PsiBasedProjectFileSearchScope(scope))
         val firProvider = session.firProvider as FirProviderImpl
         val builder = RawFirBuilder(session, firProvider.kotlinScopeProvider, PsiHandlingMode.COMPILER)
 

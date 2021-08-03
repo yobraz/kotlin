@@ -106,7 +106,7 @@ object KotlinToJVMBytecodeCompiler {
         for (module in chunk) {
             ProgressIndicatorAndCompilationCanceledStatus.checkCanceled()
 
-            val ktFiles = module.getSourceFiles(environment, localFileSystem, chunk.size > 1, buildFile)
+            val ktFiles = module.getSourceFiles(environment.getSourceFiles(), localFileSystem, chunk.size > 1, buildFile)
             if (!checkKotlinPackageUsage(environment, ktFiles)) return false
             val moduleConfiguration = projectConfiguration.applyModuleProperties(module, buildFile)
 
