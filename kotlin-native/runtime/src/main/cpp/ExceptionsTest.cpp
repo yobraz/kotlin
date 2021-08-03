@@ -22,8 +22,8 @@ using namespace kotlin::test_support;
 
 namespace {
 
-using NativeHandlerMock = testing::NiceMock<testing::MockFunction<void(void)>>;
-using OnUnhandledExceptionMock = testing::NiceMock<testing::MockFunction<void(KRef)>>;
+using NativeHandlerMock = NiceMock<MockFunction<void(void)>>;
+using OnUnhandledExceptionMock = NiceMock<MockFunction<void(KRef)>>;
 
 KStdUniquePtr<NativeHandlerMock> gNativeHandlerMock = nullptr;
 KStdUniquePtr<ScopedMockFunction<void(KRef), /* Strict = */ false>> gOnUnhandledExceptionMock = nullptr;
