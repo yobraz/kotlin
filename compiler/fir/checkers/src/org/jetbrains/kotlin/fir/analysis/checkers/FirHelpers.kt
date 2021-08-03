@@ -21,11 +21,8 @@ import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.FirVariableAssignment
 import org.jetbrains.kotlin.fir.expressions.impl.FirEmptyExpressionBlock
 import org.jetbrains.kotlin.fir.expressions.toResolvedCallableSymbol
-import org.jetbrains.kotlin.fir.resolve.SessionHolder
-import org.jetbrains.kotlin.fir.resolve.fullyExpandedType
+import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.inference.isBuiltinFunctionalType
-import org.jetbrains.kotlin.fir.resolve.symbolProvider
-import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.scopes.FirTypeScope
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.scopes.impl.multipleDelegatesWithTheSameSignature
@@ -573,7 +570,14 @@ fun checkTypeMismatch(
                 reporter.reportOn(rValue.source, FirErrors.NULL_FOR_NONNULL_TYPE, context)
             }
             isInitializer -> {
-                reporter.reportOn(source, FirErrors.INITIALIZER_TYPE_MISMATCH, lValueType, rValueType, context)
+                reporter.reportOn(
+                    source,
+                    FirErrors.INITIALIZER_TYPE_MISMATCH,
+                    lValueType,
+                    rValueType,
+                    context.session.typeContext.isTypeMismatchDueToNullability(rValueType, lValueType),
+                    context
+                )
             }
             source.kind is FirFakeSourceElementKind.DesugaredIncrementOrDecrement -> {
                 if (!lValueType.isNullable && rValueType.isNullable) {
@@ -588,7 +592,14 @@ fun checkTypeMismatch(
                 }
             }
             else -> {
-                reporter.reportOn(source, FirErrors.ASSIGNMENT_TYPE_MISMATCH, lValueType, rValueType, context)
+                reporter.reportOn(
+                    source,
+                    FirErrors.ASSIGNMENT_TYPE_MISMATCH,
+                    lValueType,
+                    rValueType,
+                    context.session.typeContext.isTypeMismatchDueToNullability(rValueType, lValueType),
+                    context
+                )
             }
         }
     }
@@ -600,7 +611,13 @@ internal fun checkCondition(condition: FirExpression, context: CheckerContext, r
         coneType !is ConeKotlinErrorType &&
         !coneType.isSubtypeOf(context.session.typeContext, context.session.builtinTypes.booleanType.type)
     ) {
-        reporter.reportOn(condition.source, FirErrors.CONDITION_TYPE_MISMATCH, coneType, context)
+        reporter.reportOn(
+            condition.source,
+            FirErrors.CONDITION_TYPE_MISMATCH,
+            coneType,
+            coneType.isNullableBoolean,
+            context
+        )
     }
 }
 
