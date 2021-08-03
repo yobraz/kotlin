@@ -230,6 +230,7 @@ private fun FirElement.build(): FirExpression = when (this) {
     )
     is FirProperty -> call(
         "firProperty", listOf(
+            annotations.buildList(),
             status.build(),
             typeParameters.buildList(),
             receiverTypeRef.buildNullable(),

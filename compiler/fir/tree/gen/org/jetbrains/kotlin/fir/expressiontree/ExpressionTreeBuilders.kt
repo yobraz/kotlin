@@ -224,6 +224,7 @@ fun firFunctionTarget(
 fun firImplicitNothingTypeRef(): FirImplicitNothingTypeRef = FirImplicitNothingTypeRef(null)
 
 fun firProperty(
+    annotations: List<FirAnnotationCall>,
     status: FirDeclarationStatus,
     typeParameters: List<FirTypeParameter>,
     receiverType: FirTypeRef?,
@@ -239,6 +240,7 @@ fun firProperty(
     this.origin = FirDeclarationOrigin.Synthetic
     this.symbol = FirPropertySymbol(callableId)
 
+    this.annotations += annotations
     this.status = status
     this.typeParameters += typeParameters
     this.receiverTypeRef = receiverType
