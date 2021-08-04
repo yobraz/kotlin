@@ -199,7 +199,7 @@ internal enum class NullabilityType {
 internal val KtType.nullabilityType: NullabilityType
     get() =
         (this as? KtTypeWithNullability)?.let {
-            if (it.nullability == KtTypeNullability.NULLABLE) NullabilityType.Nullable else NullabilityType.NotNull
+            if (it.declaredNullability == KtTypeNullability.NULLABLE) NullabilityType.Nullable else NullabilityType.NotNull
         } ?: NullabilityType.Unknown
 
 
