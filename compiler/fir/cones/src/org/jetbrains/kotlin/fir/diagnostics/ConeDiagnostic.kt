@@ -12,3 +12,5 @@ abstract class ConeDiagnostic {
 class ConeStubDiagnostic(val original: ConeDiagnostic) : ConeDiagnostic() {
     override val reason: String get() = original.reason
 }
+
+class SomeTestClass
