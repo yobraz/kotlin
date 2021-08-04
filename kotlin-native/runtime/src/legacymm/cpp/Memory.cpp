@@ -3742,6 +3742,10 @@ MemoryState* kotlin::mm::GetMemoryState() noexcept {
     return ::memoryState;
 }
 
+bool kotlin::IsCurrentThreadRegistered() noexcept {
+    return ::memoryState != nullptr;
+}
+
 kotlin::ThreadState kotlin::GetThreadState(MemoryState* thread) noexcept {
     // Assume that we are always in the Runnable thread state.
     return ThreadState::kRunnable;

@@ -43,6 +43,16 @@ void ThrowException(KRef exception) {
 
 namespace {
 
+[[nodiscard]] kotlin::ThreadStateGuard setNativeStateForRegisteredThread(bool reentrant = true) {
+    if (kotlin::IsCurrentThreadRegistered()) {
+        return kotlin::ThreadStateGuard(kotlin::ThreadState::kNative, reentrant);
+    } else {
+        // The current thread is not registered in the Kotlin runtime,
+        // just return an empty guard which doesn't actually switch the state.
+        return kotlin::ThreadStateGuard();
+    }
+}
+
 class {
     /**
      * Timeout 5 sec for concurrent (second) terminate attempt to give a chance the first one to finish.
@@ -57,8 +67,7 @@ class {
         // block() is supposed to be NORETURN, otherwise go to normal abort()
         konan::abort();
       } else {
-        // This guard does nothing if the current thread is not attached to the runtime.
-        kotlin::ThreadStateGuard guard(kotlin::ThreadState::kNative, /* reentrant = */ true);
+        auto guard = setNativeStateForRegisteredThread();
         sleep(timeoutSec);
         // We come here when another terminate handler hangs for 5 sec, that looks fatally broken. Go to forced exit now.
       }
@@ -114,17 +123,13 @@ class TerminateHandler : private kotlin::Pinned {
           processUnhandledKotlinException(e.GetExceptionObject());
           konan::abort();
         } catch (...) {
-          // Not a Kotlin exception - call default handler.
-
-          // This guard does nothing if the current thread is not attached to the runtime.
-          kotlin::ThreadStateGuard guard(kotlin::ThreadState::kNative, /* reentrant = */ true);
+          // Not a Kotlin exception - call default handler
+          auto guard = setNativeStateForRegisteredThread();
           instance().queuedHandler_();
         }
       }
       // Come here in case of direct terminate() call or unknown exception - go to default terminate handler.
-
-      // This guard does nothing if the current thread is not attached to the runtime.
-      kotlin::ThreadStateGuard guard(kotlin::ThreadState::kNative, /* reentrant = */ true);
+      auto guard = setNativeStateForRegisteredThread();
       instance().queuedHandler_();
     });
   }

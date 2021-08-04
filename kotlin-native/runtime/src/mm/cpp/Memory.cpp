@@ -541,6 +541,10 @@ MemoryState* kotlin::mm::GetMemoryState() noexcept {
     return ToMemoryState(ThreadRegistry::Instance().CurrentThreadDataNode());
 }
 
+bool kotlin::IsCurrentThreadRegistered() noexcept {
+    return mm::ThreadRegistry::Instance().IsCurrentThreadRegistered();
+}
+
 ALWAYS_INLINE kotlin::CalledFromNativeGuard::CalledFromNativeGuard(bool reentrant) noexcept : reentrant_(reentrant) {
     Kotlin_initRuntimeIfNeeded();
     thread_ = mm::GetMemoryState();
