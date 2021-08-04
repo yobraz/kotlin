@@ -18,7 +18,13 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
 fun evaluateConstants(irModuleFragment: IrModuleFragment) {
     val interpreter = IrInterpreter(irModuleFragment.irBuiltins)
-    irModuleFragment.files.forEach { it.transformChildren(IrConstTransformer(interpreter, it), null) }
+    irModuleFragment.files.forEach {
+        try {
+            it.transformChildren(IrConstTransformer(interpreter, it), null)
+        } catch (e: Throwable) {
+            throw IllegalStateException("Exception while evaluating constants in file ${it.name}", e)
+        }
+    }
 }
 
 //TODO create abstract class that will be common for this and lowering
