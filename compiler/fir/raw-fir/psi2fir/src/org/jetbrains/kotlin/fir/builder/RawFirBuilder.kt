@@ -799,30 +799,34 @@ open class RawFirBuilder(
 
         override fun visitKtFile(file: KtFile, data: Unit): FirElement {
             context.packageFqName = if (psiMode == PsiHandlingMode.COMPILER) file.packageFqNameByTree else file.packageFqName
-            return buildFile {
-                source = file.toFirSourceElement()
-                moduleData = baseModuleData
-                origin = FirDeclarationOrigin.Source
-                name = file.name
-                packageDirective = buildPackageDirective {
-                    packageFqName = context.packageFqName
-                    source = file.packageDirective?.toFirPsiSourceElement()
-                }
-                for (annotationEntry in file.annotationEntries) {
-                    annotations += annotationEntry.convert<FirAnnotationCall>()
-                }
-                for (importDirective in file.importDirectives) {
-                    imports += buildImport {
-                        source = importDirective.toFirSourceElement()
-                        importedFqName = importDirective.importedFqName
-                        isAllUnder = importDirective.isAllUnder
-                        aliasName = importDirective.aliasName?.let { Name.identifier(it) }
-                        aliasSource = importDirective.alias?.nameIdentifier?.toFirSourceElement()
+            try {
+                return buildFile {
+                    source = file.toFirSourceElement()
+                    moduleData = baseModuleData
+                    origin = FirDeclarationOrigin.Source
+                    name = file.name
+                    packageDirective = buildPackageDirective {
+                        packageFqName = context.packageFqName
+                        source = file.packageDirective?.toFirPsiSourceElement()
+                    }
+                    for (annotationEntry in file.annotationEntries) {
+                        annotations += annotationEntry.convert<FirAnnotationCall>()
+                    }
+                    for (importDirective in file.importDirectives) {
+                        imports += buildImport {
+                            source = importDirective.toFirSourceElement()
+                            importedFqName = importDirective.importedFqName
+                            isAllUnder = importDirective.isAllUnder
+                            aliasName = importDirective.aliasName?.let { Name.identifier(it) }
+                            aliasSource = importDirective.alias?.nameIdentifier?.toFirSourceElement()
+                        }
+                    }
+                    for (declaration in file.declarations) {
+                        declarations += declaration.convert<FirDeclaration>()
                     }
                 }
-                for (declaration in file.declarations) {
-                    declarations += declaration.convert<FirDeclaration>()
-                }
+            } catch (e: Throwable) {
+                throw IllegalStateException("Exception while converting file ${file.name} to FIR", e)
             }
         }
 
@@ -2329,9 +2333,7 @@ open class RawFirBuilder(
         }
 
         override fun visitExpression(expression: KtExpression, data: Unit): FirElement {
-            return buildExpressionStub {
-                source = expression.toFirSourceElement()
-            }
+            throw AssertionError("Unsupported expression is found in RawFirBuilder: ${expression.text} of ${expression::class.java}")
         }
     }
 
