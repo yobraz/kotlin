@@ -1,34 +1,17 @@
 FILE: hideBySeverity.kt
-    public abstract interface StoredProperty<T> : R|kotlin/Any| {
-        public abstract var name: R|kotlin/String?|
-            public get(): R|kotlin/String?|
-            public set(value: R|kotlin/String?|): R|kotlin/Unit|
-
-        public abstract fun getValue(thisRef: R|BaseState|): R|T|
-
-        public abstract fun setValue(thisRef: R|BaseState|, value: R|T|): R|kotlin/Unit|
-
-    }
-    public abstract class StoredPropertyBase<T> : R|StoredProperty<T>|, R|kotlin/properties/ReadWriteProperty<BaseState, T>| {
+    public abstract class StoredPropertyBase<T> : R|kotlin/properties/ReadWriteProperty<BaseState, T>| {
         public constructor<T>(): R|StoredPropertyBase<T>| {
             super<R|kotlin/Any|>()
         }
 
-        public open override var name: R|kotlin/String?| = Null(null)
-            public get(): R|kotlin/String?|
-            public set(value: R|kotlin/String?|): R|kotlin/Unit|
-
-        public final operator fun provideDelegate(thisRef: R|kotlin/Any|, property: R|kotlin/reflect/KProperty<*>|): R|kotlin/properties/ReadWriteProperty<BaseState, T>| {
-            this@R|/StoredPropertyBase|.R|/StoredPropertyBase.name| = R|<local>/property|.R|kotlin/reflect/KCallable.name|
-            ^provideDelegate this@R|/StoredPropertyBase|
+    }
+    public abstract class StoredPropertyDerived<T> : R|StoredPropertyBase<T>| {
+        public constructor<T>(): R|StoredPropertyDerived<T>| {
+            super<R|StoredPropertyBase<T>|>()
         }
 
-        public open override operator fun getValue(thisRef: R|BaseState|, property: R|kotlin/reflect/KProperty<*>|): R|T| {
-            ^getValue this@R|/StoredPropertyBase|.R|SubstitutionOverride</StoredPropertyBase.getValue: R|T|>|(R|<local>/thisRef|)
-        }
-
-        public open override operator fun setValue(thisRef: R|BaseState|, property: R|kotlin/reflect/KProperty<*>|, value: R|T|): R|kotlin/Unit| {
-            ^setValue this@R|/StoredPropertyBase|.R|SubstitutionOverride</StoredPropertyBase.setValue: R|kotlin/Unit|>|(R|<local>/thisRef|, R|<local>/value|)
+        public final operator fun provideDelegate(thisRef: R|kotlin/Any|, property: R|kotlin/reflect/KProperty<*>|): R|StoredPropertyBase<T>| {
+            ^provideDelegate this@R|/StoredPropertyDerived|
         }
 
     }
@@ -37,7 +20,9 @@ FILE: hideBySeverity.kt
             super<R|kotlin/Any|>()
         }
 
-        protected abstract fun <PROPERTY_TYPE> property(initialValue: R|PROPERTY_TYPE|, isDefault: R|(PROPERTY_TYPE) -> kotlin/Boolean|): R|StoredPropertyBase<PROPERTY_TYPE>|
+        protected abstract fun <PROPERTY_TYPE> propertyDerived(initialValue: R|PROPERTY_TYPE|): R|StoredPropertyDerived<PROPERTY_TYPE>|
+
+        protected abstract fun <PROPERTY_TYPE> propertyBase(initialValue: R|PROPERTY_TYPE|): R|StoredPropertyBase<PROPERTY_TYPE>|
 
     }
     public abstract class Some : R|BaseState| {
@@ -45,12 +30,14 @@ FILE: hideBySeverity.kt
             super<R|BaseState|>()
         }
 
-        public final val hideBySeverity: R|kotlin/collections/MutableSet<kotlin/Int>|by this@R|/Some|.<CS errors: /BaseState.property>#<R|ERROR CLASS: Cannot infer argument for type parameter PROPERTY_TYPE|>(Q|java/util/Collections|.R|java/util/Collections.newSetFromMap|<R|ERROR CLASS: Cannot infer argument for type parameter E|>(R|java/util/concurrent/ConcurrentHashMap.ConcurrentHashMap|<R|ERROR CLASS: Cannot infer argument for type parameter K|, R|ft<kotlin/Boolean, kotlin/Boolean?>|>()), property@fun <anonymous>(it: <ERROR TYPE REF: Cannot infer argument for type parameter PROPERTY_TYPE>): R|kotlin/Boolean| <inline=NoInline>  {
-            ^ R|<local>/it|.<Ambiguity: isEmpty, [kotlin/collections/isEmpty, kotlin/collections/isEmpty, kotlin/collections/isEmpty, kotlin/collections/isEmpty, kotlin/collections/isEmpty, kotlin/collections/isEmpty, kotlin/collections/isEmpty, kotlin/collections/isEmpty, kotlin/collections/isEmpty, kotlin/text/isEmpty]>#()
-        }
-        ).R|SubstitutionOverride</StoredPropertyBase.provideDelegate: R|kotlin/properties/ReadWriteProperty<BaseState, ERROR CLASS: Cannot infer argument for type parameter PROPERTY_TYPE>|>|(this@R|/Some|, ::R|/Some.hideBySeverity|)
+        public final val hideBySeverityDerived: R|kotlin/collections/MutableSet<kotlin/Int>|by this@R|/Some|.<CS errors: /BaseState.propertyDerived>#<R|ERROR CLASS: Cannot infer argument for type parameter PROPERTY_TYPE|>(R|kotlin/collections/mutableSetOf|<R|ERROR CLASS: Cannot infer argument for type parameter T|>()).R|SubstitutionOverride</StoredPropertyDerived.provideDelegate: R|StoredPropertyBase<ERROR CLASS: Cannot infer argument for type parameter PROPERTY_TYPE>|>|(this@R|/Some|, ::R|/Some.hideBySeverityDerived|)
             public get(): R|kotlin/collections/MutableSet<kotlin/Int>| {
-                ^ this@R|/Some|.D|/Some.hideBySeverity|.R|SubstitutionOverride<kotlin/properties/ReadWriteProperty.getValue: <ERROR TYPE REF: Cannot infer argument for type parameter PROPERTY_TYPE>>|(this@R|/Some|, ::R|/Some.hideBySeverity|)
+                ^ this@R|/Some|.D|/Some.hideBySeverityDerived|.R|SubstitutionOverride</StoredPropertyBase.getValue: <ERROR TYPE REF: Cannot infer argument for type parameter PROPERTY_TYPE>>|(this@R|/Some|, ::R|/Some.hideBySeverityDerived|)
+            }
+
+        public final val hideBySeverityBase: R|kotlin/collections/MutableSet<kotlin/Int>|by this@R|/Some|.R|/BaseState.propertyBase|<R|kotlin/collections/MutableSet<kotlin/Int>|>(R|kotlin/collections/mutableSetOf|<R|kotlin/Int|>())
+            public get(): R|kotlin/collections/MutableSet<kotlin/Int>| {
+                ^ this@R|/Some|.D|/Some.hideBySeverityBase|.R|SubstitutionOverride</StoredPropertyBase.getValue: R|kotlin/collections/MutableSet<kotlin/Int>|>|(this@R|/Some|, ::R|/Some.hideBySeverityBase|)
             }
 
     }
