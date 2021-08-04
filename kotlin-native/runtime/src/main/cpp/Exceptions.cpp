@@ -44,7 +44,8 @@ void ThrowException(KRef exception) {
 namespace {
 
 [[nodiscard]] kotlin::ThreadStateGuard setNativeStateForRegisteredThread(bool reentrant = true) {
-    if (kotlin::IsCurrentThreadRegistered()) {
+    auto* memoryState = kotlin::mm::GetMemoryState();
+    if (memoryState) {
         return kotlin::ThreadStateGuard(kotlin::ThreadState::kNative, reentrant);
     } else {
         // The current thread is not registered in the Kotlin runtime,

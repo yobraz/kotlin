@@ -61,9 +61,11 @@ void setupMocks(bool expectRegisteredThread = true) noexcept {
     auto& nativeHandlerMock = setNativeTerminateHandler();
     ON_CALL(nativeHandlerMock, Call)
             .WillByDefault([expectRegisteredThread]() {
-                loggingAssert(IsCurrentThreadRegistered() == expectRegisteredThread, "Expected registered thread in the native handler");
                 if (expectRegisteredThread) {
+                    loggingAssert(mm::GetMemoryState() != nullptr, "Expected registered thread in the native handler");
                     loggingAssert(GetThreadState() == ThreadState::kNative, "Expected kNative thread state in the native handler");
+                } else {
+                    loggingAssert(mm::GetMemoryState() == nullptr, "Expected unregistered thread in the native handler");
                 }
                 log("Native handler");
             });
