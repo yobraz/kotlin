@@ -43,6 +43,7 @@ void ThrowException(KRef exception) {
 
 namespace {
 
+// This function accesses a TLS variable under the hood, so it must not be called from a thread destructor (see kotlin::mm::GetMemoryState).
 [[nodiscard]] kotlin::ThreadStateGuard setNativeStateForRegisteredThread(bool reentrant = true) {
     auto* memoryState = kotlin::mm::GetMemoryState();
     if (memoryState) {
