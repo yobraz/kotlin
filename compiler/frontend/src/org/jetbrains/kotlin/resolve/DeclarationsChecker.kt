@@ -718,11 +718,11 @@ class DeclarationsChecker(
                             extensionReceiverType?.contains { it.constructor == typeParameter.typeConstructor } == true
                 }
                 if (usedParameter != null) {
-                    if (languageVersionSettings.supportsFeature(LanguageFeature.ForbidUsingExtensionPropertyTypeParameterInDelegate)) {
-                        trace.report(DELEGATE_USES_EXTENSION_PROPERTY_TYPE_PARAMETER.on(delegate, usedParameter.name.asString()))
-                    } else {
-                        trace.report(DELEGATE_USES_EXTENSION_PROPERTY_TYPE_PARAMETER_WARNING.on(delegate, usedParameter.name.asString()))
-                    }
+//                    if (languageVersionSettings.supportsFeature(LanguageFeature.ForbidUsingExtensionPropertyTypeParameterInDelegate)) {
+//                        trace.report(DELEGATE_USES_EXTENSION_PROPERTY_TYPE_PARAMETER.on(delegate, usedParameter.name.asString()))
+//                    } else {
+//                        trace.report(DELEGATE_USES_EXTENSION_PROPERTY_TYPE_PARAMETER_WARNING.on(delegate, usedParameter.name.asString()))
+//                    }
                 }
             }
         } else {

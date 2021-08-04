@@ -64,7 +64,7 @@ class ExperimentalMarkerDeclarationAnnotationChecker(private val module: ModuleD
                 if (PROPERTY_GETTER in possibleTargets ||
                     annotationUseSiteTarget == AnnotationUseSiteTarget.PROPERTY_GETTER
                 ) {
-                    trace.report(Errors.EXPERIMENTAL_ANNOTATION_ON_WRONG_TARGET.on(entry, "getter"))
+                    //trace.report(Errors.EXPERIMENTAL_ANNOTATION_ON_WRONG_TARGET.on(entry, "getter"))
                 }
                 if (VALUE_PARAMETER in possibleTargets && annotationUseSiteTarget == null ||
                     annotationUseSiteTarget == AnnotationUseSiteTarget.RECEIVER ||
@@ -90,11 +90,11 @@ class ExperimentalMarkerDeclarationAnnotationChecker(private val module: ModuleD
                     if (descriptor is CallableMemberDescriptor &&
                         !descriptor.hasExperimentalOverriddenDescriptors(annotationClass.fqNameSafe)
                     ) {
-                        if (languageVersionSettings.supportsFeature(LanguageFeature.OptInOnOverrideForbidden)) {
-                            trace.report(Errors.EXPERIMENTAL_ANNOTATION_ON_OVERRIDE.on(entry))
-                        } else {
-                            trace.report(Errors.EXPERIMENTAL_ANNOTATION_ON_OVERRIDE_WARNING.on(entry))
-                        }
+//                        if (languageVersionSettings.supportsFeature(LanguageFeature.OptInOnOverrideForbidden)) {
+//                            trace.report(Errors.EXPERIMENTAL_ANNOTATION_ON_OVERRIDE.on(entry))
+//                        } else {
+//                            trace.report(Errors.EXPERIMENTAL_ANNOTATION_ON_OVERRIDE_WARNING.on(entry))
+//                        }
                     }
                 }
             }
