@@ -17,7 +17,7 @@ public sealed interface KtType : ValidityTokenOwner {
 }
 
 public interface KtTypeWithNullability : KtType {
-    public val nullability: KtTypeNullability
+    public val declaredNullability: KtTypeNullability
 }
 
 public enum class KtTypeNullability(public val isNullable: Boolean) {
@@ -65,7 +65,7 @@ public abstract class KtCapturedType : KtType {
 public abstract class KtDefinitelyNotNullType : KtType, KtTypeWithNullability {
     public abstract val original: KtType
 
-    final override val nullability: KtTypeNullability get() = KtTypeNullability.NON_NULLABLE
+    final override val declaredNullability: KtTypeNullability get() = KtTypeNullability.NON_NULLABLE
 
     override fun toString(): String = asStringForDebugging()
 }
