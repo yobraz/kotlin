@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.fir.expressions.builder.buildUnitExpression
 import org.jetbrains.kotlin.fir.expressions.impl.FirLazyBlock
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.ResolutionMode
+import org.jetbrains.kotlin.fir.resolve.calls.FirErrorReferenceWithCandidate
 import org.jetbrains.kotlin.fir.resolve.calls.FirNamedReferenceWithCandidate
 import org.jetbrains.kotlin.fir.resolve.constructFunctionalTypeRef
 import org.jetbrains.kotlin.fir.resolve.dfa.FirControlFlowGraphReferenceImpl
@@ -134,7 +135,6 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
         return withFullBodyResolve {
             context.withProperty(property) {
                 context.forPropertyInitializer {
-                    property.transformDelegate(transformer, ResolutionMode.ContextDependentDelegate)
                     property.transformChildrenWithoutAccessors(returnTypeRef)
                     if (property.initializer != null) {
                         storeVariableReturnType(property)
@@ -219,6 +219,13 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
 
     private fun transformPropertyAccessorsWithDelegate(property: FirProperty, delegateExpression: FirExpression) {
         context.forPropertyDelegateAccessors(property, delegateExpression, resolutionContext, callCompleter) {
+            if (property.isLocal) {
+                property.transformDelegate(transformer, ResolutionMode.ContextDependentDelegate)
+            } else {
+                context.forPropertyInitializer {
+                    property.transformDelegate(transformer, ResolutionMode.ContextDependentDelegate)
+                }
+            }
             property.transformAccessors()
             val completedCalls = completeCandidates()
             val finalSubstitutor = createFinalSubstitutor()
@@ -243,6 +250,8 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
             val delegateProvider = wrappedDelegateExpression.delegateProvider.transformSingle(transformer, data)
             when (val calleeReference = (delegateProvider as FirResolvable).calleeReference) {
                 is FirResolvedNamedReference -> return delegateProvider
+                is FirErrorReferenceWithCandidate -> {
+                }
                 is FirNamedReferenceWithCandidate -> {
                     val candidate = calleeReference.candidate
                     if (!candidate.system.hasContradiction) {
@@ -251,7 +260,9 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
                 }
             }
 
+            context.inferenceSession.clear()
             (delegateProvider as? FirFunctionCall)?.let { dataFlowAnalyzer.dropSubgraphFromCall(it) }
+
             return wrappedDelegateExpression.expression
                 .transformSingle(transformer, data)
                 .approximateIfIsIntegerConst()
@@ -262,7 +273,6 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
 
     private fun transformLocalVariable(variable: FirProperty): FirProperty {
         assert(variable.isLocal)
-        variable.transformDelegate(transformer, ResolutionMode.ContextDependentDelegate)
         val delegate = variable.delegate
         if (delegate != null) {
             transformPropertyAccessorsWithDelegate(variable, delegate)
@@ -287,7 +297,6 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
         val data = withExpectedType(returnTypeRef)
         return transformReturnTypeRef(transformer, data)
             .transformInitializer(transformer, data)
-            .transformDelegate(transformer, data)
             .transformTypeParameters(transformer, data)
             .transformOtherChildren(transformer, data)
     }

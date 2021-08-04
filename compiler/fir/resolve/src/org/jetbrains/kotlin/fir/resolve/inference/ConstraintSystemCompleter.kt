@@ -416,6 +416,7 @@ class ConstraintSystemCompleter(private val components: BodyResolveComponents) {
 fun FirStatement.processAllContainingCallCandidates(processBlocks: Boolean, processor: (Candidate) -> Unit) {
     when (this) {
         is FirFunctionCall -> {
+            explicitReceiver?.processAllContainingCallCandidates(processBlocks, processor)
             processCandidateIfApplicable(processor, processBlocks)
             this.arguments.forEach { it.processAllContainingCallCandidates(processBlocks, processor) }
         }
@@ -441,10 +442,12 @@ fun FirStatement.processAllContainingCallCandidates(processBlocks: Boolean, proc
         }
 
         is FirQualifiedAccessExpression -> {
+            explicitReceiver?.processAllContainingCallCandidates(processBlocks, processor)
             processCandidateIfApplicable(processor, processBlocks)
         }
 
         is FirVariableAssignment -> {
+            explicitReceiver?.processAllContainingCallCandidates(processBlocks, processor)
             processCandidateIfApplicable(processor, processBlocks)
             rValue.processAllContainingCallCandidates(processBlocks, processor)
         }
