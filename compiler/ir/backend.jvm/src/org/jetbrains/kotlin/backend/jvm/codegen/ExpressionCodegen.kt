@@ -492,6 +492,9 @@ class ExpressionCodegen(
                 "Null argument in ExpressionCodegen for parameter ${irParameter.render()}"
             }
             callGenerator.genValueAndPut(irParameter, arg, parameterType, this, data)
+            if (arg.type is IrUnionType) {
+                mv.checkcast(parameterType)
+            }
         }
 
         expression.markLineNumber(true)
