@@ -608,10 +608,14 @@ class FirElementSerializer private constructor(
     fun typeId(type: ConeKotlinType): Int = typeTable[typeProto(type)]
 
     private fun typeProto(typeRef: FirTypeRef, toSuper: Boolean = false): ProtoBuf.Type.Builder {
-        return typeProto(typeRef.coneType, toSuper, correspondingTypeRef = typeRef).also {
-            for (annotation in typeRef.annotations) {
-                extension.serializeTypeAnnotation(annotation, it)
+        try {
+            return typeProto(typeRef.coneType, toSuper, correspondingTypeRef = typeRef).also {
+                for (annotation in typeRef.annotations) {
+                    extension.serializeTypeAnnotation(annotation, it)
+                }
             }
+        } catch (e: Throwable) {
+            throw IllegalStateException("Exception while serializing type ${typeRef.render()}", e)
         }
     }
 
