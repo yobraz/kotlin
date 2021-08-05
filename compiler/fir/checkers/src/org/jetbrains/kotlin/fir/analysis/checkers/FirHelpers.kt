@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
+import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.ClassId
@@ -399,6 +400,19 @@ private fun isSubtypeOfForFunctionalTypeReturningUnit(
     return false
 }
 
+fun FirWhenExpression.isApplicableToUnionType(unionType: ConeUnionType, context: ConeInferenceContext): Boolean {
+    val branchesTypes = branches.map { it.result.typeRef.coneType }
+    val result = branchesTypes.all { isSubtypeForTypeMismatch(context, it, unionType) }
+
+    if (result) {
+        replaceTypeRef(buildResolvedTypeRef {
+            type = ConeUnionType(branchesTypes, context.commonSuperTypeOrNull(branchesTypes) ?: context.anyType())
+        })
+    }
+
+    return result
+}
+
 fun FirCallableDeclaration.isVisibleInClass(parentClass: FirClass): Boolean {
     return symbol.isVisibleInClass(parentClass.symbol)
 }
@@ -544,6 +558,13 @@ fun checkTypeMismatch(
     }
 
     val typeContext = context.session.typeContext
+
+    if (lValueType is ConeUnionType &&
+        rValue is FirWhenExpression &&
+        rValue.isApplicableToUnionType(lValueType, typeContext)
+    ) {
+        return
+    }
 
     if (!isSubtypeForTypeMismatch(typeContext, subtype = rValueType, supertype = lValueType)) {
         if (rValueType is ConeClassLikeType &&
