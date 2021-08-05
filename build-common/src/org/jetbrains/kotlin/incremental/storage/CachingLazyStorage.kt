@@ -99,11 +99,7 @@ class CachingLazyStorage<K, V>(
     override fun flush(memoryCachesOnly: Boolean) {
         val existingStorage = storage ?: return
 
-        if (memoryCachesOnly) {
-            if (existingStorage.isDirty) {
-                existingStorage.dropMemoryCaches()
-            }
-        } else {
+        if (!memoryCachesOnly) {
             existingStorage.force()
         }
     }
