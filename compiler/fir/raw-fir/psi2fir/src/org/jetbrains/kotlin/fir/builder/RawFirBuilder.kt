@@ -822,6 +822,8 @@ open class RawFirBuilder(
                         }
                     }
                     for (declaration in file.declarations) {
+                        // TODO: scripts aren't supported yet
+                        if (declaration is KtScript) continue
                         declarations += declaration.convert<FirDeclaration>()
                     }
                 }
