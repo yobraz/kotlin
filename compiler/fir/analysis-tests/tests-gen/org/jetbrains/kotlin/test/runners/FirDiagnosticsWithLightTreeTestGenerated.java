@@ -555,6 +555,12 @@ public class FirDiagnosticsWithLightTreeTestGenerated extends AbstractFirDiagnos
         }
 
         @Test
+        @TestMetadata("unionTypeAlias.kt")
+        public void testUnionTypeAlias() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeAlias.kt");
+        }
+
+        @Test
         @TestMetadata("unionTypeCallResolve.kt")
         public void testUnionTypeCallResolve() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeCallResolve.kt");

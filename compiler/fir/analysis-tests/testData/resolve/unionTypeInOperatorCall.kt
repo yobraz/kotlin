@@ -1,4 +1,4 @@
-typealias BF = Boolean | Float
+typealias BF = <!UNION_TYPE_PROHIBITED_POSITION!>Boolean | Float<!>
 
 fun foo() {
     var x = Any()

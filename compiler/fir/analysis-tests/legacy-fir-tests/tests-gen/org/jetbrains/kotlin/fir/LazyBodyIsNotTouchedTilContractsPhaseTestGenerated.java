@@ -469,6 +469,11 @@ public class LazyBodyIsNotTouchedTilContractsPhaseTestGenerated extends Abstract
         runTest("compiler/fir/analysis-tests/testData/resolve/typesInLocalFunctions.kt");
     }
 
+    @TestMetadata("unionTypeAlias.kt")
+    public void testUnionTypeAlias() throws Exception {
+        runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeAlias.kt");
+    }
+
     @TestMetadata("unionTypeCallResolve.kt")
     public void testUnionTypeCallResolve() throws Exception {
         runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeCallResolve.kt");
