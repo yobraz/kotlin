@@ -196,11 +196,12 @@ FILE fqName:<root> fileName:/MultiList.kt
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in java.util.ArrayList'
           <E>: <root>.Some<T of <root>.SomeList>
         INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:SomeList modality:OPEN visibility:public superTypes:[<root>.MyList<T of <root>.SomeList>; java.util.ArrayList<<root>.Some<T of <root>.SomeList>>]'
-    FUN FAKE_OVERRIDE name:contains visibility:public modality:OPEN <> ($this:java.util.ArrayList<E of java.util.ArrayList>, p0:@[FlexibleNullability] <root>.Some<T of <root>.SomeList>?) returnType:kotlin.Boolean [fake_override,operator]
+    FUN FAKE_OVERRIDE name:contains visibility:public modality:OPEN <> ($this:kotlin.collections.List<E of kotlin.collections.List>, element:<root>.Some<T of <root>.SomeList>) returnType:kotlin.Boolean [fake_override,operator]
       overridden:
+        public abstract fun contains (element: <root>.Some<T of <root>.MyList>): kotlin.Boolean [fake_override,operator] declared in <root>.MyList
         public open fun contains (p0: @[FlexibleNullability] E of java.util.ArrayList?): kotlin.Boolean [operator] declared in java.util.ArrayList
-      $this: VALUE_PARAMETER name:<this> type:java.util.ArrayList<E of java.util.ArrayList>
-      VALUE_PARAMETER name:p0 index:0 type:@[FlexibleNullability] <root>.Some<T of <root>.SomeList>?
+      $this: VALUE_PARAMETER name:<this> type:kotlin.collections.List<E of kotlin.collections.List>
+      VALUE_PARAMETER name:element index:0 type:<root>.Some<T of <root>.SomeList>
     FUN FAKE_OVERRIDE name:containsAll visibility:public modality:OPEN <> ($this:kotlin.collections.List<E of kotlin.collections.List>, elements:kotlin.collections.Collection<<root>.Some<T of <root>.SomeList>>) returnType:kotlin.Boolean [fake_override]
       overridden:
         public abstract fun containsAll (elements: kotlin.collections.Collection<<root>.Some<T of <root>.MyList>>): kotlin.Boolean [fake_override] declared in <root>.MyList
@@ -217,10 +218,11 @@ FILE fqName:<root> fileName:/MultiList.kt
         public open fun indexOf (p0: @[FlexibleNullability] E of java.util.ArrayList?): kotlin.Int declared in java.util.ArrayList
       $this: VALUE_PARAMETER name:<this> type:java.util.ArrayList<E of java.util.ArrayList>
       VALUE_PARAMETER name:p0 index:0 type:@[FlexibleNullability] <root>.Some<T of <root>.SomeList>?
-    FUN FAKE_OVERRIDE name:isEmpty visibility:public modality:OPEN <> ($this:java.util.ArrayList<E of java.util.ArrayList>) returnType:kotlin.Boolean [fake_override]
+    FUN FAKE_OVERRIDE name:isEmpty visibility:public modality:OPEN <> ($this:kotlin.collections.List<E of kotlin.collections.List>) returnType:kotlin.Boolean [fake_override]
       overridden:
+        public abstract fun isEmpty (): kotlin.Boolean [fake_override] declared in <root>.MyList
         public open fun isEmpty (): kotlin.Boolean declared in java.util.ArrayList
-      $this: VALUE_PARAMETER name:<this> type:java.util.ArrayList<E of java.util.ArrayList>
+      $this: VALUE_PARAMETER name:<this> type:kotlin.collections.List<E of kotlin.collections.List>
     FUN FAKE_OVERRIDE name:iterator visibility:public modality:OPEN <> ($this:java.util.ArrayList<E of java.util.ArrayList>) returnType:@[EnhancedNullability] kotlin.collections.MutableIterator<@[FlexibleNullability] <root>.Some<T of <root>.SomeList>?> [fake_override,operator]
       overridden:
         public open fun iterator (): @[EnhancedNullability] kotlin.collections.MutableIterator<@[FlexibleNullability] E of java.util.ArrayList?> [operator] declared in java.util.ArrayList
@@ -247,12 +249,14 @@ FILE fqName:<root> fileName:/MultiList.kt
       VALUE_PARAMETER name:p1 index:1 type:kotlin.Int
     PROPERTY FAKE_OVERRIDE name:size visibility:public modality:OPEN [fake_override,val]
       overridden:
+        public abstract size: kotlin.Int [fake_override,val]
         public open size: kotlin.Int [val]
-      FUN FAKE_OVERRIDE name:<get-size> visibility:public modality:OPEN <> ($this:java.util.ArrayList<E of java.util.ArrayList>) returnType:kotlin.Int [fake_override]
+      FUN FAKE_OVERRIDE name:<get-size> visibility:public modality:OPEN <> ($this:kotlin.collections.List<E of kotlin.collections.List>) returnType:kotlin.Int [fake_override]
         correspondingProperty: PROPERTY FAKE_OVERRIDE name:size visibility:public modality:OPEN [fake_override,val]
         overridden:
+          public abstract fun <get-size> (): kotlin.Int [fake_override] declared in <root>.MyList
           public open fun <get-size> (): kotlin.Int declared in java.util.ArrayList
-        $this: VALUE_PARAMETER name:<this> type:java.util.ArrayList<E of java.util.ArrayList>
+        $this: VALUE_PARAMETER name:<this> type:kotlin.collections.List<E of kotlin.collections.List>
     FUN FAKE_OVERRIDE name:spliterator visibility:public modality:OPEN <> ($this:java.util.ArrayList<E of java.util.ArrayList>) returnType:@[EnhancedNullability] java.util.Spliterator<@[FlexibleNullability] <root>.Some<T of <root>.SomeList>?> [fake_override]
       overridden:
         public open fun spliterator (): @[EnhancedNullability] java.util.Spliterator<@[FlexibleNullability] E of java.util.ArrayList?> declared in java.util.ArrayList
@@ -391,11 +395,11 @@ FILE fqName:<root> fileName:/MultiList.kt
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () [primary] declared in <root>.SomeList'
           <T>: kotlin.String
         INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:FinalList modality:FINAL visibility:public superTypes:[<root>.SomeList<kotlin.String>]'
-    FUN FAKE_OVERRIDE name:contains visibility:public modality:OPEN <> ($this:java.util.ArrayList<E of java.util.ArrayList>, p0:@[FlexibleNullability] <root>.Some<kotlin.String>?) returnType:kotlin.Boolean [fake_override,operator]
+    FUN FAKE_OVERRIDE name:contains visibility:public modality:OPEN <> ($this:kotlin.collections.List<E of kotlin.collections.List>, element:<root>.Some<kotlin.String>) returnType:kotlin.Boolean [fake_override,operator]
       overridden:
-        public open fun contains (p0: @[FlexibleNullability] <root>.Some<T of <root>.SomeList>?): kotlin.Boolean [fake_override,operator] declared in <root>.SomeList
-      $this: VALUE_PARAMETER name:<this> type:java.util.ArrayList<E of java.util.ArrayList>
-      VALUE_PARAMETER name:p0 index:0 type:@[FlexibleNullability] <root>.Some<kotlin.String>?
+        public open fun contains (element: <root>.Some<T of <root>.SomeList>): kotlin.Boolean [fake_override,operator] declared in <root>.SomeList
+      $this: VALUE_PARAMETER name:<this> type:kotlin.collections.List<E of kotlin.collections.List>
+      VALUE_PARAMETER name:element index:0 type:<root>.Some<kotlin.String>
     FUN FAKE_OVERRIDE name:containsAll visibility:public modality:OPEN <> ($this:kotlin.collections.List<E of kotlin.collections.List>, elements:kotlin.collections.Collection<<root>.Some<kotlin.String>>) returnType:kotlin.Boolean [fake_override]
       overridden:
         public open fun containsAll (elements: kotlin.collections.Collection<<root>.Some<T of <root>.SomeList>>): kotlin.Boolean [fake_override] declared in <root>.SomeList
@@ -411,10 +415,10 @@ FILE fqName:<root> fileName:/MultiList.kt
         public open fun indexOf (p0: @[FlexibleNullability] <root>.Some<T of <root>.SomeList>?): kotlin.Int [fake_override] declared in <root>.SomeList
       $this: VALUE_PARAMETER name:<this> type:java.util.ArrayList<E of java.util.ArrayList>
       VALUE_PARAMETER name:p0 index:0 type:@[FlexibleNullability] <root>.Some<kotlin.String>?
-    FUN FAKE_OVERRIDE name:isEmpty visibility:public modality:OPEN <> ($this:java.util.ArrayList<E of java.util.ArrayList>) returnType:kotlin.Boolean [fake_override]
+    FUN FAKE_OVERRIDE name:isEmpty visibility:public modality:OPEN <> ($this:kotlin.collections.List<E of kotlin.collections.List>) returnType:kotlin.Boolean [fake_override]
       overridden:
         public open fun isEmpty (): kotlin.Boolean [fake_override] declared in <root>.SomeList
-      $this: VALUE_PARAMETER name:<this> type:java.util.ArrayList<E of java.util.ArrayList>
+      $this: VALUE_PARAMETER name:<this> type:kotlin.collections.List<E of kotlin.collections.List>
     FUN FAKE_OVERRIDE name:iterator visibility:public modality:OPEN <> ($this:java.util.ArrayList<E of java.util.ArrayList>) returnType:@[EnhancedNullability] kotlin.collections.MutableIterator<@[FlexibleNullability] <root>.Some<kotlin.String>?> [fake_override,operator]
       overridden:
         public open fun iterator (): @[EnhancedNullability] kotlin.collections.MutableIterator<@[FlexibleNullability] <root>.Some<T of <root>.SomeList>?> [fake_override,operator] declared in <root>.SomeList
@@ -442,11 +446,11 @@ FILE fqName:<root> fileName:/MultiList.kt
     PROPERTY FAKE_OVERRIDE name:size visibility:public modality:OPEN [fake_override,val]
       overridden:
         public open size: kotlin.Int [fake_override,val]
-      FUN FAKE_OVERRIDE name:<get-size> visibility:public modality:OPEN <> ($this:java.util.ArrayList<E of java.util.ArrayList>) returnType:kotlin.Int [fake_override]
+      FUN FAKE_OVERRIDE name:<get-size> visibility:public modality:OPEN <> ($this:kotlin.collections.List<E of kotlin.collections.List>) returnType:kotlin.Int [fake_override]
         correspondingProperty: PROPERTY FAKE_OVERRIDE name:size visibility:public modality:OPEN [fake_override,val]
         overridden:
           public open fun <get-size> (): kotlin.Int [fake_override] declared in <root>.SomeList
-        $this: VALUE_PARAMETER name:<this> type:java.util.ArrayList<E of java.util.ArrayList>
+        $this: VALUE_PARAMETER name:<this> type:kotlin.collections.List<E of kotlin.collections.List>
     FUN FAKE_OVERRIDE name:spliterator visibility:public modality:OPEN <> ($this:java.util.ArrayList<E of java.util.ArrayList>) returnType:@[EnhancedNullability] java.util.Spliterator<@[FlexibleNullability] <root>.Some<kotlin.String>?> [fake_override]
       overridden:
         public open fun spliterator (): @[EnhancedNullability] java.util.Spliterator<@[FlexibleNullability] <root>.Some<T of <root>.SomeList>?> [fake_override] declared in <root>.SomeList
