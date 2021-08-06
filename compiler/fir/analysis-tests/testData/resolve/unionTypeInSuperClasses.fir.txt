@@ -1,0 +1,17 @@
+FILE: unionTypeInSuperClasses.kt
+    public abstract interface A : R|kotlin/Any| {
+    }
+    public abstract interface B : R|kotlin/Any| {
+    }
+    public open class C : R|kotlin/Any| {
+        public constructor(): R|C| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final class D : R|it(A | B)|, R|C| {
+        public constructor(): R|D| {
+            super<R|C|>()
+        }
+
+    }

@@ -479,9 +479,19 @@ public class LazyBodyIsNotTouchedTilContractsPhaseTestGenerated extends Abstract
         runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeCallResolve.kt");
     }
 
+    @TestMetadata("unionTypeInBounds.kt")
+    public void testUnionTypeInBounds() throws Exception {
+        runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeInBounds.kt");
+    }
+
     @TestMetadata("unionTypeInOperatorCall.kt")
     public void testUnionTypeInOperatorCall() throws Exception {
         runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeInOperatorCall.kt");
+    }
+
+    @TestMetadata("unionTypeInSuperClasses.kt")
+    public void testUnionTypeInSuperClasses() throws Exception {
+        runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeInSuperClasses.kt");
     }
 
     @TestMetadata("varargInPrimaryConstructor.kt")

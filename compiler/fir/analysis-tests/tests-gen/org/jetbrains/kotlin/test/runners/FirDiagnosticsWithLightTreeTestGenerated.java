@@ -567,9 +567,21 @@ public class FirDiagnosticsWithLightTreeTestGenerated extends AbstractFirDiagnos
         }
 
         @Test
+        @TestMetadata("unionTypeInBounds.kt")
+        public void testUnionTypeInBounds() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeInBounds.kt");
+        }
+
+        @Test
         @TestMetadata("unionTypeInOperatorCall.kt")
         public void testUnionTypeInOperatorCall() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeInOperatorCall.kt");
+        }
+
+        @Test
+        @TestMetadata("unionTypeInSuperClasses.kt")
+        public void testUnionTypeInSuperClasses() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeInSuperClasses.kt");
         }
 
         @Test

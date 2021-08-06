@@ -1,0 +1,12 @@
+FILE: unionTypeInBounds.kt
+    public final class Test<T : R|it(kotlin/Int | kotlin/String)|> : R|kotlin/Any| {
+        public constructor<T : R|it(kotlin/Int | kotlin/String)|>(x: R|T|): R|Test<T>| {
+            super<R|kotlin/Any|>()
+        }
+
+        public final val x: R|T| = R|<local>/x|
+            public get(): R|T|
+
+    }
+    public final fun <T : R|it(kotlin/Int | kotlin/String)|, V> test(): R|kotlin/Unit| {
+    }
