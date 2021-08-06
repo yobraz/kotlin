@@ -1,0 +1,2 @@
+FILE: unionTypeAlias.kt
+    public final typealias Foo = R|it(kotlin/Int | kotlin/String)|
