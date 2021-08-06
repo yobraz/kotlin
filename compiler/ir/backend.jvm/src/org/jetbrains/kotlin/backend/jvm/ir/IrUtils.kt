@@ -425,9 +425,14 @@ val IrDeclaration.inlineScopeVisibility: DescriptorVisibility?
         var result: DescriptorVisibility? = null
         while (owner != null) {
             if (owner is IrFunction && owner.isInline) {
-                if (!DescriptorVisibilities.isPrivate(owner.visibility))
-                    return owner.visibility
-                result = owner.visibility
+                result = if (!DescriptorVisibilities.isPrivate(owner.visibility)) {
+                    if (owner.parentClassOrNull?.visibility?.let(DescriptorVisibilities::isPrivate) == true)
+                        DescriptorVisibilities.PRIVATE
+                    else
+                        return owner.visibility
+                } else {
+                    owner.visibility
+                }
             }
             owner = owner.parent.safeAs<IrDeclaration>()?.original
         }
