@@ -82,9 +82,9 @@ class NamedCompilerPhase<in Context : CommonBackendContext, Data>(
             return input
         }
 
-        assert(phaserState.alreadyDone.containsAll(prerequisite)) {
-            "Lowering $name: phases ${(prerequisite - phaserState.alreadyDone).map { it.name }} are required, but not satisfied"
-        }
+//        assert(phaserState.alreadyDone.containsAll(prerequisite)) {
+//            "Lowering $name: phases ${(prerequisite - phaserState.alreadyDone).map { it.name }} are required, but not satisfied"
+//        }
 
         context.inVerbosePhase = this in phaseConfig.verbose
 

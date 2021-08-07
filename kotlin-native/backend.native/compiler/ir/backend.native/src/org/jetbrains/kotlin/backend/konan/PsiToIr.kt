@@ -202,7 +202,6 @@ internal fun Context.psiToIr(
         // TODO: find out what should be done in the new builtins/symbols about it
         if (this.stdlibModule in modulesWithoutDCE)
             functionIrClassFactory.buildAllClasses()
-        internalAbi.init(irModules.values + irModule!!)
         functionIrClassFactory.module = (modules.values + irModule!!).single { it.descriptor.isNativeStdlib() }
     }
 

@@ -1,5 +1,6 @@
 package org.jetbrains.kotlin.backend.konan
 
+import org.jetbrains.kotlin.backend.konan.llvm.moduleToLlvm
 import org.jetbrains.kotlin.konan.KonanExternalToolFailure
 import org.jetbrains.kotlin.konan.exec.Command
 import org.jetbrains.kotlin.konan.file.File
@@ -34,8 +35,9 @@ internal class Linker(val context: Context) {
     private val optimize = context.shouldOptimize()
     private val debug = context.config.debug || context.config.lightDebug
 
-    fun link(objectFiles: List<ObjectFile>) {
-        val nativeDependencies = context.llvm.nativeDependenciesToLink
+    fun link(objectFiles: Collection<ObjectFile>) {
+        val allLlvm = moduleToLlvm.values
+        val nativeDependencies = allLlvm.flatMap { it.nativeDependenciesToLink }.toSet()
 
         val includedBinariesLibraries = if (context.config.produce.isCache) {
             context.config.librariesToCache
@@ -44,14 +46,14 @@ internal class Linker(val context: Context) {
         }
         val includedBinaries = includedBinariesLibraries.map { (it as? KonanLibrary)?.includedPaths.orEmpty() }.flatten()
 
-        val libraryProvidedLinkerFlags = context.llvm.allNativeDependencies.map { it.linkerOpts }.flatten()
+        val libraryProvidedLinkerFlags = allLlvm.flatMap { it.allNativeDependencies }.toSet().map { it.linkerOpts }.flatten()
 
         if (context.config.produce.isCache) {
             context.config.outputFiles.tempCacheDirectory!!.mkdirs()
             saveAdditionalInfoForCache()
         }
 
-        runLinker(objectFiles, includedBinaries, libraryProvidedLinkerFlags)
+        runLinker(objectFiles.toList(), includedBinaries, libraryProvidedLinkerFlags)
 
         renameOutput()
     }
@@ -219,7 +221,7 @@ private fun determineCachesToLink(context: Context): CachesToLink {
     val staticCaches = mutableListOf<String>()
     val dynamicCaches = mutableListOf<String>()
 
-    context.llvm.allCachedBitcodeDependencies.forEach { library ->
+    moduleToLlvm.values.flatMap { it.allCachedBitcodeDependencies }.toSet().forEach { library ->
         val currentBinaryContainsLibrary = context.llvmModuleSpecification.containsLibrary(library)
         val cache = context.config.cachedLibraries.getLibraryCache(library)
                 ?: error("Library $library is expected to be cached")

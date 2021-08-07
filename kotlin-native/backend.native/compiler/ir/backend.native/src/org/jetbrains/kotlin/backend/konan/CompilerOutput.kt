@@ -9,14 +9,12 @@ import org.jetbrains.kotlin.backend.common.serialization.KlibIrVersion
 import org.jetbrains.kotlin.backend.common.serialization.metadata.KlibMetadataVersion
 import org.jetbrains.kotlin.backend.konan.llvm.*
 import org.jetbrains.kotlin.backend.konan.llvm.objc.linkObjC
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.konan.CURRENT
 import org.jetbrains.kotlin.konan.CompilerVersion
 import org.jetbrains.kotlin.konan.file.isBitcode
 import org.jetbrains.kotlin.konan.library.impl.buildLibrary
 import org.jetbrains.kotlin.konan.target.CompilerOutputKind
 import org.jetbrains.kotlin.library.*
-import kotlin.random.Random
 
 /**
  * Supposed to be true for a single LLVM module within final binary.
@@ -78,7 +76,7 @@ private fun linkAllDependencies(context: Context, generatedBitcodeFiles: List<St
 
     val nativeLibraries = config.nativeLibraries + runtimeNativeLibraries + launcherNativeLibraries
 
-    val allLlvm = programBitcode()
+    val allLlvm = (programBitcode() + llvmModule)
             .asSequence()
             .map { moduleToLlvm.getValue(it).bitcodeToLink }
             .flatten()
@@ -93,15 +91,8 @@ private fun linkAllDependencies(context: Context, generatedBitcodeFiles: List<St
     if (config.produce == CompilerOutputKind.DYNAMIC_CACHE)
         bitcodeFiles += exceptionsSupportNativeLibrary
     bitcodeFiles.forEach {
-        println("Linking $it")
         parseAndLinkBitcodeFile(context, llvmModule, it)
     }
-}
-
-private fun storeBitcodeInTmp(context: Context, llvmModule: LLVMModuleRef): BitcodeFile {
-    val output = context.config.tempFiles.create("${llvmModule.hashCode()}_${Random(5).nextInt()}", ".bc")
-    LLVMWriteBitcodeToFile(llvmModule, output.absolutePath)
-    return output.absolutePath
 }
 
 private fun computeClangInput(context: Context, generatedBitcodeFiles: List<String>) {
@@ -109,16 +100,10 @@ private fun computeClangInput(context: Context, generatedBitcodeFiles: List<Stri
 
     val llvmModule = context.llvmModule!!
 
-    context.optimizerInput += llvmModule
 
-    programBitcode().forEach { fileBitcode ->
-        context.optimizerInput += fileBitcode
-    }
-
-    if (context.producedLlvmModuleContainsStdlib) {
-        // TODO: How runtime is linked in master?
-        context.bitcodeFiles += context.config.distribution.runtime(context.config.target)
-    }
+    val (llvmModules, objectFiles) = context.separateCompilation.classifyModules(programBitcode() + llvmModule)
+    context.linkerInput += objectFiles
+    context.optimizerInput += llvmModules
 
     val runtimeNativeLibraries = config.runtimeNativeLibraries
             .takeIf { context.producedLlvmModuleContainsStdlib }.orEmpty()
@@ -149,7 +134,9 @@ private fun computeClangInput(context: Context, generatedBitcodeFiles: List<Stri
     val bitcodeFiles = (nativeLibraries + generatedBitcodeFiles + additionalBitcodeFilesToLink + bitcodeLibraries).toMutableSet()
     if (config.produce == CompilerOutputKind.DYNAMIC_CACHE)
         bitcodeFiles += exceptionsSupportNativeLibrary
-    context.bitcodeFiles += bitcodeFiles
+    val (bitcodes, objects) = context.separateCompilation.classifyBitcode(bitcodeFiles.toList())
+    context.linkerInput += objects
+    context.bitcodeFiles += bitcodes
 }
 
 private fun insertAliasToEntryPoint(context: Context) {
@@ -186,7 +173,6 @@ internal fun linkBitcodeDependencies(context: Context) {
 internal fun produceOutput(context: Context) {
 
     val config = context.config.configuration
-    val tempFiles = context.config.tempFiles
     val produce = config.get(KonanConfigKeys.PRODUCE)
 
     when (produce) {
@@ -196,12 +182,6 @@ internal fun produceOutput(context: Context) {
         CompilerOutputKind.DYNAMIC_CACHE,
         CompilerOutputKind.STATIC_CACHE,
         CompilerOutputKind.PROGRAM -> {
-            val output = tempFiles.nativeBinaryFileName
-            context.bitcodeFileName = output
-            // Insert `_main` after pipeline so we won't worry about optimizations
-            // corrupting entry point.
-            insertAliasToEntryPoint(context)
-//            LLVMWriteBitcodeToFile(context.llvmModule!!, output)
         }
         CompilerOutputKind.LIBRARY -> {
             val nopack = config.getBoolean(KonanConfigKeys.NOPACK)
@@ -231,7 +211,7 @@ internal fun produceOutput(context: Context) {
                 }
             }
 
-            val library = buildLibrary(
+            buildLibrary(
                     context.config.nativeLibraries,
                     context.config.includeBinaries,
                     neededLibraries,
@@ -245,12 +225,9 @@ internal fun produceOutput(context: Context) {
                     shortLibraryName,
                     manifestProperties,
                     context.dataFlowGraph)
-
-            context.bitcodeFileName = library.mainBitcodeFileName
         }
         CompilerOutputKind.BITCODE -> {
             val output = context.config.outputFile
-            context.bitcodeFileName = output
             LLVMWriteBitcodeToFile(context.llvmModule!!, output)
         }
         null -> {}

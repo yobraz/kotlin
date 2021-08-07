@@ -98,8 +98,6 @@ private class DeclarationsGeneratorVisitor(
 
     val uniques = mutableMapOf<UniqueKind, UniqueLlvmDeclarations>()
 
-    val spec = moduleToSpecification.getValue(llvmModule)
-
     class Namer(val prefix: String) {
         private val names = mutableMapOf<IrDeclaration, Name>()
         private val counts = mutableMapOf<FqName, Int>()
@@ -265,16 +263,21 @@ private class DeclarationsGeneratorVisitor(
 
         val storageKind = irClass.storageKind(context)
         val threadLocal = storageKind == ObjectStorageKind.THREAD_LOCAL
-        val isExported = irClass.isExported()
-        val symbolName = if (isExported) {
-            irClass.globalObjectStorageSymbolName
-        } else {
-            "kobjref:" + qualifyInternalName(irClass)
-        }
+//        val isExported = irClass.isExported()
+//        val symbolName = if (isExported) {
+//            irClass.globalObjectStorageSymbolName
+//        } else {
+//            "kobjref:" + qualifyInternalName(irClass)
+//        }
+        // TODO: Figure out a way to distinguish cross-module and cross-file visibility
+        val symbolName = irClass.globalObjectStorageSymbolName
         val instanceAddress = if (threadLocal) {
             addKotlinThreadLocal(symbolName, getLLVMType(irClass.defaultType))
         } else {
-            addKotlinGlobal(symbolName, getLLVMType(irClass.defaultType), isExported)
+            // This global should be visible from other files in module
+            addKotlinGlobal(symbolName, getLLVMType(irClass.defaultType), isExported = true).also {
+                llvm.usedGlobals += it.address
+            }
         }
 
         return SingletonLlvmDeclarations(instanceAddress)

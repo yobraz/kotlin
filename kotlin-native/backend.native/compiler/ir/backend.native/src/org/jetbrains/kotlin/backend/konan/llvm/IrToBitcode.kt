@@ -437,12 +437,8 @@ internal class CodeGeneratorVisitor(
             context.objCExport.generate(codegen)
 
             codegen.objCDataGenerator?.finishModule()
-
-            context.coverage.writeRegionInfo(llvmModule)
             setRuntimeConstGlobals()
             overrideRuntimeGlobals()
-            appendLlvmUsed("llvm.used", codegen.llvm.usedFunctions + codegen.llvm.usedGlobals)
-            appendLlvmUsed("llvm.compiler.used", codegen.llvm.compilerUsedGlobals)
             if (context.isNativeLibrary) {
                 appendCAdapters()
             }
@@ -453,10 +449,10 @@ internal class CodeGeneratorVisitor(
 
     //-------------------------------------------------------------------------//
 
-    val kVoidFuncType = functionType(voidType)
-    val kNodeInitType = LLVMGetTypeByName(llvmModule, "struct.InitNode")!!
-    val kMemoryStateType = LLVMGetTypeByName(llvmModule, "struct.MemoryState")!!
-    val kInitFuncType = functionType(voidType, false, int32Type, pointerType(kMemoryStateType))
+    val kVoidFuncType by lazy { functionType(voidType) }
+    val kNodeInitType by lazy { context.llvm.runtime.kNodeInitType }
+    val kMemoryStateType by lazy { context.llvm.runtime.kMemoryStateType }
+    val kInitFuncType by lazy { functionType(voidType, false, int32Type, pointerType(kMemoryStateType)) }
 
     //-------------------------------------------------------------------------//
 
@@ -594,6 +590,9 @@ internal class CodeGeneratorVisitor(
                 declaration.acceptChildrenVoid(this)
             }
         }
+        context.coverage.writeRegionInfo(llvmModule)
+        appendLlvmUsed("llvm.used", codegen.llvm.usedFunctions + codegen.llvm.usedGlobals)
+        appendLlvmUsed("llvm.compiler.used", codegen.llvm.compilerUsedGlobals)
     }
 
     //-------------------------------------------------------------------------//

@@ -30,7 +30,6 @@ import org.jetbrains.kotlin.descriptors.konan.klibModuleOrigin
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.builders.TranslationPluginContext
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.declarations.impl.IrFileImpl
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.symbols.impl.IrPublicSymbolBase
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
@@ -141,16 +140,15 @@ internal class KonanIrLinker(
 
         private fun DeclarationDescriptor.isCEnumsOrCStruct(): Boolean = cenumsProvider.isCEnumOrCStruct(this)
 
-        private val fileMap = mutableMapOf<PackageFragmentDescriptor, IrFile>()
+        private val fileMap = mutableMapOf<FqName, IrFile>()
 
-        private fun getIrFile(packageFragment: PackageFragmentDescriptor): IrFile = fileMap.getOrPut(packageFragment) {
-            IrFileImpl(NaiveSourceBasedFileEntryImpl(IrProviderForCEnumAndCStructStubs.cTypeDefinitionsFileName), packageFragment).also {
-                moduleFragment.files.add(it)
-            }
+        private fun getIrFile(fqName: FqName): IrFile = fileMap.getOrPut(fqName) {
+            val fileName = "${IrProviderForCEnumAndCStructStubs.cTypeDefinitionsFileNamePrefix}_${fqName.asString().replace('.', '_')}"
+            moduleFragment.addFile(NaiveSourceBasedFileEntryImpl(fileName), fqName)
         }
 
         private fun resolveCEnumsOrStruct(descriptor: DeclarationDescriptor, idSig: IdSignature, symbolKind: BinarySymbolData.SymbolKind): IrSymbol {
-            val file = getIrFile(descriptor.findPackage())
+            val file = getIrFile(descriptor.findPackage().fqName)
             return cenumsProvider.getDeclaration(descriptor, idSig, file, symbolKind).symbol
         }
 

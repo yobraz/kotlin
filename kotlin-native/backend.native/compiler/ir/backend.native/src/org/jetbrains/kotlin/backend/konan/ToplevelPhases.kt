@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.backend.common.phaser.*
 import org.jetbrains.kotlin.backend.common.serialization.CompatibilityMode
 import org.jetbrains.kotlin.backend.common.serialization.metadata.KlibMetadataMonolithicSerializer
-import org.jetbrains.kotlin.backend.konan.MemoryModel
+import org.jetbrains.kotlin.backend.konan.descriptors.findPackage
 import org.jetbrains.kotlin.backend.konan.llvm.*
 import org.jetbrains.kotlin.backend.konan.lower.ExpectToActualDefaultValueCopier
 import org.jetbrains.kotlin.backend.konan.lower.SamSuperTypesChecker
@@ -194,13 +194,13 @@ internal val serializerPhase = konanUnitPhase(
 )
 
 internal val objectFilesPhase = konanUnitPhase(
-        op = { compilerOutput = BitcodeCompiler(this).makeObjectFiles(bitcodeFiles) },
+        op = { linkerInput += BitcodeCompiler(this).makeObjectFiles(bitcodeFiles) },
         name = "ObjectFiles",
         description = "Bitcode to object file"
 )
 
 internal val linkerPhase = konanUnitPhase(
-        op = { Linker(this).link(compilerOutput) },
+        op = { Linker(this).link(linkerInput) },
         name = "Linker",
         description = "Linker"
 )
@@ -330,8 +330,14 @@ internal val exportInternalAbiPhase = makeKonanModuleOpPhase(
         prerequisite = emptySet(),
         op = { context, module ->
             val visitor = object : IrElementVisitorVoid {
+
                 override fun visitElement(element: IrElement) {
                     element.acceptChildrenVoid(this)
+                }
+
+                override fun visitFile(declaration: IrFile) {
+                    super.visitFile(declaration)
+                    context.internalAbi.commit(declaration)
                 }
 
                 override fun visitClass(declaration: IrClass) {
@@ -347,7 +353,7 @@ internal val exportInternalAbiPhase = makeKonanModuleOpPhase(
                                 +irReturn(irGetObjectValue(declaration.defaultType, declaration.symbol))
                             }
                         }
-                        context.internalAbi.declare(function, declaration.module)
+                        context.internalAbi.declare(function, declaration.file)
                     }
 
                 }
@@ -363,9 +369,17 @@ internal val useInternalAbiPhase = makeKonanModuleOpPhase(
         op = { context, module ->
             val accessors = mutableMapOf<IrClass, IrSimpleFunction>()
             val transformer = object : IrElementTransformerVoid() {
+
+                var currentFile: IrFile? = null
+
+                override fun visitFile(declaration: IrFile): IrFile {
+                    currentFile = declaration
+                    return super.visitFile(declaration)
+                }
+
                 override fun visitGetObjectValue(expression: IrGetObjectValue): IrExpression {
                     val irClass = expression.symbol.owner
-                    if (!irClass.isCompanion || context.llvmModuleSpecification.containsDeclaration(irClass)) {
+                    if (!irClass.isCompanion || (context.llvmModuleSpecification.containsModule(irClass.module) && irClass.file == currentFile)) {
                         return expression
                     }
                     val parent = irClass.parentAsClass
@@ -380,7 +394,7 @@ internal val useInternalAbiPhase = makeKonanModuleOpPhase(
                             origin = InternalAbi.INTERNAL_ABI_ORIGIN
                             isExternal = true
                         }.also {
-                            context.internalAbi.reference(it, irClass.module)
+                            context.internalAbi.reference(it, irClass.findPackage().fqName, irClass.module)
                         }
                     }
                     return IrCallImpl(expression.startOffset, expression.endOffset, expression.type, accessor.symbol, accessor.typeParameters.size, accessor.valueParameters.size)
@@ -477,7 +491,7 @@ internal fun PhaseConfig.konanPhasesConfig(config: KonanConfig) {
         // Don't serialize anything to a final executable.
         disableUnless(serializerPhase, config.produce == CompilerOutputKind.LIBRARY)
         disableUnless(entryPointPhase, config.produce == CompilerOutputKind.PROGRAM)
-        disableUnless(exportInternalAbiPhase, config.produce.isCache)
+//        disableUnless(exportInternalAbiPhase, config.produce.isCache)
         disableIf(backendCodegen, config.produce == CompilerOutputKind.LIBRARY)
         disableUnless(bitcodeOptimizationPhase, config.produce.involvesLinkStage)
         disableUnless(linkBitcodeDependenciesPhase, config.produce.involvesLinkStage)

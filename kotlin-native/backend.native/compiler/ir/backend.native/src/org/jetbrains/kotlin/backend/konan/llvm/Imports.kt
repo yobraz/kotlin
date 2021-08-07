@@ -29,7 +29,6 @@ internal val DeclarationDescriptor.llvmSymbolOrigin: CompiledKlibModuleOrigin
         when (moduleOrigin) {
             is CompiledKlibModuleOrigin -> return moduleOrigin
             SyntheticModulesOrigin -> error("Declaration is synthetic and can't be an origin of LLVM symbol:\n${this}")
-            else -> error("AAAA")
         }
     }
 

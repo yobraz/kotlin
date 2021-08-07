@@ -44,8 +44,7 @@ fun invokeInterop(flavor: String, args: Array<String>): Array<String>? {
 
     val cinteropArgsToCompiler = interop(flavor, args,
             InternalInteropOptions(generatedDir.absolutePath,
-                    nativesDir.absolutePath,manifest.path,
-                    cstubsName.takeIf { flavor == "native" }
+                    nativesDir.absolutePath,manifest.path
             )
     ) ?: return null // There is no need in compiler invocation if we're generating only metadata.
 

@@ -152,7 +152,7 @@ private const val functionListGlobal = "Kotlin_callsCheckerKnownFunctions"
 private const val functionListSizeGlobal = "Kotlin_callsCheckerKnownFunctionsCount"
 
 internal fun checkLlvmModuleExternalCalls(context: Context, llvmModule: LLVMModuleRef) {
-    val staticData = moduleToStaticData.getValue(llvmModule)
+    val staticData = moduleToLlvm.getValue(llvmModule).staticData
 
     val annotations = staticData.getGlobal("llvm.global.annotations")?.getInitializer()
 
@@ -185,7 +185,7 @@ internal fun checkLlvmModuleExternalCalls(context: Context, llvmModule: LLVMModu
 
 // this should be a separate pass, to handle DCE correctly
 internal fun addFunctionsListSymbolForChecker(context: Context, llvmModule: LLVMModuleRef) {
-    val staticData = moduleToStaticData.getValue(llvmModule)
+    val staticData = moduleToLlvm.getValue(llvmModule).staticData
 
     val functions = getFunctions(llvmModule)
             .filter { !it.isExternalFunction() }

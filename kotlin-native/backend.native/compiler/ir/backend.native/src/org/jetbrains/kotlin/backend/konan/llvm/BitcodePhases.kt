@@ -40,11 +40,11 @@ internal val contextLLVMSetupPhase = makeKonanModuleOpPhase(
             irModule.files
                     .filter { it.declarations.isNotEmpty() }
                     .forEach { irFile ->
+                        // TODO: Workaround windows path limitation
                         val moduleId = irFile.path.replace('/', '_')
                         val llvmModule = LLVMModuleCreateWithNameInContext(moduleId, llvmContext)!!
                         irFileToModule[irFile] = llvmModule
-                        moduleToLlvm[llvmModule] = Llvm(context, llvmModule)
-                        moduleToSpecification[llvmModule] = FileLlvmModuleSpecification(irFile)
+                        moduleToLlvm[llvmModule] = Llvm(context, llvmModule, FileLlvmModuleSpecification(irFile))
 
                         // we don't split path to filename and directory to provide enough level uniquely for dsymutil to avoid symbol
                         // clashing, which happens on linking with libraries produced from intercepting sources.
@@ -64,8 +64,8 @@ internal val contextLLVMSetupPhase = makeKonanModuleOpPhase(
 
             val llvmModule = LLVMModuleCreateWithNameInContext("out", llvmContext)!!
             context.llvmModule = llvmModule
+            context.llvm = Llvm(context, llvmModule, RootSpec(irModule.files))
             moduleToLlvm[llvmModule] = context.llvm
-            moduleToSpecification[llvmModule] = RootSpec()
             val path = context.config.outputFile
                     .toFileAndFolder(context)
             val debugInfo = DebugInfo(context, llvmModule)

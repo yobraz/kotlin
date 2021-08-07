@@ -237,7 +237,7 @@ internal class BuiltInFictitiousFunctionIrClassFactory(
 
                     val packageFragmentDescriptor = descriptor.findPackage()
                     val file = filesMap.getOrPut(packageFragmentDescriptor) {
-                        IrFileImpl(NaiveSourceBasedFileEntryImpl("[K][Suspend]Functions"), packageFragmentDescriptor).also {
+                        IrFileImpl(NaiveSourceBasedFileEntryImpl("[K][Suspend]Functions_${packageFragmentDescriptor.fqName}"), packageFragmentDescriptor).also {
                             this@BuiltInFictitiousFunctionIrClassFactory.module?.files?.add(it)
                         }
                     }

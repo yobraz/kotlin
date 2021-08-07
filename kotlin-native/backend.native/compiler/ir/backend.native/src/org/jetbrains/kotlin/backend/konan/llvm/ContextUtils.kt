@@ -148,6 +148,7 @@ internal interface ContextUtils : RuntimeAware {
     val llvm get() = moduleToLlvm.getValue(llvmModule)
     val llvmDeclarations get() = moduleToLlvmDeclarations.getValue(llvmModule)
     val debugInfo get() = moduleToDebugInfo.getValue(llvmModule)
+    val spec get() = llvm.spec
 
     override val runtime: Runtime
         get() = llvm.runtime
@@ -168,7 +169,7 @@ internal interface ContextUtils : RuntimeAware {
      * or just drop all [else] branches of corresponding conditionals.
      */
     fun isExternal(declaration: IrDeclaration): Boolean {
-        return !moduleToSpecification.getValue(llvmModule).containsDeclaration(declaration)
+        return !spec.containsDeclaration(declaration)
     }
 
     /**
@@ -259,7 +260,7 @@ internal class InitializersGenerationState {
             && moduleGlobalInitializers.isEmpty() && moduleThreadLocalInitializers.isEmpty()
 }
 
-internal class Llvm(val context: Context, val llvmModule: LLVMModuleRef) {
+internal class Llvm(val context: Context, val llvmModule: LLVMModuleRef, val spec: Spec) {
 
     private fun importFunction(name: String, otherModule: LLVMModuleRef): LLVMValueRef {
         if (LLVMGetNamedFunction(llvmModule, name) != null) {
@@ -358,9 +359,7 @@ internal class Llvm(val context: Context, val llvmModule: LLVMModuleRef) {
         return function
     }
 
-    val imports get() = moduleToImports.getOrPut(llvmModule) {
-        ImportsImpl(context.librariesWithDependencies.toSet())
-    }
+    val imports get() = context.llvmImports
 
     class ImportsImpl(private val allLibraries: Set<KonanLibrary>) : LlvmImports {
 
@@ -451,11 +450,11 @@ internal class Llvm(val context: Context, val llvmModule: LLVMModuleRef) {
     }
 
     private fun shouldContainBitcode(library: KonanLibrary): Boolean {
-        if (context.llvmModuleSpecification.containsLibrary(library)) {
+        if (!context.llvmModuleSpecification.containsLibrary(library)) {
             return false
         }
 
-        if (context.llvmModuleSpecification.isFinal) {
+        if (!context.llvmModuleSpecification.isFinal) {
             return true
         }
 

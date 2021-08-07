@@ -345,30 +345,34 @@ internal class Context(config: KonanConfig) : KonanBackendContext(config) {
                 throw Error("Another LLVMModule in the context.")
             }
             field = module!!
-
-            llvm = Llvm(this, module)
         }
+
+    val separateCompilation by lazy { SeparateCompilation(this) }
 
     val optimizerInput: MutableList<LLVMModuleRef> = mutableListOf()
     val bitcodeFiles: MutableList<BitcodeFile> = mutableListOf()
-    val objectFiles: MutableList<ObjectFile> = mutableListOf()
 
     lateinit var llvm: Llvm
     val llvmImports: LlvmImports by lazy { Llvm.ImportsImpl(librariesWithDependencies.toSet()) }
-    lateinit var bitcodeFileName: String
     lateinit var library: KonanLibraryLayout
 
     private var llvmDisposed = false
 
     fun disposeLlvm() {
         if (llvmDisposed) return
-//        if (llvmModule != null)
-//            LLVMDisposeModule(llvmModule)
-//        if (::llvm.isInitialized) {
-//            LLVMDisposeTargetData(llvm.runtime.targetData)
-//            LLVMDisposeModule(llvm.runtime.llvmModule)
-//        }
-//        tryDisposeLLVMContext()
+        moduleToLlvm.keys.forEach {
+            LLVMDisposeModule(it)
+        }
+        moduleToLlvmDeclarations.clear()
+        moduleToDebugInfo.clear()
+//        moduleToLlvm.clear()
+        irFileToModule.clear()
+        irFileToCodegenVisitor.clear()
+        if (::llvm.isInitialized) {
+            LLVMDisposeTargetData(llvm.runtime.targetData)
+            LLVMDisposeModule(llvm.runtime.llvmModule)
+        }
+        tryDisposeLLVMContext()
         llvmDisposed = true
     }
 
@@ -472,7 +476,7 @@ internal class Context(config: KonanConfig) : KonanBackendContext(config) {
     internal val stdlibModule
         get() = this.builtIns.any.module
 
-    lateinit var compilerOutput: List<ObjectFile>
+    val linkerInput: MutableSet<ObjectFile> = mutableSetOf()
 
     val llvmModuleSpecification: LlvmModuleSpecification by lazy {
         when {

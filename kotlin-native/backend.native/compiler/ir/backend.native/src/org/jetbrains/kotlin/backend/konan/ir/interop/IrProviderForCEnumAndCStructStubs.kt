@@ -118,6 +118,8 @@ internal class IrProviderForCEnumAndCStructStubs(
     }
 
     companion object {
-        const val cTypeDefinitionsFileName = "CTypeDefinitions"
+        val cTypeDefinitionsFileNamePrefix: String by lazy {
+            "CTypeDefinitions_"
+        }
     }
 }

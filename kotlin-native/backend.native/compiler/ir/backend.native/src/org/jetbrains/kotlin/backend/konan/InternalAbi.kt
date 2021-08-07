@@ -10,11 +10,10 @@ import org.jetbrains.kotlin.backend.konan.llvm.llvmSymbolOrigin
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrModuleFragmentImpl
-import org.jetbrains.kotlin.ir.util.NaiveSourceBasedFileEntryImpl
-import org.jetbrains.kotlin.ir.util.addFile
-import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import kotlin.random.Random
 
 /**
  * Sometimes we need to reference symbols that are not declared in metadata.
@@ -24,45 +23,38 @@ import org.jetbrains.kotlin.name.Name
  */
 internal class InternalAbi(private val context: Context) {
     /**
-     * Files that stores all internal ABI declarations.
-     * We use per-module files so that global initializer will be stored
-     * in the appropriate modules.
-     *
-     * We have to store such declarations in top-level to avoid mangling that
-     * makes referencing harder.
-     * A bit better solution is to add files with proper packages, but it is impossible
-     * during FileLowering (hello, ConcurrentModificationException).
-     */
-    private lateinit var internalAbiFiles: Map<ModuleDescriptor, IrFile>
-
-    /**
      * Representation of ABI files from external modules.
      */
-    private val externalAbiFiles = mutableMapOf<ModuleDescriptor, IrFile>()
+    private val externalAbiFiles = mutableMapOf<FqName, IrFile>()
 
-    fun init(modules: List<IrModuleFragment>) {
-        internalAbiFiles = modules.associate { it.descriptor to createAbiFile(it) }
-    }
+    private val accumulator = mutableMapOf<IrFile, MutableList<IrFunction>>()
 
-    private fun createAbiFile(module: IrModuleFragment): IrFile =
-        module.addFile(NaiveSourceBasedFileEntryImpl("internal"), FqName("kotlin.native.caches.abi"))
+    private fun createAbiFile(module: IrModuleFragment, packageFqName: FqName): IrFile =
+        module.addFile(NaiveSourceBasedFileEntryImpl("internal_for_${module.name}"), packageFqName)
 
     /**
      * Adds external [function] from [module] to a list of external references.
      */
-    fun reference(function: IrFunction, module: ModuleDescriptor) {
+    fun reference(function: IrFunction, packageFqName: FqName, module: ModuleDescriptor) {
         assert(function.isExternal) { "Function that represents external ABI should be marked as external" }
         context.llvmImports.add(module.llvmSymbolOrigin)
-        externalAbiFiles.getOrPut(module) {
-            createAbiFile(IrModuleFragmentImpl(module, context.irBuiltIns))
+        externalAbiFiles.getOrPut(packageFqName) {
+            createAbiFile(IrModuleFragmentImpl(module, context.irBuiltIns), packageFqName)
         }.addChild(function)
     }
 
     /**
      * Adds [function] to a list of [module]'s publicly available symbols.
      */
-    fun declare(function: IrFunction, module: ModuleDescriptor) {
-        internalAbiFiles.getValue(module).addChild(function)
+    fun declare(function: IrFunction, irFile: IrFile) {
+        accumulator.getOrPut(irFile, ::mutableListOf) += function
+    }
+
+    fun commit(irFile: IrFile) {
+        accumulator[irFile]?.let { functions ->
+            irFile.addChildren(functions)
+            accumulator.remove(irFile)
+        }
     }
 
     companion object {
@@ -72,7 +64,7 @@ internal class InternalAbi(private val context: Context) {
         val INTERNAL_ABI_ORIGIN = object : IrDeclarationOriginImpl("INTERNAL_ABI") {}
 
         fun getCompanionObjectAccessorName(companion: IrClass): Name =
-                getMangledNameFor("globalAccessor", companion)
+                getMangledNameFor("companionAccessor", companion.parentAsClass)
 
         fun getEnumValuesAccessorName(enum: IrClass): Name =
                 getMangledNameFor("getValues", enum)
@@ -80,8 +72,8 @@ internal class InternalAbi(private val context: Context) {
         /**
          * Generate name for declaration that will be a part of internal ABI.
          */
-        private fun getMangledNameFor(declarationName: String, parent: IrDeclarationParent): Name {
-            val prefix = parent.fqNameForIrSerialization
+        private fun getMangledNameFor(declarationName: String, parent: IrDeclaration): Name {
+            val prefix = parent.nameForIrSerialization
             return "$prefix.$declarationName".synthesizedName
         }
     }

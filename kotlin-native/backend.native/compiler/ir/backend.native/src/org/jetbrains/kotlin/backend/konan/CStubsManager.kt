@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.konan.exec.Command
 import org.jetbrains.kotlin.konan.file.*
 import org.jetbrains.kotlin.konan.target.ClangArgs
 import org.jetbrains.kotlin.konan.target.KonanTarget
+import kotlin.random.Random
 
 private const val dumpBridges = false
 
@@ -32,6 +33,8 @@ class CStubsManager(private val target: KonanTarget) {
                 }
                 else -> ".c"
             }
+            // TODO: We link it into "out" llvm module, so we don't need to bother about naming.
+            //  But if we want to compile it to a separate object, then we should come up with something smarter.
             val cSource = createTempFile("cstubs", sourceFileExtension).deleteOnExit()
             cSource.writeLines(stubs.flatMap { it.lines })
 

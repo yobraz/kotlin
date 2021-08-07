@@ -76,6 +76,8 @@ void LLVMKotlinAddTargetLibraryInfoWrapperPass(LLVMPassManagerRef passManagerRef
 
 void LLVMKotlinInitializeTargets();
 
+void LLVMKotlinModuleHash(LLVMModuleRef, uint32_t hashResult[5]);
+
 # ifdef __cplusplus
 }
 # endif

@@ -178,7 +178,7 @@ internal fun runLlvmOptimizationPipeline(context: Context, llvmModule: LLVMModul
         // Pipeline that is similar to `llvm-lto`.
         // TODO: Add ObjC optimization passes.
         LLVMPassManagerBuilderPopulateLTOPassManager(passBuilder, modulePasses, Internalize = 0, RunInliner = 1)
-
+        LLVMPassManagerBuilderPopulateModulePassManager(passBuilder, modulePasses)
         LLVMRunPassManager(modulePasses, llvmModule)
 
         LLVMPassManagerBuilderDispose(passBuilder)

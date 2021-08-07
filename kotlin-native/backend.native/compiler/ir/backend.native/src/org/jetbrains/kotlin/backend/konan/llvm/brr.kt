@@ -5,22 +5,18 @@
 
 package org.jetbrains.kotlin.backend.konan.llvm
 
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.toKStringFromUtf8
-import llvm.LLVMGetModuleIdentifier
-import llvm.LLVMModuleRef
-import llvm.size_tVar
+import kotlinx.cinterop.*
+import llvm.*
+import org.jetbrains.kotlin.backend.konan.BitcodeFile
 import org.jetbrains.kotlin.backend.konan.Context
+import org.jetbrains.kotlin.backend.konan.ObjectFile
+import org.jetbrains.kotlin.backend.konan.logMultiple
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.util.file
-import org.jetbrains.kotlin.ir.util.nameForIrSerialization
+import org.jetbrains.kotlin.ir.util.isEffectivelyExternal
+import org.jetbrains.kotlin.konan.file.File
 
-internal val moduleToImports = mutableMapOf<LLVMModuleRef, LlvmImports>()
-internal val moduleToSpecification = mutableMapOf<LLVMModuleRef, Spec>()
-internal val moduleToStaticData = mutableMapOf<LLVMModuleRef, StaticData>()
 internal val moduleToLlvm = mutableMapOf<LLVMModuleRef, Llvm>()
 internal val moduleToDebugInfo = mutableMapOf<LLVMModuleRef, DebugInfo>()
 internal val moduleToLlvmDeclarations = mutableMapOf<LLVMModuleRef, LlvmDeclarations>()
@@ -35,30 +31,89 @@ sealed class Spec {
     abstract fun containsDeclaration(declaration: IrDeclaration): Boolean
 }
 
-// TODO: Rule: NOT in IrFiles
-internal class RootSpec : Spec() {
+internal class RootSpec(private val moduleFiles: List<IrFile>) : Spec() {
     override fun containsDeclaration(declaration: IrDeclaration): Boolean {
-        return false
+        return declaration.file !in moduleFiles
     }
 }
 
 internal class FileLlvmModuleSpecification(
         val irFile: IrFile,
 ) : Spec() {
-    override fun containsDeclaration(declaration: IrDeclaration): Boolean =
-            declaration.file == irFile
+    override fun containsDeclaration(declaration: IrDeclaration): Boolean {
+        if (declaration.isEffectivelyExternal()) return false
+        return declaration.file == irFile
+    }
 }
 
+// TODO: Module name could be an absolute path, thus some logic may fail
 fun stableModuleName(llvmModule: LLVMModuleRef): String = memScoped {
     val sizeVar = alloc<size_tVar>()
-    LLVMGetModuleIdentifier(llvmModule, sizeVar.ptr)?.toKStringFromUtf8()!!
+    LLVMGetModuleIdentifier(llvmModule, sizeVar.ptr)?.toKStringFromUtf8()!!.replace('/', '_')
 }
 
 internal class SeparateCompilation(val context: Context) {
-    fun shouldRecompile(llvmModule: LLVMModuleRef): Boolean {
+
+    fun classifyModules(modules: List<LLVMModuleRef>): Pair<List<LLVMModuleRef>, List<ObjectFile>> {
+        val (reuse, compile) = modules.partition { didNotChange(it) && getObjectFileFor(it) != null }
+        context.logMultiple {
+            +"Compiling LLVM modules:"
+            (compile).forEach {
+                +stableModuleName(it)
+            }
+        }
+        context.logMultiple {
+            +"Reusing LLVM modules:"
+            (reuse).forEach {
+                +stableModuleName(it)
+            }
+        }
+        return Pair(compile.onEach { storeHash(it) }, reuse.map { getObjectFileFor(it)!!.absolutePath })
+    }
+
+    fun classifyBitcode(files: List<BitcodeFile>): Pair<List<BitcodeFile>, List<ObjectFile>> {
+        val fileToModule = files.map { it to parseBitcodeFile(it) }
+
+        val (reuse, compile) = fileToModule.partition { didNotChange(it.second) && getObjectFileFor(it.second) != null }
+
+        val toCompile = compile.onEach { storeHash(it.second) }.map { it.first }
+        val toLink = reuse.map { getObjectFileFor(it.second)!!.absolutePath }
+
+        fileToModule.forEach { LLVMDisposeModule(it.second) }
+        return Pair(toCompile, toLink)
+    }
+
+    private fun getExistingHash(module: LLVMModuleRef): ByteArray? {
+        val moduleName = stableModuleName(module)
+        val file = context.config.tempFiles.lookup("$moduleName.md5")
+                ?: return null
+        return file.readBytes()
+    }
+
+    private fun computeHash(llvmModule: LLVMModuleRef): ByteArray {
+        return memScoped {
+            val hash = allocArray<uint32_tVar>(5)
+            LLVMKotlinModuleHash(llvmModule, hash)
+            hash.readBytes(5 * 4)
+        }
+    }
+
+    private fun storeHash(module: LLVMModuleRef) {
+        val moduleName = stableModuleName(module)
+        val hash = computeHash(module)
+        val file = context.config.tempFiles.create(moduleName, ".md5")
+        file.writeBytes(hash)
+    }
+
+    private fun didNotChange(llvmModule: LLVMModuleRef): Boolean {
+        val oldHash = getExistingHash(llvmModule)
+                ?: return true
+        val newHash = computeHash(llvmModule)
+        return oldHash.contentEquals(newHash)
+    }
+
+    private fun getObjectFileFor(llvmModule: LLVMModuleRef): File? {
         val moduleName = stableModuleName(llvmModule)
-        val cachedModule = context.config.tempFiles.lookup("$moduleName.bc")
-                ?: return false
-        return true
+        return context.config.tempFiles.lookup("$moduleName.bc.o")
     }
 }

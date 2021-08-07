@@ -372,7 +372,8 @@ class GccBasedLinker(targetProperties: GccConfigurables)
         // TODO: Can we extract more to the konan.configurables?
         return listOf(Command(absoluteLinker).apply {
             +"--sysroot=${absoluteTargetSysRoot}"
-            +"-export-dynamic"
+            // TODO: Do we need it in other cases?
+            if (dynamic) +"-export-dynamic"
             +"-z"
             +"relro"
             +"--build-id"
@@ -422,7 +423,7 @@ class GccBasedLinker(targetProperties: GccConfigurables)
 class MingwLinker(targetProperties: MingwConfigurables)
     : LinkerFlags(targetProperties), MingwConfigurables by targetProperties {
 
-    private val ar = "$absoluteTargetToolchain/bin/ar"
+    private val ar = "$absoluteLlvmHome/bin/llvm-ar"
 
     override val useCompilerDriverAsLinker: Boolean get() = false
 

@@ -16,10 +16,10 @@ internal var llvmContext: LLVMContextRef
     set(value) { llvmContextHolder.set(value) }
 
 internal fun tryDisposeLLVMContext() {
-//    val llvmContext = llvmContextHolder.get()
-//    if (llvmContext != null)
-//        LLVMContextDispose(llvmContext)
-//    llvmContextHolder.remove()
+    val llvmContext = llvmContextHolder.get()
+    if (llvmContext != null)
+        LLVMContextDispose(llvmContext)
+    llvmContextHolder.remove()
 }
 
 internal val LLVMTypeRef.context: LLVMContextRef
@@ -274,7 +274,7 @@ internal abstract class AddressAccess {
     abstract fun getAddress(generationContext: FunctionGenerationContext?): LLVMValueRef
 }
 
-internal class GlobalAddressAccess(private val address: LLVMValueRef): AddressAccess() {
+internal class GlobalAddressAccess(val address: LLVMValueRef): AddressAccess() {
     override fun getAddress(generationContext: FunctionGenerationContext?): LLVMValueRef = address
 }
 
@@ -299,7 +299,7 @@ internal fun ContextUtils.addKotlinThreadLocal(name: String, type: LLVMTypeRef):
     }
 }
 
-internal fun ContextUtils.addKotlinGlobal(name: String, type: LLVMTypeRef, isExported: Boolean): AddressAccess {
+internal fun ContextUtils.addKotlinGlobal(name: String, type: LLVMTypeRef, isExported: Boolean): GlobalAddressAccess {
     return GlobalAddressAccess(LLVMAddGlobal(llvmModule, type, name)!!.also {
         if (!isExported)
             LLVMSetLinkage(it, LLVMLinkage.LLVMInternalLinkage)

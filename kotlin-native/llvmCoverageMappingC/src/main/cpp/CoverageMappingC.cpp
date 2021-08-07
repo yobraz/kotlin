@@ -21,6 +21,7 @@
 #include <llvm/Transforms/Instrumentation.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Path.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
 #include <utility>
 #include <string>
 #include <vector>
@@ -228,6 +229,18 @@ void LLVMAddInstrProfPass(LLVMPassManagerRef passManagerRef, const char* outputF
 void LLVMKotlinAddTargetLibraryInfoWrapperPass(LLVMPassManagerRef passManagerRef, const char* targetTriple) {
   legacy::PassManagerBase *passManager = unwrap(passManagerRef);
   passManager->add(new TargetLibraryInfoWrapperPass(Triple(targetTriple)));
+}
+
+void LLVMKotlinModuleHash(LLVMModuleRef moduleRef, uint32_t hashResult[5]) {
+    SmallVector<char, 0> Buffer;
+    Buffer.reserve(256*1024);
+    BitcodeWriter bitcodeWriter(Buffer);
+    Module &module = *unwrap(moduleRef);
+    ModuleHash moduleHash;
+    bitcodeWriter.writeModule(module, false, nullptr, true, &moduleHash);
+    for (int i = 0; i < 5; ++i) {
+        hashResult[i] = moduleHash[i];
+    }
 }
 
 void LLVMKotlinInitializeTargets() {

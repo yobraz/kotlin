@@ -22,16 +22,18 @@ class Runtime(bitcodeFile: String) {
     internal fun getStructType(name: String) = getStructTypeOrNull(name)
             ?: throw Error("struct.$name is not found in the Runtime module.")
 
-    val typeInfoType = getStructType("TypeInfo")
-    val extendedTypeInfoType = getStructType("ExtendedTypeInfo")
-    val writableTypeInfoType = getStructTypeOrNull("WritableTypeInfo")
-    val interfaceTableRecordType = getStructType("InterfaceTableRecord")
-    val associatedObjectTableRecordType = getStructType("AssociatedObjectTableRecord")
+    val typeInfoType by lazy { getStructType("TypeInfo") }
+    val extendedTypeInfoType by lazy { getStructType("ExtendedTypeInfo") }
+    val writableTypeInfoType by lazy { getStructTypeOrNull("WritableTypeInfo") }
+    val interfaceTableRecordType by lazy { getStructType("InterfaceTableRecord") }
+    val associatedObjectTableRecordType by lazy { getStructType("AssociatedObjectTableRecord") }
+    val kNodeInitType by lazy { getStructType("InitNode") }
+    val kMemoryStateType by lazy { getStructType("MemoryState") }
 
-    val objHeaderType = getStructType("ObjHeader")
-    val objHeaderPtrType = pointerType(objHeaderType)
-    val objHeaderPtrPtrType = pointerType(objHeaderType)
-    val arrayHeaderType = getStructType("ArrayHeader")
+    val objHeaderType by lazy { getStructType("ObjHeader") }
+    val objHeaderPtrType by lazy { pointerType(objHeaderType) }
+    val objHeaderPtrPtrType by lazy { pointerType(objHeaderType) }
+    val arrayHeaderType by lazy { getStructType("ArrayHeader") }
 
     val frameOverlayType = getStructType("FrameOverlay")
 

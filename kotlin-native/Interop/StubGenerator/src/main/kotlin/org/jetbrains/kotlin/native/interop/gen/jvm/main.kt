@@ -259,7 +259,7 @@ private fun processCLib(flavor: KotlinPlatform, cinteropArguments: CInteropArgum
         else -> listOf()
     }
 
-    val libName = additionalArgs.cstubsName ?: fqParts.joinToString("") + "stubs"
+    val libName = additionalArgs.cstubsName ?: (fqParts.joinToString("") + "stubs")
 
     val tempFiles = TempFiles(libName, cinteropArguments.tempDir)
 
