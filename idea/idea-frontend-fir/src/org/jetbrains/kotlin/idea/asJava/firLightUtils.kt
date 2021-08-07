@@ -43,10 +43,7 @@ import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtSimpleConstantVa
 import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtSymbolWithModality
 import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtSymbolWithVisibility
 import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtTypeAndAnnotations
-import org.jetbrains.kotlin.idea.frontend.api.types.KtNonErrorClassType
-import org.jetbrains.kotlin.idea.frontend.api.types.KtType
-import org.jetbrains.kotlin.idea.frontend.api.types.KtTypeNullability
-import org.jetbrains.kotlin.idea.frontend.api.types.KtTypeWithNullability
+import org.jetbrains.kotlin.idea.frontend.api.types.*
 import org.jetbrains.kotlin.load.kotlin.TypeMappingMode
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.SpecialNames
@@ -197,11 +194,12 @@ internal enum class NullabilityType {
 }
 
 internal val KtType.nullabilityType: NullabilityType
-    get() =
-        (this as? KtTypeWithNullability)?.let {
-            if (it.declaredNullability == KtTypeNullability.NULLABLE) NullabilityType.Nullable else NullabilityType.NotNull
+    get() {
+        if (this is KtClassErrorType) return NullabilityType.Unknown
+        return (this as? KtFirType)?.let {
+            if (it.coneType.canBeNull) NullabilityType.Nullable else NullabilityType.NotNull
         } ?: NullabilityType.Unknown
-
+    }
 
 internal fun FirMemberDeclaration.computeSimpleModality(): Set<String> {
     require(this !is FirConstructor)
