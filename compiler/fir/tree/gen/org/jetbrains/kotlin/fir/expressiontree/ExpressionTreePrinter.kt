@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.fir.declarations.utils.visibility
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.impl.FirElseIfTrueCondition
 import org.jetbrains.kotlin.fir.expressions.impl.FirNoReceiverExpression
+import org.jetbrains.kotlin.fir.expressions.impl.FirQualifiedAccessExpressionImpl
 import org.jetbrains.kotlin.fir.expressions.impl.FirUnitExpression
 import org.jetbrains.kotlin.fir.references.FirNamedReference
 import org.jetbrains.kotlin.fir.references.impl.FirExplicitSuperReference
@@ -153,7 +154,7 @@ private class ExpressionTreeDumper {
     fun dump(b: String?, prefix: String?) {
         putIndent()
         putPrefix(prefix)
-        buffer.append(b)
+        buffer.append("\"\"\"$b\"\"\"")
         buffer.append(",\n")
     }
 
@@ -315,15 +316,8 @@ private class ExpressionTreeDumper {
             is FirComparisonExpression -> dumpCall("firComparisonExpression", prefix) {
                 dump(expr.annotations, "annotations")
                 dump(expr.operation, "operation")
-                dump(expr.compareToCall, "compareToCall")
-            }
-            is FirQualifiedAccessExpression -> dumpCall("firQualifiedAccessExpression", prefix) {
-                dump(expr.annotations, "annotations")
-                dump(expr.typeArguments, "typeArguments")
-                dump(expr.dispatchReceiver, "dispatchReceiver")
-                dump(expr.extensionReceiver, "extensionReceiver")
-                dump(expr.explicitReceiver, "explicitReceiver")
-                dump(expr.calleeReference, "calleeReference")
+                dump(expr.compareToCall.explicitReceiver, "explicitReceiver")
+                dump(expr.compareToCall.arguments, "arguments")
             }
             is FirAnnotationCall -> dumpCall("firAnnotationCall", prefix) {
                 dump(expr.annotations, "annotations")
@@ -408,6 +402,8 @@ private class ExpressionTreeDumper {
                 dump(expr.getter, "getter")
                 dump(expr.setter, "setter")
                 dump(expr.symbol.callableId, "symbol")
+                dump(expr.initializer, "initializer")
+                dump(expr.delegate, "delegate")
             }
             is FirElseIfTrueCondition -> dumpCall("firElseIfTrueCondition", prefix) {
                 dump(expr.annotations, "annotations")
@@ -622,6 +618,62 @@ private class ExpressionTreeDumper {
             is FirCheckNotNullCall -> dumpCall("firCheckNotNullCall", prefix) {
                 dump(expr.annotations, "annotations")
                 dump(expr.argumentList.arguments, "argumentList")
+            }
+            is FirQualifiedAccessExpressionImpl -> dumpCall("firQualifiedAccessExpression", prefix) {
+                dump(expr.annotations, "annotations")
+                dump(expr.typeArguments, "typeArguments")
+                dump(expr.dispatchReceiver, "dispatchReceiver")
+                dump(expr.extensionReceiver, "extensionReceiver")
+                dump(expr.explicitReceiver, "explicitReceiver")
+                dump(expr.calleeReference, "calleeReference")
+            }
+            is FirThisReceiverExpression -> dumpCall("firThisReceiverExpression", prefix) {
+                dump(expr.annotations, "annotations")
+                dump(expr.typeArguments, "typeArguments")
+                dump(expr.calleeReference, "calleeReference")
+            }
+            is FirFunctionCall -> dumpCall("firFunctionCall", prefix) {
+                dump(expr.annotations, "annotations")
+                dump(expr.typeArguments, "typeArguments")
+                dump(expr.explicitReceiver, "explicitReceiver")
+                dump(expr.dispatchReceiver, "dispatchReceiver")
+                dump(expr.extensionReceiver, "extensionReceiver")
+                dump(expr.argumentList.arguments, "argumentList")
+                dump(expr.calleeReference, "calleeReference")
+            }
+            is FirStringConcatenationCall -> dumpCall("firStringConcatenationCall", prefix) {
+                dump(expr.annotations, "annotations")
+                dump(expr.argumentList.arguments, "argumentList")
+            }
+            is FirNamedArgumentExpression -> dumpCall("firNamedArgumentExpression", prefix) {
+                dump(expr.annotations, "annotations")
+                dump(expr.expression, "expression")
+                dump(expr.isSpread, "isSpread")
+                dump(expr.name.asString(), "name")
+            }
+            is FirCallableReferenceAccess -> dumpCall("firCallableReferenceAccess", prefix) {
+                dump(expr.annotations, "annotations")
+                dump(expr.typeArguments, "typeArguments")
+                dump(expr.explicitReceiver, "explicitReceiver")
+                dump(expr.dispatchReceiver, "dispatchReceiver")
+                dump(expr.extensionReceiver, "extensionReceiver")
+                dump(expr.calleeReference, "calleeReference")
+                dump(expr.hasQuestionMarkAtLHS, "hasQuestionMarkAtLHS")
+            }
+            is FirAnonymousObjectExpression -> dumpCall("firAnonymousObjectExpression", prefix) {
+                dump(expr.anonymousObject, "anonymousObject")
+            }
+            is FirAnonymousObject -> dumpCall("firAnonymousObject", prefix) {
+                dump(expr.annotations, "annotations")
+                dump(expr.typeParameters, "typeParameters")
+                dump(expr.classKind, "classKind")
+                dump(expr.superTypeRefs, "superTypeRefs")
+                dump(expr.declarations, "declarations")
+            }
+            is FirErrorExpression -> dumpCall("firErrorExpression", prefix) {
+                dump(expr.annotations, "annotations")
+                dump(expr.expression, "expression")
+                dump(expr.diagnostic.reason, "diagnostic")
             }
             else -> error("$expr is unsupported")
         }

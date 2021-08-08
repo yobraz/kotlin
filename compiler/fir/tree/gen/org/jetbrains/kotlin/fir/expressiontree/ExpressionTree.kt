@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.fir.expressions.builder.FirArgumentListBuilder
 import org.jetbrains.kotlin.fir.expressions.builder.FirFunctionCallBuilder
 import org.jetbrains.kotlin.fir.expressions.impl.FirElseIfTrueCondition
 import org.jetbrains.kotlin.fir.expressions.impl.FirNoReceiverExpression
+import org.jetbrains.kotlin.fir.expressions.impl.FirQualifiedAccessExpressionImpl
 import org.jetbrains.kotlin.fir.expressions.impl.FirUnitExpression
 import org.jetbrains.kotlin.fir.references.FirNamedReference
 import org.jetbrains.kotlin.fir.references.impl.FirExplicitSuperReference
@@ -162,10 +163,11 @@ private fun FirElement.build(): FirExpression = when (this) {
         "firComparisonExpression", listOf(
             annotations.buildList(),
             operation.build(),
-            compareToCall.build()
+            compareToCall.explicitReceiver.buildNullable(),
+            compareToCall.arguments.buildList()
         )
     )
-    is FirQualifiedAccessExpression -> call(
+    is FirQualifiedAccessExpressionImpl -> call(
         "firQualifiedAccessExpression", listOf(
             annotations.buildList(),
             typeArguments.buildList(),
@@ -240,7 +242,9 @@ private fun FirElement.build(): FirExpression = when (this) {
             isLocal.build(),
             getter.buildNullable(),
             setter.buildNullable(),
-            symbol.callableId.build()
+            symbol.callableId.build(),
+            initializer.buildNullable(),
+            delegate.buildNullable()
         )
     )
     is FirElseIfTrueCondition -> call(
@@ -531,6 +535,70 @@ private fun FirElement.build(): FirExpression = when (this) {
             argumentList.arguments.buildList()
         )
     )
+    is FirThisReceiverExpression -> call(
+        "firThisReceiverExpression", listOf(
+            annotations.buildList(),
+            typeArguments.buildList(),
+            calleeReference.build()
+        )
+    )
+    is FirFunctionCall -> call(
+        "firFunctionCall", listOf(
+            annotations.buildList(),
+            typeArguments.buildList(),
+            explicitReceiver.buildNullable(),
+            dispatchReceiver.build(),
+            extensionReceiver.build(),
+            argumentList.arguments.buildList(),
+            calleeReference.build()
+        )
+    )
+    is FirStringConcatenationCall -> call(
+        "firStringConcatenationCall", listOf(
+            annotations.buildList(),
+            argumentList.arguments.buildList()
+        )
+    )
+    is FirNamedArgumentExpression -> call(
+        "firNamedArgumentExpression", listOf(
+            annotations.buildList(),
+            expression.build(),
+            isSpread.build(),
+            name.asString().build()
+        )
+    )
+    is FirCallableReferenceAccess -> call(
+        "firCallableReferenceAccess", listOf(
+            annotations.buildList(),
+            typeArguments.buildList(),
+            explicitReceiver.buildNullable(),
+            dispatchReceiver.build(),
+            extensionReceiver.build(),
+            calleeReference.build(),
+            hasQuestionMarkAtLHS.build()
+        )
+    )
+    is FirAnonymousObjectExpression -> call(
+        "firAnonymousObjectExpression", listOf(
+            anonymousObject.build()
+        )
+    )
+    is FirAnonymousObject -> call(
+        "firAnonymousObject", listOf(
+            annotations.buildList(),
+            typeParameters.buildList(),
+            classKind.build(),
+            superTypeRefs.buildList(),
+            declarations.buildList()
+        )
+    )
+    is FirErrorExpression -> call(
+        "firErrorExpression", listOf(
+            annotations.buildList(),
+            expression.buildNullable(),
+            diagnostic.reason.build()
+        )
+    )
     else -> error("$this is unsupported")
 }
 
@@ -609,7 +677,7 @@ private fun FirQualifierPart.build(): FirFunctionCall = call(
     )
 )
 
-private fun String.build(): FirExpression = firString("\"" + this + "\"")
+private fun String.build(): FirExpression = firString(this)
 
 private fun AnnotationUseSiteTarget?.buildNullable(): FirExpression = this?.build() ?: firNull()
 

@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.fir.builder.*
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.builder.*
 import org.jetbrains.kotlin.fir.declarations.impl.*
+import org.jetbrains.kotlin.fir.diagnostics.ConeDiagnostic
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.*
 import org.jetbrains.kotlin.fir.expressions.impl.*
@@ -133,7 +134,7 @@ fun firEqualityOperatorCall(
     operation: FirOperation
 ): FirEqualityOperatorCall = buildEqualityOperatorCall {
     this.annotations += annotations
-    this.argumentList = FirArgumentListBuilder().apply { this.arguments += arguments }.build()
+    this.argumentList = buildArgumentList { this.arguments += arguments }
     this.operation = operation
 }
 
@@ -234,7 +235,9 @@ fun firProperty(
     isLocal: Boolean,
     getter: FirPropertyAccessor?,
     setter: FirPropertyAccessor?,
-    callableId: CallableId
+    callableId: CallableId,
+    initializer: FirExpression?,
+    delegate: FirExpression?
 ): FirProperty = buildProperty {
     this.moduleData = syntheticModuleData
     this.origin = FirDeclarationOrigin.Synthetic
@@ -250,12 +253,15 @@ fun firProperty(
     this.isLocal = isLocal
     this.getter = getter
     this.getter = setter
+    this.initializer = initializer
+    this.delegate = delegate
 }
 
 fun firComparisonExpression(
     annotations: List<FirAnnotationCall>,
     operation: FirOperation,
-    compareToCall: FirQualifiedAccessExpression
+    explicitReceiver: FirExpression?,
+    arguments: List<FirExpression>
 ): FirComparisonExpression = buildComparisonExpression {
     this.annotations += annotations
     this.operation = operation
@@ -263,7 +269,8 @@ fun firComparisonExpression(
         calleeReference = buildSimpleNamedReference {
             name = OperatorNameConventions.COMPARE_TO
         }
-        explicitReceiver = compareToCall.explicitReceiver
+        this.explicitReceiver = explicitReceiver
+        this.argumentList = buildArgumentList { this.arguments += arguments }
     }
 }
 
@@ -812,4 +819,108 @@ fun firBinaryLogicExpression(
     this.leftOperand = leftOperand
     this.rightOperand = rightOperand
     this.kind = kind
+}
+
+fun firThisReceiverExpression(
+    annotations: List<FirAnnotationCall>,
+    typeArguments: List<FirTypeProjection>,
+    calleeReference: FirThisReference
+): FirThisReceiverExpression = buildThisReceiverExpression {
+    this.annotations += annotations
+    this.typeArguments += typeArguments
+    this.calleeReference = calleeReference
+}
+
+fun firFunctionCall(
+    annotations: List<FirAnnotationCall>,
+    typeArguments: List<FirTypeProjection>,
+    explicitReceiver: FirExpression?,
+    dispatchReceiver: FirExpression,
+    extensionReceiver: FirExpression,
+    arguments: List<FirExpression>,
+    calleeReference: FirNamedReference
+): FirFunctionCall = buildFunctionCall {
+    this.annotations += annotations
+    this.typeArguments += typeArguments
+    this.explicitReceiver = explicitReceiver
+    this.dispatchReceiver = dispatchReceiver
+    this.extensionReceiver = extensionReceiver
+    this.argumentList = buildArgumentList { this.arguments += arguments }
+    this.calleeReference = calleeReference
+}
+
+fun firStringConcatenationCall(
+    annotations: List<FirAnnotationCall>,
+    arguments: List<FirExpression>
+): FirStringConcatenationCall = buildStringConcatenationCall {
+    this.annotations += annotations
+    this.argumentList = buildArgumentList { this.arguments += arguments }
+}
+
+fun firNamedArgumentExpression(
+    annotations: List<FirAnnotationCall>,
+    expression: FirExpression,
+    isSpread: Boolean,
+    name: String
+): FirNamedArgumentExpression = buildNamedArgumentExpression {
+    this.annotations += annotations
+    this.expression = expression
+    this.isSpread = isSpread
+    this.name = Name.identifier(name)
+}
+
+fun firCallableReferenceAccess(
+    annotations: List<FirAnnotationCall>,
+    typeArguments: List<FirTypeProjection>,
+    explicitReceiver: FirExpression?,
+    dispatchReceiver: FirExpression,
+    extensionReceiver: FirExpression,
+    calleeReference: FirNamedReference,
+    hasQuestionMarkAtLHS: Boolean
+): FirCallableReferenceAccess = buildCallableReferenceAccess {
+    this.annotations += annotations
+    this.typeArguments += typeArguments
+    this.explicitReceiver = explicitReceiver
+    this.dispatchReceiver = dispatchReceiver
+    this.extensionReceiver = extensionReceiver
+    this.calleeReference = calleeReference
+    this.hasQuestionMarkAtLHS = hasQuestionMarkAtLHS
+}
+
+fun firAnonymousObjectExpression(
+    anonymousObject: FirAnonymousObject
+): FirAnonymousObjectExpression = buildAnonymousObjectExpression {
+    this.anonymousObject = anonymousObject
+}
+
+fun firAnonymousObject(
+    annotations: List<FirAnnotationCall>,
+    typeParameters: List<FirTypeParameter>,
+    classKind: ClassKind,
+    superTypeRefs: List<FirTypeRef>,
+    declarations: List<FirDeclaration>
+): FirAnonymousObject = buildAnonymousObject {
+    this.moduleData = syntheticModuleData
+    this.origin = FirDeclarationOrigin.Synthetic
+
+    this.annotations += annotations
+    this.typeParameters += typeParameters
+    this.classKind = classKind
+    this.superTypeRefs += superTypeRefs
+    this.declarations += declarations
+    this.scopeProvider = SyntheticScopeProvider
+    this.symbol = FirAnonymousObjectSymbol()
+}
+
+fun firErrorExpression(
+    annotations: List<FirAnnotationCall>,
+    expression: FirExpression?,
+    diagnostic: String
+): FirErrorExpression = buildErrorExpression {
+    this.annotations += annotations
+    this.expression = expression
+    this.diagnostic = object : ConeDiagnostic() {
+        override val reason: String
+            get() = diagnostic
+    }
 }

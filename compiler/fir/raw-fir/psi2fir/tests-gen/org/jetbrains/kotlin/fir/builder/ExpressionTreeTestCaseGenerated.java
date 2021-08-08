@@ -76,6 +76,11 @@ public class ExpressionTreeTestCaseGenerated extends AbstractExpressionTreeTestC
             runTest("compiler/fir/raw-fir/psi2fir/testData/expressionTree/expressions/classReference.kt");
         }
 
+        @TestMetadata("comparison.kt")
+        public void testComparison() throws Exception {
+            runTest("compiler/fir/raw-fir/psi2fir/testData/expressionTree/expressions/comparison.kt");
+        }
+
         @TestMetadata("destructuring.kt")
         public void testDestructuring() throws Exception {
             runTest("compiler/fir/raw-fir/psi2fir/testData/expressionTree/expressions/destructuring.kt");
