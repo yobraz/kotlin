@@ -1795,6 +1795,7 @@ class DeclarationsConverter(
                 MODIFIER_LIST -> allTypeModifiers += convertTypeModifierList(it)
                 USER_TYPE -> firType = convertUserType(typeRefSource, it)
                 FUNCTION_TYPE -> firType = convertFunctionType(typeRefSource, it, isSuspend = allTypeModifiers.hasSuspend())
+                NULLABLE_TYPE -> firType = convertNullableType(typeRefSource, it, allTypeModifiers)
                 DYNAMIC_TYPE -> firType = buildDynamicTypeRef {
                     source = typeRefSource
                     isMarkedNullable = false
