@@ -1594,6 +1594,10 @@ open class RawFirBuilder(
                         }
                     }
                 }
+                is KtIntersectionType -> FirErrorTypeRefBuilder().apply {
+                    this.source = source
+                    diagnostic = ConeSimpleDiagnostic("Intersection types are not supported yet", DiagnosticKind.Syntax)
+                }
                 null -> FirErrorTypeRefBuilder().apply {
                     this.source = source
                     diagnostic = ConeSimpleDiagnostic("Unwrapped type is null", DiagnosticKind.Syntax)

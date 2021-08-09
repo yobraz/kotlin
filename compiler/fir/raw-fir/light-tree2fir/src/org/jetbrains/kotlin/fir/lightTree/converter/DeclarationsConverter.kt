@@ -1804,6 +1804,11 @@ class DeclarationsConverter(
                     source = typeRefSource
                     isMarkedNullable = false
                 }
+                INTERSECTION_TYPE -> firType =
+                    buildErrorTypeRef {
+                        source = typeRefSource
+                        diagnostic = ConeSimpleDiagnostic("Intersection types are not supported yet", DiagnosticKind.Syntax)
+                    }
                 TokenType.ERROR_ELEMENT -> firType =
                     buildErrorTypeRef {
                         source = typeRefSource
@@ -1855,12 +1860,15 @@ class DeclarationsConverter(
                 USER_TYPE -> firType = convertUserType(typeRefSource, it, isNullable)
                 FUNCTION_TYPE -> firType = convertFunctionType(typeRefSource, it, isNullable, isSuspend = allTypeModifiers.hasSuspend())
                 NULLABLE_TYPE -> firType = convertNullableType(typeRefSource, it, allTypeModifiers)
-                DEFINITELY_NOT_NULL_TYPE -> firType =
-                    unwrapDefinitelyNotNullableType(typeRefSource, it, allTypeModifiers, isNullable = true)
                 DYNAMIC_TYPE -> firType = buildDynamicTypeRef {
                     source = typeRefSource
                     isMarkedNullable = true
                 }
+                INTERSECTION_TYPE -> firType =
+                    buildErrorTypeRef {
+                        source = typeRefSource
+                        diagnostic = ConeSimpleDiagnostic("Intersection types are not supported yet", DiagnosticKind.Syntax)
+                    }
             }
         }
 
