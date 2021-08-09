@@ -5,10 +5,12 @@ import java.util.*;
 
 public class A {
     void foo(List<Object> x) {}
-    List<String> bar() {}
 }
 // FILE: main.kt
 
-fun main(a: A) {
-    a.foo(<!JAVA_TYPE_MISMATCH!>a.bar()<!>)
+abstract class B : MutableList<String>
+
+fun main(a: A, b: B) {
+    a.foo(b)
+    a.foo(b as List<Any>)
 }
