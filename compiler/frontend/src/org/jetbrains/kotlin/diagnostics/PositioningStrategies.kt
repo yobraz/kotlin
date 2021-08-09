@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.diagnostics
 
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
-import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.tree.TokenSet
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.cfg.UnreachableCode
@@ -836,7 +835,6 @@ object PositioningStrategies {
         return when (this) {
             is KtUserType -> referenceExpression
             is KtNullableType -> innerType?.getReferencedTypeExpression()
-            is KtDefinitelyNotNullType -> innerType?.getReferencedTypeExpression()
             else -> null
         }
     }
