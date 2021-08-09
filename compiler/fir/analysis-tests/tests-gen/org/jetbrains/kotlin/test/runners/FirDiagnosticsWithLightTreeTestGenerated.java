@@ -5436,6 +5436,34 @@ public class FirDiagnosticsWithLightTreeTestGenerated extends AbstractFirDiagnos
             }
 
             @Nested
+            @TestMetadata("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/backingField")
+            @TestDataPath("$PROJECT_ROOT")
+            public class BackingField {
+                @Test
+                public void testAllFilesPresentInBackingField() throws Exception {
+                    KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/backingField"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
+                }
+
+                @Test
+                @TestMetadata("backingFieldVisibility.kt")
+                public void testBackingFieldVisibility() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/backingField/backingFieldVisibility.kt");
+                }
+
+                @Test
+                @TestMetadata("explicitBackingFieldType.kt")
+                public void testExplicitBackingFieldType() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/backingField/explicitBackingFieldType.kt");
+                }
+
+                @Test
+                @TestMetadata("propertyTypeNarrowing.kt")
+                public void testPropertyTypeNarrowing() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/backingField/propertyTypeNarrowing.kt");
+                }
+            }
+
+            @Nested
             @TestMetadata("compiler/fir/analysis-tests/testData/resolveWithStdlib/properties/publicType")
             @TestDataPath("$PROJECT_ROOT")
             public class PublicType {
