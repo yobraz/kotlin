@@ -835,7 +835,6 @@ object PositioningStrategies {
         return when (this) {
             is KtUserType -> referenceExpression
             is KtNullableType -> innerType?.getReferencedTypeExpression()
-            is KtDefinitelyNotNullType -> innerType?.getReferencedTypeExpression()
             else -> null
         }
     }
