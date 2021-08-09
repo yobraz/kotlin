@@ -53,14 +53,14 @@ open class TypeApproximatorConfiguration {
         override val intersectionTypesInContravariantPositions: Boolean get() = true
     }
 
-    sealed class AbstractCapturedTypesApproximation(val approximatedCapturedStatus: CaptureStatus?) :
+    abstract class AbstractCapturedTypesApproximation(val approximatedCapturedStatus: CaptureStatus) :
         AllFlexibleSameValue() {
         override val allFlexible: Boolean get() = true
         override val errorType: Boolean get() = true
 
         // i.e. will be approximated only approximatedCapturedStatus captured types
         override fun capturedType(ctx: TypeSystemInferenceExtensionContext, type: CapturedTypeMarker): Boolean =
-            approximatedCapturedStatus != null && type.captureStatus(ctx) == approximatedCapturedStatus
+            type.captureStatus(ctx) == approximatedCapturedStatus
 
         override val intersection: IntersectionStrategy get() = IntersectionStrategy.ALLOWED
         override val typeVariable: (TypeVariableTypeConstructorMarker) -> Boolean get() = { true }
@@ -75,11 +75,6 @@ open class TypeApproximatorConfiguration {
 
     object FinalApproximationAfterResolutionAndInference :
         AbstractCapturedTypesApproximation(CaptureStatus.FROM_EXPRESSION) {
-        override val integerLiteralType: Boolean get() = true
-        override val intersectionTypesInContravariantPositions: Boolean get() = true
-    }
-
-    object TypeArgumentApproximation : AbstractCapturedTypesApproximation(null) {
         override val integerLiteralType: Boolean get() = true
         override val intersectionTypesInContravariantPositions: Boolean get() = true
     }
