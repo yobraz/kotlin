@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.ir.backend.js.lower.cleanup.CleanupLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.coroutines.JsSuspendFunctionsLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.inline.CopyInlineFunctionBodyLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.inline.RemoveInlineDeclarationsWithReifiedTypeParametersLowering
+import org.jetbrains.kotlin.ir.backend.js.lower.inline.SyntheticAccessorLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.inline.jsRecordExtractedLocalClasses
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
@@ -231,13 +232,20 @@ private val localClassesExtractionFromInlineFunctionsPhase = makeBodyLoweringPha
     prerequisite = setOf(localClassesInInlineFunctionsPhase)
 )
 
+private val syntheticAccessorLoweringPhase = makeBodyLoweringPhase(
+    ::SyntheticAccessorLowering,
+    name = "syntheticAccessorLoweringPhase",
+    description = "Wrap top level inline function to access through them from inline functions"
+)
+
 private val functionInliningPhase = makeBodyLoweringPhase(
     ::FunctionInlining,
     name = "FunctionInliningPhase",
     description = "Perform function inlining",
     prerequisite = setOf(
         expectDeclarationsRemovingPhase, sharedVariablesLoweringPhase,
-        localClassesInInlineLambdasPhase, localClassesExtractionFromInlineFunctionsPhase
+        localClassesInInlineLambdasPhase, localClassesExtractionFromInlineFunctionsPhase,
+        syntheticAccessorLoweringPhase
     )
 )
 
@@ -743,6 +751,7 @@ private val loweringList = listOf<Lowering>(
     localClassesInInlineLambdasPhase,
     localClassesInInlineFunctionsPhase,
     localClassesExtractionFromInlineFunctionsPhase,
+    syntheticAccessorLoweringPhase,
     functionInliningPhase,
     copyInlineFunctionBodyLoweringPhase,
     removeInlineDeclarationsWithReifiedTypeParametersLoweringPhase,
