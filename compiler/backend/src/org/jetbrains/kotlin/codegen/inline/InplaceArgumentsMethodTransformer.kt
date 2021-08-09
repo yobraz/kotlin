@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.codegen.inline
 
+import jdk.internal.org.objectweb.asm.Type
 import org.jetbrains.kotlin.codegen.optimization.boxing.isMethodInsnWith
 import org.jetbrains.kotlin.codegen.optimization.common.InsnSequence
 import org.jetbrains.kotlin.codegen.optimization.common.remapLocalVariables
@@ -28,7 +29,7 @@ class InplaceArgumentsMethodTransformer : MethodTransformer() {
 
             val stackSizeAfter = StackSizeCalculator(internalClassName, methodNode).calculateStackSize()
             methodNode.maxStack = stackSizeAfter
-//            packLocalVariables(methodNode)
+            packLocalVariables(methodNode)
         }
         stripMarkers(methodNode)
     }
@@ -389,6 +390,18 @@ class InplaceArgumentsMethodTransformer : MethodTransformer() {
         // Track used slots and remap local variables.
         // Keep in mind that 'long' and 'double' variables occupy 2 slots.
         val usedLocalVar = BooleanArray(methodNode.maxLocals)
+
+        // Arguments are always "used"
+        val argTypes = Type.getArgumentTypes(methodNode.desc)
+        var lastArgIndex = 0
+        for (argType in argTypes) {
+            usedLocalVar[lastArgIndex++] = true
+            if (argType.size == 2) {
+                usedLocalVar[lastArgIndex++] = true
+            }
+        }
+
+        // Local variables used in xLOAD/xSTORE/IINC instructions
         for (insn in methodNode.instructions) {
             when (insn.opcode) {
                 Opcodes.ILOAD, Opcodes.FLOAD, Opcodes.ALOAD, Opcodes.ISTORE, Opcodes.FSTORE, Opcodes.ASTORE ->
@@ -402,6 +415,8 @@ class InplaceArgumentsMethodTransformer : MethodTransformer() {
                     usedLocalVar[(insn as IincInsnNode).`var`] = true
             }
         }
+
+        // Local variables mentioned in LVT
         for (lv in methodNode.localVariables) {
             usedLocalVar[lv.index] = true
             val lvd0 = lv.desc[0]
