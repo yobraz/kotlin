@@ -18217,6 +18217,12 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
         }
 
         @Test
+        @TestMetadata("inlineCircularDedepency.kt")
+        public void testInlineCircularDedepency() throws Exception {
+            runTest("compiler/testData/codegen/box/inlineArgsInPlace/inlineCircularDedepency.kt");
+        }
+
+        @Test
         @TestMetadata("mapSet.kt")
         public void testMapSet() throws Exception {
             runTest("compiler/testData/codegen/box/inlineArgsInPlace/mapSet.kt");

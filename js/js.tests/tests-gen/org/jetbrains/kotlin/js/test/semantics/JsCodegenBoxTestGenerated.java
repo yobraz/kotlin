@@ -12549,6 +12549,11 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             runTest("compiler/testData/codegen/box/inlineArgsInPlace/continueInArgumentExpression.kt");
         }
 
+        @TestMetadata("inlineCircularDedepency.kt")
+        public void testInlineCircularDedepency() throws Exception {
+            runTest("compiler/testData/codegen/box/inlineArgsInPlace/inlineCircularDedepency.kt");
+        }
+
         @TestMetadata("mapSet.kt")
         public void testMapSet() throws Exception {
             runTest("compiler/testData/codegen/box/inlineArgsInPlace/mapSet.kt");
