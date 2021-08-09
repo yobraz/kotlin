@@ -28,7 +28,7 @@ class InplaceArgumentsMethodTransformer : MethodTransformer() {
 
             val stackSizeAfter = StackSizeCalculator(internalClassName, methodNode).calculateStackSize()
             methodNode.maxStack = stackSizeAfter
-            packLocalVariables(methodNode)
+//            packLocalVariables(methodNode)
         }
         stripMarkers(methodNode)
     }
