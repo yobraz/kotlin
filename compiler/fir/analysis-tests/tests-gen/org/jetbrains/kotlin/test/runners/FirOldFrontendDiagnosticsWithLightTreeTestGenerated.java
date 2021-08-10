@@ -13315,9 +13315,15 @@ public class FirOldFrontendDiagnosticsWithLightTreeTestGenerated extends Abstrac
                 }
 
                 @Test
-                @TestMetadata("equalityChecksWithIlt.kt")
-                public void testEqualityChecksWithIlt() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/inference/builderInference/equalityChecksWithIlt.kt");
+                @TestMetadata("equalityChecksOnIntegerTypes.kt")
+                public void testEqualityChecksOnIntegerTypes() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/inference/builderInference/equalityChecksOnIntegerTypes.kt");
+                }
+
+                @Test
+                @TestMetadata("equalityChecksOnIntegerTypesProgressive.kt")
+                public void testEqualityChecksOnIntegerTypesProgressive() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/inference/builderInference/equalityChecksOnIntegerTypesProgressive.kt");
                 }
 
                 @Test
