@@ -490,6 +490,12 @@ class NewResolutionOldInference(
             }
         }
 
+        override fun createCandidate(
+            towerCandidate: CandidateWithBoundDispatchReceiver,
+            explicitReceiverKind: ExplicitReceiverKind,
+            extensionReceiverCandidates: List<ReceiverValueWithSmartCastInfo>
+        ): MyCandidate = error("${this::class.simpleName} doesn't support candidates with multiple extension receiver candidates")
+
         private fun createDiagnosticsForCandidate(
             towerCandidate: CandidateWithBoundDispatchReceiver,
             candidateCall: ResolvedCallImpl<CallableDescriptor>

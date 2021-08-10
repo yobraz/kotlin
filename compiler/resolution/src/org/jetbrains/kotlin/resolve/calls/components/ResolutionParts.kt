@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.resolve.calls.inference.model.*
 import org.jetbrains.kotlin.resolve.calls.model.*
 import org.jetbrains.kotlin.resolve.calls.smartcasts.getReceiverValueWithSmartCast
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind.*
+import org.jetbrains.kotlin.resolve.calls.tower.ContextReceiverAmbiguity
 import org.jetbrains.kotlin.resolve.calls.tower.InfixCallNoInfixModifier
 import org.jetbrains.kotlin.resolve.calls.tower.InvokeConventionCallNoOperatorModifier
 import org.jetbrains.kotlin.resolve.calls.tower.VisibilityError
@@ -635,7 +636,70 @@ private fun KotlinResolutionCandidate.prepareExpectedType(expectedType: Unwrappe
     return resolvedCall.knownParametersSubstitutor.safeSubstitute(resultType)
 }
 
+private data class ApplicableArgumentWithConstraint(
+    val argument: SimpleKotlinCallArgument,
+    val argumentType: UnwrappedType,
+    val expectedType: UnwrappedType,
+    val position: ConstraintPosition
+)
+
+private fun KotlinResolutionCandidate.getArgumentWithConstraintIfCompatible(
+    argument: SimpleKotlinCallArgument,
+    parameter: ParameterDescriptor
+): ApplicableArgumentWithConstraint? {
+    val expectedTypeUnprepared = argument.getExpectedType(parameter, callComponents.languageVersionSettings)
+    val expectedType = prepareExpectedType(expectedTypeUnprepared)
+    val argumentType = captureFromTypeParameterUpperBoundIfNeeded(argument.receiver.stableType, expectedType)
+    val position = ReceiverConstraintPositionImpl(argument)
+    return if (csBuilder.isSubtypeConstraintCompatible(argumentType, expectedType, position))
+        ApplicableArgumentWithConstraint(argument, argumentType, expectedType, position)
+    else null
+}
+
 internal object CheckReceivers : ResolutionPart() {
+    override fun KotlinResolutionCandidate.process(workIndex: Int) {
+        when (workIndex) {
+            0 -> checkReceiver(
+                resolvedCall.dispatchReceiverArgument,
+                candidateDescriptor.dispatchReceiverParameter,
+                shouldCheckImplicitInvoke = true,
+            )
+            1 -> {
+                if (resolvedCall.extensionReceiverArgument == null) {
+                    val applicableExtensionReceiverCandidate = chooseExtensionReceiverCandidate() ?: return
+                    resolvedCall.extensionReceiverArgument = applicableExtensionReceiverCandidate
+                }
+                checkReceiver(
+                    resolvedCall.extensionReceiverArgument,
+                    candidateDescriptor.extensionReceiverParameter,
+                    shouldCheckImplicitInvoke = false, // reproduce old inference behaviour
+                )
+            }
+        }
+    }
+
+    override fun KotlinResolutionCandidate.workCount() = 2
+
+    private fun KotlinResolutionCandidate.chooseExtensionReceiverCandidate(): SimpleKotlinCallArgument? {
+        val candidates = resolvedCall.extensionReceiverArgumentCandidates
+        if (candidates.isNullOrEmpty()) {
+            return null
+        }
+        if (candidates.size == 1) {
+            return candidates.single()
+        }
+        val extensionReceiverParameter = candidateDescriptor.extensionReceiverParameter ?: return null
+        val compatible = candidates.mapNotNull { getArgumentWithConstraintIfCompatible(it, extensionReceiverParameter) }
+        return when (compatible.size) {
+            0 -> null
+            1 -> compatible.single().argument
+            else -> {
+                diagnosticsFromResolutionParts.add(ContextReceiverAmbiguity())
+                null
+            }
+        }
+    }
+
     private fun KotlinResolutionCandidate.checkReceiver(
         receiverArgument: SimpleKotlinCallArgument?,
         receiverParameter: ReceiverParameterDescriptor?,
@@ -658,25 +722,6 @@ internal object CheckReceivers : ResolutionPart() {
 
         resolveKotlinArgument(receiverArgument, receiverParameter, receiverInfo)
     }
-
-    override fun KotlinResolutionCandidate.process(workIndex: Int) {
-        when (workIndex) {
-            0 -> checkReceiver(
-                resolvedCall.dispatchReceiverArgument,
-                candidateDescriptor.dispatchReceiverParameter,
-                shouldCheckImplicitInvoke = true,
-            )
-            1 -> {
-                checkReceiver(
-                    resolvedCall.extensionReceiverArgument,
-                    candidateDescriptor.extensionReceiverParameter,
-                    shouldCheckImplicitInvoke = false, // reproduce old inference behaviour
-                )
-            }
-        }
-    }
-
-    override fun KotlinResolutionCandidate.workCount() = 2
 }
 
 internal object CheckArgumentsInParenthesis : ResolutionPart() {
@@ -786,32 +831,15 @@ internal object CheckContextReceiversResolutionPart : ResolutionPart() {
         resolvedCall.contextReceiversArguments = contextReceiversArguments
     }
 
-    private data class ApplicableArgumentWithConstraint(
-        val argument: SimpleKotlinCallArgument,
-        val argumentType: UnwrappedType,
-        val expectedType: UnwrappedType,
-        val position: ConstraintPosition
-    )
-
     private fun KotlinResolutionCandidate.findContextReceiver(
         implicitReceiversGroups: List<List<ReceiverValueWithSmartCastInfo>>,
         candidateContextReceiverParameter: ReceiverParameterDescriptor
     ): SimpleKotlinCallArgument? {
-
-        fun ReceiverValueWithSmartCastInfo.createArgumentIfCompatible(): ApplicableArgumentWithConstraint? {
-            val argument = ReceiverExpressionKotlinCallArgument(this)
-            val expectedTypeUnprepared = argument.getExpectedType(candidateContextReceiverParameter, callComponents.languageVersionSettings)
-
-            val expectedType = prepareExpectedType(expectedTypeUnprepared)
-            val argumentType = captureFromTypeParameterUpperBoundIfNeeded(argument.receiver.stableType, expectedType)
-            val position = ReceiverConstraintPositionImpl(argument)
-            return if (csBuilder.isSubtypeConstraintCompatible(argumentType, expectedType, position))
-                ApplicableArgumentWithConstraint(argument, argumentType, expectedType, position)
-            else null
-        }
-
         for (implicitReceiverGroup in implicitReceiversGroups) {
-            val applicableArguments = implicitReceiverGroup.mapNotNull { it.createArgumentIfCompatible() }.toList()
+            val applicableArguments = implicitReceiverGroup.mapNotNull {
+                val argument = ReceiverExpressionKotlinCallArgument(it)
+                getArgumentWithConstraintIfCompatible(argument, candidateContextReceiverParameter)
+            }.toList()
             if (applicableArguments.size == 1) {
                 val (argument, argumentType, expectedType, position) = applicableArguments.single()
                 csBuilder.addSubtypeConstraint(argumentType, expectedType, position)
