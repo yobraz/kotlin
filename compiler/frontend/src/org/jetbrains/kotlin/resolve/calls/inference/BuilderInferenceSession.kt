@@ -555,6 +555,9 @@ class BuilderInferenceSession(
     }
 
     private fun InitialConstraint.substitute(substitutor: NewTypeSubstitutor): InitialConstraint {
+        // We don't consider declared upper bound constraints as proper
+        if (position is DeclaredUpperBoundConstraintPosition<*>) return this
+
         val lowerSubstituted = substitutor.safeSubstitute(a as UnwrappedType)
         val upperSubstituted = substitutor.safeSubstitute(b as UnwrappedType)
 

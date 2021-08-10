@@ -39,7 +39,7 @@ fun main() {
     build {
         emit("")
         // K is fixed into CapturedType(in NotFixed: TypeVariable(R))
-        <!DEBUG_INFO_EXPRESSION_TYPE("kotlin.Any?")!>capture(<!DEBUG_INFO_EXPRESSION_TYPE("Inv<in kotlin.Any?>")!>getIn()<!>)<!>
+        <!DEBUG_INFO_EXPRESSION_TYPE("kotlin.Any?")!>capture(<!DEBUG_INFO_EXPRESSION_TYPE("Inv<in kotlin.String>")!>getIn()<!>)<!>
         ""
     }
 }
