@@ -1012,6 +1012,7 @@ class ExpressionsConverter(
     private fun convertWhile(whileLoop: LighterASTNode): FirElement {
         var block: LighterASTNode? = null
         var firCondition: FirExpression? = null
+        val label = stashLabel() //get label of while, otherwise if condition has lambda, it will steal the label
         whileLoop.forEachChildren {
             when (it.tokenType) {
                 BODY -> block = it
@@ -1026,7 +1027,7 @@ class ExpressionsConverter(
                 firCondition ?: buildErrorExpression(null, ConeSimpleDiagnostic("No condition in while loop", DiagnosticKind.Syntax))
             // break/continue in the while loop condition will refer to an outer loop if any.
             // So, prepare the loop target after building the condition.
-            target = prepareTarget()
+            target = prepareTarget(label)
         }.configure(target) { convertLoopBody(block) }
     }
 
