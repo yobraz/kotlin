@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.builder
 
 import com.intellij.psi.tree.IElementType
+import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.KtNodeTypes.*
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.descriptors.Modality
@@ -147,6 +148,16 @@ abstract class BaseFirBuilder<T>(val baseSession: FirSession, val context: Conte
             removeAt(size - 1)
         }
         return result
+    }
+
+    fun popNonLoopLabel(): FirLabel? {
+        val firLabels = context.firLabels
+        val lastLabel = firLabels.lastOrNull()?.takeIf {
+            val labeledSourceType = it.labeledSource?.elementType
+            labeledSourceType != WHILE && labeledSourceType != DO_WHILE && labeledSourceType != FOR
+        } ?: return null
+        firLabels.removeAt(firLabels.size - 1)
+        return lastLabel
     }
 
     fun FirExpression.toReturn(
@@ -1199,10 +1210,15 @@ abstract class BaseFirBuilder<T>(val baseSession: FirSession, val context: Conte
         }
     }
 
-    protected fun buildLabelAndErrorSource(rawName: String, source: FirSourceElement): Pair<FirLabel, FirSourceElement?> {
+    protected fun buildLabelAndErrorSource(
+        rawName: String,
+        source: FirSourceElement,
+        labeledSource: FirSourceElement?
+    ): Pair<FirLabel, FirSourceElement?> {
         val firLabel = buildLabel {
             name = KtPsiUtil.unquoteIdentifier(rawName)
             this.source = source
+            this.labeledSource = labeledSource
         }
 
         return Pair(firLabel, if (rawName.isUnderscore) firLabel.source else null)

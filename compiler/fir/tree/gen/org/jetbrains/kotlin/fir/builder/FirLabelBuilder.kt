@@ -21,11 +21,13 @@ import org.jetbrains.kotlin.fir.visitors.*
 class FirLabelBuilder {
     var source: FirSourceElement? = null
     lateinit var name: String
+    var labeledSource: FirSourceElement? = null
 
     fun build(): FirLabel {
         return FirLabelImpl(
             source,
             name,
+            labeledSource,
         )
     }
 

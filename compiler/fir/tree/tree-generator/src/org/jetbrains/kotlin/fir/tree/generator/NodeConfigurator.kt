@@ -154,6 +154,7 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
 
         label.configure {
             +stringField("name")
+            +field("labeledSource", sourceElementType, nullable = true)
         }
 
         loop.configure {

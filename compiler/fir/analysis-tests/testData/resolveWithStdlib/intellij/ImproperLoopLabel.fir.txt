@@ -1,0 +1,37 @@
+FILE: ImproperLoopLabel.kt
+    public final fun foo(): R|kotlin/Unit| {
+        lvar tokenType: R|kotlin/String?| = Null(null)
+        while(Boolean(true)) {
+            FindTagEnd@while(R|<local>/tokenType|.R|kotlin/let|<R|kotlin/String?|, R|kotlin/Boolean|>(<L> = let@fun <anonymous>(it: R|kotlin/String?|): R|kotlin/Boolean| <inline=Inline, kind=EXACTLY_ONCE>  {
+                ^ !=(R|<local>/it|, Null(null)) && !==(R|<local>/it|, String(XML_END_TAG_START))
+            }
+            )) {
+                when () {
+                    ===(R|<local>/tokenType|, String(XML_COMMENT_CHARACTERS)) ->  {
+                        lval end: R|kotlin/String?| = R|<local>/tokenType|
+                         {
+                            lval <iterator>: R|kotlin/collections/CharIterator| = R|<local>/tokenType|.R|kotlin/text/iterator|()
+                            while(R|<local>/<iterator>|.R|kotlin/collections/Iterator.hasNext|()) {
+                                lval i: R|kotlin/Char| = R|<local>/<iterator>|.R|kotlin/collections/CharIterator.next|()
+                                when () {
+                                    ==(R|<local>/i|, Char( )) ->  {
+                                        break@@@[R|<local>/tokenType|.R|kotlin/let|<R|kotlin/String?|, R|kotlin/Boolean|>(<L> = let@fun <anonymous>(it: R|kotlin/String?|): R|kotlin/Boolean| <inline=Inline, kind=EXACTLY_ONCE>  {
+                                            ^ !=(R|<local>/it|, Null(null)) && !==(R|<local>/it|, String(XML_END_TAG_START))
+                                        }
+                                        )]
+                                    }
+                                }
+
+                            }
+
+                        }
+
+                    }
+                }
+
+                R|<local>/tokenType| = String(abc)
+            }
+
+        }
+
+    }

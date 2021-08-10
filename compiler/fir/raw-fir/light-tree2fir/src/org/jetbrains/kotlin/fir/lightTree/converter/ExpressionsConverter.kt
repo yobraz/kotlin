@@ -141,7 +141,7 @@ class ExpressionsConverter(
             receiverTypeRef = implicitType
             symbol = FirAnonymousFunctionSymbol()
             isLambda = true
-            label = context.firLabels.pop() ?: context.calleeNamesForLambda.lastOrNull()?.let {
+            label = popNonLoopLabel() ?: context.calleeNamesForLambda.lastOrNull()?.let {
                 buildLabel {
                     source = expressionSource.fakeElement(FirFakeSourceElementKind.GeneratedLambdaLabel)
                     name = it.asString()
@@ -330,22 +330,33 @@ class ExpressionsConverter(
      * @see org.jetbrains.kotlin.fir.builder.RawFirBuilder.Visitor.visitLabeledExpression
      */
     private fun convertLabeledExpression(labeledExpression: LighterASTNode): FirElement {
-        var firExpression: FirElement? = null
         val previousLabelsSize = context.firLabels.size
         var errorLabelSource: FirSourceElement? = null
+        var labeled: LighterASTNode? = null
+        var labelQualifier: LighterASTNode? = null
 
         labeledExpression.forEachChildren {
             when (it.tokenType) {
-                LABEL_QUALIFIER -> {
-                    val rawName = it.toString()
-                    val pair = buildLabelAndErrorSource(rawName.substring(0, rawName.length - 1), it.toFirSourceElement())
-                    context.firLabels += pair.first
-                    errorLabelSource = pair.second
-                }
-                BLOCK -> firExpression = declarationsConverter.convertBlock(it)
-                PROPERTY -> firExpression = declarationsConverter.convertPropertyDeclaration(it)
-                else -> if (it.isExpression()) firExpression = getAsFirExpression(it)
+                LABEL_QUALIFIER -> labelQualifier = it
+                BLOCK -> labeled = it
+                PROPERTY -> labeled = it
+                else -> if (it.isExpression()) labeled = it
             }
+        }
+        val rawLabelName = labelQualifier.toString()
+        if (labelQualifier != null) {
+            val pair = buildLabelAndErrorSource(
+                rawLabelName.substring(0, rawLabelName.length - 1), labelQualifier!!.toFirSourceElement(), labeled?.toFirSourceElement()
+            )
+            context.firLabels += pair.first
+            errorLabelSource = pair.second
+        }
+
+        val labeledNode = labeled
+        val firExpression = if (labeledNode == null) null else when (labeledNode.tokenType) {
+            BLOCK -> declarationsConverter.convertBlock(labeledNode)
+            PROPERTY -> declarationsConverter.convertPropertyDeclaration(labeledNode)
+            else -> if (labeledNode.isExpression()) getAsFirExpression(labeledNode) else null
         }
 
         if (context.firLabels.size != previousLabelsSize) {

@@ -1264,7 +1264,7 @@ open class RawFirBuilder(
                     }
                 }
                 val expressionSource = expression.toFirSourceElement()
-                label = context.firLabels.pop() ?: context.calleeNamesForLambda.lastOrNull()?.let {
+                label = popNonLoopLabel() ?: context.calleeNamesForLambda.lastOrNull()?.let {
                     buildLabel {
                         source = expressionSource.fakeElement(FirFakeSourceElementKind.GeneratedLambdaLabel)
                         name = it.asString()
@@ -2251,14 +2251,17 @@ open class RawFirBuilder(
             val previousLabelsSize = context.firLabels.size
             var errorLabelSource: FirSourceElement? = null
 
+            val baseExpression = expression.baseExpression
             if (label != null) {
                 val rawName = label.getReferencedNameElement().node!!.text
-                val labelAndErrorSource = buildLabelAndErrorSource(rawName, label.toFirPsiSourceElement())
+                val labelAndErrorSource = buildLabelAndErrorSource(
+                    rawName, label.toFirPsiSourceElement(), baseExpression?.toFirPsiSourceElement()
+                )
                 context.firLabels += labelAndErrorSource.first
                 errorLabelSource = labelAndErrorSource.second
             }
 
-            val result = expression.baseExpression?.accept(this, data)
+            val result = baseExpression?.accept(this, data)
 
             if (context.firLabels.size != previousLabelsSize) {
                 context.firLabels.removeLast()
