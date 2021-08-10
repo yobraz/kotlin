@@ -13321,6 +13321,12 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
                 }
 
                 @Test
+                @TestMetadata("equalityChecksWithIlt.kt")
+                public void testEqualityChecksWithIlt() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/inference/builderInference/equalityChecksWithIlt.kt");
+                }
+
+                @Test
                 @TestMetadata("kt47744.kt")
                 public void testKt47744() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/inference/builderInference/kt47744.kt");
