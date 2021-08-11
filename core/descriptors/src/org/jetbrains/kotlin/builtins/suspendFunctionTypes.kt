@@ -65,6 +65,7 @@ fun transformSuspendFunctionToRuntimeFunctionType(suspendFunType: KotlinType, is
             suspendFunType.builtIns,
             suspendFunType.annotations,
             suspendFunType.getReceiverTypeFromFunctionType(),
+            suspendFunType.getContextReceiverTypesFromFunctionType(),
             suspendFunType.getValueParameterTypesFromFunctionType().map(TypeProjection::getType) +
             KotlinTypeFactory.simpleType(
                     Annotations.EMPTY,

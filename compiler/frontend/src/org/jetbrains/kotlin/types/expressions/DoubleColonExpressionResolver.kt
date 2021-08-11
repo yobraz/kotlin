@@ -834,6 +834,9 @@ class DoubleColonExpressionResolver(
     }
 
     companion object {
+        private fun contextReceiverTypesFor(descriptor: CallableDescriptor): List<KotlinType> =
+            descriptor.contextReceiverParameters.map { it.type }
+
         private fun receiverTypeFor(descriptor: CallableDescriptor, lhs: DoubleColonLHS?): KotlinType? =
             (descriptor.extensionReceiverParameter ?: descriptor.dispatchReceiverParameter)?.let { (lhs as? DoubleColonLHS.Type)?.type }
 
@@ -853,6 +856,7 @@ class DoubleColonExpressionResolver(
             reflectionTypes: ReflectionTypes,
             scopeOwnerDescriptor: DeclarationDescriptor
         ): KotlinType? {
+            val contextReceiverTypes = contextReceiverTypesFor(descriptor)
             val receiverType = receiverTypeFor(descriptor, lhs)
             return when (descriptor) {
                 is FunctionDescriptor -> {
@@ -860,8 +864,7 @@ class DoubleColonExpressionResolver(
                     val parametersTypes = descriptor.valueParameters.map { it.type }
                     val parametersNames = descriptor.valueParameters.map { it.name }
                     return reflectionTypes.getKFunctionType(
-                        Annotations.EMPTY, receiverType,
-                        parametersTypes, parametersNames, returnType, descriptor.builtIns, descriptor.isSuspend
+                        Annotations.EMPTY, receiverType, contextReceiverTypes, parametersTypes, parametersNames, returnType, descriptor.builtIns, descriptor.isSuspend
                     )
                 }
                 is PropertyDescriptor -> {

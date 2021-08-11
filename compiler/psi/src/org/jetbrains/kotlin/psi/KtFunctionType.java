@@ -89,6 +89,20 @@ public class KtFunctionType extends KtElementImplStub<KotlinPlaceHolderStub<KtFu
         return receiverDeclaration.getTypeReference();
     }
 
+    public List<KtTypeReference> getContextReceiversTypeReferences() {
+        KtFunctionTypeReceiver receiverDeclaration = getReceiver();
+        if (receiverDeclaration == null) {
+            return null;
+        }
+        KtTypeReference receiverTypeRef = receiverDeclaration.getTypeReference();
+        KtContextReceiverList contextReceiverList = receiverTypeRef.getStubOrPsiChild(KtStubElementTypes.CONTEXT_RECEIVER_LIST);
+        if (contextReceiverList != null) {
+            return contextReceiverList.typeReferences();
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
     @Nullable
     public KtTypeReference getReturnTypeReference() {
         return getStubOrPsiChild(KtStubElementTypes.TYPE_REFERENCE);
