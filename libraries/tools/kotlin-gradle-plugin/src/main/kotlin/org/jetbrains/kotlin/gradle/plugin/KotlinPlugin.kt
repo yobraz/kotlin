@@ -11,8 +11,8 @@ import com.android.build.gradle.api.AndroidSourceSet
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.api.SourceKind
 import org.gradle.api.*
-import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
-import org.gradle.api.artifacts.maven.MavenResolver
+//import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
+//import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.Directory
@@ -50,7 +50,7 @@ import java.io.File
 import java.net.URL
 import java.util.concurrent.Callable
 import java.util.jar.Manifest
-import org.gradle.api.artifacts.maven.MavenPom as OldMavenPom
+//import org.gradle.api.artifacts.maven.MavenPom as OldMavenPom
 
 const val PLUGIN_CLASSPATH_CONFIGURATION_NAME = "kotlinCompilerPluginClasspath"
 const val NATIVE_COMPILER_PLUGIN_CLASSPATH_CONFIGURATION_NAME = "kotlinNativeCompilerPluginClasspath"
@@ -424,12 +424,12 @@ internal abstract class AbstractKotlinPlugin(
         }
     }
 
-    private fun rewritePom(pom: OldMavenPom, rewriter: PomDependenciesRewriter, shouldRewritePom: Provider<Boolean>) {
-        pom.withXml { xml ->
-            if (shouldRewritePom.get())
-                rewriter.rewritePomMppDependenciesToActualTargetModules(xml)
-        }
-    }
+//    private fun rewritePom(pom: OldMavenPom, rewriter: PomDependenciesRewriter, shouldRewritePom: Provider<Boolean>) {
+//        pom.withXml { xml ->
+//            if (shouldRewritePom.get())
+//                rewriter.rewritePomMppDependenciesToActualTargetModules(xml)
+//        }
+//    }
 
     private fun rewriteMppDependenciesInPom(target: AbstractKotlinTarget) {
         val project = target.project
@@ -446,7 +446,7 @@ internal abstract class AbstractKotlinPlugin(
                 }
             }
         }
-
+        /*
         project.pluginManager.withPlugin("maven") {
             project.tasks.withType(Upload::class.java).all { uploadTask ->
                 uploadTask.repositories.withType(MavenResolver::class.java).all { mavenResolver ->
@@ -459,6 +459,7 @@ internal abstract class AbstractKotlinPlugin(
             project.convention.getPlugin(MavenPluginConvention::class.java)
                 .conf2ScopeMappings.addMapping(0, project.configurations.getByName("api"), Conf2ScopeMappingContainer.COMPILE)
         }
+         */
     }
 
     companion object {

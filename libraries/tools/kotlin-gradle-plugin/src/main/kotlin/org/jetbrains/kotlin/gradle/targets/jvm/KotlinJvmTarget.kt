@@ -164,9 +164,11 @@ open class KotlinJvmTarget @Inject constructor(
 
         // Add the Java source set dependencies to the Kotlin compilation compile & runtime configurations:
 
-        val compileConfigurationName = if (areRuntimeOrCompileConfigurationsAvailable()) {
-            javaSourceSet.compileConfigurationName.takeIf { project.configurations.findByName(it) != null }
-        } else null
+//        val compileConfigurationName = if (areRuntimeOrCompileConfigurationsAvailable()) {
+//            javaSourceSet.compileConfigurationName.takeIf { project.configurations.findByName(it) != null }
+//        } else null
+
+        val compileConfigurationName = null
 
         listOfNotNull(
             compileConfigurationName,
@@ -177,9 +179,11 @@ open class KotlinJvmTarget @Inject constructor(
             project.addExtendsFromRelation(compilation.compileDependencyConfigurationName, configurationName)
         }
 
-        val runtimeConfigurationName = if (areRuntimeOrCompileConfigurationsAvailable()) {
-            javaSourceSet.runtimeConfigurationName.takeIf { project.configurations.findByName(it) != null }
-        } else null
+//        val runtimeConfigurationName = if (areRuntimeOrCompileConfigurationsAvailable()) {
+//            javaSourceSet.runtimeConfigurationName.takeIf { project.configurations.findByName(it) != null }
+//        } else null
+
+        val runtimeConfigurationName = null
 
         listOfNotNull(
             runtimeConfigurationName,
