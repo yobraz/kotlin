@@ -55,7 +55,4 @@ fun box(): String {
 // 5 ALOAD 3
 
 // We merge LVT records for two consequent branches, but we split the local over the restore code.
-// JVM_IR_TEMPLATES
-// 3 LOCALVARIABLE s Ljava/lang/String; L.* 3
-// JVM_TEMPLATES
-// 4 LOCALVARIABLE s Ljava/lang/String; L.* 3
+// 2 LOCALVARIABLE s Ljava/lang/String; L.* 3
