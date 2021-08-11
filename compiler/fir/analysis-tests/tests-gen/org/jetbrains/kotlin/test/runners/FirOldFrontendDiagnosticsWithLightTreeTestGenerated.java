@@ -36342,12 +36342,6 @@ public class FirOldFrontendDiagnosticsWithLightTreeTestGenerated extends Abstrac
             }
 
             @Test
-            @TestMetadata("ea70880_illegalJvmName.kt")
-            public void testEa70880_illegalJvmName() throws Exception {
-                runTest("compiler/testData/diagnostics/testsWithStdLib/regression/ea70880_illegalJvmName.kt");
-            }
-
-            @Test
             @TestMetadata("kt10001.kt")
             public void testKt10001() throws Exception {
                 runTest("compiler/testData/diagnostics/testsWithStdLib/regression/kt10001.kt");
