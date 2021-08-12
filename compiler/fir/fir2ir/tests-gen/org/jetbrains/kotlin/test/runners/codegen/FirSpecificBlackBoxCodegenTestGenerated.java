@@ -95,6 +95,12 @@ public class FirSpecificBlackBoxCodegenTestGenerated extends AbstractFirBlackBox
         }
 
         @Test
+        @TestMetadata("serialization.kt")
+        public void testSerialization() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/serialization.kt");
+        }
+
+        @Test
         @TestMetadata("simpleMulticatch.kt")
         public void testSimpleMulticatch() throws Exception {
             runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/simpleMulticatch.kt");
@@ -104,6 +110,24 @@ public class FirSpecificBlackBoxCodegenTestGenerated extends AbstractFirBlackBox
         @TestMetadata("typeParameter.kt")
         public void testTypeParameter() throws Exception {
             runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/typeParameter.kt");
+        }
+
+        @Test
+        @TestMetadata("typealias.kt")
+        public void testTypealias() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/typealias.kt");
+        }
+
+        @Test
+        @TestMetadata("valueParameter.kt")
+        public void testValueParameter() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/valueParameter.kt");
+        }
+
+        @Test
+        @TestMetadata("whenExpression.kt")
+        public void testWhenExpression() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/whenExpression.kt");
         }
     }
 }

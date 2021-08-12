@@ -267,6 +267,16 @@ public class Intrinsics {
         return throwable;
     }
 
+    public static void checkUnionTypeApplicability(Object object, String[] unionTypeNestedTypes) throws ClassNotFoundException {
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        for (String nestedType: unionTypeNestedTypes) {
+            if (Class.forName(nestedType, false, contextClassLoader).isInstance(object)) {
+                return;
+            }
+        }
+        throwIllegalArgument(object.getClass().getName() + " is not applicable to expected union type");
+    }
+
     // Stub class which is used as an owner of callable references for built-ins declared in package "kotlin".
     @SinceKotlin(version = "1.4")
     public static class Kotlin {
