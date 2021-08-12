@@ -33,6 +33,8 @@ class JavaOverrideChecker internal constructor(
         baseType: ConeKotlinType,
         substitutor: ConeSubstitutor
     ): Boolean {
+        if (candidateType.isPrimitiveInJava() != baseType.isPrimitiveInJava()) return false
+
         if (candidateType is ConeFlexibleType) return isEqualTypes(candidateType.lowerBound, baseType, substitutor)
         if (baseType is ConeFlexibleType) return isEqualTypes(candidateType, baseType.lowerBound, substitutor)
         if (candidateType is ConeClassLikeType && baseType is ConeClassLikeType) {
@@ -60,6 +62,11 @@ class JavaOverrideChecker internal constructor(
                 substitutor.substituteOrSelf(baseType).typeConstructor()
             )
         }
+    }
+
+    private fun ConeKotlinType.isPrimitiveInJava(): Boolean = with(context) {
+        // TODO: Support enhanced type like `@NotNull Integer` that are not nullable, but still aren't primitive
+        !isNullableType() && isPrimitiveOrNullablePrimitive
     }
 
     private fun isEqualTypes(
