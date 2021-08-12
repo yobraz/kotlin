@@ -308,7 +308,7 @@ task distCompiler(type: Copy) {
         // `dev` - bigger, includes (almost) every possible component. Use this one,
         //          if your feature requires component that is not a part of user distribution (yet).
         // Note: by default konan.properties use `dev` variant because it is needed for building our LLVM dynamic library.
-        String llvmVariant = 'user'
+        String llvmVariant = 'dev'
         filter(ReplaceTokens,
                 beginToken: '$',
                 endToken: '',
