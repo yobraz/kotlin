@@ -238,6 +238,7 @@ class ExpressionCodegen(
             ?: error("Function has no body: ${irFunction.render()}")
 
         generateNonNullAssertions()
+        generateUnionTypeApplicabilityCheck()
         generateFakeContinuationConstructorIfNeeded()
         val result = body.accept(this, info)
         // If this function has an expression body, return the result of that expression.
@@ -340,6 +341,37 @@ class ExpressionCodegen(
             mv.aconst(param.name.asString())
             val methodName = if (state.unifiedNullChecks) "checkNotNullParameter" else "checkParameterIsNotNull"
             mv.invokestatic(IrIntrinsicMethods.INTRINSICS_CLASS_NAME, methodName, "(Ljava/lang/Object;Ljava/lang/String;)V", false)
+        }
+    }
+
+    private fun generateUnionTypeApplicabilityCheck() {
+
+        fun generateArray(elements: List<String>) {
+            mv.iconst(elements.size)
+            mv.newarray(Type.getType("Ljava/lang/String;"))
+            elements.forEachIndexed { i, element ->
+                mv.dup()
+                mv.iconst(i)
+                mv.visitLdcInsn(element)
+                mv.astore(OBJECT_TYPE)
+            }
+        }
+
+        if (DescriptorVisibilities.INVISIBLE_FROM_OTHER_MODULES.contains(irFunction.visibility))
+            return
+
+        for (param in irFunction.valueParameters) {
+            if (param.type !is IrUnionType)
+                continue
+
+            mv.load(findLocalIndex(param.symbol), param.type.asmType)
+            generateArray((param.type as IrUnionType).nestedTypes.mapNotNull { boxType(it.asmType).className })
+            mv.invokestatic(
+                IrIntrinsicMethods.INTRINSICS_CLASS_NAME,
+                "checkUnionTypeApplicability",
+                "(Ljava/lang/Object;[Ljava/lang/String;)V",
+                false
+            )
         }
     }
 
