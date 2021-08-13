@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.test.generators
 
-import org.jetbrains.kotlin.generators.model.annotation
 import org.jetbrains.kotlin.generators.util.TestGeneratorUtil
 import org.jetbrains.kotlin.test.runners.ir.interpreter.AbstractIrInterpreterBlackBoxTest
 import org.jetbrains.kotlin.test.TargetBackend
@@ -13,12 +12,11 @@ import org.jetbrains.kotlin.test.runners.*
 import org.jetbrains.kotlin.test.runners.codegen.*
 import org.jetbrains.kotlin.test.runners.ir.AbstractFir2IrTextTest
 import org.jetbrains.kotlin.test.runners.ir.AbstractIrTextTest
-import org.jetbrains.kotlin.test.runners.ir.interpreter.AbstractIrInterpreterAfterFir2IrTest
-import org.jetbrains.kotlin.test.runners.ir.interpreter.AbstractIrInterpreterAfterPsi2IrTest
+import org.jetbrains.kotlin.test.runners.ir.interpreter.AbstractJsIrInterpreterAfterPsi2IrTest
+import org.jetbrains.kotlin.test.runners.ir.interpreter.AbstractJvmIrInterpreterAfterFir2IrTest
+import org.jetbrains.kotlin.test.runners.ir.interpreter.AbstractJvmIrInterpreterAfterPsi2IrTest
 import org.jetbrains.kotlin.visualizer.fir.AbstractFirVisualizerTest
 import org.jetbrains.kotlin.visualizer.psi.AbstractPsiVisualizerTest
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
 
 fun generateJUnit5CompilerTests(args: Array<String>) {
     val excludedFirTestdataPattern = "^(.+)\\.fir\\.kts?\$"
@@ -144,12 +142,16 @@ fun generateJUnit5CompilerTests(args: Array<String>) {
                 model("codegen/bytecodeListing")
             }
 
-            testClass<AbstractIrInterpreterAfterFir2IrTest> {
+            testClass<AbstractJvmIrInterpreterAfterFir2IrTest> {
                 model("ir/interpreter", excludeDirs = listOf("helpers"))
             }
 
-            testClass<AbstractIrInterpreterAfterPsi2IrTest> {
+            testClass<AbstractJvmIrInterpreterAfterPsi2IrTest> {
                 model("ir/interpreter", excludeDirs = listOf("helpers"))
+            }
+
+            testClass<AbstractJsIrInterpreterAfterPsi2IrTest> {
+                model("ir/interpreter", excludeDirs = listOf("helpers", "jvm"))
             }
         }
 

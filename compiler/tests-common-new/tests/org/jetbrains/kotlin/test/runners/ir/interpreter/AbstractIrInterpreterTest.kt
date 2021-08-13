@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.test.runners.ir.interpreter
 import org.jetbrains.kotlin.config.AnalysisFlag
 import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.LanguageVersion
+import org.jetbrains.kotlin.platform.js.JsPlatforms
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlin.test.backend.BlackBoxCodegenSuppressor
@@ -29,27 +30,18 @@ import org.jetbrains.kotlin.test.services.configuration.JvmEnvironmentConfigurat
 import org.jetbrains.kotlin.test.services.sourceProviders.IrInterpreterHelpersSourceFilesProvider
 
 open class AbstractIrInterpreterTest(
-    private val frontendKind: FrontendKind<*>
-) : AbstractKotlinCompilerWithTargetBackendTest(TargetBackend.JVM_IR) {
+    private val frontendKind: FrontendKind<*>, targetBackend: TargetBackend
+) : AbstractKotlinCompilerWithTargetBackendTest(targetBackend) {
     override fun TestConfigurationBuilder.configuration() {
         globalDefaults {
             frontend = frontendKind
-            targetPlatform = JvmPlatforms.defaultJvmPlatform
             artifactKind = BinaryKind.NoArtifact
-            targetBackend = TargetBackend.JVM_IR
             dependencyKind = DependencyKind.Source
-        }
-
-        defaultDirectives {
-            +JvmEnvironmentConfigurationDirectives.FULL_JDK
-            +JvmEnvironmentConfigurationDirectives.NO_RUNTIME
-            +LanguageSettingsDirectives.ALLOW_KOTLIN_PACKAGE
         }
 
         useConfigurators(
             ::CommonEnvironmentConfigurator,
             ::IrInterpreterEnvironmentConfigurator,
-            ::JvmEnvironmentConfigurator,
         )
 
         firFrontendStep()
@@ -62,17 +54,48 @@ open class AbstractIrInterpreterTest(
             useHandlers(::IrInterpreterBackendHandler)
         }
 
-        useAdditionalSourceProviders(::IrInterpreterHelpersSourceFilesProvider)
-        useSourcePreprocessor(::IrInterpreterImplicitKotlinImports)
-
         useAfterAnalysisCheckers(::BlackBoxCodegenSuppressor)
 
         enableMetaInfoHandler()
     }
 }
 
-open class AbstractIrInterpreterAfterFir2IrTest : AbstractIrInterpreterTest(FrontendKinds.FIR)
-open class AbstractIrInterpreterAfterPsi2IrTest : AbstractIrInterpreterTest(FrontendKinds.ClassicFrontend)
+open class AbstractJvmIrInterpreterTest(frontendKind: FrontendKind<*>) : AbstractIrInterpreterTest(frontendKind, TargetBackend.JVM_IR) {
+    override fun configure(builder: TestConfigurationBuilder) {
+        super.configure(builder)
+        with(builder) {
+            globalDefaults {
+                targetPlatform = JvmPlatforms.defaultJvmPlatform
+            }
+
+            defaultDirectives {
+                +JvmEnvironmentConfigurationDirectives.FULL_JDK
+                +JvmEnvironmentConfigurationDirectives.NO_RUNTIME
+                +LanguageSettingsDirectives.ALLOW_KOTLIN_PACKAGE
+            }
+
+            useAdditionalSourceProviders(::IrInterpreterHelpersSourceFilesProvider)
+            useSourcePreprocessor(::IrInterpreterImplicitKotlinImports)
+
+            useConfigurators(::JvmEnvironmentConfigurator)
+        }
+    }
+}
+
+open class AbstractJsIrInterpreterTest(frontendKind: FrontendKind<*>) : AbstractIrInterpreterTest(frontendKind, TargetBackend.JS_IR) {
+    override fun configure(builder: TestConfigurationBuilder) {
+        super.configure(builder)
+        with(builder) {
+            globalDefaults {
+                targetPlatform = JsPlatforms.defaultJsPlatform
+            }
+        }
+    }
+}
+
+open class AbstractJvmIrInterpreterAfterFir2IrTest : AbstractJvmIrInterpreterTest(FrontendKinds.FIR)
+open class AbstractJvmIrInterpreterAfterPsi2IrTest : AbstractJvmIrInterpreterTest(FrontendKinds.ClassicFrontend)
+open class AbstractJsIrInterpreterAfterPsi2IrTest : AbstractJsIrInterpreterTest(FrontendKinds.ClassicFrontend)
 
 class IrInterpreterEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfigurator(testServices) {
     override fun provideAdditionalAnalysisFlags(
