@@ -41661,6 +41661,12 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
         }
 
         @Test
+        @TestMetadata("firstCapitalizedProperty.kt")
+        public void testFirstCapitalizedProperty() throws Exception {
+            runTest("compiler/testData/codegen/box/syntheticExtensions/firstCapitalizedProperty.kt");
+        }
+
+        @Test
         @TestMetadata("fromTwoBases.kt")
         public void testFromTwoBases() throws Exception {
             runTest("compiler/testData/codegen/box/syntheticExtensions/fromTwoBases.kt");
