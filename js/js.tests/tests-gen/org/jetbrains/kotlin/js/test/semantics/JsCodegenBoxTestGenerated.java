@@ -30,6 +30,11 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
         KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JS, true, "testsWithJava9", "testsWithJava15", "testsWithJava17", "compileKotlinAgainstKotlin");
     }
 
+    @TestMetadata("ReplaceWith.kt")
+    public void testReplaceWith() throws Exception {
+        runTest("compiler/testData/codegen/box/ReplaceWith.kt");
+    }
+
     @TestMetadata("compiler/testData/codegen/box/annotations")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
