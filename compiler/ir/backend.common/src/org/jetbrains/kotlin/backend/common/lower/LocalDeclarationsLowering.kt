@@ -5,11 +5,12 @@
 
 package org.jetbrains.kotlin.backend.common.lower
 
-import org.jetbrains.kotlin.backend.common.BodyLoweringPass
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
+import org.jetbrains.kotlin.backend.common.BodyAndScriptBodyLoweringPass
 import org.jetbrains.kotlin.backend.common.descriptors.synthesizedString
 import org.jetbrains.kotlin.backend.common.ir.*
 import org.jetbrains.kotlin.backend.common.runOnFilePostfix
+import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.DescriptorVisibility
@@ -79,9 +80,14 @@ class LocalDeclarationsLowering(
     val visibilityPolicy: VisibilityPolicy = VisibilityPolicy.DEFAULT,
     val suggestUniqueNames: Boolean = true, // When `true` appends a `-#index` suffix to lifted declaration names
 ) :
-    BodyLoweringPass {
+    BodyAndScriptBodyLoweringPass {
 
     override fun lower(irFile: IrFile) {
+//    val before = irFile.dump()
+//    val beforeK = irFile.dumpKotlinLike()
+//    val after = irFile.dump()
+//    val afterK = irFile.dumpKotlinLike()
+//    before.length + beforeK.length + after.length + afterK.length
         runOnFilePostfix(irFile, allowDeclarationModification = true)
     }
 
@@ -92,11 +98,16 @@ class LocalDeclarationsLowering(
         IrDeclarationOriginImpl("FIELD_FOR_CROSSINLINE_CAPTURED_VALUE", isSynthetic = true)
 
     override fun lower(irBody: IrBody, container: IrDeclaration) {
-        LocalDeclarationsTransformer(irBody, container, null).lowerLocalDeclarations()
+        LocalDeclarationsTransformer(irBody, container, null, false).lowerLocalDeclarations()
     }
 
+    override fun lowerScriptBody(irDeclarationContainer: IrDeclarationContainer, container: IrDeclaration) {
+        LocalDeclarationsTransformer(irDeclarationContainer, container, null, true).lowerLocalDeclarations()
+    }
+
+
     fun lower(irElement: IrElement, container: IrDeclaration, classesToLower: Set<IrClass>) {
-        LocalDeclarationsTransformer(irElement, container, classesToLower).lowerLocalDeclarations()
+        LocalDeclarationsTransformer(irElement, container, classesToLower, false).lowerLocalDeclarations()
     }
 
     internal class ScopeWithCounter(val irElement: IrElement) {
@@ -199,7 +210,7 @@ class LocalDeclarationsLowering(
     }
 
     private inner class LocalDeclarationsTransformer(
-        val irElement: IrElement, val container: IrDeclaration, val classesToLower: Set<IrClass>?
+        val irElement: IrElement, val container: IrDeclaration, val classesToLower: Set<IrClass>?, val isScriptMode: Boolean
     ) {
         val localFunctions: MutableMap<IrFunction, LocalFunctionContext> = LinkedHashMap()
         val localClasses: MutableMap<IrClass, LocalClassContext> = LinkedHashMap()
@@ -460,6 +471,8 @@ class LocalDeclarationsLowering(
             val constructors = irClass.declarations.filterIsInstance<IrConstructor>()
 
             irClass.transformChildrenVoid(FunctionBodiesRewriter(localClassContext))
+
+            if (isScriptMode && constructors.isEmpty()) return
 
             val constructorsCallingSuper = constructors
                 .asSequence()
@@ -928,7 +941,9 @@ class LocalDeclarationsLowering(
                 override fun visitConstructor(declaration: IrConstructor, data: Data) {
                     super.visitConstructor(declaration, data)
 
-                    if (!declaration.constructedClass.isLocalNotInner()) return
+                    if (!isScriptMode && !declaration.constructedClass.isLocalNotInner()) return
+                    // LDL doesn't work on the enums because local enums are not allowed, so skipping them in scripts too
+                    if (isScriptMode && declaration.constructedClass.kind == ClassKind.ENUM_CLASS) return
 
                     localClassConstructors[declaration] = LocalClassConstructorContext(declaration, data.inInlineFunctionScope)
                 }
@@ -937,7 +952,9 @@ class LocalDeclarationsLowering(
                     if (classesToLower?.contains(declaration) == false) return
                     super.visitClass(declaration, data.withCurrentClass(declaration))
 
-                    if (!declaration.isLocalNotInner()) return
+                    if (!isScriptMode && !declaration.isLocalNotInner()) return
+                    // LDL doesn't work on the enums because local enums are not allowed, so skipping them in scripts too
+                    if (isScriptMode && declaration.kind == ClassKind.ENUM_CLASS) return
 
                     localClasses[declaration] = LocalClassContext(declaration, data.inInlineFunctionScope)
                 }
