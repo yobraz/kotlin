@@ -469,7 +469,8 @@ open class RawFirBuilder(
         private fun KtBackingField?.toFirBackingField(
             property: KtProperty,
             propertySymbol: FirPropertySymbol,
-        ): FirBackingField? {
+            propertyReturnType: FirTypeRef,
+        ): FirBackingField {
             val componentVisibility = if (this?.visibility != null && this.visibility != Visibilities.Unknown) {
                 this.visibility
             } else {
@@ -493,12 +494,22 @@ open class RawFirBuilder(
                     returnTypeRef = returnType
                     this.status = status
                     extractAnnotationsTo(this)
-                    symbol = FirPropertyFieldDeclarationSymbol()
+                    name = NAME_FOR_BACKING_FIELD
+                    symbol = FirBackingFieldSymbol(CallableId(name))
                     this.propertySymbol = propertySymbol
                     this.initializer = backingFieldInitializer
+                    this.isVar = property.isVar
+                    this.isVal = !property.isVar
                 }
             } else {
-                null
+                FirDefaultPropertyBackingField(
+                    moduleData = baseModuleData,
+                    annotations = mutableListOf(),
+                    returnTypeRef = propertyReturnType.copyWithNewSourceKind(FirFakeSourceElementKind.DefaultAccessor),
+                    isVar = property.isVar,
+                    propertySymbol = propertySymbol,
+                    status = status,
+                )
             }
         }
 
@@ -1470,6 +1481,7 @@ open class RawFirBuilder(
                     backingField = this@toFirProperty.fieldDeclaration.toFirBackingField(
                         this@toFirProperty,
                         propertySymbol = symbol,
+                        propertyType,
                     )
 
                     status = FirDeclarationStatusImpl(Visibilities.Local, Modality.FINAL).apply {
@@ -1511,9 +1523,10 @@ open class RawFirBuilder(
                         backingField = this@toFirProperty.fieldDeclaration.toFirBackingField(
                             this@toFirProperty,
                             propertySymbol = symbol,
+                            propertyType,
                         )
 
-                        val hasExplicitBackingField = backingField != null
+                        val hasExplicitBackingField = backingField !is FirDefaultPropertyBackingField
                         getter = this@toFirProperty.getter.toFirPropertyAccessor(
                             this@toFirProperty,
                             propertyType,
