@@ -127,7 +127,7 @@ class ControlFlowGraphBuilder {
 
     // ----------------------------------- API for node builders -----------------------------------
 
-    private var idCounter: Int = Random.nextInt()
+    private var idCounter: Int = 3456789 // Random.nextInt()
     fun createId(): Int = idCounter++
 
     // ----------------------------------- Public API -----------------------------------
