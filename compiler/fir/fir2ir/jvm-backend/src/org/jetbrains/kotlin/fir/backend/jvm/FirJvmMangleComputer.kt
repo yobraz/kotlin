@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.fir.backend.jvm
 
-import com.sun.tools.javah.Mangle
 import org.jetbrains.kotlin.backend.common.serialization.mangle.KotlinMangleComputer
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleConstant
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleMode
