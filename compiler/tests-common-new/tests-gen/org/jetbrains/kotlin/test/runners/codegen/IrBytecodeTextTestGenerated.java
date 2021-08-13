@@ -725,9 +725,21 @@ public class IrBytecodeTextTestGenerated extends AbstractIrBytecodeTextTest {
         }
 
         @Test
-        @TestMetadata("safeCallToPrimitiveEquality.kt")
-        public void testSafeCallToPrimitiveEquality() throws Exception {
-            runTest("compiler/testData/codegen/bytecodeText/boxingOptimization/safeCallToPrimitiveEquality.kt");
+        @TestMetadata("safeCallToPrimitiveEquality1.kt")
+        public void testSafeCallToPrimitiveEquality1() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/boxingOptimization/safeCallToPrimitiveEquality1.kt");
+        }
+
+        @Test
+        @TestMetadata("safeCallToPrimitiveEquality2.kt")
+        public void testSafeCallToPrimitiveEquality2() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/boxingOptimization/safeCallToPrimitiveEquality2.kt");
+        }
+
+        @Test
+        @TestMetadata("safeCallToPrimitiveEquality3.kt")
+        public void testSafeCallToPrimitiveEquality3() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/boxingOptimization/safeCallToPrimitiveEquality3.kt");
         }
 
         @Test
@@ -3228,6 +3240,52 @@ public class IrBytecodeTextTestGenerated extends AbstractIrBytecodeTextTest {
         @TestMetadata("whenNullableSmartCast.kt")
         public void testWhenNullableSmartCast() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/ieee754/whenNullableSmartCast.kt");
+        }
+    }
+
+    @Nested
+    @TestMetadata("compiler/testData/codegen/bytecodeText/ifNullChain")
+    @TestDataPath("$PROJECT_ROOT")
+    public class IfNullChain {
+        @Test
+        public void testAllFilesPresentInIfNullChain() throws Exception {
+            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/bytecodeText/ifNullChain"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
+        }
+
+        @Test
+        @TestMetadata("safeCallChain1.kt")
+        public void testSafeCallChain1() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/ifNullChain/safeCallChain1.kt");
+        }
+
+        @Test
+        @TestMetadata("safeCallChain2.kt")
+        public void testSafeCallChain2() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/ifNullChain/safeCallChain2.kt");
+        }
+
+        @Test
+        @TestMetadata("safeCallChainWithElvis1.kt")
+        public void testSafeCallChainWithElvis1() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/ifNullChain/safeCallChainWithElvis1.kt");
+        }
+
+        @Test
+        @TestMetadata("safeCallChainWithElvis2.kt")
+        public void testSafeCallChainWithElvis2() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/ifNullChain/safeCallChainWithElvis2.kt");
+        }
+
+        @Test
+        @TestMetadata("safeCallChainWithElvis3.kt")
+        public void testSafeCallChainWithElvis3() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/ifNullChain/safeCallChainWithElvis3.kt");
+        }
+
+        @Test
+        @TestMetadata("safeCallChainWithElvis4.kt")
+        public void testSafeCallChainWithElvis4() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/ifNullChain/safeCallChainWithElvis4.kt");
         }
     }
 

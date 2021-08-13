@@ -410,10 +410,10 @@ private val jvmFilePhases = listOf(
 
     jvmArgumentNullabilityAssertions,
     toArrayPhase,
-    jvmOptimizationLoweringPhase,
-    ifNullExpressionsFusionPhase,
-    additionalClassAnnotationPhase,
     typeOperatorLowering,
+    ifNullExpressionsFusionPhase,
+    jvmOptimizationLoweringPhase,
+    additionalClassAnnotationPhase,
     replaceKFunctionInvokeWithFunctionInvokePhase,
     kotlinNothingValueExceptionPhase,
 
