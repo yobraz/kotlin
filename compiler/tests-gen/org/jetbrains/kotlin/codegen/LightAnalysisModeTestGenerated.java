@@ -30,6 +30,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
         KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true, "ranges/stepped", "compileKotlinAgainstKotlin", "testsWithJava9", "testsWithJava15", "testsWithJava17");
     }
 
+    @TestMetadata("BooleanAsString.kt")
+    public void testBooleanAsString() throws Exception {
+        runTest("compiler/testData/codegen/box/BooleanAsString.kt");
+    }
+
     @TestMetadata("ReplaceWith.kt")
     public void testReplaceWith() throws Exception {
         runTest("compiler/testData/codegen/box/ReplaceWith.kt");

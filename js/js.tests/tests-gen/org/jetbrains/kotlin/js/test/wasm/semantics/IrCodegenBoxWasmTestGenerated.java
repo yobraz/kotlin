@@ -30,6 +30,11 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
         KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box"), Pattern.compile("^([^_](.+))\\.kt$"), null, TargetBackend.WASM, true, "toArray", "classLiteral", "reflection", "contracts", "platformTypes", "ranges/stepped/unsigned", "coroutines", "parametersMetadata", "finally", "deadCodeElimination", "controlStructures/tryCatchInExpressions", "delegatedProperty", "compileKotlinAgainstKotlin", "testsWithJava9", "testsWithJava15", "testsWithJava17");
     }
 
+    @TestMetadata("BooleanAsString.kt")
+    public void testBooleanAsString() throws Exception {
+        runTest("compiler/testData/codegen/box/BooleanAsString.kt");
+    }
+
     @TestMetadata("ReplaceWith.kt")
     public void testReplaceWith() throws Exception {
         runTest("compiler/testData/codegen/box/ReplaceWith.kt");

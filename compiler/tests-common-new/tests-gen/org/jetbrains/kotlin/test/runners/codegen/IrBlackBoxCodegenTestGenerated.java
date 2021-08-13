@@ -26,6 +26,12 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
     }
 
     @Test
+    @TestMetadata("BooleanAsString.kt")
+    public void testBooleanAsString() throws Exception {
+        runTest("compiler/testData/codegen/box/BooleanAsString.kt");
+    }
+
+    @Test
     @TestMetadata("ReplaceWith.kt")
     public void testReplaceWith() throws Exception {
         runTest("compiler/testData/codegen/box/ReplaceWith.kt");

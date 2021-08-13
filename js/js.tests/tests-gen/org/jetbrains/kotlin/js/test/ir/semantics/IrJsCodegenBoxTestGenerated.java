@@ -30,6 +30,11 @@ public class IrJsCodegenBoxTestGenerated extends AbstractIrJsCodegenBoxTest {
         KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JS_IR, true, "testsWithJava9", "testsWithJava15", "testsWithJava17", "compileKotlinAgainstKotlin");
     }
 
+    @TestMetadata("BooleanAsString.kt")
+    public void testBooleanAsString() throws Exception {
+        runTest("compiler/testData/codegen/box/BooleanAsString.kt");
+    }
+
     @TestMetadata("ReplaceWith.kt")
     public void testReplaceWith() throws Exception {
         runTest("compiler/testData/codegen/box/ReplaceWith.kt");
