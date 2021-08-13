@@ -83,6 +83,12 @@ public class FirSpecificBlackBoxCodegenTestGenerated extends AbstractFirBlackBox
         }
 
         @Test
+        @TestMetadata("println.kt")
+        public void testPrintln() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/println.kt");
+        }
+
+        @Test
         @TestMetadata("propertyInConstructor.kt")
         public void testPropertyInConstructor() throws Exception {
             runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/propertyInConstructor.kt");

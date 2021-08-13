@@ -487,6 +487,17 @@ class ExpressionCodegen(
         visitStatementContainer(expression, data)
 
     override fun visitCall(expression: IrCall, data: BlockInfo): PromisedValue {
+
+        fun castToExpectedTypeIfUnion(expression: IrExpression) {
+            val expressionType = expression.type
+            if (expressionType !is IrUnionType || expression !is IrGetValue)
+                return
+
+            val expressionAsmType = expressionType.asmType
+            mv.load(findLocalIndex(expression.symbol), expressionAsmType)
+            mv.checkcast(expressionAsmType)
+        }
+
         val intrinsic = classCodegen.context.irIntrinsics.getIntrinsic(expression.symbol)
         if (intrinsic != null) {
             intrinsic.invoke(expression, this, data)
@@ -508,12 +519,14 @@ class ExpressionCodegen(
         expression.dispatchReceiver?.let { receiver ->
             val type = if (expression.superQualifierSymbol != null) receiver.asmType else callable.owner
             callGenerator.genValueAndPut(callee.dispatchReceiverParameter!!, receiver, type, this, data)
+            castToExpectedTypeIfUnion(receiver)
         }
 
         expression.extensionReceiver?.let { receiver ->
             val type = callable.signature.valueParameters.singleOrNull { it.kind == JvmMethodParameterKind.RECEIVER }?.asmType
                 ?: error("No single extension receiver parameter: ${callable.signature.valueParameters}")
             callGenerator.genValueAndPut(callee.extensionReceiverParameter!!, receiver, type, this, data)
+            castToExpectedTypeIfUnion(receiver)
         }
 
         callGenerator.beforeValueParametersStart()
@@ -524,9 +537,7 @@ class ExpressionCodegen(
                 "Null argument in ExpressionCodegen for parameter ${irParameter.render()}"
             }
             callGenerator.genValueAndPut(irParameter, arg, parameterType, this, data)
-            if (arg.type is IrUnionType) {
-                mv.checkcast(parameterType)
-            }
+            castToExpectedTypeIfUnion(arg)
         }
 
         expression.markLineNumber(true)
