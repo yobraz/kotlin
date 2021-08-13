@@ -1346,13 +1346,18 @@ private fun updateLvtAccordingToLiveness(method: MethodNode, isForNamedFunction:
 
                 // Attempt to extend existing local variable node corresponding to the record in
                 // the original local variable table, if there is no back-edge
-                val recordToExtend: LocalVariableNode = oldLvtNodeToLatestNewLvtNode[lvtRecord]
-                    ?: LocalVariableNode(lvtRecord.name, lvtRecord.desc, lvtRecord.signature, startLabel, endLabel, lvtRecord.index)
-                        .also {
-                            oldLvtNodeToLatestNewLvtNode[lvtRecord] = it
-                            method.localVariables.add(it)
-                        }
-                extendRecordIfPossible(method, suspensionPoints, recordToExtend, lvtRecord.end)
+                val latest = oldLvtNodeToLatestNewLvtNode[lvtRecord]
+                // if we can extend the previous range to where the local variable dies, we do not need a
+                // new entry, we know we cannot extend it to the lvt.endOffset, if we could we would have
+                // done so when we added it below.
+                val extended = latest?.extendRecordIfPossible(method, suspensionPoints, lvtRecord.end) ?: false
+                if (!extended) {
+                    val new = LocalVariableNode(lvtRecord.name, lvtRecord.desc, lvtRecord.signature, startLabel, endLabel, lvtRecord.index)
+                    oldLvtNodeToLatestNewLvtNode[lvtRecord] = new
+                    method.localVariables.add(new)
+                    // see if we can extend it all the way to the old end
+                    new.extendRecordIfPossible(method, suspensionPoints, lvtRecord.end)
+                }
             }
         }
     }
@@ -1381,15 +1386,14 @@ private fun updateLvtAccordingToLiveness(method: MethodNode, isForNamedFunction:
  *
  * @return true if the range has been extended
  */
-private fun extendRecordIfPossible(
+private fun LocalVariableNode.extendRecordIfPossible(
     method: MethodNode,
     suspensionPoints: List<LabelNode>,
-    recordToExtend: LocalVariableNode,
     endLabel: LabelNode
 ): Boolean {
-    val nextSuspensionPointLabel = suspensionPoints.find { it in InsnSequence(recordToExtend.end, endLabel) } ?: endLabel
+    val nextSuspensionPointLabel = suspensionPoints.find { it in InsnSequence(end, endLabel) } ?: endLabel
 
-    var current: AbstractInsnNode? = recordToExtend.end
+    var current: AbstractInsnNode? = end
     while (current != null && current != nextSuspensionPointLabel) {
         if (current is JumpInsnNode) {
             if (method.instructions.indexOf(current.label) < method.instructions.indexOf(current)) {
@@ -1399,11 +1403,11 @@ private fun extendRecordIfPossible(
         // TODO: HACK
         // TODO: Find correct label, which is OK to be used as end label.
         if (current.opcode == Opcodes.ARETURN && nextSuspensionPointLabel != endLabel) return false
-        if (current.isStoreOperation() && (current as VarInsnNode).`var` == recordToExtend.index) {
+        if (current.isStoreOperation() && (current as VarInsnNode).`var` == index) {
             return false
         }
         current = current.next
     }
-    recordToExtend.end = nextSuspensionPointLabel
+    end = nextSuspensionPointLabel
     return true
 }
