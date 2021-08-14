@@ -9,13 +9,19 @@ import org.jetbrains.kotlin.descriptors.Deprecation
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.fir.declarations.getDeprecationForCallSite
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
+import org.jetbrains.kotlin.idea.asJava.getJvmNameFromAnnotation
 import org.jetbrains.kotlin.idea.frontend.api.components.KtSymbolInfoProvider
 import org.jetbrains.kotlin.idea.frontend.api.fir.KtFirAnalysisSession
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.KtFirBackingFieldSymbol
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.KtFirSymbol
+import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.KtFirSyntheticJavaPropertySymbol
+import org.jetbrains.kotlin.idea.frontend.api.symbols.KtFunctionSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSymbol
+import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSyntheticJavaPropertySymbol
 import org.jetbrains.kotlin.idea.frontend.api.tokens.ValidityToken
+import org.jetbrains.kotlin.load.java.JvmAbi
+import org.jetbrains.kotlin.name.Name
 
 internal class KtFirSymbolInfoProvider(
     override val analysisSession: KtFirAnalysisSession,
@@ -45,6 +51,27 @@ internal class KtFirSymbolInfoProvider(
         require(symbol is KtFirSymbol<*>)
         return symbol.firRef.withFir {
             it.symbol.getDeprecationForCallSite(AnnotationUseSiteTarget.PROPERTY_SETTER, AnnotationUseSiteTarget.PROPERTY)
+        }
+    }
+
+    override fun getJavaGetterName(symbol: KtPropertySymbol): Name {
+        require(symbol is KtFirSymbol<*>)
+        if (symbol is KtFirSyntheticJavaPropertySymbol) {
+            return symbol.firRef.withFir { it.getter.delegate.name }
+        }
+        val jvmName = symbol.getJvmNameFromAnnotation(AnnotationUseSiteTarget.PROPERTY_GETTER)
+        return Name.identifier(jvmName ?: JvmAbi.getterName(symbol.name.identifier))
+    }
+
+    override fun getJavaSetterName(symbol: KtPropertySymbol): Name? {
+        require(symbol is KtFirSymbol<*>)
+        if (symbol is KtFirSyntheticJavaPropertySymbol) {
+            symbol.firRef.withFir { it.setter?.delegate?.name }
+        }
+        return if (symbol.isVal) null
+        else {
+            val jvmName = symbol.getJvmNameFromAnnotation(AnnotationUseSiteTarget.PROPERTY_SETTER)
+            Name.identifier(jvmName ?: JvmAbi.setterName(symbol.name.identifier))
         }
     }
 }
