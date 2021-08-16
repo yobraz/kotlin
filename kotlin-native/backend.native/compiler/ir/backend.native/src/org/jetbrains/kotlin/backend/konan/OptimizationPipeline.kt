@@ -171,11 +171,16 @@ internal fun runLlvmOptimizationPipeline(context: Context) {
         // Pipeline that is similar to `llvm-lto`.
         LLVMPassManagerBuilderPopulateLTOPassManager(passBuilder, modulePasses, Internalize = 0, RunInliner = 1)
 
-        // Lower ObjC ARC intrinsics (e.g. `@llvm.objc.clang.arc.use(...)`).
-        // While Kotlin/Native codegen itself doesn't produce these intrinsics, they might come
-        // from cinterop "glue" bitcode.
-        // TODO: Consider adding other ObjC passes.
-        LLVMAddObjCARCContractPass(modulePasses)
+        if (context.config.target.family.isAppleFamily) {
+            if (config.optimizationLevel != LlvmPipelineConfiguration.LlvmOptimizationLevel.NONE) {
+                LLVMAddObjCARCOptimizationPasses(passBuilder)
+            }
+
+            // Lower ObjC ARC intrinsics (e.g. `@llvm.objc.clang.arc.use(...)`).
+            // While Kotlin/Native codegen itself doesn't produce these intrinsics, they might come
+            // from cinterop "glue" bitcode.
+            LLVMAddObjCARCContractPass(modulePasses)
+        }
 
         LLVMRunPassManager(modulePasses, llvmModule)
 

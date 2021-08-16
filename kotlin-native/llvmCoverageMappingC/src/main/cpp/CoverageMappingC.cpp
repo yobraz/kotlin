@@ -20,6 +20,7 @@
 #include <llvm/Analysis/TargetLibraryInfo.h>
 #include <llvm/Transforms/Instrumentation.h>
 #include <llvm/Transforms/ObjCARC.h>
+#include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Path.h>
 
@@ -235,6 +236,28 @@ void LLVMKotlinAddTargetLibraryInfoWrapperPass(LLVMPassManagerRef passManagerRef
 void LLVMAddObjCARCContractPass(LLVMPassManagerRef passManagerRef) {
     legacy::PassManagerBase *passManager = unwrap(passManagerRef);
     passManager->add(createObjCARCContractPass());
+}
+
+static void addObjCARCAPElimPass(const PassManagerBuilder &Builder, legacy::PassManagerBase &PM) {
+    PM.add(createObjCARCAPElimPass());
+}
+
+static void addObjCARCExpandPass(const PassManagerBuilder &Builder, legacy::PassManagerBase &PM) {
+    PM.add(createObjCARCExpandPass());
+}
+
+static void addObjCARCOptPass(const PassManagerBuilder &Builder, legacy::PassManagerBase &PM) {
+    PM.add(createObjCARCOptPass());
+}
+
+void LLVMAddObjCARCOptimizationPasses(LLVMPassManagerBuilderRef passBuilderRef) {
+    PassManagerBuilder* builder = unwrap(passBuilderRef);
+    builder->addExtension(PassManagerBuilder::EP_EarlyAsPossible,
+                           addObjCARCExpandPass);
+    builder->addExtension(PassManagerBuilder::EP_ModuleOptimizerEarly,
+                           addObjCARCAPElimPass);
+    builder->addExtension(PassManagerBuilder::EP_ScalarOptimizerLate,
+                           addObjCARCOptPass);
 }
 
 void LLVMKotlinInitializeTargets() {

@@ -4,11 +4,11 @@
  */
 
 #ifndef __COVERAGE_MAPPING_C_H__
-# define __COVERAGE_MAPPING_C_H__
+#define __COVERAGE_MAPPING_C_H__
 
 #include <llvm-c/Core.h>
 #include <llvm-c/Target.h>
-
+#include <llvm-c/Transforms/PassManagerBuilder.h>
 
 # ifdef __cplusplus
 extern "C" {
@@ -75,6 +75,8 @@ void LLVMAddInstrProfPass(LLVMPassManagerRef passManagerRef, const char* outputF
 void LLVMKotlinAddTargetLibraryInfoWrapperPass(LLVMPassManagerRef passManagerRef, const char* targetTriple);
 
 void LLVMAddObjCARCContractPass(LLVMPassManagerRef passManagerRef);
+
+void LLVMAddObjCARCOptimizationPasses(LLVMPassManagerBuilderRef passBuilderRef);
 
 void LLVMKotlinInitializeTargets();
 
