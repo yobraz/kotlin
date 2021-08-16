@@ -199,7 +199,7 @@ internal class Kotlin2JvmSourceSetProcessor(
         project.whenEvaluated {
             val subpluginEnvironment = SubpluginEnvironment.loadSubplugins(project)
 
-            if (kotlinCompilation is KotlinCompilation<*>) // FIXME support compiler plugins with PM20
+            if (kotlinCompilation is KotlinCompilation<*>) // FIXME support compiler plugins with KPM
                 subpluginEnvironment.addSubpluginOptions(project, kotlinCompilation)
 
             javaSourceSet?.let { java ->
@@ -292,7 +292,7 @@ internal class Kotlin2JsSourceSetProcessor(
             }
 
             val subpluginEnvironment: SubpluginEnvironment = SubpluginEnvironment.loadSubplugins(project)
-            if (kotlinCompilation is KotlinCompilation<*>) { // FIXME support compiler plugins with PM20
+            if (kotlinCompilation is KotlinCompilation<*>) { // FIXME support compiler plugins with KPM
                 subpluginEnvironment.addSubpluginOptions(project, kotlinCompilation)
             }
         }

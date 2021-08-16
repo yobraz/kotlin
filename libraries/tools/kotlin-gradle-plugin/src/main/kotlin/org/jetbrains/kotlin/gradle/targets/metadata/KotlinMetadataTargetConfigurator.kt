@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.CompilationSourceSetUtil.compilationsBySourceSets
 import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinGradleModule
 import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinNativeFragmentMetadataCompilationData
-import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinPm20ProjectExtension
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KpmProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.sources.*
 import org.jetbrains.kotlin.gradle.plugin.statistics.KotlinBuildStatsService
 import org.jetbrains.kotlin.gradle.targets.native.internal.*
@@ -38,14 +38,14 @@ internal const val ALL_COMPILE_METADATA_CONFIGURATION_NAME = "allSourceSetsCompi
 internal const val ALL_RUNTIME_METADATA_CONFIGURATION_NAME = "allSourceSetsRuntimeDependenciesMetadata"
 
 internal val Project.isKotlinGranularMetadataEnabled: Boolean
-    get() = project.topLevelExtension is KotlinPm20ProjectExtension || with(PropertiesProvider(rootProject)) {
+    get() = project.topLevelExtension is KpmProjectExtension || with(PropertiesProvider(rootProject)) {
         mppHierarchicalStructureByDefault || // then we want to use KLIB granular compilation & artifacts even if it's just commonMain
                 hierarchicalStructureSupport ||
                 enableGranularSourceSetsMetadata == true
     }
 
 internal val Project.shouldCompileIntermediateSourceSetsToMetadata: Boolean
-    get() = project.topLevelExtension is KotlinPm20ProjectExtension || with(PropertiesProvider(rootProject)) {
+    get() = project.topLevelExtension is KpmProjectExtension || with(PropertiesProvider(rootProject)) {
         when {
             !hierarchicalStructureSupport && mppHierarchicalStructureByDefault -> false
             else -> true

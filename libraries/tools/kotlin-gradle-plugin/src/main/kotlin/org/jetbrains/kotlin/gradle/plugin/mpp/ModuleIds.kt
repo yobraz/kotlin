@@ -81,14 +81,14 @@ internal object ModuleIds {
                     is KotlinMultiplatformExtension -> {
                         { topLevelExtension.rootSoftwareComponent.publicationDelegate }
                     }
-                    is KotlinPm20ProjectExtension -> {
+                    is KpmProjectExtension -> {
                         { topLevelExtension.rootPublication }
                     }
                     else -> error("unexpected top-level extension $topLevelExtension")
                 }
                 val capabilities = when (topLevelExtension) {
                     is KotlinMultiplatformExtension -> emptyList()
-                    is KotlinPm20ProjectExtension -> listOfNotNull(ComputedCapability.capabilityStringFromModule(
+                    is KpmProjectExtension -> listOfNotNull(ComputedCapability.capabilityStringFromModule(
                         topLevelExtension.modules.single { it.moduleIdentifier == moduleIdentifier }
                     ))
                     else -> error("unexpected top-level extension $topLevelExtension")

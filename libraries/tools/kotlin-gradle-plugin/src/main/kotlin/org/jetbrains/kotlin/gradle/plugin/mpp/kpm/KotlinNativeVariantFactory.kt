@@ -9,9 +9,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.attributes.Usage
 import org.gradle.jvm.tasks.Jar
-import org.jetbrains.kotlin.gradle.dsl.pm20Extension
-import org.jetbrains.kotlin.gradle.plugin.KotlinNativeTargetConfigurator
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
+import org.jetbrains.kotlin.gradle.dsl.kpmExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
 import org.jetbrains.kotlin.gradle.plugin.usageByName
@@ -54,7 +52,7 @@ open class KotlinNativeVariantFactory<T : KotlinNativeVariantInternal>(
         val hostSpecificMetadataJar = project.registerTask<Jar>(variant.disambiguateName("hostSpecificMetadataJar")) { jar ->
             jar.archiveClassifier.set("metadata")
             jar.archiveAppendix.set(variant.disambiguateName(""))
-            project.pm20Extension.metadataCompilationRegistryByModuleId.getValue(variant.containingModule.moduleIdentifier)
+            project.kpmExtension.metadataCompilationRegistryByModuleId.getValue(variant.containingModule.moduleIdentifier)
                 .withAll { metadataCompilation ->
                     val fragment = metadataCompilation.fragment
                     if (metadataCompilation is KotlinNativeFragmentMetadataCompilationData) {

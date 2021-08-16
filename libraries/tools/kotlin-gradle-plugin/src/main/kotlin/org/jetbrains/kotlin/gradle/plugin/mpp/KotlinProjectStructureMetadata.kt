@@ -13,11 +13,10 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
-import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.dsl.multiplatformExtensionOrNull
 import org.jetbrains.kotlin.gradle.dsl.topLevelExtensionOrNull
 import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinGradleModule
-import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinPm20ProjectExtension
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KpmProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.refinesClosure
 import org.jetbrains.kotlin.gradle.plugin.sources.KotlinDependencyScope
 import org.jetbrains.kotlin.gradle.plugin.sources.sourceSetDependencyConfigurationByScope
@@ -131,7 +130,7 @@ data class KotlinProjectStructureMetadata(
 
 internal fun buildKotlinProjectStructureMetadata(project: Project): KotlinProjectStructureMetadata? {
     val topLevelExtensionOrNull = project.topLevelExtensionOrNull
-    require(topLevelExtensionOrNull !is KotlinPm20ProjectExtension) { "this function only works with the stable plugin" }
+    require(topLevelExtensionOrNull !is KpmProjectExtension) { "this function only works with the stable plugin" }
 
     val sourceSetsWithMetadataCompilations =
         project.multiplatformExtensionOrNull?.targets?.getByName(KotlinMultiplatformPlugin.METADATA_TARGET_NAME)?.compilations?.associate {

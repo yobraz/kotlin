@@ -1,9 +1,9 @@
 import org.gradle.api.Project
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.*
 import org.jetbrains.kotlin.project.model.*
 
 plugins {
-    kotlin("multiplatform.pm20")
+    kotlin("multiplatform.kpm")
 }
 
 repositories {
@@ -13,7 +13,7 @@ repositories {
 
 plugins.apply(GradleKpmPluginWithTransientPluginOptions::class.java)
 
-configure<KotlinPm20ProjectExtension> {
+configure<KpmProjectExtension> {
     main {
         jvm
     }

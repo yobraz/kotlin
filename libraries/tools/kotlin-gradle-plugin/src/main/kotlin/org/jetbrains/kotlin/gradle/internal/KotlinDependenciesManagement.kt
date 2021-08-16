@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinGradleFragment
 import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinGradleModule
-import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinPm20ProjectExtension
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KpmProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.sources.KotlinDependencyScope
 import org.jetbrains.kotlin.gradle.plugin.sources.withAllDependsOnSourceSets
 import org.jetbrains.kotlin.gradle.plugin.sources.resolveAllDependsOnSourceSets
@@ -45,7 +45,7 @@ internal const val KOTLIN_COMPILER_EMBEDDABLE = "kotlin-compiler-embeddable"
 
 internal fun customizeKotlinDependencies(project: Project) {
     configureStdlibDefaultDependency(project)
-    if (project.topLevelExtension is KotlinProjectExtension) { // TODO: extend this logic to PM20
+    if (project.topLevelExtension is KotlinProjectExtension) { // TODO: extend this logic to KPM
         configureKotlinTestDependency(project)
     }
     configureDefaultVersionsResolutionStrategy(project)
@@ -100,8 +100,8 @@ internal fun configureStdlibDefaultDependency(project: Project) = with(project) 
     val scopesToHandleConfigurations = listOf(KotlinDependencyScope.API_SCOPE, KotlinDependencyScope.IMPLEMENTATION_SCOPE)
 
     when (val topLevelExtension = project.topLevelExtension) {
-        is KotlinPm20ProjectExtension -> {
-            addStdlibToPm20Project(topLevelExtension)
+        is KpmProjectExtension -> {
+            addStdlibToKpmProject(topLevelExtension)
         }
         is KotlinProjectExtension -> {
             topLevelExtension.sourceSets.all { kotlinSourceSet ->
@@ -129,8 +129,8 @@ internal fun configureStdlibDefaultDependency(project: Project) = with(project) 
     }
 }
 
-private fun addStdlibToPm20Project(
-    topLevelExtension: KotlinPm20ProjectExtension
+private fun addStdlibToKpmProject(
+    topLevelExtension: KpmProjectExtension
 ) {
     val project = topLevelExtension.project
     topLevelExtension.modules.matching { it.name == KotlinGradleModule.MAIN_MODULE_NAME }.configureEach { main ->

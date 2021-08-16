@@ -14,10 +14,9 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.FileCollection
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.dsl.pm20Extension
 import org.jetbrains.kotlin.gradle.dsl.topLevelExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinPm20ProjectExtension
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KpmProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.toSingleModuleIdentifier
 import org.jetbrains.kotlin.gradle.plugin.sources.KotlinDependencyScope
 import org.jetbrains.kotlin.gradle.plugin.sources.sourceSetDependencyConfigurationByScope
@@ -375,7 +374,7 @@ private class ProjectMppDependencyMetadataExtractor(
     override fun getProjectStructureMetadata(): KotlinProjectStructureMetadata? {
         val topLevelExtension = dependencyProject.topLevelExtension
         return when {
-            topLevelExtension is KotlinPm20ProjectExtension -> buildProjectStructureMetadata(
+            topLevelExtension is KpmProjectExtension -> buildProjectStructureMetadata(
                 topLevelExtension.modules.single { it.moduleIdentifier == moduleIdentifier }
             )
             else -> buildKotlinProjectStructureMetadata(dependencyProject)
@@ -389,7 +388,7 @@ private class ProjectMppDependencyMetadataExtractor(
         val result = when (val projectExtension = dependencyProject.topLevelExtension) {
             is KotlinMultiplatformExtension -> projectExtension.targets.getByName(KotlinMultiplatformPlugin.METADATA_TARGET_NAME).compilations
                 .filter { it.name in visibleSourceSetNames }.associate { it.defaultSourceSet.name to it.output.classesDirs }
-            is KotlinPm20ProjectExtension -> {
+            is KpmProjectExtension -> {
                 val moduleId = moduleIdentifier
                 val module = projectExtension.modules.single { it.moduleIdentifier == moduleId }
                 val metadataCompilationRegistry = projectExtension.metadataCompilationRegistryByModuleId.getValue(moduleId)

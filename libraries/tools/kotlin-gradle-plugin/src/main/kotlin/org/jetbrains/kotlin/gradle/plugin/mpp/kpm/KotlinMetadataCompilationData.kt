@@ -14,10 +14,9 @@ import org.gradle.api.tasks.TaskProvider
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformCommonOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformCommonOptionsImpl
-import org.jetbrains.kotlin.gradle.dsl.pm20Extension
+import org.jetbrains.kotlin.gradle.dsl.kpmExtension
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
-import org.jetbrains.kotlin.gradle.plugin.sources.DefaultLanguageSettingsBuilder
 import org.jetbrains.kotlin.gradle.targets.metadata.ResolvedMetadataFilesProvider
 import org.jetbrains.kotlin.gradle.targets.metadata.createTransformedMetadataClasspath
 import org.jetbrains.kotlin.gradle.utils.getValue
@@ -41,7 +40,7 @@ internal abstract class AbstractKotlinFragmentMetadataCompilationData<T : Kotlin
 ) : KotlinMetadataCompilationData<T> {
 
     override val owner
-        get() = project.pm20Extension
+        get() = project.kpmExtension
 
     override val compilationPurpose: String
         get() = fragment.fragmentName

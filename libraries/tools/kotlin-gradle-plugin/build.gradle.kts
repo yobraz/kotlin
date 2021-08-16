@@ -205,9 +205,9 @@ pluginBundle {
         display = "Kotlin Native plugin for CocoaPods integration"
     )
     create(
-        name = "kotlinMultiplatformPluginPm20",
-        id = "org.jetbrains.kotlin.multiplatform.pm20",
-        display = "Kotlin Multiplatform plugin with PM2.0"
+        name = "KpmMultiplatformPlugin",
+        id = "org.jetbrains.kotlin.multiplatform.kpm",
+        display = "Kotlin Multiplatform plugin with Kotlin Project Model"
     )
 }
 

@@ -5,11 +5,10 @@
 
 package org.jetbrains.kotlin.gradle.plugin.mpp.kpm
 
-import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
-import org.jetbrains.kotlin.gradle.dsl.pm20Extension
+import org.jetbrains.kotlin.gradle.dsl.kpmExtension
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.isMain
 import org.jetbrains.kotlin.gradle.utils.lowerCamelCaseName
@@ -31,12 +30,12 @@ interface KotlinVariantCompilationDataInternal<T : KotlinCommonOptions> :
         get() {
             // FIXME support compiling against the artifact task outputs
             // TODO note for Android: see the friend artifacts code in KotlinAndroidCompilation
-            return owner.containingModule.project.pm20Extension.modules.flatMap { it.variants.map { it.compilationOutputs.classesDirs } }
+            return owner.containingModule.project.kpmExtension.modules.flatMap { it.variants.map { it.compilationOutputs.classesDirs } }
         }
 
     override val moduleName: String
         get() = // TODO accurate module names that don't rely on all variants having a main counterpart
-            owner.containingModule.project.pm20Extension.modules
+            owner.containingModule.project.kpmExtension.modules
                 .getByName(KotlinGradleModule.MAIN_MODULE_NAME).variants.findByName(owner.name)?.ownModuleName() ?: ownModuleName
 
     override val ownModuleName: String

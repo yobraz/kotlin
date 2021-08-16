@@ -10,7 +10,7 @@ import org.gradle.api.Project
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.jvm.tasks.Jar
-import org.jetbrains.kotlin.gradle.dsl.pm20Extension
+import org.jetbrains.kotlin.gradle.dsl.kpmExtension
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.KotlinCommonSourceSetProcessor
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
@@ -33,7 +33,7 @@ internal fun configureMetadataResolutionAndBuild(module: KotlinGradleModule) {
     createResolvableMetadataConfigurationForModule(module)
 
     val metadataCompilationRegistry = MetadataCompilationRegistry()
-    project.pm20Extension.metadataCompilationRegistryByModuleId[module.moduleIdentifier] =
+    project.kpmExtension.metadataCompilationRegistryByModuleId[module.moduleIdentifier] =
         metadataCompilationRegistry
 
     configureMetadataCompilationsAndCreateRegistry(module, metadataCompilationRegistry)

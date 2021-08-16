@@ -6,7 +6,7 @@ pluginManagement {
 
     plugins {
         val kotlin_version: String by settings
-        kotlin("multiplatform.pm20").version(kotlin_version)
+        kotlin("multiplatform.kpm").version(kotlin_version)
     }
 }
 

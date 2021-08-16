@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinAndroidTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsSingleTargetPreset
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinWithJavaTarget
-import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinPm20ProjectExtension
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KpmProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.statistics.KotlinBuildStatsService
 import org.jetbrains.kotlin.gradle.targets.js.calculateJsCompilerType
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
@@ -54,8 +54,8 @@ internal val Project.multiplatformExtensionOrNull: KotlinMultiplatformExtension?
 internal val Project.multiplatformExtension: KotlinMultiplatformExtension
     get() = extensions.getByName(KOTLIN_PROJECT_EXTENSION_NAME) as KotlinMultiplatformExtension
 
-internal val Project.pm20Extension: KotlinPm20ProjectExtension
-    get() = extensions.getByName(KOTLIN_PROJECT_EXTENSION_NAME) as KotlinPm20ProjectExtension
+internal val Project.kpmExtension: KpmProjectExtension
+    get() = extensions.getByName(KOTLIN_PROJECT_EXTENSION_NAME) as KpmProjectExtension
 
 open class KotlinTopLevelExtension (internal val project: Project) {
     val experimental: ExperimentalExtension

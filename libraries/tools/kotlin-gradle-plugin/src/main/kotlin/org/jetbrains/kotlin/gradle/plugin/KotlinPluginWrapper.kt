@@ -32,8 +32,8 @@ import org.jetbrains.kotlin.gradle.logging.kotlinDebug
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMultiplatformPlugin
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
-import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinPm20GradlePlugin
-import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinPm20ProjectExtension
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KpmGradlePlugin
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KpmProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSetFactory
 import org.jetbrains.kotlin.gradle.plugin.statistics.KotlinBuildStatsService
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
@@ -251,12 +251,12 @@ open class KotlinMultiplatformPluginWrapper @Inject constructor(
     }
 }
 
-open class KotlinPm20PluginWrapper @Inject constructor(private val objectFactory: ObjectFactory) : KotlinBasePluginWrapper() {
+open class KpmPluginWrapper @Inject constructor(private val objectFactory: ObjectFactory) : KotlinBasePluginWrapper() {
     override fun getPlugin(project: Project, kotlinGradleBuildServices: KotlinGradleBuildServices): Plugin<Project> =
-        objectFactory.newInstance(KotlinPm20GradlePlugin::class.java)
+        objectFactory.newInstance(KpmGradlePlugin::class.java)
 
-    override val projectExtensionClass: KClass<out KotlinPm20ProjectExtension>
-        get() = KotlinPm20ProjectExtension::class
+    override val projectExtensionClass: KClass<out KpmProjectExtension>
+        get() = KpmProjectExtension::class
 }
 
 @Deprecated(

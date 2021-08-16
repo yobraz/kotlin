@@ -177,7 +177,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments> : AbstractKotl
 
             if (compilation is KotlinCompilation<*>) {
                 task.friendSourceSets.set(project.provider { compilation.associateWithTransitiveClosure.map { it.name } })
-                // FIXME support compiler plugins with PM20
+                // FIXME support compiler plugins with KPM
                 task.pluginClasspath.from(project.configurations.getByName(compilation.pluginConfigurationName))
             }
             task.moduleName.set(project.provider { compilation.moduleName })
@@ -191,7 +191,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments> : AbstractKotl
             ).disallowChanges()
             task.multiPlatformEnabled.value(
                 project.provider {
-                    project.plugins.any { it is KotlinPlatformPluginBase || it is KotlinMultiplatformPluginWrapper || it is KotlinPm20PluginWrapper }
+                    project.plugins.any { it is KotlinPlatformPluginBase || it is KotlinMultiplatformPluginWrapper || it is KpmPluginWrapper }
                 }
             ).disallowChanges()
             task.taskBuildDirectory.value(getKotlinBuildDir(task)).disallowChanges()

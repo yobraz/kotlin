@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.gradle.plugin.mpp.kpm
 
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Project
-import org.jetbrains.kotlin.gradle.dsl.pm20Extension
+import org.jetbrains.kotlin.gradle.dsl.kpmExtension
 
 open class KotlinGradleModuleFactory(private val project: Project) : NamedDomainObjectFactory<KotlinGradleModule> {
     override fun create(name: String): KotlinGradleModule {
@@ -35,7 +35,7 @@ open class KotlinGradleModuleFactory(private val project: Project) : NamedDomain
                 .matching { it.fragmentName == KotlinGradleFragment.COMMON_FRAGMENT_NAME }
                 .configureEach { commonFragment ->
                     commonFragment.dependencies {
-                        api(module.project.pm20Extension.modules.getByName(KotlinGradleModule.MAIN_MODULE_NAME))
+                        api(module.project.kpmExtension.modules.getByName(KotlinGradleModule.MAIN_MODULE_NAME))
                     }
                 }
         }

@@ -121,11 +121,11 @@ private fun detectModules(targets: Iterable<KotlinTarget>, sourceSets: Iterable<
 
 @Suppress("unused")
 class GradleProjectModuleBuilder(private val addInferredSourceSetVisibilityAsExplicit: Boolean) {
-    private fun getModulesFromPm20Project(project: Project) = project.pm20Extension.modules.toList()
+    private fun getModulesFromKpmProject(project: Project) = project.kpmExtension.modules.toList()
 
     fun buildModulesFromProject(project: Project): List<KotlinModule> {
-        if (project.topLevelExtension is KotlinPm20ProjectExtension)
-            return getModulesFromPm20Project(project)
+        if (project.topLevelExtension is KpmProjectExtension)
+            return getModulesFromKpmProject(project)
 
         val extension = project.multiplatformExtensionOrNull
             ?: project.kotlinExtension
@@ -333,7 +333,7 @@ class GradleModuleVariantResolver : ModuleVariantResolver {
 
                 project.configurations.getByName(compilation.compileDependencyConfigurationName)
             }
-            is KotlinPm20ProjectExtension -> {
+            is KpmProjectExtension -> {
                 (requestingVariant as KotlinGradleVariant).compileDependencyConfiguration
             }
             else -> error("could not find the compile dependencies configuration for variant $requestingVariant")

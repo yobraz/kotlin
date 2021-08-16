@@ -21,7 +21,7 @@ internal fun resolvableMetadataConfiguration(
 
 internal fun configurationToResolveMetadataDependencies(project: Project, requestingModule: KotlinModule): Configuration =
     when (project.topLevelExtension) {
-        is KotlinPm20ProjectExtension -> resolvableMetadataConfiguration(requestingModule as KotlinGradleModule)
+        is KpmProjectExtension -> resolvableMetadataConfiguration(requestingModule as KotlinGradleModule)
         else -> resolvableMetadataConfiguration(
             project,
             project.kotlinExtension.sourceSets, // take dependencies from all source sets; TODO introduce consistency scopes?
