@@ -2624,6 +2624,13 @@ internal class PropertyMustHaveSetterImpl(
     override val firDiagnostic: FirPsiDiagnostic by weakRef(firDiagnostic)
 }
 
+internal class InapplicableBackingFieldVisibilityImpl(
+    firDiagnostic: FirPsiDiagnostic,
+    override val token: ValidityToken,
+) : KtFirDiagnostic.InapplicableBackingFieldVisibility(), KtAbstractFirDiagnostic<KtBackingField> {
+    override val firDiagnostic: FirPsiDiagnostic by weakRef(firDiagnostic)
+}
+
 internal class ExpectedDeclarationWithBodyImpl(
     firDiagnostic: FirPsiDiagnostic,
     override val token: ValidityToken,

@@ -242,6 +242,7 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.METHOD_OF_ANY_IMP
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MISPLACED_TYPE_PARAMETER_CONSTRAINTS
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MISSING_VAL_ON_ANNOTATION_PARAMETER
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.EXPOSING_GETTER_WITH_BODY
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.INAPPLICABLE_BACKING_FIELD_VISIBILITY
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MULTIPLE_VARARG_PARAMETERS
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MUST_BE_INITIALIZED
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MUST_BE_INITIALIZED_OR_BE_ABSTRACT
@@ -1223,6 +1224,10 @@ class FirDefaultErrorMessages {
             map.put(
                 PROPERTY_MUST_HAVE_SETTER,
                 "This property needs a custom setter"
+            )
+            map.put(
+                INAPPLICABLE_BACKING_FIELD_VISIBILITY,
+                "Explicit backing field declarations must have an initializer"
             )
 
             map.put(CONST_VAL_NOT_TOP_LEVEL_OR_OBJECT, "Const 'val' are only allowed on top level or in objects")

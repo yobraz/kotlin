@@ -1630,6 +1630,10 @@ sealed class KtFirDiagnostic<PSI : PsiElement> : KtDiagnosticWithPsi<PSI> {
         override val diagnosticClass get() = PropertyMustHaveSetter::class
     }
 
+    abstract class InapplicableBackingFieldVisibility : KtFirDiagnostic<KtBackingField>() {
+        override val diagnosticClass get() = InapplicableBackingFieldVisibility::class
+    }
+
     abstract class ExpectedDeclarationWithBody : KtFirDiagnostic<KtDeclaration>() {
         override val diagnosticClass get() = ExpectedDeclarationWithBody::class
     }

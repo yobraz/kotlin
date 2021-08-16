@@ -459,6 +459,7 @@ object FirErrors {
     val PROPERTY_FIELD_DECLARATION_MISSING_INITIALIZER by error0<KtBackingField>()
     val PROPERTY_MUST_HAVE_GETTER by error0<KtProperty>()
     val PROPERTY_MUST_HAVE_SETTER by error0<KtProperty>()
+    val INAPPLICABLE_BACKING_FIELD_VISIBILITY by error0<KtBackingField>(SourceElementPositioningStrategies.VISIBILITY_MODIFIER)
 
     // Multi-platform projects
     val EXPECTED_DECLARATION_WITH_BODY by error0<KtDeclaration>(SourceElementPositioningStrategies.DECLARATION_SIGNATURE)

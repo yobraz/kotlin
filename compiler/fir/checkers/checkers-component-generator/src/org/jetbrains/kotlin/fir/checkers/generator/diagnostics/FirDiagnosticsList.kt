@@ -841,6 +841,7 @@ object DIAGNOSTICS_LIST : DiagnosticList("FirErrors") {
         val PROPERTY_FIELD_DECLARATION_MISSING_INITIALIZER by error<KtBackingField>()
         val PROPERTY_MUST_HAVE_GETTER by error<KtProperty>()
         val PROPERTY_MUST_HAVE_SETTER by error<KtProperty>()
+        val INAPPLICABLE_BACKING_FIELD_VISIBILITY by error<KtBackingField>(PositioningStrategy.VISIBILITY_MODIFIER)
     }
 
     val MPP_PROJECTS by object : DiagnosticGroup("Multi-platform projects") {
