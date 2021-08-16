@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
 import org.jetbrains.kotlin.ir.interpreter.checker.IrCompileTimeChecker
 import org.jetbrains.kotlin.ir.interpreter.toIrConst
 import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
 fun evaluateConstants(irModuleFragment: IrModuleFragment) {
@@ -56,7 +57,11 @@ class IrConstTransformer(private val interpreter: IrInterpreter, private val irF
     }
 
     override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
-        transformAnnotations(declaration)
+        try {
+            transformAnnotations(declaration)
+        } catch (e: Throwable) {
+            throw IllegalStateException("Exception while interpreting annotation of a declaration ${declaration.render()}", e)
+        }
         return super.visitDeclaration(declaration)
     }
 
