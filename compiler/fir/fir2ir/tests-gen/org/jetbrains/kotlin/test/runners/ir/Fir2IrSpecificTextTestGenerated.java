@@ -41,6 +41,40 @@ public class Fir2IrSpecificTextTestGenerated extends AbstractFir2IrTextTest {
         }
 
         @Nested
+        @TestMetadata("compiler/fir/fir2ir/testData/ir/irText/properties/backingField")
+        @TestDataPath("$PROJECT_ROOT")
+        public class BackingField {
+            @Test
+            public void testAllFilesPresentInBackingField() throws Exception {
+                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/fir2ir/testData/ir/irText/properties/backingField"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
+            }
+
+            @Test
+            @TestMetadata("backingFieldVisibility.kt")
+            public void testBackingFieldVisibility() throws Exception {
+                runTest("compiler/fir/fir2ir/testData/ir/irText/properties/backingField/backingFieldVisibility.kt");
+            }
+
+            @Test
+            @TestMetadata("explicitBackingFieldType.kt")
+            public void testExplicitBackingFieldType() throws Exception {
+                runTest("compiler/fir/fir2ir/testData/ir/irText/properties/backingField/explicitBackingFieldType.kt");
+            }
+
+            @Test
+            @TestMetadata("independentBackingFieldType.kt")
+            public void testIndependentBackingFieldType() throws Exception {
+                runTest("compiler/fir/fir2ir/testData/ir/irText/properties/backingField/independentBackingFieldType.kt");
+            }
+
+            @Test
+            @TestMetadata("propertyTypeNarrowing.kt")
+            public void testPropertyTypeNarrowing() throws Exception {
+                runTest("compiler/fir/fir2ir/testData/ir/irText/properties/backingField/propertyTypeNarrowing.kt");
+            }
+        }
+
+        @Nested
         @TestMetadata("compiler/fir/fir2ir/testData/ir/irText/properties/publicType")
         @TestDataPath("$PROJECT_ROOT")
         public class PublicType {
