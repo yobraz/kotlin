@@ -15,8 +15,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.dsl.multiplatformExtension
 import org.jetbrains.kotlin.gradle.dsl.multiplatformExtensionOrNull
 import org.jetbrains.kotlin.gradle.dsl.topLevelExtension
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.*
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.ComputedCapability
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.util.ComputedCapability
 import org.jetbrains.kotlin.gradle.utils.getValue
 import org.jetbrains.kotlin.project.model.KotlinModuleIdentifier
 import org.jetbrains.kotlin.project.model.LocalModuleIdentifier

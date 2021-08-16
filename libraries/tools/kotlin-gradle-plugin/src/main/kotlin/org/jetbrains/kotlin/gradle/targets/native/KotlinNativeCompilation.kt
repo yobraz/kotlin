@@ -15,8 +15,8 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.util.ConfigureUtil
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.plugin.*
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinNativeCompilationData
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinNativeFragmentMetadataCompilationData
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinNativeCompilationData
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinNativeFragmentMetadataCompilationData
 import org.jetbrains.kotlin.gradle.plugin.sources.getVisibleSourceSetsFromAssociateCompilations
 import org.jetbrains.kotlin.gradle.plugin.sources.resolveAllDependsOnSourceSets
 import org.jetbrains.kotlin.gradle.targets.metadata.getMetadataCompilationForSourceSet

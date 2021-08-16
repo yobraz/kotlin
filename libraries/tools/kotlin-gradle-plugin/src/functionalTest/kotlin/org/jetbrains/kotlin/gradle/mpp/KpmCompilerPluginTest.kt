@@ -8,9 +8,9 @@ package org.jetbrains.kotlin.gradle.mpp
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.GradleKpmCompilerPlugin
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinLinuxX64Variant
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.jvm
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.GradleKpmCompilerPlugin
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinLinuxX64Variant
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.jvm
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinNativeCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilerPluginData

@@ -30,10 +30,10 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinCommonCompilation
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.AbstractKotlinFragmentMetadataCompilationData
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinCompilationData
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinMetadataCompilationData
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.refinesClosure
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.AbstractKotlinFragmentMetadataCompilationData
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinCompilationData
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinMetadataCompilationData
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.refinesClosure
 import org.jetbrains.kotlin.gradle.plugin.sources.resolveAllDependsOnSourceSets
 import org.jetbrains.kotlin.incremental.ChangedFiles
 import java.io.File

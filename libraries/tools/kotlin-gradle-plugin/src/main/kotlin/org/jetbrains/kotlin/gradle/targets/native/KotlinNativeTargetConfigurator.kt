@@ -28,10 +28,10 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation.Companion.TEST_COMPI
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.Companion.KOTLIN_NATIVE_IGNORE_INCORRECT_DEPENDENCIES
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.registerEmbedAndSignAppleFrameworkTask
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinCompilationData
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinGradleVariant
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinNativeCompilationData
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.isMainCompilationData
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinCompilationData
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinGradleVariant
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.KotlinNativeCompilationData
+import org.jetbrains.kotlin.gradle.plugin.mpp.kpm.isMainCompilationData
 import org.jetbrains.kotlin.gradle.targets.metadata.isKotlinGranularMetadataEnabled
 import org.jetbrains.kotlin.gradle.targets.native.*
 import org.jetbrains.kotlin.gradle.targets.native.internal.commonizeCInteropTask
@@ -461,9 +461,7 @@ open class KotlinNativeTargetConfigurator<T : KotlinNativeTarget> : AbstractKotl
             return compileTaskProvider
         }
 
-        private fun Project.klibOutputDirectory(
-            compilation: KotlinCompilationData<*>
-        ): File {
+        private fun Project.klibOutputDirectory(compilation: KotlinCompilationData<*>): File {
             val targetSubDirectory = compilation.compilationClassifier?.let { "$it/" }.orEmpty()
             return buildDir.resolve("classes/kotlin/$targetSubDirectory${compilation.compilationPurpose}")
         }
