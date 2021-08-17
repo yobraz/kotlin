@@ -225,14 +225,14 @@ abstract class AbstractKlibTextTestCase : CodegenTestCase() {
         return testModule
     }
 
-    private fun loadKlibFromPath(paths: List<String>): List<KotlinLibrary> {
+    protected fun loadKlibFromPath(paths: List<String>): List<KotlinLibrary> {
         val result = jsResolveLibraries(paths, emptyList(), DummyLogger)
         return result.getFullList(TopologicalLibraryOrder)
     }
 
-    private val runtimeKlibPath = "libraries/stdlib/js-ir/build/classes/kotlin/js/main"
+    protected val runtimeKlibPath = "libraries/stdlib/js-ir/build/classes/kotlin/js/main"
 
-    private fun buildFragmentAndLinkIt(stdlib: KotlinLibrary, ignoreErrors: Boolean, expectActualSymbols: MutableMap<DeclarationDescriptor, IrSymbol>): Pair<IrModuleFragment, BindingContext> {
+    protected fun buildFragmentAndLinkIt(stdlib: KotlinLibrary, ignoreErrors: Boolean, expectActualSymbols: MutableMap<DeclarationDescriptor, IrSymbol>): Pair<IrModuleFragment, BindingContext> {
         return generateIrModule(stdlib, ignoreErrors, expectActualSymbols)
     }
 
