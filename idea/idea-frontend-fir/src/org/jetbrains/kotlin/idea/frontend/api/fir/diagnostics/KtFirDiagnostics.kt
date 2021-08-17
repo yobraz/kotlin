@@ -2376,6 +2376,10 @@ sealed class KtFirDiagnostic<PSI : PsiElement> : KtDiagnosticWithPsi<PSI> {
         override val diagnosticClass get() = ConflictingJvmDeclarations::class
     }
 
+    abstract class StrictfpOnClass : KtFirDiagnostic<KtAnnotationEntry>() {
+        override val diagnosticClass get() = StrictfpOnClass::class
+    }
+
     abstract class JavaTypeMismatch : KtFirDiagnostic<KtExpression>() {
         override val diagnosticClass get() = JavaTypeMismatch::class
         abstract val expectedType: KtType
