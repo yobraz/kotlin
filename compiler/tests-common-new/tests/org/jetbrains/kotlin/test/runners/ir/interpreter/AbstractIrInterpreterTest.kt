@@ -38,7 +38,7 @@ open class AbstractCommonIrInterpreterTest : AbstractKotlinCompilerWithTargetBac
 
         defaultDirectives {
             +JvmEnvironmentConfigurationDirectives.FULL_JDK
-            +JvmEnvironmentConfigurationDirectives.NO_RUNTIME
+            +JvmEnvironmentConfigurationDirectives.WITH_STDLIB
             +LanguageSettingsDirectives.ALLOW_KOTLIN_PACKAGE
         }
 
