@@ -1,0 +1,330 @@
+// --- IR for <main> after Evaluate and optimize function statements
+MODULE_FRAGMENT name:<main>
+  FILE fqName:<root> fileName:/inlineCompareBy.kt
+    CLASS INTERFACE name:Comparator modality:ABSTRACT visibility:public [fun] superTypes:[kotlin.Any]
+      annotations:
+        CompileTimeCalculation
+      $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.Comparator<T of <root>.Comparator>
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
+      FUN name:compare visibility:public modality:ABSTRACT <> ($this:<root>.Comparator<T of <root>.Comparator>, a:T of <root>.Comparator, b:T of <root>.Comparator) returnType:kotlin.Int
+        $this: VALUE_PARAMETER name:<this> type:<root>.Comparator<T of <root>.Comparator>
+        VALUE_PARAMETER name:a index:0 type:T of <root>.Comparator
+        VALUE_PARAMETER name:b index:1 type:T of <root>.Comparator
+      FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+        overridden:
+          public open fun equals (other: kotlin.Any?): kotlin.Boolean [operator] declared in kotlin.Any
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+        VALUE_PARAMETER name:other index:0 type:kotlin.Any?
+      FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+        overridden:
+          public open fun hashCode (): kotlin.Int declared in kotlin.Any
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+      FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+        overridden:
+          public open fun toString (): kotlin.String declared in kotlin.Any
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+    FUN name:compareBy visibility:public modality:FINAL <T> (selectors:kotlin.Array<out kotlin.Function1<T of <root>.compareBy, kotlin.Comparable<*>?>>) returnType:<root>.Comparator<T of <root>.compareBy> [inline]
+      annotations:
+        PartialEvaluation
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
+      VALUE_PARAMETER name:selectors index:0 type:kotlin.Array<out kotlin.Function1<T of <root>.compareBy, kotlin.Comparable<*>?>> varargElementType:kotlin.Function1<T of <root>.compareBy, kotlin.Comparable<*>?> [vararg]
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun compareBy <T> (vararg selectors: kotlin.Function1<T of <root>.compareBy, kotlin.Comparable<*>?>): <root>.Comparator<T of <root>.compareBy> [inline] declared in <root>'
+          TYPE_OP type=<root>.Comparator<T of <root>.compareBy> origin=SAM_CONVERSION typeOperand=<root>.Comparator<T of <root>.compareBy>
+            FUN_EXPR type=kotlin.Function2<@[ParameterName(name = 'a')] T of <root>.compareBy, @[ParameterName(name = 'b')] T of <root>.compareBy, kotlin.Int> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> (a:T of <root>.compareBy, b:T of <root>.compareBy) returnType:kotlin.Int
+                VALUE_PARAMETER name:a index:0 type:T of <root>.compareBy
+                VALUE_PARAMETER name:b index:1 type:T of <root>.compareBy
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (a: T of <root>.compareBy, b: T of <root>.compareBy): kotlin.Int declared in <root>.compareBy'
+                    CALL 'public final fun compareValuesByImpl <T> (a: T of <root>.compareValuesByImpl, b: T of <root>.compareValuesByImpl, selectors: kotlin.Array<out kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?>>): kotlin.Int [inline] declared in <root>' type=kotlin.Int origin=null
+                      <T>: T of <root>.compareBy
+                      a: GET_VAR 'a: T of <root>.compareBy declared in <root>.compareBy.<anonymous>' type=T of <root>.compareBy origin=null
+                      b: GET_VAR 'b: T of <root>.compareBy declared in <root>.compareBy.<anonymous>' type=T of <root>.compareBy origin=null
+                      selectors: GET_VAR 'selectors: kotlin.Array<out kotlin.Function1<T of <root>.compareBy, kotlin.Comparable<*>?>> [vararg] declared in <root>.compareBy' type=kotlin.Array<out kotlin.Function1<T of <root>.compareBy, kotlin.Comparable<*>?>> origin=null
+    FUN name:compareValuesByImpl visibility:public modality:FINAL <T> (a:T of <root>.compareValuesByImpl, b:T of <root>.compareValuesByImpl, selectors:kotlin.Array<out kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?>>) returnType:kotlin.Int [inline]
+      annotations:
+        PartialEvaluation
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
+      VALUE_PARAMETER name:a index:0 type:T of <root>.compareValuesByImpl
+      VALUE_PARAMETER name:b index:1 type:T of <root>.compareValuesByImpl
+      VALUE_PARAMETER name:selectors index:2 type:kotlin.Array<out kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?>>
+      BLOCK_BODY
+        BLOCK type=kotlin.Unit origin=FOR_LOOP
+          VAR FOR_LOOP_ITERATOR name:tmp0_iterator type:kotlin.collections.Iterator<kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?>> [val]
+            CALL 'public final fun iterator (): kotlin.collections.Iterator<T of kotlin.Array> [operator] declared in kotlin.Array' type=kotlin.collections.Iterator<kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?>> origin=FOR_LOOP_ITERATOR
+              $this: GET_VAR 'selectors: kotlin.Array<out kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?>> declared in <root>.compareValuesByImpl' type=kotlin.Array<out kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?>> origin=null
+          WHILE label=null origin=FOR_LOOP_INNER_WHILE
+            condition: CALL 'public abstract fun hasNext (): kotlin.Boolean [operator] declared in kotlin.collections.Iterator' type=kotlin.Boolean origin=FOR_LOOP_HAS_NEXT
+              $this: GET_VAR 'val tmp0_iterator: kotlin.collections.Iterator<kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?>> [val] declared in <root>.compareValuesByImpl' type=kotlin.collections.Iterator<kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?>> origin=null
+            body: BLOCK type=kotlin.Unit origin=FOR_LOOP_INNER_WHILE
+              VAR FOR_LOOP_VARIABLE name:fn type:kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?> [val]
+                CALL 'public abstract fun next (): T of kotlin.collections.Iterator [operator] declared in kotlin.collections.Iterator' type=kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?> origin=FOR_LOOP_NEXT
+                  $this: GET_VAR 'val tmp0_iterator: kotlin.collections.Iterator<kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?>> [val] declared in <root>.compareValuesByImpl' type=kotlin.collections.Iterator<kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?>> origin=null
+              BLOCK type=kotlin.Unit origin=null
+                VAR name:v1 type:kotlin.Comparable<*>? [val]
+                  CALL 'public abstract fun invoke (p1: P1 of kotlin.Function1): R of kotlin.Function1 [operator] declared in kotlin.Function1' type=kotlin.Comparable<*>? origin=INVOKE
+                    $this: GET_VAR 'val fn: kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?> [val] declared in <root>.compareValuesByImpl' type=kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?> origin=VARIABLE_AS_FUNCTION
+                    p1: GET_VAR 'a: T of <root>.compareValuesByImpl declared in <root>.compareValuesByImpl' type=T of <root>.compareValuesByImpl origin=null
+                VAR name:v2 type:kotlin.Comparable<*>? [val]
+                  CALL 'public abstract fun invoke (p1: P1 of kotlin.Function1): R of kotlin.Function1 [operator] declared in kotlin.Function1' type=kotlin.Comparable<*>? origin=INVOKE
+                    $this: GET_VAR 'val fn: kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?> [val] declared in <root>.compareValuesByImpl' type=kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?> origin=VARIABLE_AS_FUNCTION
+                    p1: GET_VAR 'b: T of <root>.compareValuesByImpl declared in <root>.compareValuesByImpl' type=T of <root>.compareValuesByImpl origin=null
+                VAR name:diff type:kotlin.Int [val]
+                  CALL 'public final fun compareValues <T> (a: T of <root>.compareValues?, b: T of <root>.compareValues?): kotlin.Int [inline] declared in <root>' type=kotlin.Int origin=null
+                    <T>: kotlin.Comparable<kotlin.Nothing>
+                    a: GET_VAR 'val v1: kotlin.Comparable<*>? [val] declared in <root>.compareValuesByImpl' type=kotlin.Comparable<*>? origin=null
+                    b: GET_VAR 'val v2: kotlin.Comparable<*>? [val] declared in <root>.compareValuesByImpl' type=kotlin.Comparable<*>? origin=null
+                WHEN type=kotlin.Unit origin=IF
+                  BRANCH
+                    if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                      $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                        arg0: GET_VAR 'val diff: kotlin.Int [val] declared in <root>.compareValuesByImpl' type=kotlin.Int origin=null
+                        arg1: CONST Int type=kotlin.Int value=0
+                    then: RETURN type=kotlin.Nothing from='public final fun compareValuesByImpl <T> (a: T of <root>.compareValuesByImpl, b: T of <root>.compareValuesByImpl, selectors: kotlin.Array<out kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?>>): kotlin.Int [inline] declared in <root>'
+                      GET_VAR 'val diff: kotlin.Int [val] declared in <root>.compareValuesByImpl' type=kotlin.Int origin=null
+        RETURN type=kotlin.Nothing from='public final fun compareValuesByImpl <T> (a: T of <root>.compareValuesByImpl, b: T of <root>.compareValuesByImpl, selectors: kotlin.Array<out kotlin.Function1<T of <root>.compareValuesByImpl, kotlin.Comparable<*>?>>): kotlin.Int [inline] declared in <root>'
+          CONST Int type=kotlin.Int value=0
+    FUN name:compareValues visibility:public modality:FINAL <T> (a:T of <root>.compareValues?, b:T of <root>.compareValues?) returnType:kotlin.Int [inline]
+      annotations:
+        PartialEvaluation
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Comparable<*>]
+      VALUE_PARAMETER name:a index:0 type:T of <root>.compareValues?
+      VALUE_PARAMETER name:b index:1 type:T of <root>.compareValues?
+      BLOCK_BODY
+        WHEN type=kotlin.Unit origin=IF
+          BRANCH
+            if: CALL 'public final fun EQEQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQEQ
+              arg0: GET_VAR 'a: T of <root>.compareValues? declared in <root>.compareValues' type=T of <root>.compareValues? origin=null
+              arg1: GET_VAR 'b: T of <root>.compareValues? declared in <root>.compareValues' type=T of <root>.compareValues? origin=null
+            then: RETURN type=kotlin.Nothing from='public final fun compareValues <T> (a: T of <root>.compareValues?, b: T of <root>.compareValues?): kotlin.Int [inline] declared in <root>'
+              CONST Int type=kotlin.Int value=0
+        WHEN type=kotlin.Unit origin=IF
+          BRANCH
+            if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+              arg0: GET_VAR 'a: T of <root>.compareValues? declared in <root>.compareValues' type=T of <root>.compareValues? origin=null
+              arg1: CONST Null type=kotlin.Nothing? value=null
+            then: RETURN type=kotlin.Nothing from='public final fun compareValues <T> (a: T of <root>.compareValues?, b: T of <root>.compareValues?): kotlin.Int [inline] declared in <root>'
+              CONST Int type=kotlin.Int value=-1
+        WHEN type=kotlin.Unit origin=IF
+          BRANCH
+            if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+              arg0: GET_VAR 'b: T of <root>.compareValues? declared in <root>.compareValues' type=T of <root>.compareValues? origin=null
+              arg1: CONST Null type=kotlin.Nothing? value=null
+            then: RETURN type=kotlin.Nothing from='public final fun compareValues <T> (a: T of <root>.compareValues?, b: T of <root>.compareValues?): kotlin.Int [inline] declared in <root>'
+              CONST Int type=kotlin.Int value=1
+        RETURN type=kotlin.Nothing from='public final fun compareValues <T> (a: T of <root>.compareValues?, b: T of <root>.compareValues?): kotlin.Int [inline] declared in <root>'
+          CALL 'public abstract fun compareTo (other: T of kotlin.Comparable): kotlin.Int [operator] declared in kotlin.Comparable' type=kotlin.Int origin=null
+            $this: TYPE_OP type=kotlin.Comparable<kotlin.Any> origin=CAST typeOperand=kotlin.Comparable<kotlin.Any>
+              GET_VAR 'a: T of <root>.compareValues? declared in <root>.compareValues' type=T of <root>.compareValues? origin=null
+            other: GET_VAR 'b: T of <root>.compareValues? declared in <root>.compareValues' type=T of <root>.compareValues? origin=null
+    CLASS CLASS name:Foo modality:FINAL visibility:public superTypes:[kotlin.Comparable<<root>.Foo>]
+      $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.Foo
+      CONSTRUCTOR visibility:public <> (a:kotlin.Int, b:kotlin.Int, c:kotlin.Int) returnType:<root>.Foo [primary]
+        VALUE_PARAMETER name:a index:0 type:kotlin.Int
+        VALUE_PARAMETER name:b index:1 type:kotlin.Int
+        VALUE_PARAMETER name:c index:2 type:kotlin.Int
+        BLOCK_BODY
+          DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () [primary] declared in kotlin.Any'
+          INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Foo modality:FINAL visibility:public superTypes:[kotlin.Comparable<<root>.Foo>]'
+      PROPERTY name:a visibility:public modality:FINAL [val]
+        FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:private [final]
+          EXPRESSION_BODY
+            GET_VAR 'a: kotlin.Int declared in <root>.Foo.<init>' type=kotlin.Int origin=INITIALIZE_PROPERTY_FROM_PARAMETER
+        FUN DEFAULT_PROPERTY_ACCESSOR name:<get-a> visibility:public modality:FINAL <> ($this:<root>.Foo) returnType:kotlin.Int
+          correspondingProperty: PROPERTY name:a visibility:public modality:FINAL [val]
+          $this: VALUE_PARAMETER name:<this> type:<root>.Foo
+          BLOCK_BODY
+            RETURN type=kotlin.Nothing from='public final fun <get-a> (): kotlin.Int declared in <root>.Foo'
+              GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:private [final]' type=kotlin.Int origin=null
+                receiver: GET_VAR '<this>: <root>.Foo declared in <root>.Foo.<get-a>' type=<root>.Foo origin=null
+      PROPERTY name:b visibility:public modality:FINAL [val]
+        FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.Int visibility:private [final]
+          EXPRESSION_BODY
+            GET_VAR 'b: kotlin.Int declared in <root>.Foo.<init>' type=kotlin.Int origin=INITIALIZE_PROPERTY_FROM_PARAMETER
+        FUN DEFAULT_PROPERTY_ACCESSOR name:<get-b> visibility:public modality:FINAL <> ($this:<root>.Foo) returnType:kotlin.Int
+          correspondingProperty: PROPERTY name:b visibility:public modality:FINAL [val]
+          $this: VALUE_PARAMETER name:<this> type:<root>.Foo
+          BLOCK_BODY
+            RETURN type=kotlin.Nothing from='public final fun <get-b> (): kotlin.Int declared in <root>.Foo'
+              GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.Int visibility:private [final]' type=kotlin.Int origin=null
+                receiver: GET_VAR '<this>: <root>.Foo declared in <root>.Foo.<get-b>' type=<root>.Foo origin=null
+      PROPERTY name:c visibility:public modality:FINAL [val]
+        FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Int visibility:private [final]
+          EXPRESSION_BODY
+            GET_VAR 'c: kotlin.Int declared in <root>.Foo.<init>' type=kotlin.Int origin=INITIALIZE_PROPERTY_FROM_PARAMETER
+        FUN DEFAULT_PROPERTY_ACCESSOR name:<get-c> visibility:public modality:FINAL <> ($this:<root>.Foo) returnType:kotlin.Int
+          correspondingProperty: PROPERTY name:c visibility:public modality:FINAL [val]
+          $this: VALUE_PARAMETER name:<this> type:<root>.Foo
+          BLOCK_BODY
+            RETURN type=kotlin.Nothing from='public final fun <get-c> (): kotlin.Int declared in <root>.Foo'
+              GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Int visibility:private [final]' type=kotlin.Int origin=null
+                receiver: GET_VAR '<this>: <root>.Foo declared in <root>.Foo.<get-c>' type=<root>.Foo origin=null
+      CLASS OBJECT name:Companion modality:FINAL visibility:public [companion] superTypes:[kotlin.Any]
+        $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.Foo.Companion
+        CONSTRUCTOR visibility:private <> () returnType:<root>.Foo.Companion [primary]
+          BLOCK_BODY
+            DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () [primary] declared in kotlin.Any'
+            INSTANCE_INITIALIZER_CALL classDescriptor='CLASS OBJECT name:Companion modality:FINAL visibility:public [companion] superTypes:[kotlin.Any]'
+        PROPERTY name:comparator visibility:private modality:FINAL [val]
+          FIELD PROPERTY_BACKING_FIELD name:comparator type:<root>.Comparator<<root>.Foo> visibility:private [final]
+            EXPRESSION_BODY
+              RETURNABLE_BLOCK type=<root>.Comparator<<root>.Foo> origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp0_compareBy_0 type:kotlin.Array<out kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> [val]
+                  BLOCK type=kotlin.Array<out kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> origin=(InlinerExpressionLocationHint : FIELD PROPERTY_BACKING_FIELD name:comparator type:<root>.Comparator<<root>.Foo> visibility:private [final] @null)
+                    VARARG type=kotlin.Array<out kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> varargElementType=kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>
+                      PROPERTY_REFERENCE 'public final a: kotlin.Int [val]' field=null getter='public final fun <get-a> (): kotlin.Int declared in <root>.Foo' setter=null type=kotlin.reflect.KProperty1<<root>.Foo, kotlin.Int> origin=null
+                      PROPERTY_REFERENCE 'public final b: kotlin.Int [val]' field=null getter='public final fun <get-b> (): kotlin.Int declared in <root>.Foo' setter=null type=kotlin.reflect.KProperty1<<root>.Foo, kotlin.Int> origin=null
+                      PROPERTY_REFERENCE 'public final c: kotlin.Int [val]' field=null getter='public final fun <get-c> (): kotlin.Int declared in <root>.Foo' setter=null type=kotlin.reflect.KProperty1<<root>.Foo, kotlin.Int> origin=null
+                RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=<root>.Comparator<<root>.Foo> origin=null'
+                  TYPE_OP type=<root>.Comparator<kotlin.Any?> origin=SAM_CONVERSION typeOperand=<root>.Comparator<kotlin.Any?>
+                    FUN_EXPR type=kotlin.Function2<<root>.Foo, <root>.Foo, kotlin.Int> origin=LAMBDA
+                      FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous>_1 visibility:local modality:FINAL <> (a:<root>.Foo, b:<root>.Foo) returnType:kotlin.Int
+                        VALUE_PARAMETER name:a index:0 type:<root>.Foo
+                        VALUE_PARAMETER name:b index:1 type:<root>.Foo
+                        BLOCK_BODY
+                          RETURN type=kotlin.Nothing from='local final fun <anonymous>_1 (a: <root>.Foo, b: <root>.Foo): kotlin.Int declared in <root>.Foo.Companion.comparator'
+                            RETURNABLE_BLOCK type=kotlin.Int origin=null
+                              BLOCK type=kotlin.Unit origin=FOR_LOOP
+                                VAR FOR_LOOP_ITERATOR name:tmp0_iterator_1 type:kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> [val]
+                                  CALL 'public final fun iterator (): kotlin.collections.Iterator<T of kotlin.Array> [operator] declared in kotlin.Array' type=kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> origin=FOR_LOOP_ITERATOR
+                                    $this: GET_VAR 'val tmp0_compareBy_0: kotlin.Array<out kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> [val] declared in <root>.Foo.Companion.comparator' type=kotlin.Array<out kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> origin=null
+                                WHILE label=null origin=FOR_LOOP_INNER_WHILE
+                                  condition: CALL 'public abstract fun hasNext (): kotlin.Boolean [operator] declared in kotlin.collections.Iterator' type=kotlin.Boolean origin=FOR_LOOP_HAS_NEXT
+                                    $this: GET_VAR 'val tmp0_iterator_1: kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> origin=null
+                                  body: BLOCK type=kotlin.Unit origin=FOR_LOOP_INNER_WHILE
+                                    VAR FOR_LOOP_VARIABLE name:fn_2 type:kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> [val]
+                                      CALL 'public abstract fun next (): T of kotlin.collections.Iterator [operator] declared in kotlin.collections.Iterator' type=kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> origin=FOR_LOOP_NEXT
+                                        $this: GET_VAR 'val tmp0_iterator_1: kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.collections.Iterator<kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?>> origin=null
+                                    BLOCK type=kotlin.Unit origin=null
+                                      VAR name:v1_3 type:kotlin.Comparable<*>? [val]
+                                        CALL 'public abstract fun invoke (p1: P1 of kotlin.Function1): R of kotlin.Function1 [operator] declared in kotlin.Function1' type=kotlin.Comparable<*>? origin=INVOKE
+                                          $this: GET_VAR 'val fn_2: kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> origin=VARIABLE_AS_FUNCTION
+                                          p1: GET_VAR 'a: <root>.Foo declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=<root>.Foo origin=null
+                                      VAR name:v2_4 type:kotlin.Comparable<*>? [val]
+                                        CALL 'public abstract fun invoke (p1: P1 of kotlin.Function1): R of kotlin.Function1 [operator] declared in kotlin.Function1' type=kotlin.Comparable<*>? origin=INVOKE
+                                          $this: GET_VAR 'val fn_2: kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Function1<<root>.Foo, kotlin.Comparable<*>?> origin=VARIABLE_AS_FUNCTION
+                                          p1: GET_VAR 'b: <root>.Foo declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=<root>.Foo origin=null
+                                      VAR name:diff_5 type:kotlin.Int [val]
+                                        RETURNABLE_BLOCK type=kotlin.Int origin=null
+                                          WHEN type=kotlin.Unit origin=IF
+                                            BRANCH
+                                              if: CALL 'public final fun EQEQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQEQ
+                                                arg0: GET_VAR 'val v1_3: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                                arg1: GET_VAR 'val v2_4: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                              then: RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+                                                CONST Int type=kotlin.Int value=0
+                                          WHEN type=kotlin.Unit origin=IF
+                                            BRANCH
+                                              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                                                arg0: GET_VAR 'val v1_3: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                                arg1: CONST Null type=kotlin.Nothing? value=null
+                                              then: RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+                                                CONST Int type=kotlin.Int value=-1
+                                          WHEN type=kotlin.Unit origin=IF
+                                            BRANCH
+                                              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                                                arg0: GET_VAR 'val v2_4: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                                arg1: CONST Null type=kotlin.Nothing? value=null
+                                              then: RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+                                                CONST Int type=kotlin.Int value=1
+                                          RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+                                            CALL 'public abstract fun compareTo (other: T of kotlin.Comparable): kotlin.Int [operator] declared in kotlin.Comparable' type=kotlin.Int origin=null
+                                              $this: TYPE_OP type=kotlin.Comparable<kotlin.Any> origin=CAST typeOperand=kotlin.Comparable<kotlin.Any>
+                                                GET_VAR 'val v1_3: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                              other: GET_VAR 'val v2_4: kotlin.Comparable<*>? [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Comparable<*>? origin=null
+                                      WHEN type=kotlin.Unit origin=IF
+                                        BRANCH
+                                          if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                                            $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                                              arg0: GET_VAR 'val diff_5: kotlin.Int [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Int origin=null
+                                              arg1: CONST Int type=kotlin.Int value=0
+                                          then: RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+                                            GET_VAR 'val diff_5: kotlin.Int [val] declared in <root>.Foo.Companion.comparator.<anonymous>_1' type=kotlin.Int origin=null
+                              RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+                                CONST Int type=kotlin.Int value=0
+          FUN DEFAULT_PROPERTY_ACCESSOR name:<get-comparator> visibility:private modality:FINAL <> ($this:<root>.Foo.Companion) returnType:<root>.Comparator<<root>.Foo>
+            correspondingProperty: PROPERTY name:comparator visibility:private modality:FINAL [val]
+            $this: VALUE_PARAMETER name:<this> type:<root>.Foo.Companion
+            BLOCK_BODY
+              RETURN type=kotlin.Nothing from='private final fun <get-comparator> (): <root>.Comparator<<root>.Foo> declared in <root>.Foo.Companion'
+                GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:comparator type:<root>.Comparator<<root>.Foo> visibility:private [final]' type=<root>.Comparator<<root>.Foo> origin=null
+                  receiver: GET_VAR '<this>: <root>.Foo.Companion declared in <root>.Foo.Companion.<get-comparator>' type=<root>.Foo.Companion origin=null
+        FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+          overridden:
+            public open fun equals (other: kotlin.Any?): kotlin.Boolean [operator] declared in kotlin.Any
+          $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+          VALUE_PARAMETER name:other index:0 type:kotlin.Any?
+        FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+          overridden:
+            public open fun hashCode (): kotlin.Int declared in kotlin.Any
+          $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+        FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+          overridden:
+            public open fun toString (): kotlin.String declared in kotlin.Any
+          $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+      FUN name:compareTo visibility:public modality:OPEN <> ($this:<root>.Foo, other:<root>.Foo) returnType:kotlin.Int [operator]
+        overridden:
+          public abstract fun compareTo (other: T of kotlin.Comparable): kotlin.Int [operator] declared in kotlin.Comparable
+        $this: VALUE_PARAMETER name:<this> type:<root>.Foo
+        VALUE_PARAMETER name:other index:0 type:<root>.Foo
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public open fun compareTo (other: <root>.Foo): kotlin.Int [operator] declared in <root>.Foo'
+            CALL 'public abstract fun compare (a: T of <root>.Comparator, b: T of <root>.Comparator): kotlin.Int declared in <root>.Comparator' type=kotlin.Int origin=null
+              $this: CALL 'private final fun <get-comparator> (): <root>.Comparator<<root>.Foo> declared in <root>.Foo.Companion' type=<root>.Comparator<<root>.Foo> origin=GET_PROPERTY
+                $this: GET_OBJECT 'CLASS OBJECT name:Companion modality:FINAL visibility:public [companion] superTypes:[kotlin.Any]' type=<root>.Foo.Companion
+              a: GET_VAR '<this>: <root>.Foo declared in <root>.Foo.compareTo' type=<root>.Foo origin=null
+              b: GET_VAR 'other: <root>.Foo declared in <root>.Foo.compareTo' type=<root>.Foo origin=null
+      FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+        overridden:
+          public open fun equals (other: kotlin.Any?): kotlin.Boolean [fake_override,operator] declared in kotlin.Comparable
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+        VALUE_PARAMETER name:other index:0 type:kotlin.Any?
+      FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+        overridden:
+          public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.Comparable
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+      FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+        overridden:
+          public open fun toString (): kotlin.String [fake_override] declared in kotlin.Comparable
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+  FILE fqName:kotlin fileName:/CompileTimeCalculation.kt
+    CLASS ANNOTATION_CLASS name:CompileTimeCalculation modality:FINAL visibility:public superTypes:[kotlin.Annotation]
+      annotations:
+        Target(allowedTargets = [GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:FUNCTION' type=kotlin.annotation.AnnotationTarget, GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:PROPERTY' type=kotlin.annotation.AnnotationTarget])
+        Retention(value = GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:BINARY' type=kotlin.annotation.AnnotationRetention)
+      $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:kotlin.CompileTimeCalculation
+      CONSTRUCTOR visibility:public <> () returnType:kotlin.CompileTimeCalculation [primary]
+      FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+        overridden:
+          public open fun equals (other: kotlin.Any?): kotlin.Boolean [fake_override,operator] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+        VALUE_PARAMETER name:other index:0 type:kotlin.Any?
+      FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+        overridden:
+          public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+      FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+        overridden:
+          public open fun toString (): kotlin.String [fake_override] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+  FILE fqName:kotlin fileName:/PartialEvaluation.kt
+    CLASS ANNOTATION_CLASS name:PartialEvaluation modality:FINAL visibility:public superTypes:[kotlin.Annotation]
+      annotations:
+        Target(allowedTargets = [GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:FUNCTION' type=kotlin.annotation.AnnotationTarget])
+        Retention(value = GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:BINARY' type=kotlin.annotation.AnnotationRetention)
+      $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:kotlin.PartialEvaluation
+      CONSTRUCTOR visibility:public <> () returnType:kotlin.PartialEvaluation [primary]
+      FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+        overridden:
+          public open fun equals (other: kotlin.Any?): kotlin.Boolean [fake_override,operator] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+        VALUE_PARAMETER name:other index:0 type:kotlin.Any?
+      FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+        overridden:
+          public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+      FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+        overridden:
+          public open fun toString (): kotlin.String [fake_override] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any

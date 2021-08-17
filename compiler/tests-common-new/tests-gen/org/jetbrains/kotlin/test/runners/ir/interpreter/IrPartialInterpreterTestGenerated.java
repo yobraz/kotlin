@@ -44,6 +44,12 @@ public class IrPartialInterpreterTestGenerated extends AbstractIrPartialInterpre
     }
 
     @Test
+    @TestMetadata("inlineCompareBy.kt")
+    public void testInlineCompareBy() throws Exception {
+        runTest("compiler/testData/ir/interpreter/partial/inlineCompareBy.kt");
+    }
+
+    @Test
     @TestMetadata("simpleCostructorCall.kt")
     public void testSimpleCostructorCall() throws Exception {
         runTest("compiler/testData/ir/interpreter/partial/simpleCostructorCall.kt");
