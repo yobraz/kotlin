@@ -113,6 +113,12 @@ public class FirSpecificBlackBoxCodegenTestGenerated extends AbstractFirBlackBox
         }
 
         @Test
+        @TestMetadata("tryExpression.kt")
+        public void testTryExpression() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/tryExpression.kt");
+        }
+
+        @Test
         @TestMetadata("typeParameter.kt")
         public void testTypeParameter() throws Exception {
             runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/typeParameter.kt");

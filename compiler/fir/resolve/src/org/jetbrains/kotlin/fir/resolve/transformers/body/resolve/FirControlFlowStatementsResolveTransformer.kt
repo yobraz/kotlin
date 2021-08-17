@@ -90,6 +90,7 @@ class FirControlFlowStatementsResolveTransformer(transformer: FirBodyResolveTran
             }
             whenExpression = whenExpression.transformSingle(whenExhaustivenessTransformer, null)
             dataFlowAnalyzer.exitWhenExpression(whenExpression)
+            whenExpression = replaceReturnTypeIfUnionExpected(whenExpression, data.expectedType)
             whenExpression = whenExpression.replaceReturnTypeIfNotExhaustive()
             whenExpression
         }
@@ -158,6 +159,7 @@ class FirControlFlowStatementsResolveTransformer(transformer: FirBodyResolveTran
         } else {
             result
         }
+        result = replaceReturnTypeIfUnionExpected(result, data.expectedType)
         dataFlowAnalyzer.exitTryExpression(callCompleted)
         return result
     }
@@ -169,6 +171,22 @@ class FirControlFlowStatementsResolveTransformer(transformer: FirBodyResolveTran
             catch.transformParameter(transformer, ResolutionMode.ContextIndependent)
             catch.transformBlock(transformer, ResolutionMode.ContextDependent)
         }.also { dataFlowAnalyzer.exitCatchClause(it) }
+    }
+
+    private fun <E : FirExpression> replaceReturnTypeIfUnionExpected(expression: E, expectedType: FirTypeRef?): E {
+        expectedType?.coneTypeSafe<ConeUnionType>() ?: return expression
+
+        val branchesTypes = when (expression) {
+            is FirWhenExpression -> expression.branches.map { it.result.typeRef.coneType }
+
+            is FirTryExpression -> listOf(expression.tryBlock.typeRef.coneType) +
+                    expression.catches.map { it.block.typeRef.coneType }
+
+            else -> return expression
+        }
+
+        expression.resultType = expression.resultType.resolvedTypeFromPrototype(session.typeContext.createUnionType(branchesTypes))
+        return expression
     }
 
     // ------------------------------- Jumps -------------------------------

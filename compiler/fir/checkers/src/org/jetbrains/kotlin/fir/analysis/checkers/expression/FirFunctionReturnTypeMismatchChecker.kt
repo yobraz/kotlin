@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.fir.analysis.checkers.expression
 
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
-import org.jetbrains.kotlin.fir.analysis.checkers.isApplicableToUnionType
 import org.jetbrains.kotlin.fir.analysis.checkers.isSubtypeForTypeMismatch
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.NULL_FOR_NONNULL_TYPE
@@ -34,13 +33,6 @@ object FirFunctionReturnTypeMismatchChecker : FirReturnExpressionChecker() {
         val functionReturnType = targetElement.returnTypeRef.coneType
         val typeContext = context.session.typeContext
         val returnExpressionType = resultExpression.typeRef.coneTypeSafe<ConeKotlinType>() ?: return
-
-        if (functionReturnType is ConeUnionType &&
-            resultExpression is FirWhenExpression &&
-            resultExpression.isApplicableToUnionType(functionReturnType, typeContext)
-        ) {
-            return
-        }
 
         if (!isSubtypeForTypeMismatch(typeContext, subtype = returnExpressionType, supertype = functionReturnType)) {
             if (resultExpression.isNullLiteral && functionReturnType.nullability == ConeNullability.NOT_NULL) {
