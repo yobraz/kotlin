@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
 import org.jetbrains.kotlin.ir.interpreter.stack.CallStack
 import org.jetbrains.kotlin.ir.interpreter.state.State
-import org.jetbrains.kotlin.ir.interpreter.state.asBoolean
+import org.jetbrains.kotlin.ir.interpreter.state.isUnit
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
 internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementTransformerVoid) {
@@ -28,7 +28,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
                 {
                     this.newSubFrame(irExpression)
                     this.pushInstruction(if (interpretOnly) SimpleInstruction(irExpression) else CompoundInstruction(irExpression))
-                    args.reversed().forEach { this.pushState(it) }
+                    args.forEach { this.pushState(it) }
                 },
                 { this.dropSubFrame() }
             )
@@ -37,7 +37,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
 
     fun interpret(block: IrReturnableBlock): IrElement {
         callStack.newFrame(block)
-        block.transformChildren(transformer, null)
+        fallbackIrStatements(block.statements)
         callStack.dropFrame()
         return block
     }
@@ -57,17 +57,17 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         return expression
     }
 
-    fun evalIrCallDispatchReceiver(expression: IrCall): State? {
+    fun evalIrCallDispatchReceiver(expression: IrFunctionAccessExpression): State? {
         expression.dispatchReceiver = expression.dispatchReceiver?.transform(transformer, null)
         return callStack.tryToPopState()
     }
 
-    fun evalIrCallExtensionReceiver(expression: IrCall): State? {
+    fun evalIrCallExtensionReceiver(expression: IrFunctionAccessExpression): State? {
         expression.extensionReceiver = expression.extensionReceiver?.transform(transformer, null)
         return callStack.tryToPopState()
     }
 
-    fun evalIrCallArgs(expression: IrCall): List<State?> {
+    fun evalIrCallArgs(expression: IrFunctionAccessExpression): List<State?> {
         (0 until expression.valueArgumentsCount).forEach {
             expression.putValueArgument(it, expression.getValueArgument(it)?.transform(transformer, null))
         }
@@ -86,16 +86,33 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         if (EvaluationMode.ONLY_BUILTINS.canEvaluateFunction(owner, expression) || EvaluationMode.WITH_ANNOTATIONS.canEvaluateFunction(owner, expression)) {
             evaluate(expression, actualArgs, interpretOnly = true)
             // TODO if result is Primitive -> return const
-            return expression
+        }
+        return expression
+    }
+
+    fun fallbackIrConstructorCall(expression: IrConstructorCall, dispatchReceiver: State?, args: List<State?>): IrConstructorCall {
+        val actualArgs = listOf(dispatchReceiver, *args.toTypedArray()).filterNotNull()
+        if (actualArgs.size != expression.getExpectedArgumentsCount()) return expression
+
+        val owner = expression.symbol.owner
+        if (EvaluationMode.ONLY_BUILTINS.canEvaluateFunction(owner) || EvaluationMode.WITH_ANNOTATIONS.canEvaluateFunction(owner)) {
+            evaluate(expression, actualArgs, interpretOnly = true)
         }
         return expression
     }
 
     fun fallbackIrBlock(expression: IrBlock): IrExpression {
         callStack.newSubFrame(expression)
-        expression.transformChildren(transformer, null)
+        fallbackIrStatements(expression.statements)
         callStack.dropSubFrame()
         return expression
+    }
+
+    private fun fallbackIrStatements(statements: MutableList<IrStatement>) {
+        for (i in 0 until statements.size) {
+            statements[i] = statements[i].transform(transformer, null) as IrStatement
+            if (i != statements.lastIndex && callStack.peekState().isUnit()) callStack.popState()
+        }
     }
 
     fun evalIrBranchCondition(branch: IrBranch): State? {
@@ -171,5 +188,21 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
             value?.let { callStack.storeState(declaration.symbol, it) }
         }
         return declaration
+    }
+
+    fun fallbackIrGetField(expression: IrGetField): IrExpression {
+        evaluate(expression)
+        return expression
+    }
+
+    fun evalIrSetFieldValue(expression: IrSetField): State? {
+        // TODO copy assert from unfoldSetField
+        expression.value = expression.value.transform(transformer, null)
+        return callStack.tryToPopState()
+    }
+
+    fun fallbackIrSetField(expression: IrSetField, value: State?): IrExpression {
+        value?.let { evaluate(expression, listOf(it)) }
+        return expression
     }
 }
