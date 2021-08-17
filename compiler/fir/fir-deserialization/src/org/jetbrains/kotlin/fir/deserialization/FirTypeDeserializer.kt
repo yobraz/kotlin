@@ -116,10 +116,11 @@ class FirTypeDeserializer(
     fun type(proto: ProtoBuf.Type, attributes: ConeAttributes): ConeKotlinType {
         if (proto.nestedTypeList.isNotEmpty() || proto.nestedTypeIdList.isNotEmpty()) {
             val nestedTypes = proto.nestedTypes(typeTable).map(::type)
-            val commonSuperType = moduleData.session.typeContext.commonSuperTypeOrNull(nestedTypes)
-                ?: ConeKotlinErrorType(ConeSimpleDiagnostic("Nested types are empty", DiagnosticKind.DeserializationError))
+            val errorCommonSuperType = ConeKotlinErrorType(
+                ConeSimpleDiagnostic("Nested types are empty", DiagnosticKind.DeserializationError)
+            )
 
-            return ConeUnionType(nestedTypes, commonSuperType)
+            return moduleData.session.typeContext.createUnionType(nestedTypes) { errorCommonSuperType }
         }
         if (proto.hasFlexibleTypeCapabilitiesId()) {
             val lowerBound = simpleType(proto, attributes)

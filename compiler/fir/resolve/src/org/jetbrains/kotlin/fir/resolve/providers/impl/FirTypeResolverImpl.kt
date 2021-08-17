@@ -357,12 +357,11 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
         scopeClassDeclaration: ScopeClassDeclaration,
         areBareTypesAllowed: Boolean
     ): ConeUnionType {
-        val resolvedTypes = typeRef.nestedTypes.map { resolveType(it, scopeClassDeclaration, areBareTypesAllowed, false) }
+        val resolvedTypes = typeRef.nestedTypes.map {
+            resolveType(it, scopeClassDeclaration, areBareTypesAllowed, false)
+        }
 
-        val commonSuperType = session.typeContext.commonSuperTypeOrNull(resolvedTypes)
-            ?: error(typeRef.render())
-
-        return ConeUnionType(resolvedTypes, commonSuperType)
+        return session.typeContext.createUnionType(resolvedTypes) { error(typeRef.render()) }
     }
 
     override fun resolveType(

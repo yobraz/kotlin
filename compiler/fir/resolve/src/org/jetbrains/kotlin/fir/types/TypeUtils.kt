@@ -44,6 +44,13 @@ fun ConeInferenceContext.intersectTypesOrNull(types: List<ConeKotlinType>): Cone
     }
 }
 
+fun ConeInferenceContext.createUnionType(
+    types: List<ConeKotlinType>,
+    getDefaultCommonSuperType: () -> ConeKotlinType = { anyType() }
+): ConeUnionType {
+    return ConeUnionType(types, commonSuperTypeOrNull(types) ?: getDefaultCommonSuperType())
+}
+
 fun TypeCheckerProviderContext.equalTypes(a: ConeKotlinType, b: ConeKotlinType): Boolean =
     AbstractTypeChecker.equalTypes(this, a, b)
 
