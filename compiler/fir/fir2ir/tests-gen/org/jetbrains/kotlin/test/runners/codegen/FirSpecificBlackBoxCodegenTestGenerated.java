@@ -59,6 +59,18 @@ public class FirSpecificBlackBoxCodegenTestGenerated extends AbstractFirBlackBox
         }
 
         @Test
+        @TestMetadata("catchReifiedOrReified.kt")
+        public void testCatchReifiedOrReified() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/catchReifiedOrReified.kt");
+        }
+
+        @Test
+        @TestMetadata("catchReifiedOrSimple.kt")
+        public void testCatchReifiedOrSimple() throws Exception {
+            runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/catchReifiedOrSimple.kt");
+        }
+
+        @Test
         @TestMetadata("inapplicableJavaCall.kt")
         public void testInapplicableJavaCall() throws Exception {
             runTest("compiler/fir/fir2ir/testData/codegen/box/unionTypes/inapplicableJavaCall.kt");
