@@ -336,7 +336,7 @@ class IrInterpreter(internal val environment: IrInterpreterEnvironment, internal
     private fun interpretSetField(expression: IrSetField) {
         val receiver = (expression.receiver as IrDeclarationReference).symbol
         val propertySymbol = expression.symbol.owner.correspondingPropertySymbol!!
-        callStack.loadState(receiver).apply { this.setField(propertySymbol, callStack.popState()) }
+        callStack.setFieldForReceiver(receiver, propertySymbol, callStack.popState())
     }
 
     private fun interpretGetField(expression: IrGetField) {

@@ -31,7 +31,8 @@ class OptimizerPrototype(irBuiltIns: IrBuiltIns) : PartialIrInterpreter(irBuiltI
             when {
                 condition == null -> {
                     (i until expression.branches.size).forEach {
-                        newBranches += evaluator.fallbackIrBranch(branch, condition) as IrBranch
+                        val remainBranch = expression.branches[it]
+                        newBranches += evaluator.fallbackIrBranch(remainBranch, evaluator.evalIrBranchCondition(remainBranch)) as IrBranch
                     }
 
                     return expression

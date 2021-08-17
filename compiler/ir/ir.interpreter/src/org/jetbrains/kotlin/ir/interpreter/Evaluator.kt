@@ -126,10 +126,9 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
     }
 
     fun fallbackIrBranch(branch: IrBranch, condition: State?): IrElement {
-        evalIrBranchResult(branch)
-        // TODO rollback all changes
-        // TODO collect all mutable vars/fields and remove them
-        // TODO that to do if object is passed to some none compile time function? 1. only scan it and delete mutated fields 2. remove entire symbol from stack
+        callStack.rollbackAllChanges {
+            evalIrBranchResult(branch)
+        }
         return branch
     }
 
@@ -138,6 +137,8 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         for (i in (beginFromIndex until expression.branches.size)) {
             fallbackIrBranch(expression.branches[i], conditions[i])
         }
+        // TODO collect all mutable vars/fields and remove them
+        // TODO that to do if object is passed to some none compile time function? 1. only scan it and delete mutated fields 2. remove entire symbol from stack
         return expression
     }
 

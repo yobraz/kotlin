@@ -1,0 +1,411 @@
+// --- IR for <main> after Evaluate and optimize function statements
+MODULE_FRAGMENT name:<main>
+  FILE fqName:<root> fileName:/branches.kt
+    PROPERTY name:constInt visibility:public modality:FINAL [const,val]
+      FIELD PROPERTY_BACKING_FIELD name:constInt type:kotlin.Int visibility:public [final,static]
+        EXPRESSION_BODY
+          CONST Int type=kotlin.Int value=15
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-constInt> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:constInt visibility:public modality:FINAL [const,val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-constInt> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:constInt type:kotlin.Int visibility:public [final,static]' type=kotlin.Int origin=null
+    FUN name:echo visibility:public modality:FINAL <T> (a:T of <root>.echo) returnType:T of <root>.echo
+      annotations:
+        CompileTimeCalculation
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
+      VALUE_PARAMETER name:a index:0 type:T of <root>.echo
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun echo <T> (a: T of <root>.echo): T of <root>.echo declared in <root>'
+          GET_VAR 'a: T of <root>.echo declared in <root>.echo' type=T of <root>.echo origin=null
+    FUN name:compileTimeInt visibility:public modality:FINAL <> () returnType:kotlin.Int
+      annotations:
+        CompileTimeCalculation
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun compileTimeInt (): kotlin.Int declared in <root>'
+          CONST Int type=kotlin.Int value=42
+    FUN name:notCompileTimeInt visibility:public modality:FINAL <> () returnType:kotlin.Int
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun notCompileTimeInt (): kotlin.Int declared in <root>'
+          CONST Int type=kotlin.Int value=0
+    CLASS CLASS name:A modality:FINAL visibility:public superTypes:[kotlin.Any]
+      annotations:
+        CompileTimeCalculation
+      $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.A
+      CONSTRUCTOR visibility:public <> (a:kotlin.Int) returnType:<root>.A [primary]
+        VALUE_PARAMETER name:a index:0 type:kotlin.Int
+        BLOCK_BODY
+          DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () [primary] declared in kotlin.Any'
+          INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:A modality:FINAL visibility:public superTypes:[kotlin.Any]'
+      PROPERTY name:a visibility:public modality:FINAL [var]
+        FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:private
+          EXPRESSION_BODY
+            GET_VAR 'a: kotlin.Int declared in <root>.A.<init>' type=kotlin.Int origin=INITIALIZE_PROPERTY_FROM_PARAMETER
+        FUN DEFAULT_PROPERTY_ACCESSOR name:<get-a> visibility:public modality:FINAL <> ($this:<root>.A) returnType:kotlin.Int
+          correspondingProperty: PROPERTY name:a visibility:public modality:FINAL [var]
+          $this: VALUE_PARAMETER name:<this> type:<root>.A
+          BLOCK_BODY
+            RETURN type=kotlin.Nothing from='public final fun <get-a> (): kotlin.Int declared in <root>.A'
+              GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:private' type=kotlin.Int origin=null
+                receiver: GET_VAR '<this>: <root>.A declared in <root>.A.<get-a>' type=<root>.A origin=null
+        FUN DEFAULT_PROPERTY_ACCESSOR name:<set-a> visibility:public modality:FINAL <> ($this:<root>.A, <set-?>:kotlin.Int) returnType:kotlin.Unit
+          correspondingProperty: PROPERTY name:a visibility:public modality:FINAL [var]
+          $this: VALUE_PARAMETER name:<this> type:<root>.A
+          VALUE_PARAMETER name:<set-?> index:0 type:kotlin.Int
+          BLOCK_BODY
+            SET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:private' type=kotlin.Unit origin=null
+              receiver: GET_VAR '<this>: <root>.A declared in <root>.A.<set-a>' type=<root>.A origin=null
+              value: GET_VAR '<set-?>: kotlin.Int declared in <root>.A.<set-a>' type=kotlin.Int origin=null
+      FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+        overridden:
+          public open fun equals (other: kotlin.Any?): kotlin.Boolean [operator] declared in kotlin.Any
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+        VALUE_PARAMETER name:other index:0 type:kotlin.Any?
+      FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+        overridden:
+          public open fun hashCode (): kotlin.Int declared in kotlin.Any
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+      FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+        overridden:
+          public open fun toString (): kotlin.String declared in kotlin.Any
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+    FUN name:simpleWhen visibility:public modality:FINAL <> () returnType:kotlin.Boolean [inline]
+      annotations:
+        PartialEvaluation
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun simpleWhen (): kotlin.Boolean [inline] declared in <root>'
+          BLOCK type=kotlin.Boolean origin=WHEN
+            VAR IR_TEMPORARY_VARIABLE name:tmp0_subject type:kotlin.Int [val]
+              CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
+            WHEN type=kotlin.Boolean origin=WHEN
+              BRANCH
+                if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                  arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in <root>.simpleWhen' type=kotlin.Int origin=null
+                  arg1: CONST Int type=kotlin.Int value=15
+                then: CONST Boolean type=kotlin.Boolean value=true
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Boolean type=kotlin.Boolean value=false
+    FUN name:simpleWhen2 visibility:public modality:FINAL <> () returnType:kotlin.Boolean [inline]
+      annotations:
+        PartialEvaluation
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun simpleWhen2 (): kotlin.Boolean [inline] declared in <root>'
+          BLOCK type=kotlin.Boolean origin=WHEN
+            VAR IR_TEMPORARY_VARIABLE name:tmp0_subject type:kotlin.Int [val]
+              CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
+            WHEN type=kotlin.Boolean origin=WHEN
+              BRANCH
+                if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                  arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in <root>.simpleWhen2' type=kotlin.Int origin=null
+                  arg1: CONST Int type=kotlin.Int value=-1
+                then: CONST Boolean type=kotlin.Boolean value=false
+              BRANCH
+                if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                  arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in <root>.simpleWhen2' type=kotlin.Int origin=null
+                  arg1: CONST Int type=kotlin.Int value=-2
+                then: CONST Boolean type=kotlin.Boolean value=false
+              BRANCH
+                if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                  arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in <root>.simpleWhen2' type=kotlin.Int origin=null
+                  arg1: CONST Int type=kotlin.Int value=15
+                then: CONST Boolean type=kotlin.Boolean value=true
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Boolean type=kotlin.Boolean value=false
+    FUN name:rollbackAfterWhen visibility:public modality:FINAL <> () returnType:kotlin.Int [inline]
+      annotations:
+        PartialEvaluation
+      BLOCK_BODY
+        VAR name:a type:kotlin.Int [var]
+          CONST Int type=kotlin.Int value=0
+        BLOCK type=kotlin.Unit origin=WHEN
+          VAR IR_TEMPORARY_VARIABLE name:tmp0_subject type:kotlin.Int [val]
+            CALL 'public final fun compileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+          WHEN type=kotlin.Unit origin=WHEN
+            BRANCH
+              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in <root>.rollbackAfterWhen' type=kotlin.Int origin=null
+                arg1: CONST Int type=kotlin.Int value=0
+              then: BLOCK type=kotlin.Unit origin=null
+                SET_VAR 'var a: kotlin.Int [var] declared in <root>.rollbackAfterWhen' type=kotlin.Unit origin=PLUSEQ
+                  CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                    $this: GET_VAR 'var a: kotlin.Int [var] declared in <root>.rollbackAfterWhen' type=kotlin.Int origin=PLUSEQ
+                    other: CONST Int type=kotlin.Int value=1
+            BRANCH
+              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in <root>.rollbackAfterWhen' type=kotlin.Int origin=null
+                arg1: CONST Int type=kotlin.Int value=1
+              then: BLOCK type=kotlin.Unit origin=null
+                SET_VAR 'var a: kotlin.Int [var] declared in <root>.rollbackAfterWhen' type=kotlin.Unit origin=PLUSEQ
+                  CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                    $this: GET_VAR 'var a: kotlin.Int [var] declared in <root>.rollbackAfterWhen' type=kotlin.Int origin=PLUSEQ
+                    other: CONST Int type=kotlin.Int value=2
+            BRANCH
+              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in <root>.rollbackAfterWhen' type=kotlin.Int origin=null
+                arg1: CONST Int type=kotlin.Int value=2
+              then: BLOCK type=kotlin.Unit origin=null
+                SET_VAR 'var a: kotlin.Int [var] declared in <root>.rollbackAfterWhen' type=kotlin.Unit origin=PLUSEQ
+                  CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                    $this: GET_VAR 'var a: kotlin.Int [var] declared in <root>.rollbackAfterWhen' type=kotlin.Int origin=PLUSEQ
+                    other: CONST Int type=kotlin.Int value=3
+            BRANCH
+              if: CONST Boolean type=kotlin.Boolean value=true
+              then: BLOCK type=kotlin.Unit origin=null
+                SET_VAR 'var a: kotlin.Int [var] declared in <root>.rollbackAfterWhen' type=kotlin.Unit origin=PLUSEQ
+                  CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                    $this: GET_VAR 'var a: kotlin.Int [var] declared in <root>.rollbackAfterWhen' type=kotlin.Int origin=PLUSEQ
+                    other: CONST Int type=kotlin.Int value=4
+        RETURN type=kotlin.Nothing from='public final fun rollbackAfterWhen (): kotlin.Int [inline] declared in <root>'
+          GET_VAR 'var a: kotlin.Int [var] declared in <root>.rollbackAfterWhen' type=kotlin.Int origin=null
+    FUN name:rollbackFieldAfterWhen visibility:public modality:FINAL <> (obj:<root>.A) returnType:kotlin.Int [inline]
+      annotations:
+        PartialEvaluation
+      VALUE_PARAMETER name:obj index:0 type:<root>.A
+      BLOCK_BODY
+        BLOCK type=kotlin.Unit origin=WHEN
+          VAR IR_TEMPORARY_VARIABLE name:tmp0_subject type:kotlin.Int [val]
+            CALL 'public final fun compileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+          WHEN type=kotlin.Unit origin=WHEN
+            BRANCH
+              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in <root>.rollbackFieldAfterWhen' type=kotlin.Int origin=null
+                arg1: CONST Int type=kotlin.Int value=0
+              then: BLOCK type=kotlin.Unit origin=null
+                BLOCK type=kotlin.Unit origin=PLUSEQ
+                  VAR IR_TEMPORARY_VARIABLE name:tmp1_this type:<root>.A [val]
+                    GET_VAR 'obj: <root>.A declared in <root>.rollbackFieldAfterWhen' type=<root>.A origin=null
+                  CALL 'public final fun <set-a> (<set-?>: kotlin.Int): kotlin.Unit declared in <root>.A' type=kotlin.Unit origin=PLUSEQ
+                    $this: GET_VAR 'val tmp1_this: <root>.A [val] declared in <root>.rollbackFieldAfterWhen' type=<root>.A origin=null
+                    <set-?>: CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                      $this: CALL 'public final fun <get-a> (): kotlin.Int declared in <root>.A' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'val tmp1_this: <root>.A [val] declared in <root>.rollbackFieldAfterWhen' type=<root>.A origin=null
+                      other: CONST Int type=kotlin.Int value=1
+            BRANCH
+              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in <root>.rollbackFieldAfterWhen' type=kotlin.Int origin=null
+                arg1: CONST Int type=kotlin.Int value=1
+              then: BLOCK type=kotlin.Unit origin=null
+                BLOCK type=kotlin.Unit origin=PLUSEQ
+                  VAR IR_TEMPORARY_VARIABLE name:tmp2_this type:<root>.A [val]
+                    GET_VAR 'obj: <root>.A declared in <root>.rollbackFieldAfterWhen' type=<root>.A origin=null
+                  CALL 'public final fun <set-a> (<set-?>: kotlin.Int): kotlin.Unit declared in <root>.A' type=kotlin.Unit origin=PLUSEQ
+                    $this: GET_VAR 'val tmp2_this: <root>.A [val] declared in <root>.rollbackFieldAfterWhen' type=<root>.A origin=null
+                    <set-?>: CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                      $this: CALL 'public final fun <get-a> (): kotlin.Int declared in <root>.A' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'val tmp2_this: <root>.A [val] declared in <root>.rollbackFieldAfterWhen' type=<root>.A origin=null
+                      other: CONST Int type=kotlin.Int value=2
+            BRANCH
+              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in <root>.rollbackFieldAfterWhen' type=kotlin.Int origin=null
+                arg1: CONST Int type=kotlin.Int value=2
+              then: BLOCK type=kotlin.Unit origin=null
+                BLOCK type=kotlin.Unit origin=PLUSEQ
+                  VAR IR_TEMPORARY_VARIABLE name:tmp3_this type:<root>.A [val]
+                    GET_VAR 'obj: <root>.A declared in <root>.rollbackFieldAfterWhen' type=<root>.A origin=null
+                  CALL 'public final fun <set-a> (<set-?>: kotlin.Int): kotlin.Unit declared in <root>.A' type=kotlin.Unit origin=PLUSEQ
+                    $this: GET_VAR 'val tmp3_this: <root>.A [val] declared in <root>.rollbackFieldAfterWhen' type=<root>.A origin=null
+                    <set-?>: CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                      $this: CALL 'public final fun <get-a> (): kotlin.Int declared in <root>.A' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'val tmp3_this: <root>.A [val] declared in <root>.rollbackFieldAfterWhen' type=<root>.A origin=null
+                      other: CONST Int type=kotlin.Int value=3
+            BRANCH
+              if: CONST Boolean type=kotlin.Boolean value=true
+              then: BLOCK type=kotlin.Unit origin=null
+                BLOCK type=kotlin.Unit origin=PLUSEQ
+                  VAR IR_TEMPORARY_VARIABLE name:tmp4_this type:<root>.A [val]
+                    GET_VAR 'obj: <root>.A declared in <root>.rollbackFieldAfterWhen' type=<root>.A origin=null
+                  CALL 'public final fun <set-a> (<set-?>: kotlin.Int): kotlin.Unit declared in <root>.A' type=kotlin.Unit origin=PLUSEQ
+                    $this: GET_VAR 'val tmp4_this: <root>.A [val] declared in <root>.rollbackFieldAfterWhen' type=<root>.A origin=null
+                    <set-?>: CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                      $this: CALL 'public final fun <get-a> (): kotlin.Int declared in <root>.A' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'val tmp4_this: <root>.A [val] declared in <root>.rollbackFieldAfterWhen' type=<root>.A origin=null
+                      other: CONST Int type=kotlin.Int value=4
+        RETURN type=kotlin.Nothing from='public final fun rollbackFieldAfterWhen (obj: <root>.A): kotlin.Int [inline] declared in <root>'
+          CALL 'public final fun <get-a> (): kotlin.Int declared in <root>.A' type=kotlin.Int origin=GET_PROPERTY
+            $this: GET_VAR 'obj: <root>.A declared in <root>.rollbackFieldAfterWhen' type=<root>.A origin=null
+    FUN name:optimizeAll visibility:public modality:FINAL <> (flag:kotlin.Boolean) returnType:kotlin.Int [inline]
+      annotations:
+        PartialEvaluation
+      VALUE_PARAMETER name:flag index:0 type:kotlin.Boolean
+      BLOCK_BODY
+        VAR name:a type:kotlin.Int [var]
+          CONST Int type=kotlin.Int value=0
+        BLOCK type=kotlin.Unit origin=WHEN
+          VAR IR_TEMPORARY_VARIABLE name:tmp0_subject type:kotlin.Int [val]
+            CALL 'public final fun notCompileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+          WHEN type=kotlin.Unit origin=WHEN
+            BRANCH
+              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in <root>.optimizeAll' type=kotlin.Int origin=null
+                arg1: CONST Int type=kotlin.Int value=0
+              then: BLOCK type=kotlin.Unit origin=null
+                WHEN type=kotlin.Unit origin=IF
+                  BRANCH
+                    if: GET_VAR 'flag: kotlin.Boolean declared in <root>.optimizeAll' type=kotlin.Boolean origin=null
+                    then: SET_VAR 'var a: kotlin.Int [var] declared in <root>.optimizeAll' type=kotlin.Unit origin=EQ
+                      CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
+                  BRANCH
+                    if: CONST Boolean type=kotlin.Boolean value=true
+                    then: SET_VAR 'var a: kotlin.Int [var] declared in <root>.optimizeAll' type=kotlin.Unit origin=EQ
+                      CONST Int type=kotlin.Int value=-1
+            BRANCH
+              if: CONST Boolean type=kotlin.Boolean value=true
+              then: BLOCK type=kotlin.Unit origin=null
+                SET_VAR 'var a: kotlin.Int [var] declared in <root>.optimizeAll' type=kotlin.Unit origin=EQ
+                  WHEN type=kotlin.Int origin=IF
+                    BRANCH
+                      if: GET_VAR 'flag: kotlin.Boolean declared in <root>.optimizeAll' type=kotlin.Boolean origin=null
+                      then: CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
+                    BRANCH
+                      if: CONST Boolean type=kotlin.Boolean value=true
+                      then: CONST Int type=kotlin.Int value=-1
+        RETURN type=kotlin.Nothing from='public final fun optimizeAll (flag: kotlin.Boolean): kotlin.Int [inline] declared in <root>'
+          GET_VAR 'var a: kotlin.Int [var] declared in <root>.optimizeAll' type=kotlin.Int origin=null
+    PROPERTY name:a visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Boolean visibility:private [final,static]
+        EXPRESSION_BODY
+          RETURNABLE_BLOCK type=kotlin.Boolean origin=null
+            RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Boolean origin=null'
+              BLOCK type=kotlin.Boolean origin=WHEN
+                VAR IR_TEMPORARY_VARIABLE name:tmp0_subject_1 type:kotlin.Int [val]
+                  CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
+                CONST Boolean type=kotlin.Boolean value=true
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-a> visibility:public modality:FINAL <> () returnType:kotlin.Boolean
+        correspondingProperty: PROPERTY name:a visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-a> (): kotlin.Boolean declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Boolean visibility:private [final,static]' type=kotlin.Boolean origin=null
+    PROPERTY name:b visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.Boolean visibility:private [final,static]
+        EXPRESSION_BODY
+          RETURNABLE_BLOCK type=kotlin.Boolean origin=null
+            RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Boolean origin=null'
+              BLOCK type=kotlin.Boolean origin=WHEN
+                VAR IR_TEMPORARY_VARIABLE name:tmp0_subject_1 type:kotlin.Int [val]
+                  CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
+                CONST Boolean type=kotlin.Boolean value=true
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-b> visibility:public modality:FINAL <> () returnType:kotlin.Boolean
+        correspondingProperty: PROPERTY name:b visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-b> (): kotlin.Boolean declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.Boolean visibility:private [final,static]' type=kotlin.Boolean origin=null
+    PROPERTY name:c visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Int visibility:private [final,static]
+        EXPRESSION_BODY
+          RETURNABLE_BLOCK type=kotlin.Int origin=null
+            VAR name:a_1 type:kotlin.Int [var]
+              CONST Int type=kotlin.Int value=0
+            BLOCK type=kotlin.Unit origin=WHEN
+              VAR IR_TEMPORARY_VARIABLE name:tmp0_subject_2 type:kotlin.Int [val]
+                CALL 'public final fun compileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+              BLOCK type=kotlin.Unit origin=null
+                SET_VAR 'var a_1: kotlin.Int [var] declared in <root>.c' type=kotlin.Unit origin=PLUSEQ
+                  CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                    $this: GET_VAR 'var a_1: kotlin.Int [var] declared in <root>.c' type=kotlin.Int origin=PLUSEQ
+                    other: CONST Int type=kotlin.Int value=4
+            RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+              CONST Int type=kotlin.Int value=4
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-c> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:c visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-c> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+    PROPERTY name:d visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:d type:kotlin.Int visibility:private [final,static]
+        EXPRESSION_BODY
+          RETURNABLE_BLOCK type=kotlin.Int origin=null
+            VAR IR_TEMPORARY_VARIABLE name:tmp0_rollbackFieldAfterWhen_0 type:<root>.A [val]
+              BLOCK type=<root>.A origin=(InlinerExpressionLocationHint : FIELD PROPERTY_BACKING_FIELD name:d type:kotlin.Int visibility:private [final,static] @null)
+                CONSTRUCTOR_CALL 'public constructor <init> (a: kotlin.Int) [primary] declared in <root>.A' type=<root>.A origin=null
+                  a: CONST Int type=kotlin.Int value=0
+            BLOCK type=kotlin.Unit origin=WHEN
+              VAR IR_TEMPORARY_VARIABLE name:tmp0_subject_1 type:kotlin.Int [val]
+                CALL 'public final fun compileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+              BLOCK type=kotlin.Unit origin=null
+                BLOCK type=kotlin.Unit origin=PLUSEQ
+                  VAR IR_TEMPORARY_VARIABLE name:tmp4_this_5 type:<root>.A [val]
+                    GET_VAR 'val tmp0_rollbackFieldAfterWhen_0: <root>.A [val] declared in <root>.d' type=<root>.A origin=null
+                  CALL 'public final fun <set-a> (<set-?>: kotlin.Int): kotlin.Unit declared in <root>.A' type=kotlin.Unit origin=PLUSEQ
+                    $this: GET_VAR 'val tmp4_this_5: <root>.A [val] declared in <root>.d' type=<root>.A origin=null
+                    <set-?>: CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUSEQ
+                      $this: CALL 'public final fun <get-a> (): kotlin.Int declared in <root>.A' type=kotlin.Int origin=PLUSEQ
+                        $this: GET_VAR 'val tmp4_this_5: <root>.A [val] declared in <root>.d' type=<root>.A origin=null
+                      other: CONST Int type=kotlin.Int value=4
+            RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+              CONST Int type=kotlin.Int value=4
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-d> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:d visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-d> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:d type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+    PROPERTY name:e visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:e type:kotlin.Int visibility:private [final,static]
+        EXPRESSION_BODY
+          RETURNABLE_BLOCK type=kotlin.Int origin=null
+            VAR name:a_1 type:kotlin.Int [var]
+              CONST Int type=kotlin.Int value=0
+            BLOCK type=kotlin.Unit origin=WHEN
+              VAR IR_TEMPORARY_VARIABLE name:tmp0_subject_2 type:kotlin.Int [val]
+                CALL 'public final fun notCompileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+              WHEN type=kotlin.Unit origin=WHEN
+                BRANCH
+                  if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                    arg0: GET_VAR 'val tmp0_subject_2: kotlin.Int [val] declared in <root>.e' type=kotlin.Int origin=null
+                    arg1: CONST Int type=kotlin.Int value=0
+                  then: BLOCK type=kotlin.Unit origin=null
+                    SET_VAR 'var a_1: kotlin.Int [var] declared in <root>.e' type=kotlin.Unit origin=EQ
+                      CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
+                BRANCH
+                  if: CONST Boolean type=kotlin.Boolean value=true
+                  then: BLOCK type=kotlin.Unit origin=null
+                    SET_VAR 'var a_1: kotlin.Int [var] declared in <root>.e' type=kotlin.Unit origin=EQ
+                      CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
+            RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+              CONST Int type=kotlin.Int value=15
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-e> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:e visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-e> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:e type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+  FILE fqName:kotlin fileName:/CompileTimeCalculation.kt
+    CLASS ANNOTATION_CLASS name:CompileTimeCalculation modality:FINAL visibility:public superTypes:[kotlin.Annotation]
+      annotations:
+        Target(allowedTargets = [GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:FUNCTION' type=kotlin.annotation.AnnotationTarget, GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:PROPERTY' type=kotlin.annotation.AnnotationTarget])
+        Retention(value = GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:BINARY' type=kotlin.annotation.AnnotationRetention)
+      $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:kotlin.CompileTimeCalculation
+      CONSTRUCTOR visibility:public <> () returnType:kotlin.CompileTimeCalculation [primary]
+      FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+        overridden:
+          public open fun equals (other: kotlin.Any?): kotlin.Boolean [fake_override,operator] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+        VALUE_PARAMETER name:other index:0 type:kotlin.Any?
+      FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+        overridden:
+          public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+      FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+        overridden:
+          public open fun toString (): kotlin.String [fake_override] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+  FILE fqName:kotlin fileName:/PartialEvaluation.kt
+    CLASS ANNOTATION_CLASS name:PartialEvaluation modality:FINAL visibility:public superTypes:[kotlin.Annotation]
+      annotations:
+        Target(allowedTargets = [GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:FUNCTION' type=kotlin.annotation.AnnotationTarget])
+        Retention(value = GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:BINARY' type=kotlin.annotation.AnnotationRetention)
+      $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:kotlin.PartialEvaluation
+      CONSTRUCTOR visibility:public <> () returnType:kotlin.PartialEvaluation [primary]
+      FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+        overridden:
+          public open fun equals (other: kotlin.Any?): kotlin.Boolean [fake_override,operator] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+        VALUE_PARAMETER name:other index:0 type:kotlin.Any?
+      FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+        overridden:
+          public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+      FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+        overridden:
+          public open fun toString (): kotlin.String [fake_override] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
