@@ -117,4 +117,12 @@ abstract class PartialIrInterpreter(val irBuiltIns: IrBuiltIns) : IrElementTrans
             evaluator.evalIrTypeOperatorValue(expression)
         )
     }
+
+    override fun visitPropertyReference(expression: IrPropertyReference): IrExpression {
+        return evaluator.fallbackIrPropertyReference(
+            expression,
+            evaluator.evalIrPropertyReferenceDispatchReceiver(expression),
+            evaluator.evalIrPropertyReferenceExtensionReceiver(expression)
+        )
+    }
 }
