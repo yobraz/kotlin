@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.ir.interpreter.IrInterpreterEnvironment
 import org.jetbrains.kotlin.ir.interpreter.exceptions.handleUserException
 import org.jetbrains.kotlin.ir.interpreter.isFunction
 import org.jetbrains.kotlin.ir.interpreter.isKFunction
+import org.jetbrains.kotlin.ir.interpreter.isUnsigned
 import org.jetbrains.kotlin.ir.interpreter.stack.Fields
 import org.jetbrains.kotlin.ir.interpreter.stack.Variable
 import org.jetbrains.kotlin.ir.interpreter.state.reflection.KFunctionState
@@ -121,4 +122,26 @@ internal fun State.hasTheSameFieldsWith(other: State): Boolean {
         }
     }
     return true
+}
+
+internal fun State.convertToStringIfNeeded(environment: IrInterpreterEnvironment, defaultAction: (Common) -> State?): State? {
+    return when (this) {
+        is Common -> {
+            when {
+                // TODO this check can be dropped after serialization introduction
+                // for now declarations in unsigned class don't have bodies and must be treated separately
+                this.irClass.defaultType.isUnsigned() -> {
+                    val result = when (val value = (this.fields.values.single() as Primitive<*>).value) {
+                        is Byte -> value.toUByte().toString()
+                        is Short -> value.toUShort().toString()
+                        is Int -> value.toUInt().toString()
+                        else -> (value as Number).toLong().toULong().toString()
+                    }
+                    environment.convertToState(result, environment.irBuiltIns.stringType)
+                }
+                else -> defaultAction(this)
+            }
+        }
+        else -> this
+    }
 }

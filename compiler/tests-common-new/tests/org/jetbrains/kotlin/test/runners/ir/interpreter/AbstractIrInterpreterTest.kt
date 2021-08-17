@@ -38,7 +38,6 @@ open class AbstractCommonIrInterpreterTest : AbstractKotlinCompilerWithTargetBac
 
         defaultDirectives {
             +JvmEnvironmentConfigurationDirectives.FULL_JDK
-            +JvmEnvironmentConfigurationDirectives.WITH_STDLIB
             +LanguageSettingsDirectives.ALLOW_KOTLIN_PACKAGE
         }
 
@@ -66,6 +65,10 @@ open class AbstractIrInterpreterTest(private val frontendKind: FrontendKind<*>) 
         with(builder) {
             globalDefaults {
                 frontend = frontendKind
+            }
+
+            defaultDirectives {
+                +JvmEnvironmentConfigurationDirectives.NO_RUNTIME
             }
 
             useAdditionalSourceProviders(::IrInterpreterHelpersSourceFilesProvider)

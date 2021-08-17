@@ -11,18 +11,17 @@ import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrVariable
-import org.jetbrains.kotlin.ir.declarations.copyAttributes
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrBlockImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrBreakImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrContinueImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrStringConcatenationImpl
 import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
 import org.jetbrains.kotlin.ir.interpreter.stack.CallStack
 import org.jetbrains.kotlin.ir.interpreter.state.State
 import org.jetbrains.kotlin.ir.interpreter.state.asBooleanOrNull
+import org.jetbrains.kotlin.ir.interpreter.state.convertToStringIfNeeded
 import org.jetbrains.kotlin.ir.interpreter.state.isUnit
-import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
@@ -337,6 +336,35 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         // TODO do we need check for compile time annotation here?
         evaluate(expression, listOfNotNull(dispatchReceiver, extensionReceiver), interpretOnly = true)
         return expression
+    }
+
+    fun fallbackIrStringConcatenation(expression: IrStringConcatenation, args: List<State?>): IrExpression {
+        val actualArgs = args.filterNotNull()
+        if (actualArgs.size != expression.arguments.size) return expression
+
+        evaluate(expression, actualArgs, interpretOnly = true)
+        return expression
+    }
+
+    fun evalIrStringConcatenationArgs(expression: IrStringConcatenation): List<State?> {
+        expression as IrStringConcatenationImpl // TODO find better solution how to replace arguments in string concatenation
+        val args = mutableListOf<State?>()
+        (0 until expression.arguments.size).forEach { index ->
+            expression.arguments[index] = expression.arguments[index].transform(transformer, null)
+            val state = callStack.tryToPopState() ?: return@forEach
+            args += state.convertToStringIfNeeded(environment) {
+                val toStringCall = it.createToStringIrCall()
+                val receiverParameter = toStringCall.symbol.owner.dispatchReceiverParameter!!
+                toStringCall.dispatchReceiver = receiverParameter.createGetValue()
+
+                callStack.newSubFrame(toStringCall.symbol.owner)
+                callStack.storeState(receiverParameter.symbol, it)
+                transformer.visitCall(toStringCall)
+                callStack.dropSubFrame()
+                callStack.tryToPopState()
+            }
+        }
+        return args
     }
 }
 

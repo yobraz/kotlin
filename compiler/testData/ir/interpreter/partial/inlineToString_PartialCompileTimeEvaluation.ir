@@ -359,7 +359,11 @@ MODULE_FRAGMENT name:<main>
                           RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=java.lang.StringBuilder{ kotlin.text.TypeAliasesKt.StringBuilder } origin=null'
                             GET_VAR 'val tmp2_joinTo_0: java.lang.StringBuilder [val] declared in <root>.NotData.asString' type=java.lang.StringBuilder origin=null
               RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.String origin=null'
-                CONST String type=kotlin.String value=")"
+                STRING_CONCATENATION type=kotlin.String
+                  GET_VAR 'val name_2: kotlin.String? [val] declared in <root>.NotData.asString' type=kotlin.String? origin=null
+                  CONST String type=kotlin.String value="("
+                  GET_VAR 'val propertiesFormatted_4: kotlin.String [val] declared in <root>.NotData.asString' type=kotlin.String origin=null
+                  CONST String type=kotlin.String value=")"
         FUN DEFAULT_PROPERTY_ACCESSOR name:<get-asString> visibility:private modality:FINAL <> ($this:<root>.NotData) returnType:kotlin.String
           correspondingProperty: PROPERTY name:asString visibility:private modality:FINAL [val]
           $this: VALUE_PARAMETER name:<this> type:<root>.NotData

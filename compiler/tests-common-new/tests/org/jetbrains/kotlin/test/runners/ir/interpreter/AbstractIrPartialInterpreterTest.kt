@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.test.bind
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.builders.jvmArtifactsHandlersStep
 import org.jetbrains.kotlin.test.directives.CodegenTestDirectives
+import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives
 import org.jetbrains.kotlin.test.directives.LanguageSettingsDirectives
 import org.jetbrains.kotlin.test.model.ArtifactKinds
 import org.jetbrains.kotlin.test.model.FrontendKinds
@@ -26,6 +27,7 @@ open class AbstractIrPartialInterpreterTest : AbstractCommonIrInterpreterTest() 
             }
 
             defaultDirectives {
+                +JvmEnvironmentConfigurationDirectives.WITH_STDLIB
                 LanguageSettingsDirectives.LANGUAGE with "+PartialCompileTimeCalculations"
                 CodegenTestDirectives.DUMP_IR_FOR_GIVEN_PHASES with partialCompileTimeEvaluationPhase
             }

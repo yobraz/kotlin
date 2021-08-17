@@ -352,25 +352,11 @@ private fun unfoldStringConcatenation(expression: IrStringConcatenation, environ
 
     // this callback is used to check the need for an explicit toString call
     val explicitToStringCheck = fun() {
-        when (val state = callStack.peekState()) {
-            is Common -> {
-                callStack.popState()
-                // TODO this check can be dropped after serialization introduction
-                // for now declarations in unsigned class don't have bodies and must be treated separately
-                if (state.irClass.defaultType.isUnsigned()) {
-                    val result = when (val value = (state.fields.values.single() as Primitive<*>).value) {
-                        is Byte -> value.toUByte().toString()
-                        is Short -> value.toUShort().toString()
-                        is Int -> value.toUInt().toString()
-                        else -> (value as Number).toLong().toULong().toString()
-                    }
-                    return callStack.pushState(environment.convertToState(result, environment.irBuiltIns.stringType))
-                }
-                val toStringCall = state.createToStringIrCall()
-                callStack.pushSimpleInstruction(toStringCall)
-                callStack.pushState(state)
-            }
+        val state = callStack.popState().convertToStringIfNeeded(environment) {
+            callStack.pushSimpleInstruction(it.createToStringIrCall())
+            it
         }
+        callStack.pushState(state!!)
     }
     expression.arguments.reversed().forEach {
         callStack.pushInstruction(CustomInstruction(explicitToStringCheck))

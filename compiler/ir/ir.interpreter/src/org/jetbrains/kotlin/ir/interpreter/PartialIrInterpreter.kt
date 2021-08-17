@@ -125,4 +125,11 @@ abstract class PartialIrInterpreter(val irBuiltIns: IrBuiltIns) : IrElementTrans
             evaluator.evalIrPropertyReferenceExtensionReceiver(expression)
         )
     }
+
+    override fun visitStringConcatenation(expression: IrStringConcatenation): IrExpression {
+        return evaluator.fallbackIrStringConcatenation(
+            expression,
+            evaluator.evalIrStringConcatenationArgs(expression)
+        )
+    }
 }
