@@ -28,15 +28,11 @@ import org.jetbrains.kotlin.test.services.configuration.CommonEnvironmentConfigu
 import org.jetbrains.kotlin.test.services.configuration.JvmEnvironmentConfigurator
 import org.jetbrains.kotlin.test.services.sourceProviders.IrInterpreterHelpersSourceFilesProvider
 
-open class AbstractIrInterpreterTest(
-    private val frontendKind: FrontendKind<*>
-) : AbstractKotlinCompilerWithTargetBackendTest(TargetBackend.JVM_IR) {
+open class AbstractCommonIrInterpreterTest : AbstractKotlinCompilerWithTargetBackendTest(TargetBackend.JVM_IR) {
     override fun TestConfigurationBuilder.configuration() {
         globalDefaults {
-            frontend = frontendKind
             targetPlatform = JvmPlatforms.defaultJvmPlatform
             artifactKind = BinaryKind.NoArtifact
-            targetBackend = TargetBackend.JVM_IR
             dependencyKind = DependencyKind.Source
         }
 
@@ -58,16 +54,26 @@ open class AbstractIrInterpreterTest(
         psi2IrStep()
         jvmIrBackendStep()
 
-        irHandlersStep {
-            useHandlers(::IrInterpreterBackendHandler)
-        }
-
-        useAdditionalSourceProviders(::IrInterpreterHelpersSourceFilesProvider)
         useSourcePreprocessor(::IrInterpreterImplicitKotlinImports)
 
         useAfterAnalysisCheckers(::BlackBoxCodegenSuppressor)
+    }
+}
 
-        enableMetaInfoHandler()
+open class AbstractIrInterpreterTest(private val frontendKind: FrontendKind<*>) : AbstractCommonIrInterpreterTest() {
+    override fun configure(builder: TestConfigurationBuilder) {
+        super.configure(builder)
+        with(builder) {
+            globalDefaults {
+                frontend = frontendKind
+            }
+
+            useAdditionalSourceProviders(::IrInterpreterHelpersSourceFilesProvider)
+            irHandlersStep {
+                useHandlers(::IrInterpreterBackendHandler)
+            }
+            enableMetaInfoHandler()
+        }
     }
 }
 

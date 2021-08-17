@@ -14,9 +14,12 @@ import org.jetbrains.kotlin.test.services.AdditionalSourceProvider
 import org.jetbrains.kotlin.test.services.TestServices
 import java.io.File
 
-class IrInterpreterHelpersSourceFilesProvider(testServices: TestServices) : AdditionalSourceProvider(testServices) {
+class IrInterpreterHelpersSourceFilesProvider(
+    testServices: TestServices, private val annotationsOnly: Boolean = false
+) : AdditionalSourceProvider(testServices) {
     companion object {
         private const val HELPERS_PATH = "./compiler/testData/ir/interpreter/helpers"
+        private const val HELPERS_ANNOTATIONS_PATH = "$HELPERS_PATH/annotations"
         private const val UNSIGNED_PATH = "./libraries/stdlib/unsigned/src/kotlin"
         private val RUNTIME_PATHS = arrayOf(
             "./core/builtins/src/kotlin/Progressions.kt",
@@ -51,7 +54,7 @@ class IrInterpreterHelpersSourceFilesProvider(testServices: TestServices) : Addi
         return directories.flatMap { directory ->
             File(directory).walkTopDown().mapNotNull { file ->
                 if (file.isDirectory) return@mapNotNull null
-                if (EXCLUDES.any { file.absolutePath.endsWith(it.replace('/', File.separatorChar)) }) return@mapNotNull null
+                if (EXCLUDES.any { file.absolutePath.contains(it.replace('/', File.separatorChar)) }) return@mapNotNull null
 
                 file.toTestFile()
             }.toList()
@@ -59,6 +62,7 @@ class IrInterpreterHelpersSourceFilesProvider(testServices: TestServices) : Addi
     }
 
     override fun produceAdditionalFiles(globalDirectives: RegisteredDirectives, module: TestModule): List<TestFile> {
+        if (annotationsOnly) return getTestFilesForEachDirectory(HELPERS_ANNOTATIONS_PATH)
         return getTestFilesForEachDirectory(HELPERS_PATH, UNSIGNED_PATH, *RUNTIME_PATHS, *ANNOTATIONS_PATHS, REFLECT_PATH)
     }
 }
