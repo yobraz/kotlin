@@ -3,6 +3,8 @@ class A(val a: Int) {
     fun getValue() = a
 }
 
+fun nonConstArray() = arrayOf(1, 2, 3)
+
 @PartialEvaluation
 inline fun loop1(vararg array: Int): Int {
     var sum = 0
@@ -32,6 +34,7 @@ inline fun loop3(): Int {
     return sum
 }
 
-val a = loop1(1, 2, 3)
+val a1 = loop1(1, 2, 3)
+val a2 = loop1(*nonConstArray())
 //val b = loop2() // TODO need serialization/bodies for ranges
 //val c = loop3()
