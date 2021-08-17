@@ -68,24 +68,26 @@ internal class CallStack {
         }
     }
 
-    fun rollbackAllChanges(block: () -> Unit) {
+    fun rollbackAllChanges(block: () -> Boolean) {
         val previous = collectAllChanges
         collectAllChanges = true
         currentFrame.addSubFrame(currentFrameOwner, collectAllChanges)
-        block()
-        currentFrame.rollbackAllCollectedChanges()
-        dropSubFrame()
-        collectAllChanges = previous
+        if (block()) {
+            currentFrame.rollbackAllCollectedChanges()
+            dropSubFrame()
+            collectAllChanges = previous
+        }
     }
 
-    fun removeAllMutatedVariablesAndFields(block: () -> Unit) {
+    inline fun removeAllMutatedVariablesAndFields(block: () -> Boolean) {
         val previous = collectAllChanges
         collectAllChanges = true
         currentFrame.addSubFrame(currentFrameOwner, collectAllChanges)
-        block()
-        currentFrame.dropAllVariablesInHistory()
-        dropSubFrame()
-        collectAllChanges = previous
+        if (block()) {
+            currentFrame.dropAllVariablesInHistory()
+            dropSubFrame()
+            collectAllChanges = previous
+        }
     }
 
     fun returnFromFrameWithResult(irReturn: IrReturn) {

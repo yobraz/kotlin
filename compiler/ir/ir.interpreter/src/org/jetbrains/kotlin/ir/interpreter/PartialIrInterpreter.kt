@@ -100,4 +100,10 @@ abstract class PartialIrInterpreter(val irBuiltIns: IrBuiltIns) : IrElementTrans
             evaluator.evalIrVarargElements(expression)
         )
     }
+
+    override fun visitWhileLoop(loop: IrWhileLoop): IrExpression {
+        return evaluator.fallbackIrWhileLoop(
+            loop
+        )
+    }
 }

@@ -38,6 +38,12 @@ public class IrPartialInterpreterTestGenerated extends AbstractIrPartialInterpre
     }
 
     @Test
+    @TestMetadata("forLoop.kt")
+    public void testForLoop() throws Exception {
+        runTest("compiler/testData/ir/interpreter/partial/forLoop.kt");
+    }
+
+    @Test
     @TestMetadata("simpleCostructorCall.kt")
     public void testSimpleCostructorCall() throws Exception {
         runTest("compiler/testData/ir/interpreter/partial/simpleCostructorCall.kt");

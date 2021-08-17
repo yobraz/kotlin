@@ -8,13 +8,19 @@ package org.jetbrains.kotlin.ir.interpreter
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.*
+import org.jetbrains.kotlin.ir.expressions.impl.IrBlockImpl
 import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
 import org.jetbrains.kotlin.ir.interpreter.stack.CallStack
 import org.jetbrains.kotlin.ir.interpreter.state.State
+import org.jetbrains.kotlin.ir.interpreter.state.asBooleanOrNull
 import org.jetbrains.kotlin.ir.interpreter.state.isUnit
+import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
+import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 
 internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementTransformerVoid) {
     private val environment = IrInterpreterEnvironment(irBuiltIns)
@@ -33,6 +39,10 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
                 { this.dropSubFrame() }
             )
         }
+    }
+
+    internal fun withRollbackOnFailure(block: () -> Boolean) {
+        // TODO
     }
 
     fun interpret(block: IrReturnableBlock): IrElement {
@@ -83,7 +93,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         if (actualArgs.size != expression.getExpectedArgumentsCount()) return expression
 
         val owner = expression.symbol.owner
-        if (EvaluationMode.ONLY_BUILTINS.canEvaluateFunction(owner, expression) || EvaluationMode.WITH_ANNOTATIONS.canEvaluateFunction(owner, expression)) {
+        if (owner.fqName.startsWith("kotlin.") || EvaluationMode.ONLY_BUILTINS.canEvaluateFunction(owner, expression) || EvaluationMode.WITH_ANNOTATIONS.canEvaluateFunction(owner, expression)) {
             evaluate(expression, actualArgs, interpretOnly = true)
             // TODO if result is Primitive -> return const
         }
@@ -105,6 +115,9 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         callStack.newSubFrame(expression)
         fallbackIrStatements(expression.statements)
         callStack.dropSubFrame()
+        if (expression.origin == IrStatementOrigin.FOR_LOOP && expression.statements.last() !is IrWhileLoop) {
+            return IrBlockImpl(expression.startOffset, expression.endOffset, expression.type, origin = null, expression.statements)
+        }
         return expression
     }
 
@@ -128,6 +141,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
     fun fallbackIrBranch(branch: IrBranch, condition: State?): IrElement {
         callStack.rollbackAllChanges {
             evalIrBranchResult(branch)
+            true
         }
         return branch
     }
@@ -139,6 +153,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
                 fallbackIrBranch(expression.branches[i], condition)
             }
             // TODO that to do if object is passed to some none compile time function? 1. only scan it and delete mutated fields 2. remove entire symbol from stack
+            true
         }
         return expression
     }
@@ -225,5 +240,48 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
 
         evaluate(expression, actualArgs, interpretOnly = true)
         return expression
+    }
+
+    fun evalIrWhileCondition(expression: IrWhileLoop): State? {
+        expression.condition = expression.condition.transform(transformer, null)
+        return callStack.tryToPopState()
+    }
+
+    fun fallbackIrWhileLoop(expression: IrWhileLoop): IrExpression {
+        val newBlock = IrBlockImpl(0, 0, expression.body!!.type)
+        var competed = false
+
+        callStack.removeAllMutatedVariablesAndFields {
+            while (true) {
+                val condition = evalIrWhileCondition(expression)?.asBooleanOrNull()
+                if (condition == null) return@removeAllMutatedVariablesAndFields true
+                if (condition == false) {
+                    competed = true
+                    break
+                }
+
+                val newBody = expression.body!!.deepCopyWithSymbols(ParentFinder().apply { expression.accept(this, null) }.parent)
+//                if (newBody is IrBlock) {
+//                    newBlock.statements += newBody.statements[1]
+//                } else {
+//                    newBlock.statements += newBody
+//                }
+                newBlock.statements += newBody
+                newBody.transformChildren(transformer, null)
+            }
+            false
+        }
+        return if (competed) newBlock else expression
+    }
+}
+
+private class ParentFinder : IrElementVisitorVoid {
+    var parent: IrDeclarationParent? = null
+    override fun visitElement(element: IrElement) {
+        if (element is IrDeclarationBase && parent == null) {
+            parent = element.parent
+            return
+        }
+        element.acceptChildren(this, null)
     }
 }
