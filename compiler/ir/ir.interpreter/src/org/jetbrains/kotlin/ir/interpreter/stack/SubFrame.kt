@@ -49,15 +49,11 @@ internal class SubFrame(owner: IrElement) : AbstractSubFrame(owner)
 
 internal class SubFrameWithHistory(owner: IrElement) : AbstractSubFrame(owner) {
     val history = mutableMapOf<IrSymbol, State>()
-    private val fieldHistory = mutableMapOf<State, MutableMap<IrSymbol, State>>()
+    val fieldHistory = mutableMapOf<State, MutableMap<IrSymbol, State>>()
 
     fun combineHistory(other: SubFrameWithHistory) {
-        other.history.forEach {
-            if (!history.containsKey(it.key)) history[it.key] = it.value
-        }
-        other.fieldHistory.forEach {
-            if (!fieldHistory.containsKey(it.key)) fieldHistory[it.key] = it.value
-        }
+        other.history.forEach { history.putIfAbsent(it.key, it.value) }
+        other.fieldHistory.forEach { fieldHistory.putIfAbsent(it.key, it.value) }
     }
 
 //    fun rollbackAllCollectedChanges() {
@@ -65,7 +61,9 @@ internal class SubFrameWithHistory(owner: IrElement) : AbstractSubFrame(owner) {
 //    }
 
     fun storeChangeOfField(receiver: State, propertySymbol: IrSymbol) {
-        fieldHistory[receiver]?.set(propertySymbol, receiver.getField(propertySymbol)!!)
+        fieldHistory.getOrPut(receiver) {
+            mutableMapOf(Pair(propertySymbol, receiver.getField(propertySymbol)!!))
+        }.putIfAbsent(propertySymbol, receiver.getField(propertySymbol)!!)
     }
 
     fun storeOldValue(symbol: IrSymbol, oldState: State) {

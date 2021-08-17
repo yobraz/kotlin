@@ -52,10 +52,7 @@ abstract class PartialIrInterpreter(val irBuiltIns: IrBuiltIns) : IrElementTrans
     }
 
     override fun visitWhen(expression: IrWhen): IrExpression {
-        return evaluator.fallbackIrWhen(
-            expression,
-            expression.branches.map { evaluator.evalIrBranchCondition(it) }
-        )
+        return evaluator.fallbackIrWhen(expression)
     }
 
     override fun visitSetValue(expression: IrSetValue): IrExpression {

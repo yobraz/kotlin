@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.ir.interpreter.Instruction
 import org.jetbrains.kotlin.ir.interpreter.exceptions.InterpreterError
 import org.jetbrains.kotlin.ir.interpreter.state.State
 import org.jetbrains.kotlin.ir.interpreter.state.StateWithClosure
+import org.jetbrains.kotlin.ir.interpreter.state.UnknownState
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
@@ -39,7 +40,21 @@ internal class Frame(subFrameOwner: IrElement, collectAllChanges: Boolean, val i
     }
 
     fun rollbackAllCollectedChanges() {
-        (innerStack.last() as SubFrameWithHistory).history.forEach { (symbol, oldState) -> storeState(symbol, oldState) }
+        (innerStack.last() as SubFrameWithHistory).history.forEach { (symbol, oldState) -> rewriteState(symbol, oldState) }
+        (innerStack.last() as SubFrameWithHistory).fieldHistory.forEach { (receiver, fieldToState) ->
+            fieldToState.forEach { (propertySymbol, state) ->
+                receiver.setField(propertySymbol, state)
+            }
+        }
+    }
+
+    fun dropAllVariablesInHistory() {
+        (innerStack.last() as SubFrameWithHistory).history.forEach { (symbol, _) -> rewriteState(symbol, UnknownState) }
+        (innerStack.last() as SubFrameWithHistory).fieldHistory.forEach { (receiver, fieldToState) ->
+            fieldToState.forEach { (propertySymbol, _) ->
+                receiver.setField(propertySymbol, UnknownState)
+            }
+        }
     }
 
     fun removeSubFrameWithoutDataPropagation() {
