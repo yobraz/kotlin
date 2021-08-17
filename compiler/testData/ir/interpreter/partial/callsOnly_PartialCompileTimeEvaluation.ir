@@ -1,0 +1,207 @@
+// --- IR for <main> after Evaluate and optimize function statements
+MODULE_FRAGMENT name:<main>
+  FILE fqName:<root> fileName:/callsOnly.kt
+    PROPERTY name:constInt visibility:public modality:FINAL [const,val]
+      FIELD PROPERTY_BACKING_FIELD name:constInt type:kotlin.Int visibility:public [final,static]
+        EXPRESSION_BODY
+          CONST Int type=kotlin.Int value=15
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-constInt> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:constInt visibility:public modality:FINAL [const,val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-constInt> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:constInt type:kotlin.Int visibility:public [final,static]' type=kotlin.Int origin=null
+    FUN name:echo visibility:public modality:FINAL <T> (a:T of <root>.echo) returnType:T of <root>.echo
+      annotations:
+        CompileTimeCalculation
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
+      VALUE_PARAMETER name:a index:0 type:T of <root>.echo
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun echo <T> (a: T of <root>.echo): T of <root>.echo declared in <root>'
+          GET_VAR 'a: T of <root>.echo declared in <root>.echo' type=T of <root>.echo origin=null
+    FUN name:compileTimeInt visibility:public modality:FINAL <> () returnType:kotlin.Int
+      annotations:
+        CompileTimeCalculation
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun compileTimeInt (): kotlin.Int declared in <root>'
+          CONST Int type=kotlin.Int value=42
+    FUN name:notCompileTimeInt visibility:public modality:FINAL <> () returnType:kotlin.Int
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun notCompileTimeInt (): kotlin.Int declared in <root>'
+          CONST Int type=kotlin.Int value=0
+    FUN name:singleCall visibility:public modality:FINAL <> (a:kotlin.Int) returnType:kotlin.Int [inline]
+      annotations:
+        PartialEvaluation
+      VALUE_PARAMETER name:a index:0 type:kotlin.Int
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun singleCall (a: kotlin.Int): kotlin.Int [inline] declared in <root>'
+          CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUS
+            $this: GET_VAR 'a: kotlin.Int declared in <root>.singleCall' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=1
+    FUN name:withSingleVariable visibility:public modality:FINAL <> (a:kotlin.Int) returnType:kotlin.Int [inline]
+      annotations:
+        PartialEvaluation
+      VALUE_PARAMETER name:a index:0 type:kotlin.Int
+      BLOCK_BODY
+        VAR name:b type:kotlin.Int [val]
+          CALL 'public final fun times (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=MUL
+            $this: GET_VAR 'a: kotlin.Int declared in <root>.withSingleVariable' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=2
+        RETURN type=kotlin.Nothing from='public final fun withSingleVariable (a: kotlin.Int): kotlin.Int [inline] declared in <root>'
+          CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUS
+            $this: GET_VAR 'a: kotlin.Int declared in <root>.withSingleVariable' type=kotlin.Int origin=null
+            other: GET_VAR 'val b: kotlin.Int [val] declared in <root>.withSingleVariable' type=kotlin.Int origin=null
+    FUN name:withCompileTimeCall visibility:public modality:FINAL <> () returnType:kotlin.Int [inline]
+      annotations:
+        PartialEvaluation
+      BLOCK_BODY
+        VAR name:b type:kotlin.Int [val]
+          CALL 'public final fun compileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+        RETURN type=kotlin.Nothing from='public final fun withCompileTimeCall (): kotlin.Int [inline] declared in <root>'
+          GET_VAR 'val b: kotlin.Int [val] declared in <root>.withCompileTimeCall' type=kotlin.Int origin=null
+    FUN name:withNotCompileTimeCode visibility:public modality:FINAL <> (a:kotlin.Int) returnType:kotlin.Int [inline]
+      annotations:
+        PartialEvaluation
+      VALUE_PARAMETER name:a index:0 type:kotlin.Int
+      BLOCK_BODY
+        VAR name:b type:kotlin.Int [val]
+          CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUS
+            $this: GET_VAR 'a: kotlin.Int declared in <root>.withNotCompileTimeCode' type=kotlin.Int origin=null
+            other: CALL 'public final fun notCompileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+        RETURN type=kotlin.Nothing from='public final fun withNotCompileTimeCode (a: kotlin.Int): kotlin.Int [inline] declared in <root>'
+          GET_VAR 'val b: kotlin.Int [val] declared in <root>.withNotCompileTimeCode' type=kotlin.Int origin=null
+    FUN name:withNotCompileTimeArgs visibility:public modality:FINAL <> () returnType:kotlin.Int [inline]
+      annotations:
+        PartialEvaluation
+      BLOCK_BODY
+        VAR name:b type:kotlin.Int [val]
+          CALL 'public final fun echo <T> (a: T of <root>.echo): T of <root>.echo declared in <root>' type=kotlin.Int origin=null
+            <T>: kotlin.Int
+            a: CALL 'public final fun notCompileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+        VAR name:c type:kotlin.Int [val]
+          CALL 'public final fun times (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=MUL
+            $this: GET_VAR 'val b: kotlin.Int [val] declared in <root>.withNotCompileTimeArgs' type=kotlin.Int origin=null
+            other: CALL 'public final fun compileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+        RETURN type=kotlin.Nothing from='public final fun withNotCompileTimeArgs (): kotlin.Int [inline] declared in <root>'
+          GET_VAR 'val c: kotlin.Int [val] declared in <root>.withNotCompileTimeArgs' type=kotlin.Int origin=null
+    PROPERTY name:a visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:private [final,static]
+        EXPRESSION_BODY
+          RETURNABLE_BLOCK type=kotlin.Int origin=null
+            VAR IR_TEMPORARY_VARIABLE name:tmp0_singleCall_0 type:kotlin.Int [val]
+              BLOCK type=kotlin.Int origin=(InlinerExpressionLocationHint : FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:private [final,static] @null)
+                CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
+            RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+              CONST Int type=kotlin.Int value=16
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-a> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:a visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-a> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+    PROPERTY name:b visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.Int visibility:private [final,static]
+        EXPRESSION_BODY
+          RETURNABLE_BLOCK type=kotlin.Int origin=null
+            VAR IR_TEMPORARY_VARIABLE name:tmp0_withSingleVariable_0 type:kotlin.Int [val]
+              BLOCK type=kotlin.Int origin=(InlinerExpressionLocationHint : FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.Int visibility:private [final,static] @null)
+                CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
+            VAR name:b_1 type:kotlin.Int [val]
+              CALL 'public final fun times (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=MUL
+                $this: GET_VAR 'val tmp0_withSingleVariable_0: kotlin.Int [val] declared in <root>.b' type=kotlin.Int origin=null
+                other: CONST Int type=kotlin.Int value=2
+            RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+              CONST Int type=kotlin.Int value=45
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-b> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:b visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-b> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+    PROPERTY name:c visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Int visibility:private [final,static]
+        EXPRESSION_BODY
+          RETURNABLE_BLOCK type=kotlin.Int origin=null
+            VAR name:b_1 type:kotlin.Int [val]
+              CALL 'public final fun compileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+            RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+              CONST Int type=kotlin.Int value=42
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-c> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:c visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-c> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+    PROPERTY name:d visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:d type:kotlin.Int visibility:private [final,static]
+        EXPRESSION_BODY
+          RETURNABLE_BLOCK type=kotlin.Int origin=null
+            VAR IR_TEMPORARY_VARIABLE name:tmp0_withNotCompileTimeCode_0 type:kotlin.Int [val]
+              BLOCK type=kotlin.Int origin=(InlinerExpressionLocationHint : FIELD PROPERTY_BACKING_FIELD name:d type:kotlin.Int visibility:private [final,static] @null)
+                CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
+            VAR name:b_1 type:kotlin.Int [val]
+              CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=PLUS
+                $this: GET_VAR 'val tmp0_withNotCompileTimeCode_0: kotlin.Int [val] declared in <root>.d' type=kotlin.Int origin=null
+                other: CALL 'public final fun notCompileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+            RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+              GET_VAR 'val b_1: kotlin.Int [val] declared in <root>.d' type=kotlin.Int origin=null
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-d> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:d visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-d> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:d type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+    PROPERTY name:e visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:e type:kotlin.Int visibility:private [final,static]
+        EXPRESSION_BODY
+          RETURNABLE_BLOCK type=kotlin.Int origin=null
+            VAR name:b_1 type:kotlin.Int [val]
+              CALL 'public final fun echo <T> (a: T of <root>.echo): T of <root>.echo declared in <root>' type=kotlin.Int origin=null
+                <T>: kotlin.Int
+                a: CALL 'public final fun notCompileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+            VAR name:c_2 type:kotlin.Int [val]
+              CALL 'public final fun times (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=MUL
+                $this: GET_VAR 'val b_1: kotlin.Int [val] declared in <root>.e' type=kotlin.Int origin=null
+                other: CALL 'public final fun compileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+            RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+              GET_VAR 'val c_2: kotlin.Int [val] declared in <root>.e' type=kotlin.Int origin=null
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-e> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:e visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-e> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:e type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+  FILE fqName:kotlin fileName:/CompileTimeCalculation.kt
+    CLASS ANNOTATION_CLASS name:CompileTimeCalculation modality:FINAL visibility:public superTypes:[kotlin.Annotation]
+      annotations:
+        Target(allowedTargets = [GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:FUNCTION' type=kotlin.annotation.AnnotationTarget, GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:PROPERTY' type=kotlin.annotation.AnnotationTarget])
+        Retention(value = GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:BINARY' type=kotlin.annotation.AnnotationRetention)
+      $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:kotlin.CompileTimeCalculation
+      CONSTRUCTOR visibility:public <> () returnType:kotlin.CompileTimeCalculation [primary]
+      FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+        overridden:
+          public open fun equals (other: kotlin.Any?): kotlin.Boolean [fake_override,operator] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+        VALUE_PARAMETER name:other index:0 type:kotlin.Any?
+      FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+        overridden:
+          public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+      FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+        overridden:
+          public open fun toString (): kotlin.String [fake_override] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+  FILE fqName:kotlin fileName:/PartialEvaluation.kt
+    CLASS ANNOTATION_CLASS name:PartialEvaluation modality:FINAL visibility:public superTypes:[kotlin.Annotation]
+      annotations:
+        Target(allowedTargets = [GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:FUNCTION' type=kotlin.annotation.AnnotationTarget])
+        Retention(value = GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:BINARY' type=kotlin.annotation.AnnotationRetention)
+      $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:kotlin.PartialEvaluation
+      CONSTRUCTOR visibility:public <> () returnType:kotlin.PartialEvaluation [primary]
+      FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+        overridden:
+          public open fun equals (other: kotlin.Any?): kotlin.Boolean [fake_override,operator] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+        VALUE_PARAMETER name:other index:0 type:kotlin.Any?
+      FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+        overridden:
+          public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+      FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+        overridden:
+          public open fun toString (): kotlin.String [fake_override] declared in kotlin.Annotation
+        $this: VALUE_PARAMETER name:<this> type:kotlin.Any
