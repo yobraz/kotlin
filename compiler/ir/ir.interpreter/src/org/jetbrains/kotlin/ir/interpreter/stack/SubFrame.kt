@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.ir.interpreter.stack
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.interpreter.Instruction
 import org.jetbrains.kotlin.ir.interpreter.state.State
+import org.jetbrains.kotlin.ir.interpreter.state.UnknownState
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 
 internal abstract class AbstractSubFrame(val owner: IrElement) {
@@ -36,7 +37,7 @@ internal abstract class AbstractSubFrame(val owner: IrElement) {
     }
 
     fun containsStateInMemory(symbol: IrSymbol): Boolean = memory[symbol] != null
-    fun loadState(symbol: IrSymbol): State? = memory[symbol]?.state
+    fun loadState(symbol: IrSymbol): State? = memory[symbol]?.state?.takeIf { it !is UnknownState }
     fun rewriteState(symbol: IrSymbol, newState: State) {
         memory[symbol]?.state = newState
     }

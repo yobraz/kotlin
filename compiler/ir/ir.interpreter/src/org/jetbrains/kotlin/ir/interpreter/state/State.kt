@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.ir.interpreter.exceptions.handleUserException
 import org.jetbrains.kotlin.ir.interpreter.isFunction
 import org.jetbrains.kotlin.ir.interpreter.isKFunction
 import org.jetbrains.kotlin.ir.interpreter.stack.Fields
+import org.jetbrains.kotlin.ir.interpreter.stack.Variable
 import org.jetbrains.kotlin.ir.interpreter.state.reflection.KFunctionState
 import org.jetbrains.kotlin.ir.interpreter.state.reflection.ReflectionState
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
@@ -26,7 +27,7 @@ internal interface State {
     val irClass: IrClass
 
     fun getField(symbol: IrSymbol): State? {
-        return fields[symbol]
+        return fields[symbol].takeIf { it !is UnknownState }
     }
 
     fun setField(symbol: IrSymbol, state: State) {
@@ -34,6 +35,18 @@ internal interface State {
     }
 
     fun getIrFunctionByIrCall(expression: IrCall): IrFunction?
+}
+
+internal object UnknownState : State {
+    override val fields: Fields = mutableMapOf()
+    override val irClass: IrClass
+        get() = TODO("Not yet implemented")
+
+    override fun getIrFunctionByIrCall(expression: IrCall): IrFunction? {
+        TODO("Not yet implemented")
+    }
+
+    override fun toString(): String = "NaN"
 }
 
 internal fun State.isNull() = this is Primitive<*> && this.value == null

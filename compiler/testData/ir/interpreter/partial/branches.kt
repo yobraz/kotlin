@@ -66,8 +66,23 @@ inline fun optimizeAll(flag: Boolean): Int {
     return a // must not be set to zero
 }
 
+@PartialEvaluation
+inline fun setValueNonCompileTime(): Int {
+    var a = 0
+    if (constInt == 15) {
+        a = notCompileTimeInt()
+    }
+    return a // must not be set to zero
+}
+
+@PartialEvaluation
+inline fun allBranchesAreFalse() {
+
+}
+
 val a = simpleWhen()
 val b = simpleWhen2()
 val c = rollbackAfterWhen()
 val d = rollbackFieldAfterWhen(A(0))
 val e = optimizeAll(true)
+val f = setValueNonCompileTime()

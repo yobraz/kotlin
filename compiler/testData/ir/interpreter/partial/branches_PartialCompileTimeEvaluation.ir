@@ -263,6 +263,26 @@ MODULE_FRAGMENT name:<main>
                       then: CONST Int type=kotlin.Int value=-1
         RETURN type=kotlin.Nothing from='public final fun optimizeAll (flag: kotlin.Boolean): kotlin.Int [inline] declared in <root>'
           GET_VAR 'var a: kotlin.Int [var] declared in <root>.optimizeAll' type=kotlin.Int origin=null
+    FUN name:setValueNonCompileTime visibility:public modality:FINAL <> () returnType:kotlin.Int [inline]
+      annotations:
+        PartialEvaluation
+      BLOCK_BODY
+        VAR name:a type:kotlin.Int [var]
+          CONST Int type=kotlin.Int value=0
+        WHEN type=kotlin.Unit origin=IF
+          BRANCH
+            if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+              arg0: CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
+              arg1: CONST Int type=kotlin.Int value=15
+            then: BLOCK type=kotlin.Unit origin=null
+              SET_VAR 'var a: kotlin.Int [var] declared in <root>.setValueNonCompileTime' type=kotlin.Unit origin=EQ
+                CALL 'public final fun notCompileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+        RETURN type=kotlin.Nothing from='public final fun setValueNonCompileTime (): kotlin.Int [inline] declared in <root>'
+          GET_VAR 'var a: kotlin.Int [var] declared in <root>.setValueNonCompileTime' type=kotlin.Int origin=null
+    FUN name:allBranchesAreFalse visibility:public modality:FINAL <> () returnType:kotlin.Unit [inline]
+      annotations:
+        PartialEvaluation
+      BLOCK_BODY
     PROPERTY name:a visibility:public modality:FINAL [val]
       FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Boolean visibility:private [final,static]
         EXPRESSION_BODY
@@ -363,12 +383,28 @@ MODULE_FRAGMENT name:<main>
                     SET_VAR 'var a_1: kotlin.Int [var] declared in <root>.e' type=kotlin.Unit origin=EQ
                       CALL 'public final fun <get-constInt> (): kotlin.Int declared in <root>' type=kotlin.Int origin=GET_PROPERTY
             RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
-              CONST Int type=kotlin.Int value=15
+              GET_VAR 'var a_1: kotlin.Int [var] declared in <root>.e' type=kotlin.Int origin=null
       FUN DEFAULT_PROPERTY_ACCESSOR name:<get-e> visibility:public modality:FINAL <> () returnType:kotlin.Int
         correspondingProperty: PROPERTY name:e visibility:public modality:FINAL [val]
         BLOCK_BODY
           RETURN type=kotlin.Nothing from='public final fun <get-e> (): kotlin.Int declared in <root>'
             GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:e type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
+    PROPERTY name:f visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:f type:kotlin.Int visibility:private [final,static]
+        EXPRESSION_BODY
+          RETURNABLE_BLOCK type=kotlin.Int origin=null
+            VAR name:a_1 type:kotlin.Int [var]
+              CONST Int type=kotlin.Int value=0
+            BLOCK type=kotlin.Unit origin=null
+              SET_VAR 'var a_1: kotlin.Int [var] declared in <root>.f' type=kotlin.Unit origin=EQ
+                CALL 'public final fun notCompileTimeInt (): kotlin.Int declared in <root>' type=kotlin.Int origin=null
+            RETURN type=kotlin.Nothing from='RETURNABLE_BLOCK type=kotlin.Int origin=null'
+              GET_VAR 'var a_1: kotlin.Int [var] declared in <root>.f' type=kotlin.Int origin=null
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-f> visibility:public modality:FINAL <> () returnType:kotlin.Int
+        correspondingProperty: PROPERTY name:f visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-f> (): kotlin.Int declared in <root>'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:f type:kotlin.Int visibility:private [final,static]' type=kotlin.Int origin=null
   FILE fqName:kotlin fileName:/CompileTimeCalculation.kt
     CLASS ANNOTATION_CLASS name:CompileTimeCalculation modality:FINAL visibility:public superTypes:[kotlin.Annotation]
       annotations:
