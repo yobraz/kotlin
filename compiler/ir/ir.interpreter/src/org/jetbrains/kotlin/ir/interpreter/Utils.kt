@@ -139,6 +139,10 @@ internal fun IrType.isPrimitiveArray(): Boolean {
     return this.getClass()?.fqNameWhenAvailable?.toUnsafe()?.let { StandardNames.isPrimitiveArray(it) } ?: false
 }
 
+internal fun IrType.isArrayOrPrimitiveArray(): Boolean {
+    return this.isArray() || this.isPrimitiveArray()
+}
+
 internal fun IrClass.internalName(): String {
     val internalName = StringBuilder(this.name.asString())
     generateSequence(this as? IrDeclarationParent) { (it as? IrDeclaration)?.parent }

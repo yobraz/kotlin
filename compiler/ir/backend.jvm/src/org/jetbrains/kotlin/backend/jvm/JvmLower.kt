@@ -430,6 +430,7 @@ private val jvmLoweringPhases = NamedCompilerPhase(
     lower = validateIrBeforeLowering then
             processOptionalAnnotationsPhase then
             expectDeclarationsRemovingPhase then
+            partialCompileTimeEvaluationPhase then
             serializeIrPhase then
             scriptsToClassesPhase then
             fileClassPhase then

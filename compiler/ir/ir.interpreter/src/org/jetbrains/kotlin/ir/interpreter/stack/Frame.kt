@@ -42,7 +42,7 @@ internal class Frame(subFrameOwner: IrElement, val irFile: IrFile? = null) {
     }
 
     fun hasNoSubFrames() = innerStack.isEmpty()
-    fun hasNoInstructions() = hasNoSubFrames() || (innerStack.size == 1 && innerStack.first().isEmpty())
+    fun hasNoInstructions() = innerStack.all { it.isEmpty() }
     fun pushInstruction(instruction: Instruction) = currentFrame.pushInstruction(instruction)
     fun popInstruction(): Instruction = currentFrame.popInstruction().apply { currentInstruction = this }
     fun dropInstructions() = currentFrame.dropInstructions()
