@@ -241,7 +241,7 @@ private fun unfoldGetValue(expression: IrGetValue, environment: IrInterpreterEnv
         val irGetObject = expression.type.classOrNull?.owner!!.createGetObject()
         return unfoldGetObjectValue(irGetObject, environment)
     }
-    environment.callStack.pushState(environment.callStack.loadState(expression.symbol))
+    environment.callStack.pushSimpleInstruction(expression)
 }
 
 private fun unfoldGetObjectValue(expression: IrGetObjectValue, environment: IrInterpreterEnvironment) {

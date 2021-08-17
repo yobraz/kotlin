@@ -91,6 +91,7 @@ class IrInterpreter(internal val environment: IrInterpreterEnvironment, internal
             is IrReturn -> interpretReturn(element)
             is IrSetField -> interpretSetField(element)
             is IrGetField -> interpretGetField(element)
+            is IrGetValue -> callStack.pushState(callStack.loadState(element.symbol))
             is IrGetObjectValue -> interpretGetObjectValue(element)
             is IrGetEnumValue -> interpretGetEnumValue(element)
             is IrEnumEntry -> interpretEnumEntry(element)
