@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.cli.common.toBooleanLenient
 
 
 private val USE_BE_IR = System.getProperty("fir.bench.fe1.useIR", "false").toBooleanLenient()!!
+internal val JVM_TARGET = System.getProperty("fir.bench.jvmTarget", "1.8")!!
 
 class FE1FullPipelineModularizedTest : AbstractFullPipelineModularizedTest() {
     override fun configureArguments(args: K2JVMCompilerArguments, moduleData: ModuleData) {
@@ -17,13 +18,14 @@ class FE1FullPipelineModularizedTest : AbstractFullPipelineModularizedTest() {
         args.useOldBackend = !USE_BE_IR
         args.useFir = false
         args.jvmDefault = "compatibility"
-        args.apiVersion = "1.4"
+        args.apiVersion = LANGUAGE_VERSION
         args.optIn = arrayOf(
             "kotlin.RequiresOptIn",
             "kotlin.contracts.ExperimentalContracts",
             "kotlin.io.path.ExperimentalPathApi",
             "org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI"
         )
+        args.jvmTarget = JVM_TARGET
         args.multiPlatform = true
     }
 

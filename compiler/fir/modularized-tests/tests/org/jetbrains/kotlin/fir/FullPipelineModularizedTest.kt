@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.fir
 
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 
-private val LANGUAGE_VERSION: String = System.getProperty("fir.bench.language.version", "1.4")
+internal val LANGUAGE_VERSION: String = System.getProperty("fir.bench.language.version", "1.4")
 
 class FullPipelineModularizedTest : AbstractFullPipelineModularizedTest() {
 
@@ -15,6 +15,8 @@ class FullPipelineModularizedTest : AbstractFullPipelineModularizedTest() {
         args.useFir = true
         args.useIR = true
         args.apiVersion = LANGUAGE_VERSION
+        args.jvmTarget = JVM_TARGET
+        args.jvmDefault = "compatibility"
     }
 
     fun testTotalKotlin() {
