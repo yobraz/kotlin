@@ -23,11 +23,13 @@ import org.jetbrains.kotlin.gradle.plugin.statistics.ReportStatisticsToBuildScan
 import org.jetbrains.kotlin.gradle.plugin.statistics.ReportStatisticsToElasticSearch
 import org.jetbrains.kotlin.gradle.report.configureReporting
 import org.jetbrains.kotlin.gradle.utils.isConfigurationCacheAvailable
+import java.util.*
 
 //Support Gradle 6 and less. Move to
 internal class KotlinGradleBuildServices private constructor(
     private val gradle: Gradle,
-    private vararg val gradleListenerProviders: Provider<out OperationCompletionListener>
+    private vararg val gradleListenerProviders: Provider<out OperationCompletionListener>,
+    private val uuid: String
 ) : BuildAdapter() {
 
     companion object {
@@ -78,7 +80,7 @@ internal class KotlinGradleBuildServices private constructor(
                 val listeners = project.rootProject.objects.listProperty(ReportStatistics::class.java)
                     .value(listOf<ReportStatistics>(ReportStatisticsToElasticSearch))
                 project.rootProject.extensions.findByName("buildScan")
-                    ?.also { listeners.add(ReportStatisticsToBuildScan(it as BuildScanExtension)) }
+                    ?.also { listeners.add(ReportStatisticsToBuildScan(it as BuildScanExtension, UUID.randomUUID().toString(), "kotlin_version")) }
                 KotlinBuildEsStatListener(project.rootProject.name, listeners.get())
             }
 
@@ -90,7 +92,7 @@ internal class KotlinGradleBuildServices private constructor(
             }
 
             val gradle = project.gradle
-            val services = KotlinGradleBuildServices(gradle, kotlinGradleListenerProvider, kotlinGradleEsListenerProvider)
+            val services = KotlinGradleBuildServices(gradle, kotlinGradleListenerProvider, kotlinGradleEsListenerProvider, UUID.randomUUID().toString())
             if (isConfigurationCacheAvailable(gradle)) {
                 listenerRegistryHolder.listenerRegistry!!.onTaskCompletion(kotlinGradleListenerProvider)
                 listenerRegistryHolder.listenerRegistry.onTaskCompletion(kotlinGradleEsListenerProvider)
