@@ -312,6 +312,16 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         }
         return if (competed) newBlock else expression
     }
+
+    fun evalIrTypeOperatorValue(expression: IrTypeOperatorCall): State? {
+        expression.argument = expression.argument.transform(transformer, null)
+        return callStack.tryToPopState()
+    }
+
+    fun fallbackIrTypeOperator(expression: IrTypeOperatorCall, arg: State?): IrExpression {
+        if (arg != null) evaluate(expression, listOf(arg), interpretOnly = true)
+        return expression
+    }
 }
 
 private class ParentFinder : IrElementVisitorVoid {
