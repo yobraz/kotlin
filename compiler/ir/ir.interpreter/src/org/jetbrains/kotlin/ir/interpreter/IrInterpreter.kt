@@ -53,27 +53,27 @@ class IrInterpreter(internal val environment: IrInterpreterEnvironment, internal
 
     fun interpret(expression: IrExpression, file: IrFile? = null): IrExpression {
         commandCount = 0
-        callStack.newFrame(expression, file)
-        callStack.pushCompoundInstruction(expression)
+        return interpret(
+            {
+                this.newFrame(expression, file)
+                this.pushCompoundInstruction(expression)
+            },
+            {
+                val result = this.popState()
+                this.dropFrame()
+                result.toIrExpression(expression)
+            }
+        )
+    }
+
+    internal fun <T> interpret(init: CallStack.() -> Unit, popResult: CallStack.() -> T): T {
+        callStack.init()
 
         while (!callStack.hasNoInstructions()) {
             callStack.popInstruction().handle()
         }
 
-        return callStack.popState().toIrExpression(expression).apply { callStack.dropFrame() }
-    }
-
-    internal fun withNewCallStack(call: IrCall, init: IrInterpreter.() -> Any?): State {
-        return with(IrInterpreter(environment.copyWithNewCallStack(), bodyMap)) {
-            callStack.newFrame(call.symbol.owner)
-            init()
-
-            while (!callStack.hasNoInstructions()) {
-                callStack.popInstruction().handle()
-            }
-
-            callStack.popState().apply { callStack.dropFrame() }
-        }
+        return callStack.popResult()
     }
 
     private fun interpret(element: IrElement) {
@@ -127,6 +127,7 @@ class IrInterpreter(internal val environment: IrInterpreterEnvironment, internal
     }
 
     private fun interpretValueParameter(valueParameter: IrValueParameter) {
+        // TODO maybe remove this method and move it to call/constructorCall
         val irFunction = valueParameter.parent as IrFunction
         fun isReceiver() = irFunction.dispatchReceiverParameter == valueParameter || irFunction.extensionReceiverParameter == valueParameter
 

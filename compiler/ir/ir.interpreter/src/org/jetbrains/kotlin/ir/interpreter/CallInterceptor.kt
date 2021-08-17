@@ -49,9 +49,15 @@ internal class DefaultCallInterceptor(override val interpreter: IrInterpreter) :
 
     override fun interceptProxy(irFunction: IrFunction, valueArguments: List<State>, expectedResultClass: Class<*>): Any? {
         val irCall = irFunction.createCall()
-        return interpreter.withNewCallStack(irCall) {
-            this@withNewCallStack.environment.callStack.pushSimpleInstruction(irCall)
-            valueArguments.forEach { this@withNewCallStack.environment.callStack.pushState(it) }
+        return with(IrInterpreter(environment.copyWithNewCallStack(), bodyMap)) {
+            this.interpret(
+                {
+                    this.newFrame(irCall.symbol.owner)
+                    this.pushSimpleInstruction(irCall)
+                    valueArguments.forEach { this.pushState(it) }
+                },
+                { this.popState().apply { this@interpret.dropFrame() } }
+            )
         }.wrap(this@DefaultCallInterceptor, remainArraysAsIs = false, extendFrom = expectedResultClass)
     }
 
