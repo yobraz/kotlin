@@ -305,3 +305,7 @@ internal fun IrGetValue.isAccessToObject(): Boolean {
 internal fun IrFunction.hasBackingField(): Boolean {
     return this is IrSimpleFunction && this.correspondingPropertySymbol?.owner?.backingField != null
 }
+
+internal fun IrFunctionAccessExpression.hasDefaults(): Boolean {
+    return (0 until valueArgumentsCount).any { getValueArgument(it) == null }
+}

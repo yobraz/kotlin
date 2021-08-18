@@ -5,10 +5,13 @@
 
 package org.jetbrains.kotlin.ir.interpreter
 
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrBuiltIns
-import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.IrProperty
+import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.IrDelegatingConstructorCall
+import org.jetbrains.kotlin.ir.expressions.IrEnumConstructorCall
+import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.interpreter.proxy.Proxy
 import org.jetbrains.kotlin.ir.interpreter.stack.CallStack
 import org.jetbrains.kotlin.ir.interpreter.state.Common
@@ -19,12 +22,12 @@ import org.jetbrains.kotlin.ir.interpreter.state.Wrapper
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
-import org.jetbrains.kotlin.ir.types.IrSimpleType
-import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.classOrNull
-import org.jetbrains.kotlin.ir.types.typeOrNull
+import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.isSubclassOf
+import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.nameForIrSerialization
+import org.jetbrains.kotlin.name.Name
 
 class IrInterpreterEnvironment(
     val irBuiltIns: IrBuiltIns,
@@ -99,6 +102,57 @@ class IrInterpreterEnvironment(
     ): IrFunctionSymbol {
         functionCache[CacheFunctionSignature(symbol, hasDispatchReceiver, hasExtensionReceiver, fromDelegatingCall)] = newFunction
         return newFunction
+    }
+
+    internal fun getOrCreateCallWithDefaults(expression: IrFunctionAccessExpression): IrCall {
+        getCachedFunction(expression.symbol, fromDelegatingCall = expression is IrDelegatingConstructorCall)?.let {
+            return it.owner.createCall().apply { irBuiltIns.copyArgs(expression, this) }
+        }
+
+        // if some arguments are not defined, then it is necessary to create temp function where defaults will be evaluated
+        val actualParameters = MutableList<IrValueDeclaration?>(expression.valueArgumentsCount) { null }
+        val ownerWithDefaults = expression.getFunctionThatContainsDefaults()
+        val visibility = when (expression) {
+            is IrEnumConstructorCall, is IrDelegatingConstructorCall -> DescriptorVisibilities.LOCAL
+            else -> ownerWithDefaults.visibility
+        }
+
+        val defaultFun = createTempFunction(
+            Name.identifier(ownerWithDefaults.name.asString() + "\$default"), ownerWithDefaults.returnType,
+            origin = IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER, visibility
+        ).apply {
+            this.parent = ownerWithDefaults.parent
+            this.dispatchReceiverParameter = ownerWithDefaults.dispatchReceiverParameter?.deepCopyWithSymbols(this)
+            this.extensionReceiverParameter = ownerWithDefaults.extensionReceiverParameter?.deepCopyWithSymbols(this)
+            (0 until expression.valueArgumentsCount).forEach { index ->
+                val originalParameter = ownerWithDefaults.valueParameters[index]
+                val copiedParameter = originalParameter.deepCopyWithSymbols(this)
+                this.valueParameters += copiedParameter
+                actualParameters[index] = if (copiedParameter.defaultValue != null || copiedParameter.isVararg) {
+                    copiedParameter.type = copiedParameter.type.makeNullable() // make nullable type to keep consistency; parameter can be null if it is missing
+                    val irGetParameter = copiedParameter.createGetValue()
+                    // if parameter is vararg and it is missing, then create constructor call for empty array
+                    val defaultInitializer = originalParameter.getDefaultWithActualParameters(this@apply, actualParameters)
+                        ?: irBuiltIns.emptyArrayConstructor(expression.getVarargType(index)!!.getTypeIfReified(callStack))
+
+                    copiedParameter.createTempVariable().apply variable@{
+                        this@variable.initializer = irBuiltIns.irIfNullThenElse(irGetParameter, defaultInitializer, irGetParameter)
+                    }
+                } else {
+                    copiedParameter
+                }
+            }
+        }
+
+        val callWithAllArgs = expression.shallowCopy() // just a copy of given call, but with all arguments in place
+        expression.dispatchReceiver?.let { callWithAllArgs.dispatchReceiver = defaultFun.dispatchReceiverParameter!!.createGetValue() }
+        expression.extensionReceiver?.let { callWithAllArgs.extensionReceiver = defaultFun.extensionReceiverParameter!!.createGetValue() }
+        (0 until expression.valueArgumentsCount).forEach { callWithAllArgs.putValueArgument(it, actualParameters[it]?.createGetValue()) }
+        defaultFun.body = (actualParameters.filterIsInstance<IrVariable>() + defaultFun.createReturn(callWithAllArgs)).wrapWithBlockBody()
+
+        return setCachedFunction(
+            expression.symbol, fromDelegatingCall = expression is IrDelegatingConstructorCall, newFunction = defaultFun.symbol
+        ).owner.createCall().apply { irBuiltIns.copyArgs(expression, this) }
     }
 
     /**
