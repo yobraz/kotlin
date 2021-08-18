@@ -60,7 +60,7 @@ ext.target = platformManager.targetManager(project.testTarget).target
 ext.testLibraryDir = "${ext.testOutputRoot}/klib/platform/${project.target.name}"
 
 // Add executor to run tests depending on a target
-project.convention.plugins.executor = ExecutorServiceKt.create(project)
+project.extensions.executor = ExecutorServiceKt.create(project)
 
 
 compileTestKotlin {
