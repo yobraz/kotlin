@@ -12,10 +12,7 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.*
-import org.jetbrains.kotlin.ir.expressions.impl.IrBlockImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrBreakImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrContinueImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrStringConcatenationImpl
+import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
 import org.jetbrains.kotlin.ir.interpreter.stack.CallStack
 import org.jetbrains.kotlin.ir.interpreter.state.State
@@ -27,7 +24,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 
 internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementTransformerVoid) {
-    private val environment = IrInterpreterEnvironment(irBuiltIns)
+    internal val environment = IrInterpreterEnvironment(irBuiltIns)
     internal val callStack: CallStack
         get() = environment.callStack
     private val interpreter = IrInterpreter(environment, emptyMap())
@@ -45,6 +42,22 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         }
     }
 
+    private fun checkForDefaultsAndEvaluate(expression: IrFunctionAccessExpression, args: List<State>) {
+        when {
+            expression.hasDefaults() -> {
+                var index = 0
+                val allArgs = (0 until expression.valueArgumentsCount).map {
+                    when {
+                        expression.getValueArgument(it) == null -> environment.convertToState(null, irBuiltIns.anyNType)
+                        else -> args[index++]
+                    }
+                }
+                evaluate(environment.getOrCreateCallWithDefaults(expression), allArgs, interpretOnly = true)
+            }
+            else -> evaluate(expression, args, interpretOnly = true)
+        }
+    }
+
     internal fun withRollbackOnFailure(block: () -> Boolean) {
         // TODO
     }
@@ -59,7 +72,8 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
     private fun IrFunctionAccessExpression.getExpectedArgumentsCount(): Int {
         val dispatch = dispatchReceiver?.let { 1 } ?: 0
         val extension = extensionReceiver?.let { 1 } ?: 0
-        return dispatch + extension + valueArgumentsCount
+        val valueArguments = (0 until valueArgumentsCount).count { this.getValueArgument(it) != null }
+        return dispatch + extension + valueArguments
     }
 
     fun evalIrReturnValue(expression: IrReturn): State? {
@@ -98,7 +112,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
 
         val owner = expression.symbol.owner
         if (owner.fqName.startsWith("kotlin.") || EvaluationMode.ONLY_BUILTINS.canEvaluateFunction(owner, expression) || EvaluationMode.WITH_ANNOTATIONS.canEvaluateFunction(owner, expression)) {
-            evaluate(expression, actualArgs, interpretOnly = true)
+            checkForDefaultsAndEvaluate(expression, actualArgs)
             // TODO if result is Primitive -> return const
         }
         return expression
@@ -110,7 +124,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
 
         val owner = expression.symbol.owner
         if (EvaluationMode.ONLY_BUILTINS.canEvaluateFunction(owner) || EvaluationMode.WITH_ANNOTATIONS.canEvaluateFunction(owner)) {
-            evaluate(expression, actualArgs, interpretOnly = true)
+            checkForDefaultsAndEvaluate(expression, actualArgs)
         }
         return expression
     }
