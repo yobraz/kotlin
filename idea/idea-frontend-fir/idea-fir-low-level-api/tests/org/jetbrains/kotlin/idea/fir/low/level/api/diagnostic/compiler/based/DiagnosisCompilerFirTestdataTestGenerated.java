@@ -555,6 +555,36 @@ public class DiagnosisCompilerFirTestdataTestGenerated extends AbstractDiagnosis
         }
 
         @Test
+        @TestMetadata("unionTypeAlias.kt")
+        public void testUnionTypeAlias() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeAlias.kt");
+        }
+
+        @Test
+        @TestMetadata("unionTypeCallResolve.kt")
+        public void testUnionTypeCallResolve() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeCallResolve.kt");
+        }
+
+        @Test
+        @TestMetadata("unionTypeInBounds.kt")
+        public void testUnionTypeInBounds() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeInBounds.kt");
+        }
+
+        @Test
+        @TestMetadata("unionTypeInOperatorCall.kt")
+        public void testUnionTypeInOperatorCall() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeInOperatorCall.kt");
+        }
+
+        @Test
+        @TestMetadata("unionTypeInSuperClasses.kt")
+        public void testUnionTypeInSuperClasses() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/unionTypeInSuperClasses.kt");
+        }
+
+        @Test
         @TestMetadata("varargInPrimaryConstructor.kt")
         public void testVarargInPrimaryConstructor() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolve/varargInPrimaryConstructor.kt");
@@ -1668,6 +1698,12 @@ public class DiagnosisCompilerFirTestdataTestGenerated extends AbstractDiagnosis
                 @TestMetadata("exhaustiveness_sealedSubClass.kt")
                 public void testExhaustiveness_sealedSubClass() throws Exception {
                     runTest("compiler/fir/analysis-tests/testData/resolve/exhaustiveness/positive/exhaustiveness_sealedSubClass.kt");
+                }
+
+                @Test
+                @TestMetadata("exhaustiveness_unionType.kt")
+                public void testExhaustiveness_unionType() throws Exception {
+                    runTest("compiler/fir/analysis-tests/testData/resolve/exhaustiveness/positive/exhaustiveness_unionType.kt");
                 }
 
                 @Test
@@ -3905,6 +3941,12 @@ public class DiagnosisCompilerFirTestdataTestGenerated extends AbstractDiagnosis
             @TestMetadata("castToBareType.kt")
             public void testCastToBareType() throws Exception {
                 runTest("compiler/fir/analysis-tests/testData/resolve/types/castToBareType.kt");
+            }
+
+            @Test
+            @TestMetadata("nestedTypesInUnionType.kt")
+            public void testNestedTypesInUnionType() throws Exception {
+                runTest("compiler/fir/analysis-tests/testData/resolve/types/nestedTypesInUnionType.kt");
             }
 
             @Test

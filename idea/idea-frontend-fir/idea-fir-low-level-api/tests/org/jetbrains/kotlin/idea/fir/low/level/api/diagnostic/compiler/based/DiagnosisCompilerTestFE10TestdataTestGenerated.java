@@ -567,6 +567,12 @@ public class DiagnosisCompilerTestFE10TestdataTestGenerated extends AbstractDiag
         }
 
         @Test
+        @TestMetadata("prohibitedUnionType.kt")
+        public void testProhibitedUnionType() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/prohibitedUnionType.kt");
+        }
+
+        @Test
         @TestMetadata("ProjectionOnFunctionArgumentErrror.kt")
         public void testProjectionOnFunctionArgumentErrror() throws Exception {
             runTest("compiler/testData/diagnostics/tests/ProjectionOnFunctionArgumentErrror.kt");
