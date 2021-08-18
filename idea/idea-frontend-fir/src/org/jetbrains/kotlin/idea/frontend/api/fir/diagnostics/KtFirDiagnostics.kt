@@ -2439,4 +2439,16 @@ sealed class KtFirDiagnostic<PSI : PsiElement> : KtDiagnosticWithPsi<PSI> {
         abstract val kotlinName: FqName
     }
 
+    abstract class JvmPackageNameCannotBeEmpty : KtFirDiagnostic<KtAnnotationEntry>() {
+        override val diagnosticClass get() = JvmPackageNameCannotBeEmpty::class
+    }
+
+    abstract class JvmPackageNameMustBeValidName : KtFirDiagnostic<KtAnnotationEntry>() {
+        override val diagnosticClass get() = JvmPackageNameMustBeValidName::class
+    }
+
+    abstract class JvmPackageNameNotSupportedInFilesWithClasses : KtFirDiagnostic<KtAnnotationEntry>() {
+        override val diagnosticClass get() = JvmPackageNameNotSupportedInFilesWithClasses::class
+    }
+
 }
