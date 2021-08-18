@@ -34,6 +34,11 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinNativeFragmentMetadataC
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.isMainCompilationData
 import org.jetbrains.kotlin.gradle.plugin.sources.DefaultLanguageSettingsBuilder
 import org.jetbrains.kotlin.gradle.targets.native.internal.isAllowCommonizer
+import org.jetbrains.kotlin.gradle.targets.native.tasks.*
+import org.jetbrains.kotlin.gradle.targets.native.tasks.CompilerPluginData
+import org.jetbrains.kotlin.gradle.targets.native.tasks.SharedCompilationData
+import org.jetbrains.kotlin.gradle.targets.native.tasks.buildKotlinNativeBinaryLinkerArgs
+import org.jetbrains.kotlin.gradle.targets.native.tasks.buildKotlinNativeKlibCompilerArgs
 import org.jetbrains.kotlin.gradle.utils.*
 import org.jetbrains.kotlin.gradle.utils.klibModuleName
 import org.jetbrains.kotlin.gradle.utils.listFilesOrEmpty
@@ -124,6 +129,19 @@ private fun Collection<File>.filterKlibsPassedToCompiler(): List<File> = filter 
     (it.extension == "klib" || it.isDirectory) && it.exists()
 }
 
+private fun CompilerOutputKind.getOutFile(konanTarget: KonanTarget, name: String, destinationDir: File): File {
+    val filename = "${prefix(konanTarget)}${name}${suffix(konanTarget)}".let {
+        when {
+            this == FRAMEWORK -> it.asValidFrameworkName()
+            this in listOf(STATIC, DYNAMIC) || this == PROGRAM && konanTarget == KonanTarget.WASM32 ->
+                it.replace('-', '_')
+            else -> it
+        }
+    }
+
+    return destinationDir.resolve(filename)
+}
+
 // endregion
 abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions, K : KotlinNativeCompilationData<*>> : AbstractCompile() {
     @get:Internal
@@ -148,10 +166,6 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions, K : Kotl
     @get:Internal
     protected val konanTarget by project.provider {
         compilation.konanTarget
-    }
-
-    private val isSharedCompilation by project.provider {
-        compilation is KotlinNativeFragmentMetadataCompilationData
     }
 
     // Inputs and outputs
@@ -208,19 +222,7 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions, K : Kotl
 
     @Internal
     open val outputFile: Provider<File> = project.provider {
-        val prefix = outputKind.prefix(konanTarget)
-        val suffix = outputKind.suffix(konanTarget)
-        val filename = "$prefix${baseName}$suffix".let {
-            when {
-                outputKind == FRAMEWORK ->
-                    it.asValidFrameworkName()
-                outputKind in listOf(STATIC, DYNAMIC) || outputKind == PROGRAM && konanTarget == KonanTarget.WASM32 ->
-                    it.replace('-', '_')
-                else -> it
-            }
-        }
-
-        destinationDir.resolve(filename)
+        outputKind.getOutFile(konanTarget, baseName, destinationDir)
     }
 
     // endregion
@@ -252,108 +254,35 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions, K : Kotl
     val defaultSerializedCompilerArguments: List<String>
         get() = buildCommonArgs(true)
 
-    private val languageSettingsBuilder by project.provider {
-        compilation.languageSettings
-    }
-
     // Args used by both the compiler and IDEA.
-    protected open fun buildCommonArgs(defaultsOnly: Boolean = false): List<String> = mutableListOf<String>().apply {
-        add("-Xmulti-platform")
-
-        if (!enableEndorsedLibs) {
-            add("-no-endorsed-libs")
-        }
-
-        fun addPluginOptions(classpath: FileCollection, options: CompilerPluginOptions) {
-            classpath.map { it.canonicalPath }.sorted().forEach { path ->
-                add("-Xplugin=$path")
-            }
-            options.arguments.forEach {
-                add("-P")
-                add(it)
+    private fun buildCommonArgs(defaultsOnly: Boolean = false): List<String> {
+        val customKotlinOptions = object : KotlinCommonToolOptions {
+            override var allWarningsAsErrors = kotlinOptions.allWarningsAsErrors
+            override var suppressWarnings = kotlinOptions.suppressWarnings
+            override var verbose = kotlinOptions.verbose
+            override var freeCompilerArgs = if (defaultsOnly) {
+                compilation.kotlinOptions.freeCompilerArgs
+            } else {
+                kotlinOptions.freeCompilerArgs + compilation.kotlinOptions.freeCompilerArgs
             }
         }
 
-        // Compiler plugins.
-        compilerPluginClasspath?.let { addPluginOptions(it, compilerPluginOptions) }
-        kotlinPluginData?.orNull?.let { addPluginOptions(it.classpath, it.options) }
-
-        // kotlin options
-        addKey("-Werror", kotlinOptions.allWarningsAsErrors)
-        addKey("-nowarn", kotlinOptions.suppressWarnings)
-        addKey("-verbose", kotlinOptions.verbose)
-        addKey("-progressive", progressiveMode)
-
-        if (!defaultsOnly) {
-            addAll(additionalCompilerOptions.get())
-        }
-
-        (languageSettingsBuilder as? DefaultLanguageSettingsBuilder)?.run {
-            addAll(freeCompilerArgs)
-        }
+        return buildKotlinNativeCommonArgs(
+            languageSettings,
+            enableEndorsedLibs,
+            customKotlinOptions,
+            listOfNotNull(
+                compilerPluginClasspath?.let { CompilerPluginData(it, compilerPluginOptions) },
+                kotlinPluginData?.get()?.let { CompilerPluginData(it.classpath, it.options) },
+            )
+        )
     }
 
-    @get:Input
-    @get:Optional
-    internal val konanTargetsForManifest: String by project.provider {
-        @Suppress("CAST_NEVER_SUCCEEDS") // TODO: this warning looks very suspicious, as if the code never works as intended.
-        (compilation as? KotlinSharedNativeCompilation)
-            ?.konanTargets
-            ?.joinToString(separator = " ") { it.visibleName }
-            .orEmpty()
-    }
-
-    @get:Internal
-    internal val manifestFile: Provider<File>
-        get() = project.provider {
-            val inputManifestFile = project.buildDir.resolve("tmp/$name/inputManifest")
-            inputManifestFile
-        }
-
-    // Args passed to the compiler only (except sources).
-    protected open fun buildCompilerArgs(): List<String> = mutableListOf<String>().apply {
-        addKey("-opt", optimized)
-        addKey("-g", debuggable)
-        addKey("-ea", debuggable)
-
-        addArg("-target", konanTarget.name)
-        addArg("-p", outputKind.name.toLowerCase())
-
-        if (isSharedCompilation) {
-            add("-Xexpect-actual-linker")
-            add("-Xmetadata-klib")
-            addArg("-manifest", manifestFile.get().absolutePath)
-            if (project.isAllowCommonizer()) add("-no-default-libs")
-        }
-
-        addArg("-o", outputFile.get().absolutePath)
-
-        // Libraries.
-        libraries.files.filterKlibsPassedToCompiler().forEach { library ->
-            addArg("-l", library.absolutePath)
-        }
-    }
-
-    // Sources passed to the compiler.
-    // We add sources after all other arguments to make the command line more readable and simplify debugging.
-    protected abstract fun buildSourceArgs(): List<String>
-
-    private fun buildArgs(): List<String> =
-        buildCompilerArgs() + buildCommonArgs() + buildSourceArgs()
+    abstract fun buildArgs(): List<String>
 
     @TaskAction
     open fun compile() {
-        val output = outputFile.get()
-        output.parentFile.mkdirs()
-
-        if (isSharedCompilation) {
-            val manifestFile: File = manifestFile.get()
-            manifestFile.ensureParentDirsCreated()
-            val properties = java.util.Properties()
-            properties[KLIB_PROPERTY_NATIVE_TARGETS] = konanTargetsForManifest
-            properties.saveToFile(org.jetbrains.kotlin.konan.file.File(manifestFile.toPath()))
-        }
-
+        outputFile.get().ensureParentDirsCreated()
         KotlinNativeCompilerRunner(project).run(buildArgs())
     }
 }
@@ -447,7 +376,7 @@ constructor(
 
     @get:Input
     override val additionalCompilerOptions: Provider<Collection<String>> = project.provider {
-        kotlinOptions.freeCompilerArgs
+        kotlinOptions.freeCompilerArgs + compilation.kotlinOptions.freeCompilerArgs
     }
 
     override fun kotlinOptions(fn: KotlinCommonOptions.() -> Unit) {
@@ -460,40 +389,69 @@ constructor(
     }
     // endregion.
 
-    // region Building args.
-    override fun buildCommonArgs(defaultsOnly: Boolean): List<String> = mutableListOf<String>().apply {
-        addAll(super.buildCommonArgs(defaultsOnly))
-
-        // Language features.
-        addArgIfNotNull("-language-version", languageVersion)
-        addArgIfNotNull("-api-version", apiVersion)
-        enabledLanguageFeatures.forEach { featureName ->
-            add("-XXLanguage:+$featureName")
-        }
-        optInAnnotationsInUse.forEach { annotationName ->
-            add("-opt-in=$annotationName")
-        }
+    @get:Input
+    @get:Optional
+    internal val konanTargetsForManifest: String by project.provider {
+        @Suppress("CAST_NEVER_SUCCEEDS") // TODO: this warning looks very suspicious, as if the code never works as intended.
+        (compilation as? KotlinSharedNativeCompilation)
+            ?.konanTargets
+            ?.joinToString(separator = " ") { it.visibleName }
+            .orEmpty()
     }
 
-    override fun buildCompilerArgs(): List<String> = mutableListOf<String>().apply {
-        addAll(super.buildCompilerArgs())
-
-        // Configure FQ module name to avoid cyclic dependencies in klib manifests (see KT-36721).
-        addArg("-module-name", moduleName)
-        add("-Xshort-module-name=$shortModuleName")
-        val friends = friendModule.files
-        if (friends.isNotEmpty()) {
-            addArg("-friend-modules", friends.joinToString(File.pathSeparator) { it.absolutePath })
+    @get:Internal
+    internal val manifestFile: Provider<File>
+        get() = project.provider {
+            val inputManifestFile = project.buildDir.resolve("tmp/$name/inputManifest")
+            inputManifestFile
         }
+
+    private val isSharedCompilation by project.provider {
+        compilation is KotlinNativeFragmentMetadataCompilationData
     }
 
-    override fun buildSourceArgs(): List<String> = mutableListOf<String>().apply {
-        addAll(getSource().map { it.absolutePath })
-        if (!commonSourcesTree.isEmpty) {
-            add("-Xcommon-sources=${commonSourcesTree.joinToString(separator = ",") { it.absolutePath }}")
+    override fun buildArgs(): List<String> {
+        val customKotlinOptions = object : KotlinCommonToolOptions {
+            override var allWarningsAsErrors = kotlinOptions.allWarningsAsErrors
+            override var suppressWarnings = kotlinOptions.suppressWarnings
+            override var verbose = kotlinOptions.verbose
+            override var freeCompilerArgs = kotlinOptions.freeCompilerArgs + compilation.kotlinOptions.freeCompilerArgs
         }
+
+        return buildKotlinNativeKlibCompilerArgs(
+            outputFile.get(),
+            optimized,
+            debuggable,
+            compilation.konanTarget,
+            libraries.files.filterKlibsPassedToCompiler(),
+            languageSettings,
+            enableEndorsedLibs,
+            customKotlinOptions,
+            listOfNotNull(
+                compilerPluginClasspath?.let { CompilerPluginData(it, compilerPluginOptions) },
+                kotlinPluginData?.get()?.let { CompilerPluginData(it.classpath, it.options) },
+            ),
+            moduleName,
+            shortModuleName,
+            friendModule,
+            if (isSharedCompilation) SharedCompilationData(manifestFile.get(), project.isAllowCommonizer())
+            else null,
+            source,
+            commonSourcesTree
+        )
     }
-    // endregion.
+
+    @TaskAction
+    override fun compile() {
+        if (isSharedCompilation) {
+            val manifestFile: File = manifestFile.get()
+            manifestFile.ensureParentDirsCreated()
+            val properties = java.util.Properties()
+            properties[KLIB_PROPERTY_NATIVE_TARGETS] = konanTargetsForManifest
+            properties.saveToFile(org.jetbrains.kotlin.konan.file.File(manifestFile.toPath()))
+        }
+        super.compile()
+    }
 }
 
 /**
@@ -609,48 +567,44 @@ constructor(
         (binary as? Framework)?.embedBitcode ?: BitcodeEmbeddingMode.DISABLE
     }
 
-    override fun buildCompilerArgs(): List<String> = mutableListOf<String>().apply {
-        addAll(super.buildCompilerArgs())
-
-        val externalDependenciesArgs = ExternalDependenciesBuilder(project, compilation).buildCompilerArgs()
-        addAll(externalDependenciesArgs)
-
-        addAll(CacheBuilder(project, binary, konanTarget, externalDependenciesArgs).buildCompilerArgs())
-
-        addKey("-tr", processTests)
-        addArgIfNotNull("-entry", entryPoint)
-        when (embedBitcode) {
-            Framework.BitcodeEmbeddingMode.MARKER -> add("-Xembed-bitcode-marker")
-            Framework.BitcodeEmbeddingMode.BITCODE -> add("-Xembed-bitcode")
-            else -> { /* Do nothing. */
-            }
-        }
-        linkerOpts.forEach {
-            addArg("-linker-option", it)
-        }
-        exportLibraries.files.filterKlibsPassedToCompiler().forEach {
-            add("-Xexport-library=${it.absolutePath}")
-        }
-        addKey("-Xstatic-framework", isStaticFramework)
-
-        languageSettings.let {
-            addArgIfNotNull("-language-version", it.languageVersion)
-            addArgIfNotNull("-api-version", it.apiVersion)
-            it.enabledLanguageFeatures.forEach { featureName ->
-                add("-XXLanguage:+$featureName")
-            }
-            it.optInAnnotationsInUse.forEach { annotationName ->
-                add("-opt-in=$annotationName")
-            }
-        }
-    }
-
-    override fun buildSourceArgs(): List<String> =
-        listOf("-Xinclude=${intermediateLibrary.get().absolutePath}")
-
     @get:Internal
     val apiFilesProvider = project.provider {
         project.configurations.getByName(compilation.apiConfigurationName).files.filterKlibsPassedToCompiler()
+    }
+
+    override fun buildArgs(): List<String> {
+        val externalDependenciesOptions = ExternalDependenciesBuilder(project, compilation).buildArgs()
+        val cacheOptions = CacheBuilder(project, binary, konanTarget, externalDependenciesOptions).buildArgs()
+        val customKotlinOptions = object : KotlinCommonToolOptions {
+            override var allWarningsAsErrors = kotlinOptions.allWarningsAsErrors
+            override var suppressWarnings = kotlinOptions.suppressWarnings
+            override var verbose = kotlinOptions.verbose
+            override var freeCompilerArgs = kotlinOptions.freeCompilerArgs + compilation.kotlinOptions.freeCompilerArgs
+        }
+
+        return buildKotlinNativeBinaryLinkerArgs(
+            outputFile.get(),
+            optimized,
+            debuggable,
+            konanTarget,
+            outputKind,
+            libraries.files.filterKlibsPassedToCompiler(),
+            languageSettings,
+            enableEndorsedLibs,
+            customKotlinOptions,
+            listOfNotNull(
+                compilerPluginClasspath?.let { CompilerPluginData(it, compilerPluginOptions) },
+                kotlinPluginData?.get()?.let { CompilerPluginData(it.classpath, it.options) },
+            ),
+            processTests,
+            entryPoint,
+            embedBitcode,
+            linkerOpts,
+            isStaticFramework,
+            exportLibraries.files.filterKlibsPassedToCompiler(),
+            listOf(intermediateLibrary.get()),
+            externalDependenciesOptions + cacheOptions
+        )
     }
 
     private fun validatedExportedLibraries() {
@@ -706,7 +660,7 @@ private class ExternalDependenciesBuilder(
     private val sourceCodeModuleId: KResolvedDependencyId =
         intermediateLibraryName?.let { KResolvedDependencyId(it) } ?: KResolvedDependencyId.DEFAULT_SOURCE_CODE_MODULE_ID
 
-    fun buildCompilerArgs(): List<String> {
+    fun buildArgs(): List<String> {
         val konanVersion = Distribution(project.konanHome).compilerVersion?.let(CompilerVersion.Companion::fromString)
             ?: project.konanVersion
 
@@ -1032,7 +986,7 @@ internal class CacheBuilder(
             ensureCompilerProvidedLibPrecached(platformLibName, platformLibs, visitedLibs)
     }
 
-    fun buildCompilerArgs(): List<String> = mutableListOf<String>().apply {
+    fun buildArgs(): List<String> = mutableListOf<String>().apply {
         if (konanCacheKind != NativeCacheKind.NONE && !optimized && cacheWorksFor(konanTarget, project)) {
             rootCacheDirectory.mkdirs()
             ensureCompilerProvidedLibsPrecached()
