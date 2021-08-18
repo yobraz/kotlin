@@ -19,6 +19,7 @@ class FE1FullPipelineModularizedTest : AbstractFullPipelineModularizedTest() {
         args.useFir = false
         args.jvmDefault = "compatibility"
         args.apiVersion = LANGUAGE_VERSION
+        args.languageVersion = LANGUAGE_VERSION
         args.optIn = arrayOf(
             "kotlin.RequiresOptIn",
             "kotlin.contracts.ExperimentalContracts",
