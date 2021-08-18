@@ -89,11 +89,10 @@ internal class Frame(subFrameOwner: IrElement, collectAllChanges: Boolean, val i
         throw InterpreterError("$symbol not found") // TODO better message
     }
 
-    fun rewriteState(symbol: IrSymbol, newState: State) {
+    fun rewriteState(symbol: IrSymbol, newState: State?) {
         forEachSubFrame {
-            val oldState = it.loadState(symbol)
-            if (oldState != null) {
-                (currentFrame as? SubFrameWithHistory)?.storeOldValue(symbol, oldState)
+            if (it.containsStateInMemory(symbol)) {
+                (currentFrame as? SubFrameWithHistory)?.storeOldValue(symbol, it.loadState(symbol))
                 return it.rewriteState(symbol, newState)
             }
         }

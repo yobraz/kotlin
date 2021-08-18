@@ -38,7 +38,7 @@ internal abstract class AbstractSubFrame(val owner: IrElement) {
 
     fun containsStateInMemory(symbol: IrSymbol): Boolean = memory[symbol] != null
     fun loadState(symbol: IrSymbol): State? = memory[symbol]?.state?.takeIf { it !is UnknownState }
-    fun rewriteState(symbol: IrSymbol, newState: State) {
+    fun rewriteState(symbol: IrSymbol, newState: State?) {
         memory[symbol]?.state = newState
     }
 
@@ -48,7 +48,7 @@ internal abstract class AbstractSubFrame(val owner: IrElement) {
 internal class SubFrame(owner: IrElement) : AbstractSubFrame(owner)
 
 internal class SubFrameWithHistory(owner: IrElement) : AbstractSubFrame(owner) {
-    val history = mutableMapOf<IrSymbol, State>()
+    val history = mutableMapOf<IrSymbol, State?>()
     val fieldHistory = mutableMapOf<State, MutableMap<IrSymbol, State>>()
 
     fun combineHistory(other: SubFrameWithHistory) {
@@ -66,7 +66,7 @@ internal class SubFrameWithHistory(owner: IrElement) : AbstractSubFrame(owner) {
         }.putIfAbsent(propertySymbol, receiver.getField(propertySymbol)!!)
     }
 
-    fun storeOldValue(symbol: IrSymbol, oldState: State) {
+    fun storeOldValue(symbol: IrSymbol, oldState: State?) {
         if (!history.contains(symbol)) history[symbol] = oldState
     }
 }
