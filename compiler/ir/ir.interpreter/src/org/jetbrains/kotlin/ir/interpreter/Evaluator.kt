@@ -15,13 +15,17 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
 import org.jetbrains.kotlin.ir.interpreter.stack.CallStack
+import org.jetbrains.kotlin.ir.interpreter.state.Common
 import org.jetbrains.kotlin.ir.interpreter.state.State
+import org.jetbrains.kotlin.ir.interpreter.state.Wrapper
 import org.jetbrains.kotlin.ir.interpreter.state.asBooleanOrNull
 import org.jetbrains.kotlin.ir.interpreter.state.convertToStringIfNeeded
 import org.jetbrains.kotlin.ir.interpreter.state.isUnit
+import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
+import org.jetbrains.kotlin.name.SpecialNames
 
 internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementTransformerVoid) {
     internal val environment = IrInterpreterEnvironment(irBuiltIns)
@@ -82,6 +86,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
     }
 
     fun fallbackIrReturn(expression: IrReturn, value: State?): IrReturn {
+        value?.let { callStack.pushState(it) }
         return expression
     }
 
@@ -107,10 +112,16 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
     }
 
     fun fallbackIrCall(expression: IrCall, dispatchReceiver: State?, extensionReceiver: State?, args: List<State?>): IrCall {
-        val actualArgs = listOf(dispatchReceiver, extensionReceiver, *args.toTypedArray()).filterNotNull()
-        if (actualArgs.size != expression.getExpectedArgumentsCount()) return expression
-
         val owner = expression.symbol.owner
+        val actualArgs = listOfNotNull(dispatchReceiver, extensionReceiver, *args.toTypedArray())
+        if (actualArgs.size != expression.getExpectedArgumentsCount()) {
+            val receiver = expression.dispatchReceiver
+            if (receiver is IrGetValue && callStack.containsStateInMemory(receiver.symbol)) {
+                callStack.dropState(receiver.symbol)
+            }
+            return expression
+        }
+
         if (owner.fqName.startsWith("kotlin.") || EvaluationMode.ONLY_BUILTINS.canEvaluateFunction(owner, expression) || EvaluationMode.WITH_ANNOTATIONS.canEvaluateFunction(owner, expression)) {
             checkForDefaultsAndEvaluate(expression, actualArgs)
             // TODO if result is Primitive -> return const
@@ -123,7 +134,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
         if (actualArgs.size != expression.getExpectedArgumentsCount()) return expression
 
         val owner = expression.symbol.owner
-        if (EvaluationMode.ONLY_BUILTINS.canEvaluateFunction(owner) || EvaluationMode.WITH_ANNOTATIONS.canEvaluateFunction(owner)) {
+        if (EvaluationMode.ONLY_BUILTINS.canEvaluateFunction(owner) || EvaluationMode.WITH_ANNOTATIONS.canEvaluateFunction(owner) || Wrapper.mustBeHandledWithWrapper(owner.parentAsClass)) {
             checkForDefaultsAndEvaluate(expression, actualArgs)
         }
         return expression
@@ -202,7 +213,11 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
     }
 
     fun fallbackIrGetValue(expression: IrGetValue, value: State?): IrExpression {
-        value?.let { callStack.pushState(it) }
+        value?.let { callStack.pushState(it) } ?: run {
+            if (expression.symbol.owner.name == SpecialNames.THIS) {
+                expression.type.getClass()?.let { callStack.pushState(Common(it)) }
+            }
+        }
         return expression
     }
 
@@ -280,7 +295,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
 
     fun fallbackIrWhileLoop(expression: IrWhileLoop): IrExpression {
         val newBlock = IrBlockImpl(0, 0, expression.body!!.type)
-        var competed = false
+        var completed = false
 
         callStack.removeAllMutatedVariablesAndFields {
             while (true) {
@@ -290,7 +305,7 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
                     return@removeAllMutatedVariablesAndFields true
                 }
                 if (condition == false) {
-                    competed = true
+                    completed = true
                     break
                 }
 
@@ -314,14 +329,14 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
                     else -> null
                 }
                 if (jump is IrBreak) {
-                    if (jump.loop == expression) { competed = true; break } else return jump
+                    if (jump.loop == expression) { completed = true; break } else return jump
                 } else if (jump is IrContinue) {
                     if (jump.loop == expression) continue else return jump
                 }
             }
             false
         }
-        return if (competed) newBlock else expression
+        return if (completed) newBlock else expression
     }
 
     fun evalIrTypeOperatorValue(expression: IrTypeOperatorCall): State? {
@@ -379,6 +394,22 @@ internal class Evaluator(val irBuiltIns: IrBuiltIns, val transformer: IrElementT
             }
         }
         return args
+    }
+
+    fun evalIrGetClassArgument(expression: IrGetClass): State? {
+        expression.argument = expression.argument.transform(transformer, null)
+        return callStack.tryToPopState()
+    }
+
+    fun fallbackIrGetClass(expression: IrGetClass, argument: State?): IrExpression {
+        if (argument == null) return expression
+        evaluate(expression, listOf(argument), interpretOnly = true)
+        return expression
+    }
+
+    fun fallbackIrClassReference(expression: IrClassReference): IrExpression {
+        evaluate(expression, emptyList(), interpretOnly = true)
+        return expression
     }
 }
 

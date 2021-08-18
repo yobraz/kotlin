@@ -132,4 +132,15 @@ abstract class PartialIrInterpreter(val irBuiltIns: IrBuiltIns) : IrElementTrans
             evaluator.evalIrStringConcatenationArgs(expression)
         )
     }
+
+    override fun visitGetClass(expression: IrGetClass): IrExpression {
+        return evaluator.fallbackIrGetClass(
+            expression,
+            evaluator.evalIrGetClassArgument(expression)
+        )
+    }
+
+    override fun visitClassReference(expression: IrClassReference): IrExpression {
+        return evaluator.fallbackIrClassReference(expression)
+    }
 }

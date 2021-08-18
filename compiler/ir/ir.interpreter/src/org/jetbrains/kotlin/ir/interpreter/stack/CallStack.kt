@@ -74,9 +74,9 @@ internal class CallStack {
         currentFrame.addSubFrame(currentFrameOwner, collectAllChanges)
         if (block()) {
             currentFrame.rollbackAllCollectedChanges()
-            dropSubFrame()
-            collectAllChanges = previous
         }
+        dropSubFrame()
+        collectAllChanges = previous
     }
 
     inline fun removeAllMutatedVariablesAndFields(block: () -> Boolean) {
@@ -85,9 +85,9 @@ internal class CallStack {
         currentFrame.addSubFrame(currentFrameOwner, collectAllChanges)
         if (block()) {
             currentFrame.dropAllVariablesInHistory()
-            dropSubFrame()
-            collectAllChanges = previous
         }
+        dropSubFrame()
+        collectAllChanges = previous
     }
 
     fun returnFromFrameWithResult(irReturn: IrReturn) {

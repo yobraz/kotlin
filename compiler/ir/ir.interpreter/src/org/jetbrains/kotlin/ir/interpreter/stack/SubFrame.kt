@@ -80,4 +80,6 @@ private class DataStack {
 
     fun pop(): State = stack.removeLast()
     fun peek(): State? = stack.lastOrNull()
+
+    override fun toString(): String = stack.toString()
 }
