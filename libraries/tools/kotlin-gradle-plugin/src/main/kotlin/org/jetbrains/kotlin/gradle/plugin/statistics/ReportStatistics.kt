@@ -20,6 +20,7 @@ data class CompileStatData(
     val buildUuid: String = "Unset",
     val kotlinVersion: String = "0.0.0",
     val hostName: String = "Unset",
+    val timeInMillis: Long,
     val nonIncrementalAttributes: Map<BuildAttribute, Int>,
     val statData: Map<BuildTime, Long>
 )

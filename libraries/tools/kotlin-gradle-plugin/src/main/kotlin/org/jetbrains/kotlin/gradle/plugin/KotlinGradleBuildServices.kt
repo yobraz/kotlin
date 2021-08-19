@@ -28,8 +28,7 @@ import java.util.*
 //Support Gradle 6 and less. Move to
 internal class KotlinGradleBuildServices private constructor(
     private val gradle: Gradle,
-    private vararg val gradleListenerProviders: Provider<out OperationCompletionListener>,
-    private val uuid: String
+    private vararg val gradleListenerProviders: Provider<out OperationCompletionListener>
 ) : BuildAdapter() {
 
     companion object {
@@ -81,7 +80,7 @@ internal class KotlinGradleBuildServices private constructor(
                     .value(listOf<ReportStatistics>(ReportStatisticsToElasticSearch))
                 project.rootProject.extensions.findByName("buildScan")
                     ?.also { listeners.add(ReportStatisticsToBuildScan(it as BuildScanExtension, UUID.randomUUID().toString(), "kotlin_version")) }
-                KotlinBuildEsStatListener(project.rootProject.name, listeners.get())
+                KotlinBuildEsStatListener(project.rootProject.name, listeners.get(), UUID.randomUUID().toString())
             }
 
 
@@ -92,7 +91,7 @@ internal class KotlinGradleBuildServices private constructor(
             }
 
             val gradle = project.gradle
-            val services = KotlinGradleBuildServices(gradle, kotlinGradleListenerProvider, kotlinGradleEsListenerProvider, UUID.randomUUID().toString())
+            val services = KotlinGradleBuildServices(gradle, kotlinGradleListenerProvider, kotlinGradleEsListenerProvider)
             if (isConfigurationCacheAvailable(gradle)) {
                 listenerRegistryHolder.listenerRegistry!!.onTaskCompletion(kotlinGradleListenerProvider)
                 listenerRegistryHolder.listenerRegistry.onTaskCompletion(kotlinGradleEsListenerProvider)

@@ -28,7 +28,8 @@ enum class TaskExecutionState {
     ;
 }
 
-class KotlinBuildEsStatListener(val projectName: String, val reportStatistics: List<ReportStatistics>, val buildUuid: String) : OperationCompletionListener, AutoCloseable, TaskExecutionListener {
+class KotlinBuildEsStatListener(val projectName: String, val reportStatistics: List<ReportStatistics>, val buildUuid: String) :
+    OperationCompletionListener, AutoCloseable, TaskExecutionListener {
 
     val label by lazy { CompilerSystemProperties.KOTLIN_STAT_LABEl_PROPERTY.value }
     val hostName by lazy { InetAddress.getLocalHost().hostName }
@@ -70,8 +71,8 @@ class KotlinBuildEsStatListener(val projectName: String, val reportStatistics: L
             duration = duration, taskResult = taskResult.name, label = label,
             statData = statData, projectName = projectName, taskName = taskPath, changes = changes,
             tags = taskExecutionResult?.taskInfo?.properties?.map { it.name } ?: emptyList(),
-            nonIncrementalAttributes = taskExecutionResult?.buildMetrics?.buildAttributes?.asMap()?: emptyMap(),
-            hostName = hostName, kotlinVersion = "1.6", buildUuid = buildUuid
+            nonIncrementalAttributes = taskExecutionResult?.buildMetrics?.buildAttributes?.asMap() ?: emptyMap(),
+            hostName = hostName, kotlinVersion = "1.6", buildUuid = buildUuid, timeInMillis = System.currentTimeMillis()
         )
         reportStatistics.forEach { it.report(compileStatData) }
     }
